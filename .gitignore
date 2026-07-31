@@ -22,3 +22,5 @@ data/processed/*
 !data/raw/freesound/api_responses/README.md
 !data/interim/README.md
 !data/processed/README.md
+
+.vercel

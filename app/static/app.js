@@ -7,6 +7,8 @@ const HARD_WAIT_SECONDS = 90;
 const COLLECTION_KEY = "nature-sound-detective:collection-v1";
 const LOCAL_FEEDBACK_KEY = "nature-sound-detective:feedback-v1";
 const MAX_COLLECTION_ITEMS = 12;
+const API_BASE = String(window.NATURE_API_BASE || "").replace(/\/$/, "");
+const apiUrl = (path) => `${API_BASE}${path}`;
 
 const stages = {
   queued: [18, "正在准备录音"],
@@ -291,6 +293,44 @@ async function decodeBlob(blob) {
   }
 }
 
+async function toAnalysisWav(blob) {
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  try {
+    const buffer = await context.decodeAudioData((await blob.arrayBuffer()).slice(0));
+    const sampleRate = 16000;
+    const frameCount = Math.min(
+      Math.floor(MAX_ANALYSIS_SECONDS * sampleRate),
+      Math.floor(buffer.duration * sampleRate),
+    );
+    const pcm = new Int16Array(frameCount);
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      const sourcePosition = frame * buffer.sampleRate / sampleRate;
+      const left = Math.floor(sourcePosition);
+      const right = Math.min(left + 1, buffer.length - 1);
+      const fraction = sourcePosition - left;
+      let sample = 0;
+      for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+        const values = buffer.getChannelData(channel);
+        sample += values[left] * (1 - fraction) + values[right] * fraction;
+      }
+      sample = Math.max(-1, Math.min(1, sample / buffer.numberOfChannels));
+      pcm[frame] = sample < 0 ? sample * 32768 : sample * 32767;
+    }
+    const wav = new ArrayBuffer(44 + pcm.byteLength);
+    const view = new DataView(wav);
+    const text = (offset, value) => [...value].forEach((char, index) => view.setUint8(offset + index, char.charCodeAt(0)));
+    text(0, "RIFF"); view.setUint32(4, 36 + pcm.byteLength, true); text(8, "WAVE");
+    text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    text(36, "data"); view.setUint32(40, pcm.byteLength, true);
+    new Int16Array(wav, 44).set(pcm);
+    return new Blob([wav], { type: "audio/wav" });
+  } finally {
+    await context.close();
+  }
+}
+
 function samplePeaks(samples, count) {
   const step = Math.max(1, Math.floor(samples.length / count));
   const peaks = [];
@@ -353,14 +393,15 @@ async function startAnalysis() {
   analysisAbortController = new AbortController();
   const startedAt = Date.now();
   const form = new FormData();
-  form.append("audio", selectedBlob, selectedName);
+  const analysisBlob = await toAnalysisWav(selectedBlob);
+  form.append("audio", analysisBlob, "nature-analysis.wav");
   form.append("location", $("location").value.trim() || "杭州");
   updateStage("queued");
   $("progress-help").textContent = "通常需要 20–60 秒";
   showPanel("progress-panel");
   await drawBlobWaveform(selectedBlob, $("progress-wave"), "#28734a", "#edf4ee");
   try {
-    const response = await fetch("/api/analyze", {
+    const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
       body: form,
       signal: analysisAbortController.signal,
@@ -372,7 +413,8 @@ async function startAnalysis() {
       throw submissionError;
     }
     const job = await response.json();
-    await pollJob(job.id, runId, startedAt);
+    if (job.status === "completed") await renderResult(job);
+    else await pollJob(job.id, runId, startedAt);
   } catch (error) {
     if (error?.name === "AbortError" || runId !== activeRunId) return;
     showAnalysisError(error);
@@ -411,7 +453,7 @@ async function pollJob(jobId, runId, startedAt) {
     if (elapsedSeconds >= SOFT_WAIT_SECONDS) {
       $("progress-help").textContent = "比平时久一些，你可以继续等待或取消后重试。";
     }
-    const response = await fetch(`/api/jobs/${jobId}`);
+    const response = await fetch(apiUrl(`/api/jobs/${jobId}`));
     if (!response.ok) throw new Error(await response.text());
     const job = await response.json();
     if (job.status === "failed") {
@@ -508,7 +550,7 @@ async function renderResult(job, { persist = true } = {}) {
   const result = job.result;
   currentJob = job;
   document.querySelector(".parent-details").open = false;
-  $("feedback-block").hidden = Boolean(job.is_demo);
+  $("feedback-block").hidden = Boolean(job.is_demo || job.capabilities?.feedback === false);
   $("feedback-status").textContent = "";
   $("correction-panel").hidden = true;
   $("feedback-yes").disabled = false;
@@ -545,6 +587,9 @@ async function renderResult(job, { persist = true } = {}) {
     return item;
   }));
   const birds = result.bird_species || [];
+  $("scope-note").textContent = job.capabilities?.birdnet === false
+    ? "云端展示版可判断自然声音大类；具体鸟种候选请使用本地完整版。"
+    : "当前可判断自然声音大类；鸟类会补充杭州常见候选种，蛙类和昆虫暂不保证识别到具体物种。";
   $("bird-result").hidden = birds.length === 0;
   $("bird-list").replaceChildren(...birds.map((bird) => {
     const row = document.createElement("div");
@@ -579,7 +624,7 @@ function renderCreation(job) {
   const creation = job.creation || { status: "idle" };
   const status = creation.status || "idle";
   const busy = ["queued", "generating_music", "generating_narration", "generating_video", "composing_video"].includes(status);
-  $("creation-block").hidden = Boolean(job.is_demo);
+  $("creation-block").hidden = Boolean(job.is_demo || job.capabilities?.creation === false);
   $("create-postcard-button").hidden = busy || status === "completed";
   $("create-postcard-button").textContent = status === "partial" || status === "failed" ? "重新尝试" : "开始创作";
   $("creation-progress").hidden = !busy;
@@ -641,14 +686,14 @@ async function startCreation() {
   const token = ++creationPollToken;
   $("create-postcard-button").disabled = true;
   try {
-    const response = await fetch(`/api/jobs/${encodeURIComponent(currentJob.id)}/creation`, { method: "POST" });
+    const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/creation`), { method: "POST" });
     if (!response.ok) throw new Error(await response.text());
     currentJob = await response.json();
     renderCreation(currentJob);
     const deadline = Date.now() + 8 * 60 * 1000;
     while (Date.now() < deadline && token === creationPollToken) {
       await new Promise((resolve) => setTimeout(resolve, 3500));
-      const next = await fetch(`/api/jobs/${encodeURIComponent(currentJob.id)}`);
+      const next = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}`));
       if (!next.ok) throw new Error(await next.text());
       currentJob = await next.json();
       renderCreation(currentJob);
@@ -744,7 +789,7 @@ function renderCollection() {
     open.addEventListener("click", async () => {
       if (job.id && !job.is_demo) {
         try {
-          const response = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`);
+          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`));
           if (response.ok) return renderResult(await response.json(), { persist: false });
         } catch (_) { /* fall back to local snapshot */ }
       }
@@ -766,7 +811,7 @@ function renderCollection() {
 async function deleteCollectionItem(job) {
   if (job.id && !job.is_demo) {
     try {
-      const response = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`, { method: "DELETE" });
+      const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`), { method: "DELETE" });
       if (!response.ok && response.status !== 404) throw new Error("delete failed");
     } catch (_) {
       $("collection-empty").hidden = false;
@@ -783,7 +828,7 @@ async function submitFeedback(isCorrect, correctedType = null) {
   if (!currentJob || currentJob.is_demo) return;
   const payload = { job_id: currentJob.id, is_correct: isCorrect, corrected_type: correctedType };
   try {
-    const response = await fetch("/api/feedback", {
+    const response = await fetch(apiUrl("/api/feedback"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -885,7 +930,7 @@ $("collection-back").addEventListener("click", resetCapture);
 $("clear-collection").addEventListener("click", async () => {
   const items = collectionItems();
   await Promise.allSettled(items.filter((item) => item.id && !item.is_demo).map((item) => (
-    fetch(`/api/jobs/${encodeURIComponent(item.id)}`, { method: "DELETE" })
+    fetch(apiUrl(`/api/jobs/${encodeURIComponent(item.id)}`), { method: "DELETE" })
   )));
   writeCollection([]);
   refreshHistoryButton();

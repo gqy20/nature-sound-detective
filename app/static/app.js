@@ -610,6 +610,11 @@ function renderCreation(job) {
   if (hasVideo) {
     $("creation-video").src = creation.video_url;
     $("download-video").href = creation.video_url;
+    $("video-provider").textContent = ({
+      "wan2.7-t2v": "Wan2.7 · 竖屏",
+      "reused-demo-video": "演示画面 · 竖屏",
+      "local-mock-video": "开发占位 · 竖屏",
+    })[creation.video_provider] || "竖屏";
   } else {
     $("creation-video").removeAttribute("src");
   }
@@ -622,7 +627,10 @@ function renderCreation(job) {
       ? "音乐由 MiniMax Music 3.0 生成"
       : "音乐使用本次自然原声制作";
     const narrationLabel = hasNarration ? "旁白由 MiniMax Speech 生成" : "本次未生成旁白";
-    $("creation-status").textContent = `${musicLabel}，${narrationLabel}；画面由 Wan2.7 生成。`;
+    const videoLabel = creation.video_provider === "wan2.7-t2v"
+      ? "画面由 Wan2.7 生成"
+      : creation.video_provider === "reused-demo-video" ? "画面使用演示素材" : "画面为开发占位素材";
+    $("creation-status").textContent = `${musicLabel}，${narrationLabel}；${videoLabel}。`;
   } else {
     $("creation-status").textContent = "";
   }

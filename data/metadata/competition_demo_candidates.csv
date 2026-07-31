@@ -1,0 +1,4 @@
+scene_id,scene_name,local_path,expected_behavior,selection_reason,human_verified,rehearsal_status,notes
+clear_bird,清晰常见鸟鸣,data/XC1106815 - 白头鹎 - Pycnonotus sinensis.mp3,输出鸟类鸣叫并给出白头鹎候选,BirdNET弱标签基线置信度0.965494,no,pending,必须先人工听音并确认有效叫声位于前20秒
+wind_trees,风和树叶,data/raw/freesound/previews/wind_trees/freesound_243880.mp3,输出风和树叶并生成谨慎科普卡片,已有Qwen探索性测试候选,no,pending,检查许可署名并人工确认主声音
+mixed_park,混合公园声景,data/260110_1015——古铜色卷尾——看见，背景里有黑头穗鹛&白喉扇尾鹟&珠颈斑鸠.wav,展示多个声音线索和不确定性而非强行确认单一物种,文件名和基线均提示混合物种,no,pending,不得用文件名作为真值

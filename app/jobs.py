@@ -41,10 +41,17 @@ class JobStore:
                 }:
                     music_path = Path(creation.get("music_path", ""))
                     if creation.get("music_path") and music_path.exists():
+                        resumable = bool(creation.get("wan_task_id"))
                         creation.update(
                             status="partial",
-                            stage_message="音乐已恢复，视频需要重新生成",
-                            video_error="服务曾在视频生成期间重启",
+                            stage_message=(
+                                "音乐已恢复，可以继续查询原视频任务" if resumable
+                                else "音乐已恢复，视频需要重新生成"
+                            ),
+                            video_error=(
+                                "服务曾在视频生成期间重启，原任务ID已保留" if resumable
+                                else "服务曾在视频生成期间重启"
+                            ),
                         )
                     else:
                         creation = {
@@ -146,7 +153,11 @@ class JobStore:
                 "generating_video", "composing_video"
             }:
                 return self.public(job)
-            job["creation"] = {"status": "queued", "stage_message": "准备创作声音短片"}
+            previous = job.get("creation") or {}
+            job["creation"] = {
+                **previous, "status": "queued", "stage_message": "准备创作声音短片",
+                "error": "", "video_error": "",
+            }
             self._write(job)
         self._creation_executor.submit(self._run_creation, job_id)
         return self.get(job_id)
@@ -162,7 +173,8 @@ class JobStore:
                 self._update(job_id, creation=creation)
 
             creation = service.create(
-                job_id, job["result"], Path(job["audio_path"]), job["location"], progress
+                job_id, job["result"], Path(job["audio_path"]), job["location"], progress,
+                previous_creation=job.get("creation") or {},
             )
             if not self._update(job_id, creation=creation):
                 for key in ("music_path", "narration_path", "video_path"):

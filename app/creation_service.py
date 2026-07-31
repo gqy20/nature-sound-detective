@@ -21,6 +21,7 @@ from app.minimax_service import generate_narration
 
 
 CreationProgress = Callable[[str, str, dict[str, Any] | None], None]
+TaskCreated = Callable[[str], None]
 
 
 def _api_base() -> str:
@@ -117,6 +118,65 @@ def create_local_nature_mix(source: Path, destination: Path, primary: str) -> No
         tone.unlink(missing_ok=True)
 
 
+def trim_audio_excerpt(source: Path, destination: Path, duration: int = 20) -> None:
+    """Keep a short, reusable excerpt instead of storing the full generated track."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("服务器没有安装 ffmpeg，无法裁剪音乐")
+    source_duration = duration_seconds(source)
+    start = 8 if source_duration > duration + 12 else 0
+    target = destination
+    temporary = destination.with_suffix(".excerpt.mp3") if source.resolve() == destination.resolve() else destination
+    completed = subprocess.run(
+        [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-ss", str(start),
+            "-i", str(source), "-t", str(duration),
+            "-af", f"afade=t=in:st=0:d=0.5,afade=t=out:st={max(0, duration - 1)}:d=1",
+            "-c:a", "libmp3lame", "-b:a", "192k", str(temporary),
+        ],
+        capture_output=True, text=True, timeout=120,
+    )
+    if completed.returncode != 0 or not temporary.exists():
+        raise RuntimeError(completed.stderr.strip()[-500:] or "音乐裁剪失败")
+    if temporary != target:
+        temporary.replace(target)
+
+
+def create_mock_video(destination: Path, duration: int) -> None:
+    """Create a local vertical placeholder so development never spends video credits."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("服务器没有安装 ffmpeg，无法生成本地占位视频")
+    completed = subprocess.run(
+        [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
+            "-f", "lavfi", "-i", f"color=c=#dce8de:s=720x1280:r=24:d={duration}",
+            "-vf", "noise=alls=5:allf=t+u,fade=t=in:st=0:d=0.6,fade=t=out:st="
+            f"{max(0, duration - 0.8)}:d=0.8",
+            "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-an", str(destination),
+        ],
+        capture_output=True, text=True, timeout=120,
+    )
+    if completed.returncode != 0 or not destination.exists():
+        raise RuntimeError(completed.stderr.strip()[-500:] or "本地占位视频生成失败")
+
+
+def reuse_video(source: Path, destination: Path, duration: int) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("服务器没有安装 ffmpeg，无法复用演示视频")
+    completed = subprocess.run(
+        [
+            ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-stream_loop", "-1",
+            "-i", str(source), "-t", str(duration), "-map", "0:v:0", "-an",
+            "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", str(destination),
+        ],
+        capture_output=True, text=True, timeout=180,
+    )
+    if completed.returncode != 0 or not destination.exists():
+        raise RuntimeError(completed.stderr.strip()[-500:] or "演示视频复用失败")
+
+
 def _download(client: httpx.Client, url: str, destination: Path) -> None:
     with client.stream("GET", url) as response:
         response.raise_for_status()
@@ -125,7 +185,13 @@ def _download(client: httpx.Client, url: str, destination: Path) -> None:
                 handle.write(chunk)
 
 
-def generate_wan_video(prompt: str, destination: Path, duration: int = 10) -> str:
+def generate_wan_video(
+    prompt: str,
+    destination: Path,
+    duration: int = 10,
+    existing_task_id: str = "",
+    on_task_created: TaskCreated | None = None,
+) -> str:
     if os.getenv("WAN_VIDEO_ENABLED", "true").lower() not in {"1", "true", "yes"}:
         raise RuntimeError("Wan 视频生成未启用")
     api_key = os.environ["DASHSCOPE_API_KEY"]
@@ -138,27 +204,31 @@ def generate_wan_video(prompt: str, destination: Path, duration: int = 10) -> st
     }
     transport = httpx.HTTPTransport(retries=3)
     with httpx.Client(timeout=httpx.Timeout(90, connect=30), transport=transport) as client:
-        response = client.post(
-            f"{base}/services/aigc/video-generation/video-synthesis",
-            headers=headers,
-            json={
-                "model": model,
-                "input": {
-                    "prompt": prompt,
-                    "negative_prompt": "字幕，文字，水印以外的标识，儿童正脸，捕捉动物，触摸动物，畸形，低清晰度",
-                },
-                "parameters": {
-                    "resolution": "720P", "ratio": "9:16", "duration": duration,
-                    "prompt_extend": True, "watermark": True,
-                },
-            },
-        )
-        if response.is_error:
-            raise RuntimeError(f"Wan2.7 创建失败：{response.text[:800]}")
-        payload = response.json()
-        task_id = payload.get("output", {}).get("task_id")
+        task_id = existing_task_id
         if not task_id:
-            raise RuntimeError(f"Wan2.7 没有返回任务ID：{json.dumps(payload, ensure_ascii=False)[:500]}")
+            response = client.post(
+                f"{base}/services/aigc/video-generation/video-synthesis",
+                headers=headers,
+                json={
+                    "model": model,
+                    "input": {
+                        "prompt": prompt,
+                        "negative_prompt": "字幕，文字，水印以外的标识，儿童正脸，捕捉动物，触摸动物，畸形，低清晰度",
+                    },
+                    "parameters": {
+                        "resolution": "720P", "ratio": "9:16", "duration": duration,
+                        "prompt_extend": True, "watermark": True,
+                    },
+                },
+            )
+            if response.is_error:
+                raise RuntimeError(f"Wan2.7 创建失败：{response.text[:800]}")
+            payload = response.json()
+            task_id = str(payload.get("output", {}).get("task_id") or "")
+            if not task_id:
+                raise RuntimeError(f"Wan2.7 没有返回任务ID：{json.dumps(payload, ensure_ascii=False)[:500]}")
+            if on_task_created:
+                on_task_created(task_id)
         deadline = time.monotonic() + 7 * 60
         while time.monotonic() < deadline:
             time.sleep(10)
@@ -176,6 +246,34 @@ def generate_wan_video(prompt: str, destination: Path, duration: int = 10) -> st
             if status in {"FAILED", "CANCELED", "UNKNOWN"}:
                 raise RuntimeError(f"Wan2.7 任务失败：{output.get('message') or status}")
         raise RuntimeError("Wan2.7 生成超过7分钟")
+
+
+def prepare_video(
+    prompt: str,
+    destination: Path,
+    duration: int,
+    existing_task_id: str = "",
+    on_task_created: TaskCreated | None = None,
+) -> tuple[str, str]:
+    """Select an explicit-cost video backend. Live calls require WAN_VIDEO_MODE=live."""
+    mode = os.getenv("WAN_VIDEO_MODE", "mock").strip().lower()
+    if mode == "live":
+        task_id = generate_wan_video(
+            prompt, destination, duration, existing_task_id=existing_task_id,
+            on_task_created=on_task_created,
+        )
+        return "wan2.7-t2v", task_id
+    if mode == "reuse":
+        configured = os.getenv("WAN_VIDEO_REUSE_PATH", "").strip()
+        candidates = [Path(configured)] if configured else sorted(
+            GENERATED_DIR.glob("*_postcard.mp4"), key=lambda path: path.stat().st_mtime, reverse=True
+        )
+        source = next((path for path in candidates if path.exists()), None)
+        if source:
+            reuse_video(source, destination, duration)
+            return "reused-demo-video", ""
+    create_mock_video(destination, duration)
+    return "local-mock-video", ""
 
 
 def mux_story_audio(video: Path, music: Path, narration: Path, nature: Path, destination: Path) -> None:
@@ -230,6 +328,7 @@ class CreationService:
         audio_path: Path,
         location: str,
         progress: CreationProgress,
+        previous_creation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
         plan = build_creation_plan(result, location)
@@ -242,13 +341,24 @@ class CreationService:
         progress("generating_music", "正在把自然声音变成音乐", {"plan": plan})
         if music_path.exists():
             music_warning = "复用上一次已完成的 MiniMax 音乐"
+            excerpt_seconds = int(os.getenv("MINIMAX_MUSIC_EXCERPT_SECONDS", "20"))
+            if duration_seconds(music_path) > excerpt_seconds + 1:
+                trim_audio_excerpt(music_path, music_path, excerpt_seconds)
+                music_warning += "，并裁剪为短片片段"
         else:
+            full_music_path = music_path.with_suffix(".full.mp3")
             try:
-                generate_minimax_music(plan["music_prompt"], music_path)
+                generate_minimax_music(plan["music_prompt"], full_music_path)
+                trim_audio_excerpt(
+                    full_music_path, music_path,
+                    int(os.getenv("MINIMAX_MUSIC_EXCERPT_SECONDS", "20")),
+                )
             except Exception as exc:
                 music_provider = "local-nature-remix"
                 music_warning = str(exc)
                 create_local_nature_mix(audio_path, music_path, result.get("primary_sound_type", ""))
+            finally:
+                full_music_path.unlink(missing_ok=True)
 
         progress("generating_narration", "正在生成儿童科普旁白", {
             "plan": plan, "music_provider": music_provider, "music_warning": music_warning,
@@ -262,6 +372,7 @@ class CreationService:
                 narration_warning = str(exc)
         narration_duration = duration_seconds(narration_path) if narration_path.exists() else 0
         video_duration = max(5, min(15, math.ceil(narration_duration + 0.6) if narration_duration else 10))
+        prior = previous_creation or {}
 
         creation: dict[str, Any] = {
             "status": "generating_video",
@@ -279,14 +390,29 @@ class CreationService:
             "narration_duration_seconds": narration_duration,
             "video_path": "",
             "video_url": "",
-            "video_provider": "wan2.7-t2v",
+            "video_provider": str(prior.get("video_provider") or "pending"),
             "video_error": "",
+            "wan_task_id": str(prior.get("wan_task_id") or ""),
         }
-        progress("generating_video", "正在生成科普短片，通常需要1–5分钟", creation)
+        video_mode = os.getenv("WAN_VIDEO_MODE", "mock").strip().lower()
+        stage_message = (
+            "正在生成科普短片，通常需要1–5分钟" if video_mode == "live"
+            else "正在准备本地演示画面"
+        )
+        progress("generating_video", stage_message, creation)
         try:
             timed_prompt = f"生成一支{video_duration}秒短片。{plan['video_prompt']}"
-            task_id = generate_wan_video(timed_prompt, raw_video_path, video_duration)
-            progress("composing_video", "正在合成音乐和画面", {**creation, "wan_task_id": task_id})
+            def persist_task(task_id: str) -> None:
+                creation.update({"wan_task_id": task_id, "video_provider": "wan2.7-t2v"})
+                progress("generating_video", "视频任务已提交，正在等待结果", creation)
+
+            provider, task_id = prepare_video(
+                timed_prompt, raw_video_path, video_duration,
+                existing_task_id=str(prior.get("wan_task_id") or ""),
+                on_task_created=persist_task,
+            )
+            creation.update({"video_provider": provider, "wan_task_id": task_id})
+            progress("composing_video", "正在合成音乐、旁白和自然原声", creation)
             if narration_path.exists():
                 mux_story_audio(raw_video_path, music_path, narration_path, audio_path, video_path)
             else:

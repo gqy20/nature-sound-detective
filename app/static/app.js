@@ -43,6 +43,7 @@ let activeRunId = 0;
 let analysisAbortController = null;
 let selectedAudioValid = false;
 let currentJob = null;
+let creationPollToken = 0;
 
 function showPanel(id) {
   const captureFlow = id === "capture-panel" || id === "ready-panel";
@@ -64,6 +65,7 @@ function resetCapture() {
   selectedDuration = 0;
   selectedAudioValid = false;
   currentJob = null;
+  creationPollToken += 1;
   fingerprintReady = false;
   if (previewUrl) URL.revokeObjectURL(previewUrl);
   previewUrl = null;
@@ -554,6 +556,7 @@ async function renderResult(job, { persist = true } = {}) {
     row.append(name, confidence);
     return row;
   }));
+  renderCreation(job);
 
   let peaks;
   try {
@@ -570,6 +573,91 @@ async function renderResult(job, { persist = true } = {}) {
   refreshHistoryButton();
   $("result-title").focus({ preventScroll: true });
   $("result-panel").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+}
+
+function renderCreation(job) {
+  const creation = job.creation || { status: "idle" };
+  const status = creation.status || "idle";
+  const busy = ["queued", "generating_music", "generating_narration", "generating_video", "composing_video"].includes(status);
+  $("creation-block").hidden = Boolean(job.is_demo);
+  $("create-postcard-button").hidden = busy || status === "completed";
+  $("create-postcard-button").textContent = status === "partial" || status === "failed" ? "重新尝试" : "开始创作";
+  $("creation-progress").hidden = !busy;
+  $("creation-stage").textContent = creation.stage_message || "正在准备创作";
+
+  const hasMusic = Boolean(creation.music_url);
+  const hasNarration = Boolean(creation.narration_url);
+  const hasVideo = Boolean(creation.video_url);
+  $("creation-media").hidden = !hasMusic && !hasNarration && !hasVideo;
+  $("music-result").hidden = !hasMusic;
+  $("narration-result").hidden = !hasNarration;
+  $("video-result").hidden = !hasVideo;
+  if (hasMusic) {
+    $("creation-audio").src = creation.music_url;
+    $("download-music").href = creation.music_url;
+    $("music-provider").textContent = creation.music_provider === "minimax-music"
+      ? "MiniMax Music 3.0"
+      : "原声混音";
+  } else {
+    $("creation-audio").removeAttribute("src");
+  }
+  if (hasNarration) {
+    $("creation-narration").src = creation.narration_url;
+    $("download-narration").href = creation.narration_url;
+  } else {
+    $("creation-narration").removeAttribute("src");
+  }
+  if (hasVideo) {
+    $("creation-video").src = creation.video_url;
+    $("download-video").href = creation.video_url;
+  } else {
+    $("creation-video").removeAttribute("src");
+  }
+  if (status === "partial") {
+    $("creation-status").textContent = `音乐已经完成；视频暂时没有生成。${creation.video_error || "可以稍后重试。"}`;
+  } else if (status === "failed") {
+    $("creation-status").textContent = creation.error || "创作没有完成，可以重新尝试。";
+  } else if (status === "completed") {
+    const musicLabel = creation.music_provider === "minimax-music"
+      ? "音乐由 MiniMax Music 3.0 生成"
+      : "音乐使用本次自然原声制作";
+    const narrationLabel = hasNarration ? "旁白由 MiniMax Speech 生成" : "本次未生成旁白";
+    $("creation-status").textContent = `${musicLabel}，${narrationLabel}；画面由 Wan2.7 生成。`;
+  } else {
+    $("creation-status").textContent = "";
+  }
+}
+
+async function startCreation() {
+  if (!currentJob || currentJob.is_demo) return;
+  const token = ++creationPollToken;
+  $("create-postcard-button").disabled = true;
+  try {
+    const response = await fetch(`/api/jobs/${encodeURIComponent(currentJob.id)}/creation`, { method: "POST" });
+    if (!response.ok) throw new Error(await response.text());
+    currentJob = await response.json();
+    renderCreation(currentJob);
+    const deadline = Date.now() + 8 * 60 * 1000;
+    while (Date.now() < deadline && token === creationPollToken) {
+      await new Promise((resolve) => setTimeout(resolve, 3500));
+      const next = await fetch(`/api/jobs/${encodeURIComponent(currentJob.id)}`);
+      if (!next.ok) throw new Error(await next.text());
+      currentJob = await next.json();
+      renderCreation(currentJob);
+      const status = currentJob.creation?.status;
+      if (["completed", "partial", "failed"].includes(status)) {
+        saveToCollection(currentJob);
+        return;
+      }
+    }
+    if (token === creationPollToken) $("creation-status").textContent = "生成仍在继续，可以稍后从声音册回来查看。";
+  } catch (error) {
+    $("creation-progress").hidden = true;
+    $("create-postcard-button").hidden = false;
+    $("creation-status").textContent = readableError(error);
+  } finally {
+    $("create-postcard-button").disabled = false;
+  }
 }
 
 function collectionItems() {
@@ -645,7 +733,15 @@ function renderCollection() {
     open.className = "collection-open";
     open.type = "button";
     open.textContent = "查看";
-    open.addEventListener("click", () => renderResult(job, { persist: false }));
+    open.addEventListener("click", async () => {
+      if (job.id && !job.is_demo) {
+        try {
+          const response = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`);
+          if (response.ok) return renderResult(await response.json(), { persist: false });
+        } catch (_) { /* fall back to local snapshot */ }
+      }
+      return renderResult(job, { persist: false });
+    });
     const remove = document.createElement("button");
     remove.className = "collection-delete";
     remove.type = "button";
@@ -761,6 +857,7 @@ $("save-card-button").addEventListener("click", () => {
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   }, "image/png");
 });
+$("create-postcard-button").addEventListener("click", startCreation);
 $("feedback-yes").addEventListener("click", () => submitFeedback(true));
 $("feedback-no").addEventListener("click", () => {
   $("correction-panel").hidden = false;

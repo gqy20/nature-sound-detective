@@ -9,6 +9,7 @@ from typing import Any
 from uuid import uuid4
 
 from app.config import JOB_DIR
+from app.creation_service import CreationService
 from app.pipeline import AnalysisPipeline
 
 
@@ -17,6 +18,7 @@ class JobStore:
         self._jobs: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="nature-job")
+        self._creation_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="creation-job")
         self._pipeline: AnalysisPipeline | None = None
         self._load_existing()
 
@@ -31,6 +33,26 @@ class JobStore:
                     job["status"] = "failed"
                     job["stage_message"] = "服务重启，请重新提交录音"
                     job["error"] = "上一次识别没有完成"
+                    self._write(job)
+                creation = job.get("creation") or {"status": "idle", "stage_message": ""}
+                if creation.get("status") in {
+                    "queued", "generating_music", "generating_narration",
+                    "generating_video", "composing_video"
+                }:
+                    music_path = Path(creation.get("music_path", ""))
+                    if creation.get("music_path") and music_path.exists():
+                        creation.update(
+                            status="partial",
+                            stage_message="音乐已恢复，视频需要重新生成",
+                            video_error="服务曾在视频生成期间重启",
+                        )
+                    else:
+                        creation = {
+                            "status": "failed",
+                            "stage_message": "创作曾被服务重启中断",
+                            "error": "请重新开始创作",
+                        }
+                    job["creation"] = creation
                     self._write(job)
                 self._jobs[job["id"]] = job
             except (OSError, json.JSONDecodeError, KeyError):
@@ -55,6 +77,7 @@ class JobStore:
             "audio_path": str(audio_path),
             "result": None,
             "error": None,
+            "creation": {"status": "idle", "stage_message": ""},
         }
         with self._lock:
             self._jobs[job_id] = job
@@ -62,12 +85,15 @@ class JobStore:
         self._executor.submit(self._run, job_id)
         return self.public(job)
 
-    def _update(self, job_id: str, **changes: Any) -> None:
+    def _update(self, job_id: str, **changes: Any) -> bool:
         with self._lock:
-            job = self._jobs[job_id]
+            job = self._jobs.get(job_id)
+            if not job:
+                return False
             job.update(changes)
             job["updated_at"] = datetime.now(timezone.utc).isoformat()
             self._write(job)
+            return True
 
     def _run(self, job_id: str) -> None:
         try:
@@ -100,7 +126,58 @@ class JobStore:
 
     @staticmethod
     def public(job: dict[str, Any]) -> dict[str, Any]:
-        return {key: value for key, value in job.items() if key != "audio_path"}
+        value = json.loads(json.dumps(job))
+        value.pop("audio_path", None)
+        creation = value.get("creation") or {}
+        for key in ("music_path", "narration_path", "video_path"):
+            creation.pop(key, None)
+        return value
+
+    def start_creation(self, job_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return None
+            if job.get("status") != "completed":
+                raise ValueError("声音识别尚未完成")
+            status = (job.get("creation") or {}).get("status", "idle")
+            if status in {
+                "queued", "generating_music", "generating_narration",
+                "generating_video", "composing_video"
+            }:
+                return self.public(job)
+            job["creation"] = {"status": "queued", "stage_message": "准备创作声音短片"}
+            self._write(job)
+        self._creation_executor.submit(self._run_creation, job_id)
+        return self.get(job_id)
+
+    def _run_creation(self, job_id: str) -> None:
+        try:
+            service = CreationService()
+            job = self._jobs[job_id]
+
+            def progress(status: str, message: str, details: dict[str, Any] | None = None) -> None:
+                creation = {**(job.get("creation") or {}), **(details or {})}
+                creation.update(status=status, stage_message=message)
+                self._update(job_id, creation=creation)
+
+            creation = service.create(
+                job_id, job["result"], Path(job["audio_path"]), job["location"], progress
+            )
+            if not self._update(job_id, creation=creation):
+                for key in ("music_path", "narration_path", "video_path"):
+                    if creation.get(key):
+                        Path(creation[key]).unlink(missing_ok=True)
+        except Exception as exc:
+            self._update(job_id, creation={
+                "status": "failed", "stage_message": "创作没有完成", "error": str(exc)
+            })
+
+    def creation_media_path(self, job_id: str, kind: str) -> Path | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            path = (job or {}).get("creation", {}).get(f"{kind}_path")
+            return Path(path) if path else None
 
     def audio_path(self, job_id: str) -> Path | None:
         with self._lock:
@@ -113,5 +190,9 @@ class JobStore:
         if not job:
             return False
         Path(job["audio_path"]).unlink(missing_ok=True)
+        for key in ("music_path", "narration_path", "video_path"):
+            media_path = (job.get("creation") or {}).get(key)
+            if media_path:
+                Path(media_path).unlink(missing_ok=True)
         (JOB_DIR / f"{job_id}.json").unlink(missing_ok=True)
         return True

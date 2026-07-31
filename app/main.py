@@ -124,6 +124,41 @@ def get_job_audio(job_id: str) -> FileResponse:
     return FileResponse(path, media_type="audio/wav", filename="nature-recording.wav")
 
 
+@app.post("/api/jobs/{job_id}/creation", status_code=202)
+def start_creation(job_id: str) -> dict:
+    try:
+        job = jobs.start_creation(job_id)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if not job:
+        raise HTTPException(404, "没有找到这次声音分析")
+    return job
+
+
+@app.get("/api/jobs/{job_id}/creation/music")
+def get_creation_music(job_id: str) -> FileResponse:
+    path = jobs.creation_media_path(job_id, "music")
+    if not path or not path.exists():
+        raise HTTPException(404, "自然声音乐还没有生成")
+    return FileResponse(path, media_type="audio/mpeg", filename="nature-remix.mp3")
+
+
+@app.get("/api/jobs/{job_id}/creation/narration")
+def get_creation_narration(job_id: str) -> FileResponse:
+    path = jobs.creation_media_path(job_id, "narration")
+    if not path or not path.exists():
+        raise HTTPException(404, "科普旁白还没有生成")
+    return FileResponse(path, media_type="audio/mpeg", filename="nature-narration.mp3")
+
+
+@app.get("/api/jobs/{job_id}/creation/video")
+def get_creation_video(job_id: str) -> FileResponse:
+    path = jobs.creation_media_path(job_id, "video")
+    if not path or not path.exists():
+        raise HTTPException(404, "科普短片还没有生成")
+    return FileResponse(path, media_type="video/mp4", filename="nature-postcard.mp4")
+
+
 @app.delete("/api/jobs/{job_id}", status_code=204)
 def delete_job(job_id: str) -> None:
     if not jobs.delete(job_id):

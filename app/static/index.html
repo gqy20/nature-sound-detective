@@ -106,6 +106,42 @@
         </article>
       </div>
 
+      <section id="creation-block" class="creation-block" aria-labelledby="creation-title">
+        <div class="creation-copy">
+          <p class="eyebrow">把这次发现带回家</p>
+          <h3 id="creation-title">生成自然声音短片</h3>
+          <p id="creation-description">把声音线索变成一段自然声音乐和竖屏科普短片。</p>
+        </div>
+        <button id="create-postcard-button" class="primary-button compact" type="button">开始创作</button>
+        <div id="creation-progress" class="creation-progress" hidden role="status" aria-live="polite">
+          <span class="creation-spinner" aria-hidden="true"></span>
+          <div>
+            <strong id="creation-stage">正在准备创作</strong>
+            <p>音乐通常需要几十秒，视频可能需要 1–5 分钟。可以离开页面，稍后从声音册回来查看。</p>
+          </div>
+        </div>
+        <div id="creation-media" class="creation-media" hidden>
+          <div class="creation-audio-stack">
+            <div id="narration-result" class="media-result" hidden>
+              <div class="media-result-heading"><strong>科普旁白</strong><span>MiniMax Speech 2.8 HD</span></div>
+              <audio id="creation-narration" controls preload="metadata"></audio>
+              <a id="download-narration" class="secondary-button media-download" download>保存旁白</a>
+            </div>
+            <div id="music-result" class="media-result" hidden>
+              <div class="media-result-heading"><strong>自然声音乐</strong><span id="music-provider"></span></div>
+              <audio id="creation-audio" controls preload="metadata"></audio>
+              <a id="download-music" class="secondary-button media-download" download>保存音乐</a>
+            </div>
+          </div>
+          <div id="video-result" class="media-result" hidden>
+            <div class="media-result-heading"><strong>科普短片</strong><span>Wan2.7 · 竖屏</span></div>
+            <video id="creation-video" controls playsinline preload="metadata"></video>
+            <a id="download-video" class="primary-button media-download" download>保存短片</a>
+          </div>
+        </div>
+        <p id="creation-status" class="creation-status" aria-live="polite"></p>
+      </section>
+
       <details class="parent-details">
         <summary>家长查看依据</summary>
         <div class="evidence-block">

@@ -14,8 +14,10 @@ import app.jobs as jobs_module
 def test_cleanup_removes_only_expired_runtime_files(tmp_path, monkeypatch):
     uploads = tmp_path / "uploads"
     jobs = tmp_path / "jobs"
+    generated = tmp_path / "generated"
     uploads.mkdir()
     jobs.mkdir()
+    generated.mkdir()
     old_audio = uploads / "old.wav"
     recent_audio = uploads / "recent.wav"
     old_job = jobs / "old.json"
@@ -26,6 +28,7 @@ def test_cleanup_removes_only_expired_runtime_files(tmp_path, monkeypatch):
     os.utime(old_job, (old_timestamp, old_timestamp))
     monkeypatch.setattr(config, "UPLOAD_DIR", uploads)
     monkeypatch.setattr(config, "JOB_DIR", jobs)
+    monkeypatch.setattr(config, "GENERATED_DIR", generated)
 
     removed = config.cleanup_expired_runtime()
 
@@ -74,3 +77,4 @@ def test_job_store_restores_completed_jobs_after_restart(tmp_path, monkeypatch):
         assert store.audio_path("restored-job") == audio
     finally:
         store._executor.shutdown(wait=True)
+        store._creation_executor.shutdown(wait=True)

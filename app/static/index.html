@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173c2a">
+  <meta name="description" content="录下杭州的自然声音，认识鸟鸣、蛙声、虫鸣和身边的声景。">
+  <title>自然声探员</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#capture-panel">跳到录音区</a>
+  <main class="shell">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="自然声探员首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>自然声探员</span>
+      </a>
+      <span class="place">杭州亲子自然观察</span>
+    </header>
+
+    <section class="intro" id="intro">
+      <div class="intro-copy">
+        <p class="eyebrow">把耳朵借给大自然</p>
+        <h1>听见身边正在发生的生命。</h1>
+        <p class="lede">录下身边的声音，寻找鸟、青蛙和昆虫的线索。</p>
+      </div>
+      <div class="capture-station">
+        <div id="capture-panel" class="capture-panel">
+          <div id="capture-visual" class="capture-visual" aria-label="实时声音波形">
+            <canvas id="live-wave" width="320" height="320"></canvas>
+            <span class="capture-center" aria-hidden="true"></span>
+          </div>
+          <button id="record-button" class="record-button" type="button">
+            <span class="record-dot" aria-hidden="true"></span>
+            <span id="record-label">开始录音</span>
+          </button>
+          <div id="timer" class="timer" aria-live="polite">20秒以内</div>
+          <div class="location-compact">
+            <label for="location">地点</label>
+            <input id="location" value="杭州" maxlength="80" autocomplete="off">
+          </div>
+          <div class="capture-tools" aria-label="其他方式">
+            <button id="upload-button" class="upload-link" type="button">选择已有录音</button>
+            <button id="demo-button" class="history-button" type="button">试用示例</button>
+            <button id="history-button" class="history-button" type="button">声音册</button>
+          </div>
+          <input id="file-input" type="file" accept="audio/*" hidden>
+          <p id="capture-help" class="help">靠近目标声音，避开人声和车辆。</p>
+          <p class="privacy-hint">录音用于本次识别，服务器默认保存不超过 24 小时。</p>
+        </div>
+
+        <div id="ready-panel" class="ready-panel" hidden>
+          <canvas id="ready-wave" width="640" height="180" aria-label="本次录音波形"></canvas>
+          <div class="ready-meta">
+            <div>
+              <strong id="file-name">户外录音</strong>
+            </div>
+            <button id="clear-button" class="text-button" type="button">重新选择</button>
+          </div>
+          <p id="clip-notice" class="clip-notice" aria-live="polite"></p>
+          <p id="quality-notice" class="quality-notice" aria-live="polite"></p>
+          <audio id="preview" controls></audio>
+          <button id="analyze-button" class="primary-button" type="button">听听这是什么</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="progress-panel" class="progress-panel" hidden aria-live="polite">
+      <div class="analysis-visual" aria-hidden="true">
+        <canvas id="progress-wave" width="900" height="260"></canvas>
+        <span class="scan-line"></span>
+      </div>
+      <h2 id="stage-message">录音已经收到</h2>
+      <div class="stage-track" aria-hidden="true"><span id="stage-fill"></span></div>
+      <p id="progress-help" class="progress-help">通常需要 20–60 秒</p>
+      <button id="cancel-button" class="text-button cancel-button" type="button">取消识别</button>
+    </section>
+
+    <section id="result-panel" class="result-panel" hidden>
+      <h2 id="result-title" class="sr-only" tabindex="-1">今天听见了什么</h2>
+      <div class="result-meta">
+        <span id="confidence" class="confidence"></span>
+      </div>
+
+      <div class="result-layout">
+        <div class="fingerprint-block">
+          <canvas id="fingerprint-canvas" width="900" height="1000" aria-label="本次声音指纹卡"></canvas>
+          <div class="card-actions">
+            <button id="play-card-button" class="secondary-button" type="button">播放录音</button>
+            <button id="save-card-button" class="primary-button compact" type="button">保存卡片</button>
+          </div>
+          <p id="save-status" class="save-status" aria-live="polite"></p>
+          <audio id="result-audio" controls hidden></audio>
+        </div>
+
+        <article class="story-block">
+          <div id="sound-tags" class="sr-only" aria-label="识别到的声音"></div>
+          <p id="child-explanation"></p>
+          <div class="question-block">
+            <span>继续观察</span>
+            <strong id="observation-question"></strong>
+          </div>
+          <p id="safety-note" class="safety-note"></p>
+        </article>
+      </div>
+
+      <details class="parent-details">
+        <summary>家长查看依据</summary>
+        <div class="evidence-block">
+          <h3 class="sr-only">判断依据</h3>
+          <p id="possible-sounds" class="possible-sounds" hidden></p>
+          <ul id="evidence-list"></ul>
+          <div id="bird-result" class="bird-result" hidden>
+            <h3>BirdNET鸟种候选</h3>
+            <div id="bird-list"></div>
+          </div>
+          <p id="uncertainty" class="uncertainty"></p>
+          <p class="scope-note">当前可判断自然声音大类；鸟类会补充杭州常见候选种，蛙类和昆虫暂不保证识别到具体物种。</p>
+        </div>
+      </details>
+
+      <section id="feedback-block" class="feedback-block" aria-labelledby="feedback-title">
+        <h3 id="feedback-title">这个结果像吗？</h3>
+        <div class="feedback-actions">
+          <button id="feedback-yes" class="secondary-button compact-control" type="button">像</button>
+          <button id="feedback-no" class="secondary-button compact-control" type="button">不太像</button>
+        </div>
+        <div id="correction-panel" class="correction-panel" hidden>
+          <label for="corrected-type">你觉得更像</label>
+          <select id="corrected-type">
+            <option value="无法判断">听不出来</option>
+            <option>鸟类鸣叫</option>
+            <option>蛙类鸣叫</option>
+            <option>昆虫鸣叫</option>
+            <option>雨水</option>
+            <option>流水</option>
+            <option>风和树叶</option>
+            <option>人声</option>
+            <option>交通或机械噪声</option>
+          </select>
+          <button id="submit-correction" class="primary-button compact" type="button">提交更正</button>
+        </div>
+        <p id="feedback-status" class="feedback-status" aria-live="polite"></p>
+      </section>
+
+      <button id="restart-button" class="secondary-button" type="button">识别新声音</button>
+    </section>
+
+    <section id="collection-panel" class="collection-panel" hidden aria-labelledby="collection-title">
+      <div class="collection-header">
+        <div>
+          <p class="eyebrow">保存在当前设备</p>
+          <h2 id="collection-title" tabindex="-1">我的声音册</h2>
+        </div>
+        <button id="collection-back" class="secondary-button" type="button">返回录音</button>
+      </div>
+      <p id="collection-empty" class="collection-empty">还没有声音记录。完成一次识别后，它会出现在这里。</p>
+      <div id="collection-list" class="collection-list"></div>
+      <button id="clear-collection" class="text-button danger-text" type="button" hidden>删除全部本机记录</button>
+    </section>
+
+    <section id="error-panel" class="error-panel" hidden role="alert">
+      <h2 id="error-title" tabindex="-1">录音分析没有完成</h2>
+      <p id="error-message"></p>
+      <button id="error-retry" class="secondary-button" type="button">重新尝试</button>
+    </section>
+
+    <footer>
+      <p>识别结果仅供自然观察参考。</p>
+      <details class="privacy-details">
+        <summary>录音与隐私</summary>
+        <p>录音可能包含环境人声。服务器文件默认在 24 小时后清理；声音册仅保存在当前设备，可随时删除。</p>
+      </details>
+    </footer>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

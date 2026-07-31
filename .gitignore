@@ -6,6 +6,8 @@ __pycache__/
 artifacts/
 models/
 .env
+outputs/
+.playwright-cli/
 PROFILE
 *.log
 data/*.wav

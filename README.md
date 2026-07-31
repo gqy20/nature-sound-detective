@@ -10,6 +10,8 @@
 - 建立包含 76 条录音的本地人工复核工具；
 - 完成 BirdNET 2.4 第二阶段基线；
 - 生成 142 个三秒候选片段，并按源录音隔离训练、验证和测试集合。
+- 跑通 Qwen3.5-Omni + BirdNET 亲子识别 MVP，并加入 20 秒输入提示、可取消等待、谨慎置信度、儿童内容安全护栏和上一次结果恢复。
+- 完成体验增强：无模型示例、录音音质检查、结果纠错、本机声音册、分类错误恢复和 24 小时录音清理。
 
 所有机器标签均为候选标签，未经人工试听确认的数据不能作为正式测试集。
 
@@ -18,6 +20,16 @@
 ```powershell
 uv sync
 ```
+
+## 启动亲子 MVP
+
+在根目录 `.env` 配置百炼密钥后运行：
+
+```powershell
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8770
+```
+
+浏览器打开 `http://127.0.0.1:8770/`。MVP 支持手机录音或上传，使用 Qwen3.5-Omni 识别自然声音大类，并用 BirdNET 补充杭州常见鸟类候选。完整说明见 [Qwen MVP 完整流程](./docs/09-Qwen-MVP完整流程.md)。
 
 ## 启动统一标注页面
 
@@ -51,5 +63,7 @@ uv run python scripts/run_stage2_birdnet.py --reuse-detections
 - `data/metadata/`：数据台账、复核队列、检测结果和片段清单；
 - `data/raw/`：原始或公开预览音频，不纳入 Git；
 - `artifacts/`：可重新生成的实验产物，不纳入 Git。
+- `app/`：亲子移动端 MVP、异步分析接口和模型融合流程；
+- `outputs/mvp/`：MVP 上传、任务结果和本地测试产物，不纳入 Git。
 
 详细入口见 [项目文档索引](./docs/README.md)。

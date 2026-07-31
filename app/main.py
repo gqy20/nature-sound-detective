@@ -1,0 +1,140 @@
+from __future__ import annotations
+
+import asyncio
+import json
+import re
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+from uuid import uuid4
+
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+
+from app.audio import AudioPreparationError, duration_seconds, prepare_audio
+from app.config import (
+    ALLOWED_EXTENSIONS,
+    FEEDBACK_DIR,
+    MAX_UPLOAD_BYTES,
+    STATIC_DIR,
+    UPLOAD_DIR,
+    cleanup_expired_runtime,
+    ensure_runtime_dirs,
+)
+from app.jobs import JobStore
+
+
+ensure_runtime_dirs()
+cleanup_expired_runtime()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    cleanup_task = asyncio.create_task(_cleanup_loop())
+    try:
+        yield
+    finally:
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
+
+
+async def _cleanup_loop() -> None:
+    while True:
+        await asyncio.to_thread(cleanup_expired_runtime)
+        await asyncio.sleep(15 * 60)
+
+
+app = FastAPI(title="自然声探员 MVP", version="0.1.0", lifespan=lifespan)
+jobs = JobStore()
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+class FeedbackSubmission(BaseModel):
+    job_id: str = Field(max_length=80)
+    is_correct: bool
+    corrected_type: str | None = Field(default=None, max_length=40)
+
+
+@app.get("/")
+def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/api/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.post("/api/analyze", status_code=202)
+async def analyze(
+    audio: UploadFile = File(...),
+    location: str = Form("杭州"),
+) -> dict:
+    cleanup_expired_runtime()
+    suffix = Path(audio.filename or "recording.webm").suffix.lower()
+    if suffix not in ALLOWED_EXTENSIONS:
+        raise HTTPException(415, "暂不支持这种音频格式")
+
+    safe_stem = re.sub(r"[^A-Za-z0-9_-]", "_", Path(audio.filename or "recording").stem)[:40]
+    token = __import__("uuid").uuid4().hex
+    source_path = UPLOAD_DIR / f"{token}_{safe_stem}{suffix}"
+    total = 0
+    with source_path.open("wb") as handle:
+        while chunk := await audio.read(1024 * 1024):
+            total += len(chunk)
+            if total > MAX_UPLOAD_BYTES:
+                handle.close()
+                source_path.unlink(missing_ok=True)
+                raise HTTPException(413, "录音文件不能超过15MB")
+            handle.write(chunk)
+
+    prepared_path = UPLOAD_DIR / f"{token}_analysis.wav"
+    try:
+        await run_in_threadpool(prepare_audio, source_path, prepared_path)
+    except AudioPreparationError as exc:
+        source_path.unlink(missing_ok=True)
+        raise HTTPException(422, str(exc)) from exc
+    finally:
+        if source_path != prepared_path:
+            source_path.unlink(missing_ok=True)
+
+    duration = await run_in_threadpool(duration_seconds, prepared_path)
+    return jobs.create(prepared_path, location.strip()[:80] or "杭州", duration)
+
+
+@app.get("/api/jobs/{job_id}")
+def get_job(job_id: str) -> dict:
+    job = jobs.get(job_id)
+    if not job:
+        raise HTTPException(404, "没有找到这次声音分析")
+    return job
+
+
+@app.get("/api/jobs/{job_id}/audio")
+def get_job_audio(job_id: str) -> FileResponse:
+    path = jobs.audio_path(job_id)
+    if not path or not path.exists():
+        raise HTTPException(404, "录音不存在")
+    return FileResponse(path, media_type="audio/wav", filename="nature-recording.wav")
+
+
+@app.delete("/api/jobs/{job_id}", status_code=204)
+def delete_job(job_id: str) -> None:
+    if not jobs.delete(job_id):
+        raise HTTPException(404, "没有找到这次声音分析")
+
+
+@app.post("/api/feedback", status_code=201)
+def save_feedback(feedback: FeedbackSubmission) -> dict[str, str]:
+    payload = feedback.model_dump()
+    payload["created_at"] = datetime.now(timezone.utc).isoformat()
+    feedback_id = uuid4().hex
+    path = FEEDBACK_DIR / f"{feedback_id}.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"id": feedback_id, "status": "saved"}

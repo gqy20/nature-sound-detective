@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-07-31T09:28:40.968567+00:00",
+  "rows": 50,
+  "review_status_counts": {
+    "machine_labeled_needs_listening": 50
+  },
+  "provisional_class_counts": {
+    "background_candidate": 30,
+    "mixed_or_unknown_candidate": 10,
+    "background_privacy_review": 10
+  },
+  "speech_flag_counts": {
+    "unlikely": 39,
+    "possible": 11
+  },
+  "privacy_risk_counts": {
+    "low": 39,
+    "medium": 11
+  },
+  "target_species_flag_counts": {
+    "no_strong_birdnet_evidence": 50
+  },
+  "birdnet_detection_rows": 3,
+  "warning": "All labels are machine-assisted and require listening confirmation."
+}

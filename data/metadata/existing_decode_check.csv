@@ -1,0 +1,27 @@
+﻿item_id,dataset_key,freesound_id,recording_id,local_path,decode_status,return_code,codec_stderr,expected_duration_seconds,decoded_duration_seconds,duration_delta_seconds,samplerate,channels
+existing_d0c22dbaa829_60e8fe2f,existing,,XC1136969 - 乌鸫 - Turdus mandarinus,D:\C\Desktop\ai\xykw\data\XC1136969 - 乌鸫 - Turdus mandarinus.mp3,ok,0,,2.504500,2.504500,0.000000,48000,2
+existing_a38974203003_05e17d45,existing,,XC1136970 - 乌鸫 - Turdus mandarinus,D:\C\Desktop\ai\xykw\data\XC1136970 - 乌鸫 - Turdus mandarinus.mp3,ok,0,,119.561917,119.561917,-0.000000,48000,2
+existing_f25ecbc90288_c2504749,existing,,XC1147853 - 乌鸫 - Turdus mandarinus,D:\C\Desktop\ai\xykw\data\XC1147853 - 乌鸫 - Turdus mandarinus.mp3,ok,0,,30.084979,30.084979,0.000000,48000,2
+existing_76b2bb8bf0fa_63839512,existing,,260110_1015——古铜色卷尾——看见，背景里有黑头穗鹛&白喉扇尾鹟&珠颈斑鸠,D:\C\Desktop\ai\xykw\data\260110_1015——古铜色卷尾——看见，背景里有黑头穗鹛&白喉扇尾鹟&珠颈斑鸠.wav,ok,0,,52.686937,52.686937,0.000000,48000,2
+existing_d1b4b43ea30f_f03cea5a,existing,,XC1145570 - 小䴙䴘 - Tachybaptus ruficollis poggei (1)(1),D:\C\Desktop\ai\xykw\data\XC1145570 - 小䴙䴘 - Tachybaptus ruficollis poggei (1)(1).wav,ok,0,,145.000000,145.000000,0.000000,48000,2
+existing_d1b4b43ea30f_e717a362,existing,,XC1145570 - 小䴙䴘 - Tachybaptus ruficollis poggei(1),D:\C\Desktop\ai\xykw\data\XC1145570 - 小䴙䴘 - Tachybaptus ruficollis poggei(1).wav,ok,0,,145.000000,145.000000,0.000000,48000,2
+existing_0afd773d2037_71021d81,existing,,260705_1905——棕胸雅鹛——二重奏，看见，至少包含四种叫声,D:\C\Desktop\ai\xykw\data\260705_1905——棕胸雅鹛——二重奏，看见，至少包含四种叫声.wav,ok,0,,123.034292,123.034292,-0.000000,48000,2
+existing_0a26af81fd16_213774b6,existing,,MLU-NF1A_20250401_074200——灰孔雀雉——背景里有橙胸咬鹃,D:\C\Desktop\ai\xykw\data\MLU-NF1A_20250401_074200——灰孔雀雉——背景里有橙胸咬鹃.wav,ok,0,,60.000000,60.000000,0.000000,48000,2
+existing_9a577cf6614f_cc43198f,existing,,XC1002930 - 珠颈斑鸠 - Spilopelia chinensis chinensis(1),D:\C\Desktop\ai\xykw\data\XC1002930 - 珠颈斑鸠 - Spilopelia chinensis chinensis(1).wav,ok,0,,131.858042,131.858042,-0.000000,48000,2
+existing_237616fbbc57_7351034d,existing,,XC961570 - 珠颈斑鸠 - Spilopelia chinensis,D:\C\Desktop\ai\xykw\data\XC961570 - 珠颈斑鸠 - Spilopelia chinensis.wav,ok,0,,17.002667,17.002667,-0.000000,96000,2
+existing_acc261154a02_86a1defc,existing,,XC999942 - 珠颈斑鸠 - Spilopelia chinensis,D:\C\Desktop\ai\xykw\data\XC999942 - 珠颈斑鸠 - Spilopelia chinensis.mp3,ok,0,,186.418813,186.418813,-0.000000,48000,2
+existing_1bacc7a801fe_38a95c18,existing,,251117_0912——白喉短翅鸫——背景里可能有白喉扇尾鹟,D:\C\Desktop\ai\xykw\data\251117_0912——白喉短翅鸫——背景里可能有白喉扇尾鹟.wav,ok,0,,305.127396,305.127396,-0.000000,48000,2
+existing_357be415e7d5_e5a1701c,existing,,XC1106815 - 白头鹎 - Pycnonotus sinensis,D:\C\Desktop\ai\xykw\data\XC1106815 - 白头鹎 - Pycnonotus sinensis.mp3,ok,0,,211.426479,211.426479,0.000000,48000,2
+existing_7e90e3adf371_25af8d4e,existing,,260301_0836——赤胸拟啄木鸟——正常节奏，背景里有噪鹃,D:\C\Desktop\ai\xykw\data\260301_0836——赤胸拟啄木鸟——正常节奏，背景里有噪鹃.wav,ok,0,,39.489208,39.489208,0.000000,48000,2
+existing_7a95052ec83d_66395627,existing,,260113_1254——长嘴捕蛛鸟——看见，叫了三次，背景有纯色啄花鸟,D:\C\Desktop\ai\xykw\data\260113_1254——长嘴捕蛛鸟——看见，叫了三次，背景有纯色啄花鸟.wav,ok,0,,52.153021,52.153021,-0.000000,48000,2
+existing_6d0f7a1a46f5_38b58e2d,existing,,260404_1104——黄腹鹟莺——背景也有山蓝仙鹟雄鸟,D:\C\Desktop\ai\xykw\data\260404_1104——黄腹鹟莺——背景也有山蓝仙鹟雄鸟.wav,ok,0,,73.205958,73.205958,0.000000,48000,2
+existing_a1aaa79d0c20_a4242d15,existing,,260606_0923——灰卷尾——婉转叫声,D:\C\Desktop\ai\xykw\data\260606_0923——灰卷尾——婉转叫声.wav,ok,0,,62.005896,62.005896,-0.000000,48000,2
+existing_fad9f48e014e_2713ce5b,existing,,20260514 12点57分——灰胸山鹪莺——两声，3H_01,D:\C\Desktop\ai\xykw\data\20260514 12点57分——灰胸山鹪莺——两声，3H_01.wav,ok,0,,27.698833,27.698833,0.000000,48000,2
+existing_6dee8880cd69_41f8d616,existing,,260702_1835——白喉红臀鹎——两声和三声，清脆，看见，樟园，B,D:\C\Desktop\ai\xykw\data\260702_1835——白喉红臀鹎——两声和三声，清脆，看见，樟园，B.wav,ok,0,,36.794292,36.794292,-0.000000,48000,2
+existing_79f5c82d47f8_287b4024,existing,,260607_1024——白腰鹊鸲——近距离，B,D:\C\Desktop\ai\xykw\data\260607_1024——白腰鹊鸲——近距离，B.wav,ok,0,,57.432604,57.432604,0.000000,48000,2
+existing_4ec2f007aa9e_bb85e66f,existing,,XC841128 - 白鹭 - Egretta garzetta garzetta,D:\C\Desktop\ai\xykw\data\XC841128 - 白鹭 - Egretta garzetta garzetta.wav,ok,0,,8.137917,8.137917,-0.000000,48000,2
+existing_db2a15336142_de0e8e95,existing,,XC842808 - 白鹭 - Egretta garzetta garzetta,D:\C\Desktop\ai\xykw\data\XC842808 - 白鹭 - Egretta garzetta garzetta.wav,ok,0,,30.244438,30.244438,-0.000000,48000,2
+existing_c0562c1d2a4b_b19b4b01,existing,,2026031918点21分——纯色啄花鸟——两声看见，野菜园,D:\C\Desktop\ai\xykw\data\2026031918点21分——纯色啄花鸟——两声看见，野菜园.wav,ok,0,,47.424896,47.424896,-0.000000,48000,2
+existing_670934cb06fe_b090ca93,existing,,260622_1846——褐喉食蜜鸟——清晰A,D:\C\Desktop\ai\xykw\data\260622_1846——褐喉食蜜鸟——清晰A.wav,ok,0,,28.315354,28.315354,0.000000,48000,2
+existing_9e1c88de5045_908c6ccb,existing,,260704_1712——褐喉食蜜鸟——苗圃，看见，A,D:\C\Desktop\ai\xykw\data\260704_1712——褐喉食蜜鸟——苗圃，看见，A.wav,ok,0,,29.608167,29.608167,-0.000000,48000,2
+existing_741d501feddd_244f79cc,existing,,XC734346 - 麻雀 - Passer montanus malaccensis,D:\C\Desktop\ai\xykw\data\XC734346 - 麻雀 - Passer montanus malaccensis.mp3,ok,0,,35.648821,35.648821,-0.000000,44100,2

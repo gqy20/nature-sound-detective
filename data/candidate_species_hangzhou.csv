@@ -1,0 +1,13 @@
+priority,product_name_zh,scientific_name,birdnet_label,birdnet_covered,hangzhou_summer_observations_2022_2026,inat_global_research_grade_sound_observations,local_season_score,phone_recording_score,model_readiness_score,data_supply_score,education_score,total_score,recommended_role,notes
+P0,鹊鸲,Copsychus saularis,Copsychus saularis_Oriental Magpie-Robin,yes,64,904,5,5,5,5,5,25,core,城市绿地常见且歌声丰富
+P0,乌鸫,Turdus mandarinus,Turdus mandarinus_Chinese Blackbird,yes,38,56,5,5,5,4,5,24,core,晨间歌声清楚但需补充公开数据
+P0,白头鹎,Pycnonotus sinensis,Pycnonotus sinensis_Light-vented Bulbul,yes,51,689,5,4,5,5,4,23,core,杭州城市代表性强
+P0,珠颈斑鸠,Spilopelia chinensis,Streptopelia chinensis_Spotted Dove,yes,22,623,4,5,5,5,4,23,core,需维护新旧属名映射
+P0,红嘴蓝鹊,Urocissa erythroryncha,Urocissa erythroryncha_Red-billed Blue-Magpie,yes,36,94,4,4,5,4,5,22,core,林缘采集且故事性强
+P0,黑水鸡,Gallinula chloropus,Gallinula chloropus_Eurasian Moorhen,yes,46,688,4,4,5,5,5,23,core,代表湿地场景
+P1,小䴙䴘,Tachybaptus ruficollis,Tachybaptus ruficollis_Little Grebe,yes,58,363,5,3,5,4,5,22,backup,需要靠近安静水面
+P1,夜鹭,Nycticorax nycticorax,Nycticorax nycticorax_Black-crowned Night-Heron,yes,53,427,5,3,5,5,5,23,backup,暮间活动且叫声短
+P1,黑蚱蝉,Cryptotympana atrata,,no,63,214,5,5,1,4,5,20,custom,杭州盛夏代表声音且适合自定义分类
+P2,布氏泛树蛙,Polypedates braueri,,no,205,109,5,4,1,3,5,18,phase2_custom,夜间水边采集且须与斑腿泛树蛙区分
+P2,树麻雀,Passer montanus,Passer montanus_Eurasian Tree Sparrow,yes,25,,4,3,5,5,3,20,hard_negative,短促群叫容易与背景重叠
+P2,斑嘴鸭,Anas zonorhyncha,Anas zonorhyncha_Eastern Spot-billed Duck,yes,30,,5,2,5,4,4,20,defer,常见但不一定主动鸣叫

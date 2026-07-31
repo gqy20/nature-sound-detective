@@ -1,0 +1,23 @@
+{
+  "location": {
+    "name": "Hangzhou",
+    "latitude": 30.2741,
+    "longitude": 120.1551,
+    "week": 31
+  },
+  "birdnet_species": [
+    {"name_zh": "鹊鸲", "scientific_name": "Copsychus saularis"},
+    {"name_zh": "白头鹎", "scientific_name": "Pycnonotus sinensis"},
+    {"name_zh": "乌鸫", "scientific_name": "Turdus mandarinus"},
+    {
+      "name_zh": "珠颈斑鸠",
+      "scientific_name": "Spilopelia chinensis",
+      "birdnet_scientific_name": "Streptopelia chinensis"
+    },
+    {"name_zh": "红嘴蓝鹊", "scientific_name": "Urocissa erythroryncha"},
+    {"name_zh": "黑水鸡", "scientific_name": "Gallinula chloropus"}
+  ],
+  "custom_species": [
+    {"name_zh": "黑蚱蝉", "scientific_name": null}
+  ]
+}

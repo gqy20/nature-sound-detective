@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-07-31T09:59:07.020397+00:00",
+  "critical_ok": true,
+  "manifest_rows": 50,
+  "unique_sound_ids": 50,
+  "total_bytes": 61634214,
+  "category_counts": {
+    "distant_traffic": 10,
+    "non_target_soundscape": 10,
+    "people_footsteps": 10,
+    "rain_water_park": 10,
+    "wind_trees": 10
+  },
+  "license_counts": {
+    "CC-BY": 19,
+    "CC-BY-NC": 1,
+    "CC0": 30
+  },
+  "preview_kind_counts": {
+    "hq-mp3": 50
+  },
+  "commercial_compatible": 49,
+  "pending_review": 50,
+  "missing_files": [],
+  "hash_mismatches": [],
+  "out_of_duration_range": [],
+  "duplicate_sound_ids": [],
+  "duplicate_preview_hashes": {},
+  "underfilled_categories": {},
+  "warnings": [
+    "Public-web metadata must be rechecked before publication.",
+    "Pending candidates are not approved training or test data.",
+    "CC-BY-NC files must remain isolated from future commercial datasets."
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "api_url": "https://freesound.org/apiv2/search/",
+  "duration_seconds": {"min": 5, "max": 120},
+  "target_per_category": 10,
+  "categories": [
+    {
+      "slug": "wind_trees",
+      "name_zh": "风与树叶",
+      "query": "wind trees leaves field-recording -music -loop -synthetic",
+      "intended_use": "background"
+    },
+    {
+      "slug": "distant_traffic",
+      "name_zh": "远处交通",
+      "query": "distant traffic outdoor ambience field-recording -music -loop",
+      "intended_use": "background"
+    },
+    {
+      "slug": "people_footsteps",
+      "name_zh": "游客与脚步",
+      "query": "footsteps outdoor field-recording -music -synthetic",
+      "intended_use": "background_privacy_review"
+    },
+    {
+      "slug": "rain_water_park",
+      "name_zh": "雨水与公园环境",
+      "query": "rain outdoors field-recording -music -loop -synthetic",
+      "intended_use": "background"
+    },
+    {
+      "slug": "non_target_soundscape",
+      "name_zh": "非目标动物与混合声景",
+      "query": "urban park birds ambience field-recording -music -synthetic",
+      "intended_use": "unknown_or_mixed_review"
+    }
+  ]
+}

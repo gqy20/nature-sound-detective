@@ -1,0 +1,17 @@
+[project]
+name = "nature-sound-detective"
+version = "0.1.0"
+description = "Hangzhou children's nature-sound AI competition prototype"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "birdnet==0.2.16",
+  "tensorflow==2.15.0",
+  "tensorflow-intel==2.15.0",
+  "tensorflow-io-gcs-filesystem==0.31.0",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.uv]
+package = false

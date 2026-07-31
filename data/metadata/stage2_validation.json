@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-07-31T09:59:07.554710+00:00",
+  "critical_ok": true,
+  "existing_review_rows": 26,
+  "unified_review_rows": 76,
+  "unified_dataset_counts": {
+    "existing": 26,
+    "freesound": 50
+  },
+  "missing_audio": [],
+  "duplicate_item_ids": [],
+  "stage2_segments": 142,
+  "segment_label_counts": {
+    "珠颈斑鸠": 72,
+    "白头鹎": 46,
+    "乌鸫": 1,
+    "background": 23
+  },
+  "segment_split_counts": {
+    "validation": 37,
+    "train": 66,
+    "test": 39
+  },
+  "source_groups": 28,
+  "leaking_source_groups": [],
+  "warning": "Segment labels remain machine-assisted candidates until human listening review."
+}

@@ -13,7 +13,6 @@ pyproject.toml
 scripts
 tests
 uv.lock
-app/static
 app/birdnet_service.py
 app/creation_service.py
 app/evaluation.py

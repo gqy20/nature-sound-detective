@@ -55,7 +55,7 @@ class _CapturePageState extends State<CapturePage> {
     _recorder = widget.recorder ?? MethodChannelAudioRecorder();
     _qualityAnalyzer = widget.qualityAnalyzer ?? const WavQualityAnalyzer();
     _playback = widget.playback ?? DeviceFileAudioPlayback();
-    _analyzer = widget.analyzer ?? YamnetRecordingAnalyzer();
+    _analyzer = widget.analyzer ?? LocalRecordingAnalyzer();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
@@ -278,7 +278,7 @@ class _CapturePageState extends State<CapturePage> {
                     for (final detection in _detections)
                       Chip(
                         label: Text(
-                          '${detection.nameZh} ${(_displayScore(detection.confidence) * 100).round()}%',
+                          '${detection.specificSpecies?.nameZh ?? detection.nameZh} ${(_displayScore(detection.confidence) * 100).round()}%',
                         ),
                       ),
                   ],

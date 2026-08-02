@@ -62,6 +62,8 @@ flutter:
   assets:
     - assets/models/yamnet.tflite
     - assets/models/yamnet.json
+    - assets/models/birdnet.tflite
+    - assets/models/birdnet.json
     - assets/labels/yamnet.csv
 
   # To add assets to your application, add an assets section, like this:

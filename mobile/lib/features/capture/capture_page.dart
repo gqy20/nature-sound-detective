@@ -6,7 +6,9 @@ import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
+import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
+import 'package:nature_sound_detective/core/models/detection.dart';
 
 class CapturePage extends StatefulWidget {
   const CapturePage({
@@ -14,11 +16,13 @@ class CapturePage extends StatefulWidget {
     this.recorder,
     this.qualityAnalyzer,
     this.playback,
+    this.analyzer,
   });
 
   final AudioRecorder? recorder;
   final AudioQualityAnalyzer? qualityAnalyzer;
   final AudioPlayback? playback;
+  final RecordingAnalyzer? analyzer;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -30,6 +34,7 @@ class _CapturePageState extends State<CapturePage> {
   late final AudioRecorder _recorder;
   late final AudioQualityAnalyzer _qualityAnalyzer;
   late final AudioPlayback _playback;
+  late final RecordingAnalyzer _analyzer;
   StreamSubscription<bool>? _playbackSubscription;
   Timer? _timer;
   DateTime? _startedAt;
@@ -38,6 +43,8 @@ class _CapturePageState extends State<CapturePage> {
   RecordedAudio? _recording;
   AudioQuality? _quality;
   bool _isPlaying = false;
+  bool _analyzing = false;
+  List<SoundDetection> _detections = const [];
   String? _error;
 
   bool get _isRecording => _startedAt != null;
@@ -48,6 +55,7 @@ class _CapturePageState extends State<CapturePage> {
     _recorder = widget.recorder ?? MethodChannelAudioRecorder();
     _qualityAnalyzer = widget.qualityAnalyzer ?? const WavQualityAnalyzer();
     _playback = widget.playback ?? DeviceFileAudioPlayback();
+    _analyzer = widget.analyzer ?? YamnetRecordingAnalyzer();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
@@ -58,6 +66,7 @@ class _CapturePageState extends State<CapturePage> {
     _timer?.cancel();
     unawaited(_playbackSubscription?.cancel());
     unawaited(_playback.dispose());
+    unawaited(_analyzer.dispose());
     if (_isRecording) {
       unawaited(_recorder.cancel());
     }
@@ -78,6 +87,7 @@ class _CapturePageState extends State<CapturePage> {
       _busy = true;
       _recording = null;
       _quality = null;
+      _detections = const [];
       _error = null;
     });
     try {
@@ -151,6 +161,24 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  Future<void> _analyzeRecording() async {
+    final recording = _recording;
+    if (recording == null || _analyzing) return;
+    setState(() {
+      _analyzing = true;
+      _error = null;
+      _detections = const [];
+    });
+    try {
+      final detections = await _analyzer.analyze(recording);
+      if (mounted) setState(() => _detections = detections);
+    } catch (_) {
+      if (mounted) setState(() => _error = '本地声音模型加载失败，请稍后再试。');
+    } finally {
+      if (mounted) setState(() => _analyzing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final seconds = (_elapsed.inMilliseconds / 1000).toStringAsFixed(1);
@@ -219,6 +247,47 @@ class _CapturePageState extends State<CapturePage> {
                 ),
                 for (final warning in quality.warnings)
                   Text('· $warning', textAlign: TextAlign.center),
+                if (quality.usable) ...[
+                  const SizedBox(height: 12),
+                  FilledButton.tonalIcon(
+                    key: const Key('analyze-button'),
+                    onPressed: _analyzing ? null : _analyzeRecording,
+                    icon: _analyzing
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.graphic_eq_rounded),
+                    label: Text(_analyzing ? '正在本地识别' : '识别这段声音'),
+                  ),
+                ],
+              ],
+              if (_detections.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  '听到的声音线索',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final detection in _detections)
+                      Chip(
+                        label: Text(
+                          '${detection.nameZh} ${(_displayScore(detection.confidence) * 100).round()}%',
+                        ),
+                      ),
+                  ],
+                ),
+              ] else if (!_analyzing &&
+                  _quality?.usable == true &&
+                  _recording != null) ...[
+                const SizedBox(height: 8),
+                const Text('模型会返回声音线索，不把分数当作准确率。', textAlign: TextAlign.center),
               ],
               if (_error case final error?) ...[
                 const SizedBox(height: 16),
@@ -237,4 +306,6 @@ class _CapturePageState extends State<CapturePage> {
       ),
     );
   }
+
+  double _displayScore(double value) => value.clamp(0, 0.99);
 }

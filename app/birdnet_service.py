@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import threading
+import logging
+import time
 from pathlib import Path
 from typing import Any
 
 import birdnet
+
+from app.observability import get_logger, log_event, log_exception
+
+
+logger = get_logger("birdnet")
 
 
 SPECIES = {
@@ -28,10 +35,24 @@ class BirdNetAnalyzer:
 
     def _load(self):
         if self._model is None:
-            self._model = birdnet.load("acoustic", "2.4", "tf")
+            started = time.perf_counter()
+            log_event(logger, logging.INFO, "birdnet_model_load_started", model_version="2.4")
+            try:
+                self._model = birdnet.load("acoustic", "2.4", "tf")
+            except Exception:
+                log_exception(logger, "birdnet_model_load_failed", model_version="2.4")
+                raise
+            log_event(
+                logger,
+                logging.INFO,
+                "birdnet_model_load_completed",
+                model_version="2.4",
+                duration_ms=round((time.perf_counter() - started) * 1000),
+            )
         return self._model
 
     def analyze(self, audio_path: Path) -> dict[str, Any]:
+        started = time.perf_counter()
         with self._lock:
             model = self._load()
             rows = model.predict(
@@ -63,6 +84,14 @@ class BirdNetAnalyzer:
 
         detections = sorted(
             best_by_species.values(), key=lambda item: item["confidence"], reverse=True
+        )
+        log_event(
+            logger,
+            logging.INFO,
+            "birdnet_inference_completed",
+            duration_ms=round((time.perf_counter() - started) * 1000),
+            row_count=len(rows),
+            detection_count=min(3, len(detections)),
         )
         return {
             "model": "BirdNET acoustic 2.4",

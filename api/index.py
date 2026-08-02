@@ -11,18 +11,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from app.qwen_service import QwenNatureAnalyzer
+from app.observability import get_logger, install_observability, log_exception
 from app.result_fusion import fuse_results
 
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 app = FastAPI(title="自然声探员 Cloud API", version="0.1.0")
+install_observability(app, "api.vercel")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",")],
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Trace-ID"],
 )
 _analyzer: QwenNatureAnalyzer | None = None
+logger = get_logger("api.analysis")
 
 
 def _get_analyzer() -> QwenNatureAnalyzer:
@@ -69,7 +73,8 @@ async def analyze(audio: UploadFile = File(...), location: str = Form("杭州"))
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(502, f"声音模型调用失败：{exc}") from exc
+        log_exception(logger, "cloud_analysis_failed", model="qwen3.5-omni-plus")
+        raise HTTPException(502, "声音模型暂时无法完成分析") from exc
     finally:
         if temp_path:
             temp_path.unlink(missing_ok=True)

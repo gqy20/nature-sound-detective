@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import shutil
@@ -18,6 +19,10 @@ from app.audio import duration_seconds
 from app.config import GENERATED_DIR, ROOT
 from app.minimax_service import generate_music as generate_minimax_music
 from app.minimax_service import generate_narration
+from app.observability import get_logger, log_event, log_exception
+
+
+logger = get_logger("creation")
 
 
 CreationProgress = Callable[[str, str, dict[str, Any] | None], None]
@@ -354,6 +359,7 @@ class CreationService:
                     int(os.getenv("MINIMAX_MUSIC_EXCERPT_SECONDS", "20")),
                 )
             except Exception as exc:
+                log_exception(logger, "music_provider_fallback", job_id=job_id)
                 music_provider = "local-nature-remix"
                 music_warning = str(exc)
                 create_local_nature_mix(audio_path, music_path, result.get("primary_sound_type", ""))
@@ -369,6 +375,7 @@ class CreationService:
             try:
                 generate_narration(plan["narration"], narration_path)
             except Exception as exc:
+                log_exception(logger, "narration_generation_skipped", job_id=job_id)
                 narration_warning = str(exc)
         narration_duration = duration_seconds(narration_path) if narration_path.exists() else 0
         video_duration = max(5, min(15, math.ceil(narration_duration + 0.6) if narration_duration else 10))
@@ -425,6 +432,7 @@ class CreationService:
                 "wan_task_id": task_id,
             })
         except Exception as exc:
+            log_exception(logger, "video_generation_partial", job_id=job_id, video_mode=video_mode)
             creation.update({
                 "status": "partial",
                 "stage_message": "音乐已完成，视频暂时没有生成",

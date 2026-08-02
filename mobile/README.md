@@ -37,6 +37,10 @@ flutter run --dart-define=XYKW_API_BASE_URL=http://10.0.2.2:8000
 
 自动测试不会请求云端 API；云端客户端使用替身响应验证协议和错误处理。
 
+## 日志与诊断
+
+首页右上角的诊断按钮可以查看结构化运行事件并导出脱敏 JSONL。一次录音以录音 ID 贯穿端侧分析和云端请求；Android 原生录音日志可通过 `adb logcat -s NatureAudio flutter` 查看。完整字段、轮转策略和隐私边界见 [`docs/logs.md`](../docs/logs.md)。
+
 ## 模型与许可
 
 - `assets/models/yamnet.tflite`：YAMNet，Apache-2.0，用于通用声音类别。

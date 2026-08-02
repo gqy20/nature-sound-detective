@@ -7,10 +7,12 @@ import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/cloud_content_service.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
+import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 
 class CapturePage extends StatefulWidget {
@@ -75,6 +77,7 @@ class _CapturePageState extends State<CapturePage> {
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
+    AppLog.info('capture', 'page_ready');
   }
 
   @override
@@ -120,6 +123,12 @@ class _CapturePageState extends State<CapturePage> {
         );
       }
       final session = await _recorder.start(maxDuration: _maxDuration);
+      AppLog.info(
+        'audio',
+        'recording_started',
+        traceId: session.id,
+        fields: {'max_duration_ms': _maxDuration.inMilliseconds},
+      );
       if (!mounted) return;
       setState(() {
         _startedAt = session.startedAt;
@@ -135,7 +144,14 @@ class _CapturePageState extends State<CapturePage> {
           unawaited(_stopRecording());
         }
       });
-    } on PlatformException catch (error) {
+    } on PlatformException catch (error, stackTrace) {
+      AppLog.warning(
+        'audio',
+        'recording_start_failed',
+        fields: {'platform_code': error.code},
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         setState(() => _error = error.message ?? '无法开始录音。');
       }
@@ -151,6 +167,19 @@ class _CapturePageState extends State<CapturePage> {
     try {
       final recording = await _recorder.stop();
       final quality = await _qualityAnalyzer.analyze(recording.path);
+      AppLog.info(
+        'audio',
+        'recording_completed',
+        traceId: recording.id,
+        fields: {
+          'duration_ms': recording.duration.inMilliseconds,
+          'sample_rate': recording.sampleRate,
+          'channels': recording.channelCount,
+          'byte_length': recording.byteLength,
+          'quality_usable': quality.usable,
+          'quality_issue_count': quality.warnings.length,
+        },
+      );
       if (!mounted) return;
       setState(() {
         _recording = recording;
@@ -158,14 +187,27 @@ class _CapturePageState extends State<CapturePage> {
         _startedAt = null;
         _elapsed = recording.duration;
       });
-    } on PlatformException catch (error) {
+    } on PlatformException catch (error, stackTrace) {
+      AppLog.error(
+        'audio',
+        'recording_stop_failed',
+        fields: {'platform_code': error.code},
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         setState(() {
           _error = error.message ?? '录音保存失败，请再试一次。';
           _startedAt = null;
         });
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'audio',
+        'recording_processing_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         setState(() {
           _error = '录音文件处理失败，请再试一次。';
@@ -186,7 +228,14 @@ class _CapturePageState extends State<CapturePage> {
       } else {
         await _playback.play(recording.path);
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'audio',
+        'playback_failed',
+        traceId: recording.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = '暂时无法播放这段录音。');
     }
   }
@@ -202,13 +251,26 @@ class _CapturePageState extends State<CapturePage> {
     });
     try {
       final detections = await _analyzer.analyze(recording);
+      AppLog.info(
+        'inference',
+        'analysis_presented',
+        traceId: recording.id,
+        fields: {'detection_count': detections.length},
+      );
       if (mounted) {
         setState(() {
           _detections = detections;
           _hasAnalyzed = true;
         });
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'inference',
+        'analysis_failed',
+        traceId: recording.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = '本地声音模型加载失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _analyzing = false);
@@ -230,8 +292,21 @@ class _CapturePageState extends State<CapturePage> {
         detections: _detections,
         location: '杭州',
       );
+      AppLog.info(
+        'storage',
+        'exploration_saved',
+        traceId: recording.id,
+        fields: {'detection_count': _detections.length},
+      );
       if (mounted) setState(() => _saved = true);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'storage',
+        'exploration_save_failed',
+        traceId: recording.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = '保存到声音册失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -268,10 +343,26 @@ class _CapturePageState extends State<CapturePage> {
         recording: recording,
         location: '杭州',
       );
+      AppLog.info('cloud', 'card_presented', traceId: recording.id);
       if (mounted) setState(() => _cloudCard = card);
-    } on CloudServiceException catch (error) {
+    } on CloudServiceException catch (error, stackTrace) {
+      AppLog.warning(
+        'cloud',
+        'card_request_rejected',
+        traceId: recording.id,
+        fields: {'status_code': error.statusCode},
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = error.message);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'cloud',
+        'card_request_failed',
+        traceId: recording.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = '科普卡生成失败，录音和本地结果仍已保留。');
     } finally {
       if (mounted) setState(() => _enriching = false);
@@ -284,11 +375,19 @@ class _CapturePageState extends State<CapturePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('自然声探员'),
-        actions: const [
-          Padding(
+        actions: [
+          const Padding(
             padding: EdgeInsets.only(right: 20),
             child: Center(child: Text('杭州')),
           ),
+          IconButton(
+            tooltip: '运行诊断',
+            icon: const Icon(Icons.bug_report_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const DiagnosticsPage()),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(

@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -22,6 +23,7 @@ import kotlin.math.max
 class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "com.xykw.nature_sound/audio_recorder"
+        private const val TAG = "NatureAudio"
         private const val PERMISSION_REQUEST = 7301
         private const val SAMPLE_RATE = 48_000
         private const val CHANNEL_COUNT = 1
@@ -35,6 +37,7 @@ class MainActivity : FlutterActivity() {
     private var activeFile: File? = null
     private var activeId: String? = null
     private var completedRecording: Map<String, Any>? = null
+    private var completedFailure: Map<String, String>? = null
     private var permissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -46,6 +49,11 @@ class MainActivity : FlutterActivity() {
     private fun handleMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "hasPermission" -> result.success(hasRecordPermission())
+            "getDiagnostics" -> result.success(mapOf(
+                "manufacturer" to Build.MANUFACTURER,
+                "model" to Build.MODEL,
+                "android_sdk" to Build.VERSION.SDK_INT,
+            ))
             "requestPermission" -> requestRecordPermission(result)
             "startRecording" -> startRecording(call, result)
             "stopRecording" -> finishRecording(result, delete = false)
@@ -78,6 +86,7 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST) {
             val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            Log.i(TAG, "event=permission_result granted=$granted")
             permissionResult?.success(granted)
             permissionResult = null
         }
@@ -123,9 +132,11 @@ class MainActivity : FlutterActivity() {
             activeFile = file
             activeId = id
             completedRecording = null
+            completedFailure = null
             recording = true
         }
         recorder.startRecording()
+        Log.i(TAG, "event=recording_started recording_id=$id max_duration_ms=$maxDurationMs")
         worker.execute { captureToWav(recorder, file, id, maxDurationMs) }
         result.success(mapOf("id" to id, "started_at_ms" to startedAt))
     }
@@ -187,6 +198,7 @@ class MainActivity : FlutterActivity() {
             writeWavHeader(file, dataBytes)
         } catch (error: Exception) {
             failure = error
+            Log.e(TAG, "event=recording_capture_failed recording_id=$id", error)
             file.delete()
         } finally {
             try {
@@ -207,6 +219,15 @@ class MainActivity : FlutterActivity() {
                         "channel_count" to CHANNEL_COUNT,
                         "byte_length" to file.length().toInt(),
                     )
+                    Log.i(
+                        TAG,
+                        "event=recording_completed recording_id=$id duration_ms=${dataBytes * 1000 / (SAMPLE_RATE * CHANNEL_COUNT * BYTES_PER_SAMPLE)} byte_length=${file.length()}",
+                    )
+                } else {
+                    completedFailure = mapOf(
+                        "code" to "recording_capture_failed",
+                        "message" to (failure.message ?: "录音设备读取失败。"),
+                    )
                 }
             }
         }
@@ -222,6 +243,11 @@ class MainActivity : FlutterActivity() {
                 activeFile = null
                 completed
             }
+            val failure = synchronized(stateLock) {
+                val value = completedFailure
+                completedFailure = null
+                value
+            }
             if (delete && value != null) {
                 File(value["path"] as String).delete()
             }
@@ -229,6 +255,11 @@ class MainActivity : FlutterActivity() {
                 when {
                     delete -> result.success(null)
                     value != null -> result.success(value)
+                    failure != null -> result.error(
+                        failure["code"] ?: "recording_failed",
+                        failure["message"] ?: "录音失败。",
+                        null,
+                    )
                     else -> result.error("no_recording", "没有可保存的录音。", null)
                 }
             }

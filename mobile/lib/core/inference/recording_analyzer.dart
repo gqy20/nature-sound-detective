@@ -3,6 +3,7 @@ import 'package:nature_sound_detective/core/audio/wav_pcm_reader.dart';
 import 'package:nature_sound_detective/core/fusion/nature_detection_fusion.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_detector.dart';
 import 'package:nature_sound_detective/core/inference/yamnet_detector.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 
 abstract interface class RecordingAnalyzer {
@@ -24,6 +25,8 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
 
   @override
   Future<List<SoundDetection>> analyze(RecordedAudio recording) async {
+    final total = Stopwatch()..start();
+    AppLog.info('inference', 'analysis_started', traceId: recording.id);
     final input = await reader.read(
       recordingId: recording.id,
       path: recording.path,
@@ -32,7 +35,20 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
     final birdnet = await (_birdDetector ??= BirdnetDetector.load());
     final yamnetDetections = await yamnet.detect(input);
     final birdnetDetections = await birdnet.detect(input);
-    return fusion.fuse([yamnetDetections, birdnetDetections]);
+    final fused = fusion.fuse([yamnetDetections, birdnetDetections]);
+    total.stop();
+    AppLog.info(
+      'inference',
+      'analysis_completed',
+      traceId: recording.id,
+      fields: {
+        'duration_ms': total.elapsedMilliseconds,
+        'yamnet_candidates': yamnetDetections.length,
+        'birdnet_candidates': birdnetDetections.length,
+        'fused_candidates': fused.length,
+      },
+    );
+    return fused;
   }
 
   @override

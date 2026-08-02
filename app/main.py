@@ -25,6 +25,7 @@ from app.config import (
     ensure_runtime_dirs,
 )
 from app.jobs import JobStore
+from app.observability import install_observability
 
 
 ensure_runtime_dirs()
@@ -51,6 +52,7 @@ async def _cleanup_loop() -> None:
 
 
 app = FastAPI(title="自然声探员 MVP", version="0.1.0", lifespan=lifespan)
+install_observability(app, "api.local")
 jobs = JobStore()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

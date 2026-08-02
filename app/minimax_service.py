@@ -3,11 +3,18 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import logging
+import time
 from pathlib import Path
 from typing import Any
 
 import httpx
 import websockets
+
+from app.observability import get_logger, log_event, log_exception
+
+
+logger = get_logger("minimax")
 
 
 API_BASE = "https://api.minimaxi.com"
@@ -71,12 +78,34 @@ async def _speech_websocket(text: str, destination: Path) -> None:
 
 def generate_narration(text: str, destination: Path) -> None:
     """Generate narration with the official MiniMax synchronous WebSocket API."""
-    asyncio.run(_speech_websocket(text, destination))
+    started = time.perf_counter()
+    model = os.getenv("MINIMAX_SPEECH_MODEL", "speech-2.8-hd")
+    log_event(logger, logging.INFO, "speech_request_started", model=model, input_chars=len(text))
+    try:
+        asyncio.run(_speech_websocket(text, destination))
+        log_event(
+            logger,
+            logging.INFO,
+            "speech_request_completed",
+            model=model,
+            duration_ms=round((time.perf_counter() - started) * 1000),
+            output_bytes=destination.stat().st_size,
+        )
+    except Exception:
+        log_exception(
+            logger,
+            "speech_request_failed",
+            model=model,
+            duration_ms=round((time.perf_counter() - started) * 1000),
+        )
+        raise
 
 
 def generate_music(prompt: str, destination: Path) -> None:
     """Generate instrumental background music and persist the expiring result locally."""
     model = os.getenv("MINIMAX_MUSIC_MODEL", "music-3.0")
+    started = time.perf_counter()
+    log_event(logger, logging.INFO, "music_request_started", model=model, input_chars=len(prompt))
     transport = httpx.HTTPTransport(retries=3)
     with httpx.Client(timeout=httpx.Timeout(300, connect=30), transport=transport) as client:
         response = client.post(
@@ -107,3 +136,11 @@ def generate_music(prompt: str, destination: Path) -> None:
                         handle.write(chunk)
         else:
             destination.write_bytes(bytes.fromhex(str(value)))
+    log_event(
+        logger,
+        logging.INFO,
+        "music_request_completed",
+        model=model,
+        duration_ms=round((time.perf_counter() - started) * 1000),
+        output_bytes=destination.stat().st_size,
+    )

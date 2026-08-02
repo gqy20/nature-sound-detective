@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 
 class CloudSoundCard {
   const CloudSoundCard({
@@ -68,8 +70,11 @@ class HttpCloudContentService implements CloudContentService {
     required RecordedAudio recording,
     required String location,
   }) async {
+    final timer = Stopwatch()..start();
+    AppLog.info('cloud', 'request_started', traceId: recording.id);
     final request =
         http.MultipartRequest('POST', Uri.parse('$baseUrl/api/analyze'))
+          ..headers['X-Trace-ID'] = recording.id
           ..fields['location'] = location
           ..files.add(
             await http.MultipartFile.fromPath(
@@ -78,8 +83,33 @@ class HttpCloudContentService implements CloudContentService {
               filename: '${recording.id}.wav',
             ),
           );
-    final streamed = await _client.send(request).timeout(timeout);
+    late http.StreamedResponse streamed;
+    try {
+      streamed = await _client.send(request).timeout(timeout);
+    } on TimeoutException catch (error, stackTrace) {
+      timer.stop();
+      AppLog.warning(
+        'cloud',
+        'request_timeout',
+        traceId: recording.id,
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
     final body = await streamed.stream.bytesToString();
+    timer.stop();
+    AppLog.info(
+      'cloud',
+      'response_received',
+      traceId: recording.id,
+      fields: {
+        'duration_ms': timer.elapsedMilliseconds,
+        'status_code': streamed.statusCode,
+        'response_bytes': utf8.encode(body).length,
+      },
+    );
     if (streamed.statusCode < 200 || streamed.statusCode >= 300) {
       throw CloudServiceException(
         statusCode: streamed.statusCode,

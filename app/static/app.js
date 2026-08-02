@@ -9,6 +9,32 @@ const LOCAL_FEEDBACK_KEY = "nature-sound-detective:feedback-v1";
 const MAX_COLLECTION_ITEMS = 12;
 const API_BASE = String(window.NATURE_API_BASE || "").replace(/\/$/, "");
 const apiUrl = (path) => `${API_BASE}${path}`;
+const nativeFetch = window.fetch.bind(window);
+let activeTraceId = "web_boot";
+
+function newTraceId() {
+  const value = crypto.randomUUID?.().replaceAll("-", "") || `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  return `web_${value}`;
+}
+
+function webLog(level, event, fields = {}) {
+  const safe = Object.fromEntries(Object.entries(fields).filter(([key]) => !/(token|authorization|audio_data|audio_path|prompt|response_body)/i.test(key)));
+  const entry = { timestamp: new Date().toISOString(), level, component: "web", event, trace_id: activeTraceId, ...safe };
+  (console[level] || console.log)(JSON.stringify(entry));
+}
+
+function tracedFetch(input, init = {}) {
+  const headers = new Headers(init.headers || {});
+  headers.set("X-Trace-ID", activeTraceId);
+  return nativeFetch(input, { ...init, headers });
+}
+
+window.addEventListener("error", (event) => webLog("error", "uncaught_error", {
+  error_type: event.error?.name || "Error", line: event.lineno, column: event.colno,
+}));
+window.addEventListener("unhandledrejection", (event) => webLog("error", "unhandled_rejection", {
+  error_type: event.reason?.name || "Error",
+}));
 
 const stages = {
   queued: [18, "正在准备录音"],
@@ -390,10 +416,12 @@ function showError(title, message, mode = "ready", buttonText = "返回录音") 
 async function startAnalysis() {
   if (!selectedBlob || !selectedAudioValid) return;
   const runId = ++activeRunId;
+  activeTraceId = newTraceId();
   analysisAbortController = new AbortController();
   const startedAt = Date.now();
   const form = new FormData();
   const analysisBlob = await toAnalysisWav(selectedBlob);
+  webLog("info", "analysis_started", { upload_bytes: analysisBlob.size });
   form.append("audio", analysisBlob, "nature-analysis.wav");
   form.append("location", $("location").value.trim() || "杭州");
   updateStage("queued");
@@ -401,11 +429,12 @@ async function startAnalysis() {
   showPanel("progress-panel");
   await drawBlobWaveform(selectedBlob, $("progress-wave"), "#28734a", "#edf4ee");
   try {
-    const response = await fetch(apiUrl("/api/analyze"), {
+    const response = await tracedFetch(apiUrl("/api/analyze"), {
       method: "POST",
       body: form,
       signal: analysisAbortController.signal,
     });
+    activeTraceId = response.headers.get("X-Trace-ID") || activeTraceId;
     if (runId !== activeRunId) return;
     if (!response.ok) {
       const submissionError = new Error(await response.text());
@@ -413,10 +442,12 @@ async function startAnalysis() {
       throw submissionError;
     }
     const job = await response.json();
+    webLog("info", "analysis_accepted", { status_code: response.status, job_id: job.id || "synchronous" });
     if (job.status === "completed") await renderResult(job);
     else await pollJob(job.id, runId, startedAt);
   } catch (error) {
     if (error?.name === "AbortError" || runId !== activeRunId) return;
+    webLog("error", "analysis_failed", { error_type: error?.name || "Error", status_code: error?.status || 0 });
     showAnalysisError(error);
   } finally {
     if (runId === activeRunId) analysisAbortController = null;
@@ -453,7 +484,7 @@ async function pollJob(jobId, runId, startedAt) {
     if (elapsedSeconds >= SOFT_WAIT_SECONDS) {
       $("progress-help").textContent = "比平时久一些，你可以继续等待或取消后重试。";
     }
-    const response = await fetch(apiUrl(`/api/jobs/${jobId}`));
+    const response = await tracedFetch(apiUrl(`/api/jobs/${jobId}`));
     if (!response.ok) throw new Error(await response.text());
     const job = await response.json();
     if (job.status === "failed") {
@@ -461,6 +492,7 @@ async function pollJob(jobId, runId, startedAt) {
       return;
     }
     if (job.status === "completed") {
+      webLog("info", "analysis_completed", { job_id: job.id, duration_ms: Date.now() - startedAt });
       await renderResult(job);
       return;
     }
@@ -606,7 +638,7 @@ async function renderResult(job, { persist = true } = {}) {
   let peaks;
   try {
     if (!job.audio_url) throw new Error("demo has no audio");
-    const response = await fetch(job.audio_url);
+    const response = await tracedFetch(job.audio_url);
     if (!response.ok) throw new Error("recording expired");
     peaks = samplePeaks(await decodeBlob(await response.blob()), 110);
   } catch (_) {
@@ -686,25 +718,28 @@ async function startCreation() {
   const token = ++creationPollToken;
   $("create-postcard-button").disabled = true;
   try {
-    const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/creation`), { method: "POST" });
+    webLog("info", "creation_started", { job_id: currentJob.id });
+    const response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/creation`), { method: "POST" });
     if (!response.ok) throw new Error(await response.text());
     currentJob = await response.json();
     renderCreation(currentJob);
     const deadline = Date.now() + 8 * 60 * 1000;
     while (Date.now() < deadline && token === creationPollToken) {
       await new Promise((resolve) => setTimeout(resolve, 3500));
-      const next = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}`));
+      const next = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}`));
       if (!next.ok) throw new Error(await next.text());
       currentJob = await next.json();
       renderCreation(currentJob);
       const status = currentJob.creation?.status;
       if (["completed", "partial", "failed"].includes(status)) {
+        webLog(status === "failed" ? "error" : "info", "creation_finished", { job_id: currentJob.id, status });
         saveToCollection(currentJob);
         return;
       }
     }
     if (token === creationPollToken) $("creation-status").textContent = "生成仍在继续，可以稍后从声音册回来查看。";
   } catch (error) {
+    webLog("error", "creation_failed", { job_id: currentJob?.id || "unknown", error_type: error?.name || "Error" });
     $("creation-progress").hidden = true;
     $("create-postcard-button").hidden = false;
     $("creation-status").textContent = readableError(error);
@@ -789,7 +824,7 @@ function renderCollection() {
     open.addEventListener("click", async () => {
       if (job.id && !job.is_demo) {
         try {
-          const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`));
+          const response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`));
           if (response.ok) return renderResult(await response.json(), { persist: false });
         } catch (_) { /* fall back to local snapshot */ }
       }
@@ -811,7 +846,7 @@ function renderCollection() {
 async function deleteCollectionItem(job) {
   if (job.id && !job.is_demo) {
     try {
-      const response = await fetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`), { method: "DELETE" });
+      const response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(job.id)}`), { method: "DELETE" });
       if (!response.ok && response.status !== 404) throw new Error("delete failed");
     } catch (_) {
       $("collection-empty").hidden = false;
@@ -828,7 +863,7 @@ async function submitFeedback(isCorrect, correctedType = null) {
   if (!currentJob || currentJob.is_demo) return;
   const payload = { job_id: currentJob.id, is_correct: isCorrect, corrected_type: correctedType };
   try {
-    const response = await fetch(apiUrl("/api/feedback"), {
+    const response = await tracedFetch(apiUrl("/api/feedback"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -930,7 +965,7 @@ $("collection-back").addEventListener("click", resetCapture);
 $("clear-collection").addEventListener("click", async () => {
   const items = collectionItems();
   await Promise.allSettled(items.filter((item) => item.id && !item.is_demo).map((item) => (
-    fetch(apiUrl(`/api/jobs/${encodeURIComponent(item.id)}`), { method: "DELETE" })
+    tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(item.id)}`), { method: "DELETE" })
   )));
   writeCollection([]);
   refreshHistoryButton();

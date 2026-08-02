@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/pcm_resampler.dart';
 import 'package:nature_sound_detective/core/inference/audio_inference.dart';
 import 'package:nature_sound_detective/core/inference/yamnet_category_map.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -16,19 +17,47 @@ class YamnetDetector implements AudioDetector {
   }) : _indicesByCategory = labels.indicesByCategory();
 
   static Future<YamnetDetector> load() async {
-    final results = await Future.wait<Object>([
-      Interpreter.fromAsset('assets/models/yamnet.tflite'),
-      rootBundle.loadString('assets/labels/yamnet.csv'),
-    ]);
-    final interpreter = results[0] as Interpreter;
-    return YamnetDetector._(
-      interpreter: interpreter,
-      isolate: await IsolateInterpreter.create(
-        address: interpreter.address,
-        debugName: 'YamnetInference',
-      ),
-      labels: YamnetLabelMap.fromCsv(results[1] as String),
+    final timer = Stopwatch()..start();
+    AppLog.info(
+      'yamnet',
+      'model_load_started',
+      fields: {'model_version': 'tflite-1'},
     );
+    try {
+      final results = await Future.wait<Object>([
+        Interpreter.fromAsset('assets/models/yamnet.tflite'),
+        rootBundle.loadString('assets/labels/yamnet.csv'),
+      ]);
+      final interpreter = results[0] as Interpreter;
+      final detector = YamnetDetector._(
+        interpreter: interpreter,
+        isolate: await IsolateInterpreter.create(
+          address: interpreter.address,
+          debugName: 'YamnetInference',
+        ),
+        labels: YamnetLabelMap.fromCsv(results[1] as String),
+      );
+      timer.stop();
+      AppLog.info(
+        'yamnet',
+        'model_load_completed',
+        fields: {
+          'duration_ms': timer.elapsedMilliseconds,
+          'model_version': detector.modelVersion,
+        },
+      );
+      return detector;
+    } catch (error, stackTrace) {
+      timer.stop();
+      AppLog.error(
+        'yamnet',
+        'model_load_failed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   static const _windowSamples = 15600;
@@ -48,11 +77,15 @@ class YamnetDetector implements AudioDetector {
 
   @override
   Future<List<SoundDetection>> detect(AudioInferenceInput input) async {
+    final timer = Stopwatch()..start();
     final waveform = PcmResampler.toMonoFloat32(
       input,
       outputSampleRate: requiredSampleRate,
     );
-    if (waveform.isEmpty) return const [];
+    if (waveform.isEmpty) {
+      AppLog.warning('yamnet', 'empty_input', traceId: input.recordingId);
+      return const [];
+    }
 
     final frameScores = <List<double>>[];
     for (var offset = 0; offset < waveform.length; offset += _hopSamples) {
@@ -62,7 +95,19 @@ class YamnetDetector implements AudioDetector {
       frameScores.add(await _runWindow(window));
       if (offset + _windowSamples >= waveform.length) break;
     }
-    return _aggregate(frameScores);
+    final detections = _aggregate(frameScores);
+    timer.stop();
+    AppLog.info(
+      'yamnet',
+      'inference_completed',
+      traceId: input.recordingId,
+      fields: {
+        'duration_ms': timer.elapsedMilliseconds,
+        'window_count': frameScores.length,
+        'detection_count': detections.length,
+      },
+    );
+    return detections;
   }
 
   Future<List<double>> _runWindow(Float32List window) async {
@@ -131,5 +176,6 @@ class YamnetDetector implements AudioDetector {
   Future<void> close() async {
     await _isolate.close();
     _interpreter.close();
+    AppLog.debug('yamnet', 'model_closed');
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
@@ -72,6 +73,12 @@ class FileExplorationStore implements ExplorationStore {
       detections: List.unmodifiable(detections),
     );
     await _writeRecord(recordDirectory, record);
+    AppLog.debug(
+      'storage',
+      'record_written',
+      traceId: recording.id,
+      fields: {'byte_length': recording.byteLength},
+    );
     return record;
   }
 
@@ -88,7 +95,13 @@ class FileExplorationStore implements ExplorationStore {
         if (value is Map<String, Object?>) {
           records.add(ExplorationRecord.fromJson(value));
         }
-      } on FormatException {
+      } on FormatException catch (error, stackTrace) {
+        AppLog.warning(
+          'storage',
+          'damaged_record_skipped',
+          error: error,
+          stackTrace: stackTrace,
+        );
         // Ignore one damaged record so the rest of the sound book remains usable.
       }
     }
@@ -123,6 +136,7 @@ class FileExplorationStore implements ExplorationStore {
     );
     if (await record.exists()) await record.delete();
     if (await audio.exists()) await audio.delete();
+    AppLog.info('storage', 'record_deleted', traceId: id);
   }
 
   Future<void> _writeRecord(

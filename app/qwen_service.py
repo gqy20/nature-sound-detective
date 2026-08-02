@@ -4,6 +4,8 @@ import base64
 import json
 import os
 import re
+import logging
+import time
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +13,10 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from app.config import ROOT
+from app.observability import get_logger, log_event, log_exception
+
+
+logger = get_logger("qwen")
 
 
 SYSTEM_PROMPT = """你是面向儿童亲子自然观察的声音分析助手。你必须谨慎，不得根据文件名猜测，不得把不确定的声音说成确定物种。"""
@@ -72,8 +78,18 @@ class QwenNatureAnalyzer:
         )
 
     def analyze(self, audio_path: Path, location: str) -> dict[str, Any]:
-        encoded = base64.b64encode(audio_path.read_bytes()).decode("ascii")
-        stream = self.client.chat.completions.create(
+        started = time.perf_counter()
+        audio_bytes = audio_path.read_bytes()
+        log_event(
+            logger,
+            logging.INFO,
+            "qwen_request_started",
+            model=self.model,
+            audio_bytes=len(audio_bytes),
+        )
+        encoded = base64.b64encode(audio_bytes).decode("ascii")
+        try:
+            stream = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
@@ -95,14 +111,30 @@ class QwenNatureAnalyzer:
             stream=True,
             stream_options={"include_usage": True},
         )
-        text_parts: list[str] = []
-        usage: dict[str, Any] | None = None
-        for chunk in stream:
-            if chunk.choices and chunk.choices[0].delta.content:
-                text_parts.append(chunk.choices[0].delta.content)
-            elif chunk.usage:
-                usage = chunk.usage.model_dump()
-        result = _parse_json("".join(text_parts))
-        result["model"] = self.model
-        result["usage"] = usage
-        return result
+            text_parts: list[str] = []
+            usage: dict[str, Any] | None = None
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    text_parts.append(chunk.choices[0].delta.content)
+                elif chunk.usage:
+                    usage = chunk.usage.model_dump()
+            result = _parse_json("".join(text_parts))
+            result["model"] = self.model
+            result["usage"] = usage
+            log_event(
+                logger,
+                logging.INFO,
+                "qwen_request_completed",
+                model=self.model,
+                duration_ms=round((time.perf_counter() - started) * 1000),
+                output_chars=sum(map(len, text_parts)),
+            )
+            return result
+        except Exception:
+            log_exception(
+                logger,
+                "qwen_request_failed",
+                model=self.model,
+                duration_ms=round((time.perf_counter() - started) * 1000),
+            )
+            raise

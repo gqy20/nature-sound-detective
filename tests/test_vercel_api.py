@@ -15,9 +15,12 @@ class FakeAnalyzer:
 
 
 def test_cloud_health():
-    response = TestClient(cloud_api.app).get("/api/health")
+    response = TestClient(cloud_api.app).get(
+        "/api/health", headers={"X-Trace-ID": "rec_test_12345678"}
+    )
     assert response.status_code == 200
     assert response.json()["mode"] == "vercel-qwen-only"
+    assert response.headers["X-Trace-ID"] == "rec_test_12345678"
 
 
 def test_cloud_analysis_returns_completed_job(monkeypatch):

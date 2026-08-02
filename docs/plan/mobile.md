@@ -572,7 +572,7 @@ Web 和 Flutter 移动端共用结构化结果，避免为不同终端维护两�
 
 iPhone 真机运行、TestFlight 和 App Store 交付属于后续 iOS 阶段，不阻塞当前 Android 比赛版验收；但 Flutter 公共层、模型接口和结果协议必须保持跨平台，不能以 Android 专属实现污染业务层。
 
-## 12. 实施进度（2026-08-02）
+## 13. 实施进度（2026-08-02）
 
 Android 比赛版的代码主链路已经完成：Flutter 双平台骨架、48 kHz WAV 录音、音质检查与回放、YAMNet 通用声音识别、BirdNET 杭州鸟种候选、融合解释、声音册，以及用户确认后调用云端科普接口。两套 TFLite 推理在后台 isolate 执行，避免长音频分析直接阻塞界面。
 
@@ -583,6 +583,7 @@ Android 比赛版的代码主链路已经完成：Flutter 双平台骨架、48 k
 - 云端：只在用户主动确认后调用，测试与构建不触发付费 API；
 - 数据：声音册保存于 App 私有目录，支持查看和删除，不自动上传；
 - 平台：Android APK 已能构建，iOS 工程与公共 Dart 抽象已保留。
+- 诊断：Flutter、Android、Web、Vercel 与本地 FastAPI 已使用结构化事件；录音 ID 作为 trace 贯穿端侧和云端，App 可导出脱敏滚动日志。
 
 以下项目仍属于发布前验收，不应描述为已经完成：
 

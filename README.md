@@ -13,6 +13,7 @@
 - 跑通 Qwen3.5-Omni + BirdNET 亲子识别 MVP，并加入 20 秒输入提示、可取消等待、谨慎置信度、儿童内容安全护栏和上一次结果恢复。
 - 完成体验增强：无模型示例、录音音质检查、结果纠错、本机声音册、分类错误恢复和 24 小时录音清理。
 - 跑通 MiniMax Music 3.0、Speech 2.8 HD、Wan2.7 与 FFmpeg 三轨合成的创作闭环；开发环境默认不调用付费视频接口。
+- 完成 Web、Flutter、Android 原生层与 Python 服务端的结构化日志、跨端 trace ID、脱敏滚动日志和端侧诊断导出。
 
 所有机器标签均为候选标签，未经人工试听确认的数据不能作为正式测试集。
 
@@ -108,6 +109,9 @@ uv run python scripts/run_stage2_birdnet.py --reuse-detections
 - `data/raw/`：原始或公开预览音频，不纳入 Git；
 - `artifacts/`：可重新生成的实验产物，不纳入 Git。
 - `app/`：亲子移动端 MVP、异步分析接口和模型融合流程；
+- `mobile/`：Android 优先、兼容后续 iOS 的 Flutter 完整端；
 - `outputs/mvp/`：MVP 上传、任务结果和本地测试产物，不纳入 Git。
 
 详细入口见 [项目文档索引](./docs/README.md)。
+
+日志事件、Logcat 命令、trace 关联和隐私边界见 [日志与诊断](./docs/logs.md)。

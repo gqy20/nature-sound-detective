@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -11,6 +12,10 @@ from uuid import uuid4
 from app.config import JOB_DIR
 from app.creation_service import CreationService
 from app.pipeline import AnalysisPipeline
+from app.observability import current_trace_id, get_logger, log_event, log_exception, trace_context
+
+
+logger = get_logger("jobs")
 
 
 class JobStore:
@@ -74,6 +79,7 @@ class JobStore:
         now = datetime.now(timezone.utc).isoformat()
         job = {
             "id": job_id,
+            "trace_id": current_trace_id(),
             "status": "queued",
             "stage_message": "正在准备录音",
             "created_at": now,
@@ -90,6 +96,7 @@ class JobStore:
             self._jobs[job_id] = job
             self._write(job)
         self._executor.submit(self._run, job_id)
+        log_event(logger, logging.INFO, "analysis_job_queued", job_id=job_id)
         return self.public(job)
 
     def _update(self, job_id: str, **changes: Any) -> bool:
@@ -103,13 +110,17 @@ class JobStore:
             return True
 
     def _run(self, job_id: str) -> None:
+        job = self._jobs[job_id]
+        with trace_context(job.get("trace_id", job_id)):
+            self._run_with_trace(job_id, job)
+
+    def _run_with_trace(self, job_id: str, job: dict[str, Any]) -> None:
         try:
             if self._pipeline is None:
                 self._pipeline = AnalysisPipeline()
-            job = self._jobs[job_id]
-
             def progress(status: str, message: str) -> None:
                 self._update(job_id, status=status, stage_message=message)
+                log_event(logger, logging.INFO, "analysis_job_progress", job_id=job_id, stage=status)
 
             result = self._pipeline.run(Path(job["audio_path"]), job["location"], progress)
             self._update(
@@ -118,7 +129,9 @@ class JobStore:
                 stage_message="声音卡片制作完成",
                 result=result,
             )
+            log_event(logger, logging.INFO, "analysis_job_completed", job_id=job_id)
         except Exception as exc:
+            log_exception(logger, "analysis_job_failed", job_id=job_id)
             self._update(
                 job_id,
                 status="failed",
@@ -160,17 +173,23 @@ class JobStore:
             }
             self._write(job)
         self._creation_executor.submit(self._run_creation, job_id)
+        log_event(logger, logging.INFO, "creation_job_queued", job_id=job_id)
         return self.get(job_id)
 
     def _run_creation(self, job_id: str) -> None:
+        job = self._jobs[job_id]
+        with trace_context(job.get("trace_id", job_id)):
+            self._run_creation_with_trace(job_id, job)
+
+    def _run_creation_with_trace(self, job_id: str, job: dict[str, Any]) -> None:
         try:
             service = CreationService()
-            job = self._jobs[job_id]
 
             def progress(status: str, message: str, details: dict[str, Any] | None = None) -> None:
                 creation = {**(job.get("creation") or {}), **(details or {})}
                 creation.update(status=status, stage_message=message)
                 self._update(job_id, creation=creation)
+                log_event(logger, logging.INFO, "creation_job_progress", job_id=job_id, stage=status)
 
             creation = service.create(
                 job_id, job["result"], Path(job["audio_path"]), job["location"], progress,
@@ -180,7 +199,9 @@ class JobStore:
                 for key in ("music_path", "narration_path", "video_path"):
                     if creation.get(key):
                         Path(creation[key]).unlink(missing_ok=True)
+            log_event(logger, logging.INFO, "creation_job_completed", job_id=job_id)
         except Exception as exc:
+            log_exception(logger, "creation_job_failed", job_id=job_id)
             self._update(job_id, creation={
                 "status": "failed", "stage_message": "创作没有完成", "error": str(exc)
             })

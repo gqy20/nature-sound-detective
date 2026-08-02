@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:nature_sound_detective/core/audio/pcm_resampler.dart';
 import 'package:nature_sound_detective/core/inference/audio_inference.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -11,18 +12,46 @@ class BirdnetDetector implements AudioDetector {
   BirdnetDetector._(this._interpreter, this._isolate);
 
   static Future<BirdnetDetector> load() async {
-    final options = InterpreterOptions()..threads = 2;
-    final interpreter = await Interpreter.fromAsset(
-      'assets/models/birdnet.tflite',
-      options: options,
+    final timer = Stopwatch()..start();
+    AppLog.info(
+      'birdnet',
+      'model_load_started',
+      fields: {'model_version': '2.4-fp16'},
     );
-    return BirdnetDetector._(
-      interpreter,
-      await IsolateInterpreter.create(
-        address: interpreter.address,
-        debugName: 'BirdnetInference',
-      ),
-    );
+    try {
+      final options = InterpreterOptions()..threads = 2;
+      final interpreter = await Interpreter.fromAsset(
+        'assets/models/birdnet.tflite',
+        options: options,
+      );
+      final detector = BirdnetDetector._(
+        interpreter,
+        await IsolateInterpreter.create(
+          address: interpreter.address,
+          debugName: 'BirdnetInference',
+        ),
+      );
+      timer.stop();
+      AppLog.info(
+        'birdnet',
+        'model_load_completed',
+        fields: {
+          'duration_ms': timer.elapsedMilliseconds,
+          'model_version': detector.modelVersion,
+        },
+      );
+      return detector;
+    } catch (error, stackTrace) {
+      timer.stop();
+      AppLog.error(
+        'birdnet',
+        'model_load_failed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   static const _windowSamples = 144000;
@@ -41,11 +70,15 @@ class BirdnetDetector implements AudioDetector {
 
   @override
   Future<List<SoundDetection>> detect(AudioInferenceInput input) async {
+    final timer = Stopwatch()..start();
     final waveform = PcmResampler.toMonoFloat32(
       input,
       outputSampleRate: requiredSampleRate,
     );
-    if (waveform.isEmpty) return const [];
+    if (waveform.isEmpty) {
+      AppLog.warning('birdnet', 'empty_input', traceId: input.recordingId);
+      return const [];
+    }
 
     final bestBySpecies = <BirdnetSpecies, _BirdScore>{};
     for (var offset = 0; offset < waveform.length; offset += _windowSamples) {
@@ -91,7 +124,19 @@ class BirdnetDetector implements AudioDetector {
             )
             .toList(growable: false)
           ..sort((left, right) => right.confidence.compareTo(left.confidence));
-    return detections.take(3).toList(growable: false);
+    final result = detections.take(3).toList(growable: false);
+    timer.stop();
+    AppLog.info(
+      'birdnet',
+      'inference_completed',
+      traceId: input.recordingId,
+      fields: {
+        'duration_ms': timer.elapsedMilliseconds,
+        'window_count': (waveform.length / _windowSamples).ceil(),
+        'detection_count': result.length,
+      },
+    );
+    return result;
   }
 
   Future<List<double>> _runWindow(Float32List window) async {
@@ -105,6 +150,7 @@ class BirdnetDetector implements AudioDetector {
   Future<void> close() async {
     await _isolate.close();
     _interpreter.close();
+    AppLog.debug('birdnet', 'model_closed');
   }
 }
 

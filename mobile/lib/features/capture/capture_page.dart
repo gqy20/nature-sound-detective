@@ -9,6 +9,7 @@ import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 
 class CapturePage extends StatefulWidget {
@@ -18,12 +19,14 @@ class CapturePage extends StatefulWidget {
     this.qualityAnalyzer,
     this.playback,
     this.analyzer,
+    this.store,
   });
 
   final AudioRecorder? recorder;
   final AudioQualityAnalyzer? qualityAnalyzer;
   final AudioPlayback? playback;
   final RecordingAnalyzer? analyzer;
+  final ExplorationStore? store;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -36,6 +39,7 @@ class _CapturePageState extends State<CapturePage> {
   late final AudioQualityAnalyzer _qualityAnalyzer;
   late final AudioPlayback _playback;
   late final RecordingAnalyzer _analyzer;
+  late final ExplorationStore _store;
   StreamSubscription<bool>? _playbackSubscription;
   Timer? _timer;
   DateTime? _startedAt;
@@ -46,6 +50,8 @@ class _CapturePageState extends State<CapturePage> {
   bool _isPlaying = false;
   bool _analyzing = false;
   bool _hasAnalyzed = false;
+  bool _saving = false;
+  bool _saved = false;
   List<SoundDetection> _detections = const [];
   String? _error;
 
@@ -58,6 +64,7 @@ class _CapturePageState extends State<CapturePage> {
     _qualityAnalyzer = widget.qualityAnalyzer ?? const WavQualityAnalyzer();
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _analyzer = widget.analyzer ?? LocalRecordingAnalyzer();
+    _store = widget.store ?? FileExplorationStore();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
@@ -91,6 +98,7 @@ class _CapturePageState extends State<CapturePage> {
       _quality = null;
       _detections = const [];
       _hasAnalyzed = false;
+      _saved = false;
       _error = null;
     });
     try {
@@ -185,6 +193,29 @@ class _CapturePageState extends State<CapturePage> {
       if (mounted) setState(() => _error = '本地声音模型加载失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _analyzing = false);
+    }
+  }
+
+  Future<void> _saveExploration() async {
+    final recording = _recording;
+    final quality = _quality;
+    if (recording == null || quality == null || _saving) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await _store.save(
+        recording: recording,
+        quality: quality,
+        detections: _detections,
+        location: '杭州',
+      );
+      if (mounted) setState(() => _saved = true);
+    } catch (_) {
+      if (mounted) setState(() => _error = '保存到声音册失败，请稍后再试。');
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -295,6 +326,17 @@ class _CapturePageState extends State<CapturePage> {
                 key: const Key('recording-error'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            if (_hasAnalyzed) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                key: const Key('save-exploration-button'),
+                onPressed: _saved || _saving ? null : _saveExploration,
+                icon: Icon(
+                  _saved ? Icons.check_rounded : Icons.bookmark_add_rounded,
+                ),
+                label: Text(_saved ? '已保存到声音册' : (_saving ? '正在保存' : '保存到声音册')),
               ),
             ],
             const SizedBox(height: 12),

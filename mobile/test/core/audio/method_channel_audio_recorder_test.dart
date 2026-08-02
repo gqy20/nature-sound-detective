@@ -1,0 +1,41 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const channel = MethodChannel('test/audio_recorder');
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+
+  test('maps the native recording response', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'startRecording') {
+            return {'id': 'rec_1', 'started_at_ms': 1000};
+          }
+          if (call.method == 'stopRecording') {
+            return {
+              'id': 'rec_1',
+              'path': '/tmp/rec_1.wav',
+              'duration_ms': 3200,
+              'sample_rate': 48000,
+              'channel_count': 1,
+              'byte_length': 307244,
+            };
+          }
+          return true;
+        });
+    final recorder = MethodChannelAudioRecorder(channel: channel);
+
+    final session = await recorder.start();
+    final audio = await recorder.stop();
+
+    expect(session.id, 'rec_1');
+    expect(audio.sampleRate, 48000);
+    expect(audio.duration, const Duration(milliseconds: 3200));
+  });
+}

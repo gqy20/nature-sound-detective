@@ -38,8 +38,8 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
   @override
   Future<void> dispose() async {
     final detector = _detector;
-    if (detector != null) (await detector).close();
+    if (detector != null) await (await detector).close();
     final birdDetector = _birdDetector;
-    if (birdDetector != null) (await birdDetector).close();
+    if (birdDetector != null) await (await birdDetector).close();
   }
 }

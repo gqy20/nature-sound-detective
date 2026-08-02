@@ -165,6 +165,13 @@ class _CapturePageState extends State<CapturePage> {
           _startedAt = null;
         });
       }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = '录音文件处理失败，请再试一次。';
+          _startedAt = null;
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -173,10 +180,14 @@ class _CapturePageState extends State<CapturePage> {
   Future<void> _togglePlayback() async {
     final recording = _recording;
     if (recording == null) return;
-    if (_isPlaying) {
-      await _playback.stop();
-    } else {
-      await _playback.play(recording.path);
+    try {
+      if (_isPlaying) {
+        await _playback.stop();
+      } else {
+        await _playback.play(recording.path);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _error = '暂时无法播放这段录音。');
     }
   }
 

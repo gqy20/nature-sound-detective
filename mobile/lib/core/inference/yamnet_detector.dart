@@ -9,16 +9,24 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class YamnetDetector implements AudioDetector {
-  YamnetDetector._({required this._interpreter, required YamnetLabelMap labels})
-    : _indicesByCategory = labels.indicesByCategory();
+  YamnetDetector._({
+    required this._interpreter,
+    required this._isolate,
+    required YamnetLabelMap labels,
+  }) : _indicesByCategory = labels.indicesByCategory();
 
   static Future<YamnetDetector> load() async {
     final results = await Future.wait<Object>([
       Interpreter.fromAsset('assets/models/yamnet.tflite'),
       rootBundle.loadString('assets/labels/yamnet.csv'),
     ]);
+    final interpreter = results[0] as Interpreter;
     return YamnetDetector._(
-      interpreter: results[0] as Interpreter,
+      interpreter: interpreter,
+      isolate: await IsolateInterpreter.create(
+        address: interpreter.address,
+        debugName: 'YamnetInference',
+      ),
       labels: YamnetLabelMap.fromCsv(results[1] as String),
     );
   }
@@ -26,6 +34,7 @@ class YamnetDetector implements AudioDetector {
   static const _windowSamples = 15600;
   static const _hopSamples = 7800;
   final Interpreter _interpreter;
+  final IsolateInterpreter _isolate;
   final Map<String, List<int>> _indicesByCategory;
 
   @override
@@ -50,20 +59,20 @@ class YamnetDetector implements AudioDetector {
       final window = Float32List(_windowSamples);
       final available = math.min(_windowSamples, waveform.length - offset);
       window.setRange(0, available, waveform, offset);
-      frameScores.add(_runWindow(window));
+      frameScores.add(await _runWindow(window));
       if (offset + _windowSamples >= waveform.length) break;
     }
     return _aggregate(frameScores);
   }
 
-  List<double> _runWindow(Float32List window) {
+  Future<List<double>> _runWindow(Float32List window) async {
     final inputShape = _interpreter.getInputTensor(0).shape;
     final outputShape = _interpreter.getOutputTensor(0).shape;
     final outputSize = outputShape.reduce((left, right) => left * right);
     final output = Float32List(outputSize);
     final input = inputShape.length == 2 ? [window] : window;
     final outputValue = outputShape.length == 2 ? [output] : output;
-    _interpreter.run(input, outputValue);
+    await _isolate.run(input, outputValue);
     return output.toList(growable: false);
   }
 
@@ -119,5 +128,8 @@ class YamnetDetector implements AudioDetector {
     return intervals;
   }
 
-  void close() => _interpreter.close();
+  Future<void> close() async {
+    await _isolate.close();
+    _interpreter.close();
+  }
 }

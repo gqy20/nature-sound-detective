@@ -8,14 +8,19 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class BirdnetDetector implements AudioDetector {
-  BirdnetDetector._(this._interpreter);
+  BirdnetDetector._(this._interpreter, this._isolate);
 
   static Future<BirdnetDetector> load() async {
     final options = InterpreterOptions()..threads = 2;
+    final interpreter = await Interpreter.fromAsset(
+      'assets/models/birdnet.tflite',
+      options: options,
+    );
     return BirdnetDetector._(
-      await Interpreter.fromAsset(
-        'assets/models/birdnet.tflite',
-        options: options,
+      interpreter,
+      await IsolateInterpreter.create(
+        address: interpreter.address,
+        debugName: 'BirdnetInference',
       ),
     );
   }
@@ -23,6 +28,7 @@ class BirdnetDetector implements AudioDetector {
   static const _windowSamples = 144000;
   static const _threshold = 0.05;
   final Interpreter _interpreter;
+  final IsolateInterpreter _isolate;
 
   @override
   String get modelId => 'birdnet-acoustic';
@@ -46,7 +52,7 @@ class BirdnetDetector implements AudioDetector {
       final window = Float32List(_windowSamples);
       final available = math.min(_windowSamples, waveform.length - offset);
       window.setRange(0, available, waveform, offset);
-      final scores = _runWindow(window);
+      final scores = await _runWindow(window);
       for (final species in hangzhouBirdnetSpecies) {
         if (species.outputIndex >= scores.length) continue;
         final score = scores[species.outputIndex];
@@ -88,15 +94,18 @@ class BirdnetDetector implements AudioDetector {
     return detections.take(3).toList(growable: false);
   }
 
-  List<double> _runWindow(Float32List window) {
+  Future<List<double>> _runWindow(Float32List window) async {
     final outputShape = _interpreter.getOutputTensor(0).shape;
     final outputSize = outputShape.reduce((left, right) => left * right);
     final output = Float32List(outputSize);
-    _interpreter.run([window], [output]);
+    await _isolate.run([window], [output]);
     return output.toList(growable: false);
   }
 
-  void close() => _interpreter.close();
+  Future<void> close() async {
+    await _isolate.close();
+    _interpreter.close();
+  }
 }
 
 class _BirdScore {

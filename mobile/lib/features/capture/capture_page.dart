@@ -9,6 +9,7 @@ import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/network/cloud_content_service.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 
@@ -20,6 +21,7 @@ class CapturePage extends StatefulWidget {
     this.playback,
     this.analyzer,
     this.store,
+    this.cloudService,
   });
 
   final AudioRecorder? recorder;
@@ -27,6 +29,7 @@ class CapturePage extends StatefulWidget {
   final AudioPlayback? playback;
   final RecordingAnalyzer? analyzer;
   final ExplorationStore? store;
+  final CloudContentService? cloudService;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -40,6 +43,7 @@ class _CapturePageState extends State<CapturePage> {
   late final AudioPlayback _playback;
   late final RecordingAnalyzer _analyzer;
   late final ExplorationStore _store;
+  late final CloudContentService _cloudService;
   StreamSubscription<bool>? _playbackSubscription;
   Timer? _timer;
   DateTime? _startedAt;
@@ -52,6 +56,8 @@ class _CapturePageState extends State<CapturePage> {
   bool _hasAnalyzed = false;
   bool _saving = false;
   bool _saved = false;
+  bool _enriching = false;
+  CloudSoundCard? _cloudCard;
   List<SoundDetection> _detections = const [];
   String? _error;
 
@@ -65,6 +71,7 @@ class _CapturePageState extends State<CapturePage> {
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _analyzer = widget.analyzer ?? LocalRecordingAnalyzer();
     _store = widget.store ?? FileExplorationStore();
+    _cloudService = widget.cloudService ?? HttpCloudContentService();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
@@ -99,6 +106,7 @@ class _CapturePageState extends State<CapturePage> {
       _detections = const [];
       _hasAnalyzed = false;
       _saved = false;
+      _cloudCard = null;
       _error = null;
     });
     try {
@@ -216,6 +224,46 @@ class _CapturePageState extends State<CapturePage> {
       if (mounted) setState(() => _error = '保存到声音册失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _requestCloudCard() async {
+    final recording = _recording;
+    if (recording == null || _enriching) return;
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('生成儿童科普卡？'),
+        content: const Text('这一步会把本次录音上传到云端并调用 AI。只有点击继续后才会产生网络请求。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('继续'),
+          ),
+        ],
+      ),
+    );
+    if (agreed != true || !mounted) return;
+    setState(() {
+      _enriching = true;
+      _error = null;
+    });
+    try {
+      final card = await _cloudService.createCard(
+        recording: recording,
+        location: '杭州',
+      );
+      if (mounted) setState(() => _cloudCard = card);
+    } on CloudServiceException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = '科普卡生成失败，录音和本地结果仍已保留。');
+    } finally {
+      if (mounted) setState(() => _enriching = false);
     }
   }
 
@@ -337,6 +385,47 @@ class _CapturePageState extends State<CapturePage> {
                   _saved ? Icons.check_rounded : Icons.bookmark_add_rounded,
                 ),
                 label: Text(_saved ? '已保存到声音册' : (_saving ? '正在保存' : '保存到声音册')),
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                key: const Key('cloud-card-button'),
+                onPressed: _enriching ? null : _requestCloudCard,
+                icon: _enriching
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_stories_rounded),
+                label: Text(_enriching ? '正在生成科普卡' : '生成儿童科普卡'),
+              ),
+            ],
+            if (_cloudCard case final card?) ...[
+              const SizedBox(height: 24),
+              Card(
+                margin: EdgeInsets.zero,
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.title,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(card.explanation),
+                      if (card.question.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text('观察任务：${card.question}'),
+                      ],
+                      if (card.safetyNote.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text('安全提示：${card.safetyNote}'),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ],
             const SizedBox(height: 12),

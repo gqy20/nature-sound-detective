@@ -37,6 +37,7 @@ dependencies:
   audioplayers: ^6.8.1
   tflite_flutter: ^0.12.1
   path_provider: ^2.1.6
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

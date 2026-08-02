@@ -2,13 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
+import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
+import 'package:nature_sound_detective/core/models/audio_quality.dart';
 
 class CapturePage extends StatefulWidget {
-  const CapturePage({super.key, this.recorder});
+  const CapturePage({
+    super.key,
+    this.recorder,
+    this.qualityAnalyzer,
+    this.playback,
+  });
 
   final AudioRecorder? recorder;
+  final AudioQualityAnalyzer? qualityAnalyzer;
+  final AudioPlayback? playback;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -18,11 +28,16 @@ class _CapturePageState extends State<CapturePage> {
   static const _maxDuration = Duration(seconds: 20);
 
   late final AudioRecorder _recorder;
+  late final AudioQualityAnalyzer _qualityAnalyzer;
+  late final AudioPlayback _playback;
+  StreamSubscription<bool>? _playbackSubscription;
   Timer? _timer;
   DateTime? _startedAt;
   Duration _elapsed = Duration.zero;
   bool _busy = false;
   RecordedAudio? _recording;
+  AudioQuality? _quality;
+  bool _isPlaying = false;
   String? _error;
 
   bool get _isRecording => _startedAt != null;
@@ -31,11 +46,18 @@ class _CapturePageState extends State<CapturePage> {
   void initState() {
     super.initState();
     _recorder = widget.recorder ?? MethodChannelAudioRecorder();
+    _qualityAnalyzer = widget.qualityAnalyzer ?? const WavQualityAnalyzer();
+    _playback = widget.playback ?? DeviceFileAudioPlayback();
+    _playbackSubscription = _playback.playing.listen((playing) {
+      if (mounted) setState(() => _isPlaying = playing);
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_playbackSubscription?.cancel());
+    unawaited(_playback.dispose());
     if (_isRecording) {
       unawaited(_recorder.cancel());
     }
@@ -55,6 +77,7 @@ class _CapturePageState extends State<CapturePage> {
     setState(() {
       _busy = true;
       _recording = null;
+      _quality = null;
       _error = null;
     });
     try {
@@ -98,9 +121,11 @@ class _CapturePageState extends State<CapturePage> {
     _timer?.cancel();
     try {
       final recording = await _recorder.stop();
+      final quality = await _qualityAnalyzer.analyze(recording.path);
       if (!mounted) return;
       setState(() {
         _recording = recording;
+        _quality = quality;
         _startedAt = null;
         _elapsed = recording.duration;
       });
@@ -113,6 +138,16 @@ class _CapturePageState extends State<CapturePage> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _togglePlayback() async {
+    final recording = _recording;
+    if (recording == null) return;
+    if (_isPlaying) {
+      await _playback.stop();
+    } else {
+      await _playback.play(recording.path);
     }
   }
 
@@ -159,6 +194,31 @@ class _CapturePageState extends State<CapturePage> {
                   key: const Key('recording-saved'),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  key: const Key('playback-button'),
+                  onPressed: _togglePlayback,
+                  icon: Icon(
+                    _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                  ),
+                  label: Text(_isPlaying ? '停止播放' : '回放原声'),
+                ),
+              ],
+              if (_quality case final quality?) ...[
+                const SizedBox(height: 12),
+                Text(
+                  quality.usable ? '录音质量可用于识别' : '建议重新录制',
+                  key: const Key('quality-status'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: quality.usable
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                for (final warning in quality.warnings)
+                  Text('· $warning', textAlign: TextAlign.center),
               ],
               if (_error case final error?) ...[
                 const SizedBox(height: 16),

@@ -5,6 +5,7 @@ class AudioQuality {
     this.rms,
     this.peak,
     this.silentRatio,
+    this.clippedRatio,
   });
 
   factory AudioQuality.fromJson(Map<String, Object?> json) {
@@ -14,6 +15,7 @@ class AudioQuality {
       rms: _number(json['rms']),
       peak: _number(json['peak']),
       silentRatio: _number(json['silent_ratio']),
+      clippedRatio: _number(json['clipped_ratio']),
     );
   }
 
@@ -22,6 +24,7 @@ class AudioQuality {
   final double? rms;
   final double? peak;
   final double? silentRatio;
+  final double? clippedRatio;
 
   Map<String, Object?> toJson() => {
     'usable': usable,
@@ -29,6 +32,7 @@ class AudioQuality {
     if (rms != null) 'rms': rms,
     if (peak != null) 'peak': peak,
     if (silentRatio != null) 'silent_ratio': silentRatio,
+    if (clippedRatio != null) 'clipped_ratio': clippedRatio,
   };
 }
 

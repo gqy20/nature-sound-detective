@@ -9,6 +9,7 @@ import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/features/result/detection_results.dart';
 
 class CapturePage extends StatefulWidget {
   const CapturePage({
@@ -191,136 +192,117 @@ class _CapturePageState extends State<CapturePage> {
   Widget build(BuildContext context) {
     final seconds = (_elapsed.inMilliseconds / 1000).toStringAsFixed(1);
     return Scaffold(
-      appBar: AppBar(title: const Text('自然声探员')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                '把耳朵借给大自然',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '录下杭州身边的声音，寻找鸟、青蛙和昆虫的线索。',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const Spacer(),
-              Text(
-                _isRecording ? '$seconds 秒' : '最长 20 秒',
-                key: const Key('recording-duration'),
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                key: const Key('record-button'),
-                onPressed: _busy ? null : _toggleRecording,
-                icon: Icon(
-                  _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
-                ),
-                label: Text(_isRecording ? '结束录音' : '开始录音'),
-              ),
-              if (_recording case final recording?) ...[
-                const SizedBox(height: 16),
-                Text(
-                  '已保存 ${recording.duration.inSeconds} 秒 WAV 录音',
-                  key: const Key('recording-saved'),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  key: const Key('playback-button'),
-                  onPressed: _togglePlayback,
-                  icon: Icon(
-                    _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                  ),
-                  label: Text(_isPlaying ? '停止播放' : '回放原声'),
-                ),
-              ],
-              if (_quality case final quality?) ...[
-                const SizedBox(height: 12),
-                Text(
-                  quality.usable ? '录音质量可用于识别' : '建议重新录制',
-                  key: const Key('quality-status'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: quality.usable
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                for (final warning in quality.warnings)
-                  Text('· $warning', textAlign: TextAlign.center),
-                if (quality.usable) ...[
-                  const SizedBox(height: 12),
-                  FilledButton.tonalIcon(
-                    key: const Key('analyze-button'),
-                    onPressed: _analyzing ? null : _analyzeRecording,
-                    icon: _analyzing
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.graphic_eq_rounded),
-                    label: Text(_analyzing ? '正在本地识别' : '识别这段声音'),
-                  ),
-                ],
-              ],
-              if (_detections.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  '听到的声音线索',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final detection in _detections)
-                      Chip(
-                        label: Text(
-                          '${detection.specificSpecies?.nameZh ?? detection.nameZh} ${(_displayScore(detection.confidence) * 100).round()}%',
-                        ),
-                      ),
-                  ],
-                ),
-              ] else if (_hasAnalyzed && !_analyzing) ...[
-                const SizedBox(height: 16),
-                const Text(
-                  '暂时没有找到足够清楚的声音线索，可以换个位置再录一次。',
-                  key: Key('unknown-result'),
-                  textAlign: TextAlign.center,
-                ),
-              ] else if (!_analyzing &&
-                  _quality?.usable == true &&
-                  _recording != null) ...[
-                const SizedBox(height: 8),
-                const Text('模型会返回声音线索，不把分数当作准确率。', textAlign: TextAlign.center),
-              ],
-              if (_error case final error?) ...[
-                const SizedBox(height: 16),
-                Text(
-                  error,
-                  key: const Key('recording-error'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              const SizedBox(height: 12),
-              const Text('靠近目标声音，避开说话声和车辆。', textAlign: TextAlign.center),
-            ],
+      appBar: AppBar(
+        title: const Text('自然声探员'),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Center(child: Text('杭州')),
           ),
+        ],
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+          children: [
+            Text('把耳朵借给大自然', style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: 8),
+            Text(
+              '录下身边的声音，寻找鸟、青蛙和昆虫的线索。',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 36),
+            Text(
+              _isRecording ? '$seconds 秒' : '最长 20 秒',
+              key: const Key('recording-duration'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              key: const Key('record-button'),
+              onPressed: _busy ? null : _toggleRecording,
+              icon: Icon(_isRecording ? Icons.stop_rounded : Icons.mic_rounded),
+              label: Text(_isRecording ? '结束录音' : '开始录音'),
+            ),
+            if (_recording case final recording?) ...[
+              const SizedBox(height: 16),
+              Text(
+                '已保存 ${recording.duration.inSeconds} 秒 WAV 录音',
+                key: const Key('recording-saved'),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('playback-button'),
+                onPressed: _togglePlayback,
+                icon: Icon(
+                  _isPlaying ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                ),
+                label: Text(_isPlaying ? '停止播放' : '回放原声'),
+              ),
+            ],
+            if (_quality case final quality?) ...[
+              const SizedBox(height: 12),
+              Text(
+                quality.usable ? '录音质量可用于识别' : '建议重新录制',
+                key: const Key('quality-status'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: quality.usable
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              for (final warning in quality.warnings)
+                Text('· $warning', textAlign: TextAlign.center),
+              if (quality.usable) ...[
+                const SizedBox(height: 12),
+                FilledButton.tonalIcon(
+                  key: const Key('analyze-button'),
+                  onPressed: _analyzing ? null : _analyzeRecording,
+                  icon: _analyzing
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.graphic_eq_rounded),
+                  label: Text(_analyzing ? '正在本地识别' : '识别这段声音'),
+                ),
+              ],
+            ],
+            if (_detections.isNotEmpty) ...[
+              const SizedBox(height: 28),
+              DetectionResults(detections: _detections),
+            ] else if (_hasAnalyzed && !_analyzing) ...[
+              const SizedBox(height: 16),
+              const Text(
+                '暂时没有找到足够清楚的声音线索，可以换个位置再录一次。',
+                key: Key('unknown-result'),
+                textAlign: TextAlign.center,
+              ),
+            ] else if (!_analyzing &&
+                _quality?.usable == true &&
+                _recording != null) ...[
+              const SizedBox(height: 8),
+              const Text('识别在手机本地完成，模型分数只表示线索强弱。', textAlign: TextAlign.center),
+            ],
+            if (_error case final error?) ...[
+              const SizedBox(height: 16),
+              Text(
+                error,
+                key: const Key('recording-error'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 12),
+            const Text('靠近目标声音，避开说话声和车辆。', textAlign: TextAlign.center),
+            const SizedBox(height: 28),
+          ],
         ),
       ),
     );
   }
-
-  double _displayScore(double value) => value.clamp(0, 0.99);
 }

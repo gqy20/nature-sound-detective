@@ -44,6 +44,7 @@ class _CapturePageState extends State<CapturePage> {
   AudioQuality? _quality;
   bool _isPlaying = false;
   bool _analyzing = false;
+  bool _hasAnalyzed = false;
   List<SoundDetection> _detections = const [];
   String? _error;
 
@@ -88,6 +89,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _hasAnalyzed = false;
       _error = null;
     });
     try {
@@ -168,10 +170,16 @@ class _CapturePageState extends State<CapturePage> {
       _analyzing = true;
       _error = null;
       _detections = const [];
+      _hasAnalyzed = false;
     });
     try {
       final detections = await _analyzer.analyze(recording);
-      if (mounted) setState(() => _detections = detections);
+      if (mounted) {
+        setState(() {
+          _detections = detections;
+          _hasAnalyzed = true;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _error = '本地声音模型加载失败，请稍后再试。');
     } finally {
@@ -282,6 +290,13 @@ class _CapturePageState extends State<CapturePage> {
                         ),
                       ),
                   ],
+                ),
+              ] else if (_hasAnalyzed && !_analyzing) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  '暂时没有找到足够清楚的声音线索，可以换个位置再录一次。',
+                  key: Key('unknown-result'),
+                  textAlign: TextAlign.center,
                 ),
               ] else if (!_analyzing &&
                   _quality?.usable == true &&

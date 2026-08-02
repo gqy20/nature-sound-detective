@@ -1,5 +1,6 @@
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_pcm_reader.dart';
+import 'package:nature_sound_detective/core/fusion/nature_detection_fusion.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_detector.dart';
 import 'package:nature_sound_detective/core/inference/yamnet_detector.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -11,9 +12,13 @@ abstract interface class RecordingAnalyzer {
 }
 
 class LocalRecordingAnalyzer implements RecordingAnalyzer {
-  LocalRecordingAnalyzer({this.reader = const WavPcmReader()});
+  LocalRecordingAnalyzer({
+    this.reader = const WavPcmReader(),
+    this.fusion = const NatureDetectionFusion(),
+  });
 
   final WavPcmReader reader;
+  final NatureDetectionFusion fusion;
   Future<YamnetDetector>? _detector;
   Future<BirdnetDetector>? _birdDetector;
 
@@ -27,7 +32,7 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
     final birdnet = await (_birdDetector ??= BirdnetDetector.load());
     final yamnetDetections = await yamnet.detect(input);
     final birdnetDetections = await birdnet.detect(input);
-    return [...yamnetDetections, ...birdnetDetections];
+    return fusion.fuse([yamnetDetections, birdnetDetections]);
   }
 
   @override

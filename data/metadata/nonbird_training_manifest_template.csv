@@ -1,0 +1,2 @@
+audio_path,labels,split,split_group,review_status,start_seconds,end_seconds,source_dataset,source_recording_id,source_url,license,commercial_compatible,reviewer
+../raw/example.wav,cryptotympana_atrata,train,example-source-001,pending,0,3,local,example-source-001,,,false,

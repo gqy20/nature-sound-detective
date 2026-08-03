@@ -8,5 +8,7 @@
   "sample_rate": 48000,
   "window_samples": 144000,
   "sha256": "5c64ba3ffab264ccbffafe784896392051a86be63b0cc507e7683db7df114546b",
-  "scope": "Hangzhou MVP six common bird species"
+  "scope": "200 Hangzhou bird species selected by the annual geographic prior",
+  "candidate_count": 200,
+  "candidate_catalog": "assets/labels/birdnet_hz.json"
 }

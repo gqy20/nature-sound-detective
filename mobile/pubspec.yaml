@@ -69,6 +69,7 @@ flutter:
     - assets/models/birdnet.tflite
     - assets/models/birdnet.json
     - assets/labels/yamnet.csv
+    - assets/labels/birdnet_hz.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

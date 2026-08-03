@@ -7,7 +7,7 @@
 1. Android 原生 `AudioRecord` 录制 48 kHz、单声道、16-bit PCM WAV，单次最长 20 秒。
 2. 本地检测过静音、音量过低和削波，并允许回放重录。
 3. YAMNet 将音频重采样为 16 kHz，识别鸟、蛙、昆虫、流水、风雨等通用声音类别。
-4. BirdNET 使用 48 kHz、3 秒窗口，给出杭州首批鸟种候选。
+4. BirdNET 使用 48 kHz、3 秒窗口，在杭州全年地理先验筛出的 200 种鸟类中给出候选。
 5. 融合层去重并输出“线索强度、模型来源、时间片”，不把模型分数包装成准确率。
 6. 用户可将录音、质量信息和识别结果保存到本地声音册。
 7. 用户明确确认后，才调用现有 `/api/analyze` 生成科普内容。
@@ -44,7 +44,7 @@ flutter run --dart-define=XYKW_API_BASE_URL=http://10.0.2.2:8000
 ## 模型与许可
 
 - `assets/models/yamnet.tflite`：YAMNet，Apache-2.0，用于通用声音类别。
-- `assets/models/birdnet.tflite`：BirdNET V2.4 FP16，用于杭州首批鸟种；模型权重为 CC BY-NC 4.0。
+- `assets/models/birdnet.tflite`：BirdNET V2.4 FP16，原始输出 6,522 类；`assets/labels/birdnet_hz.json` 保存杭州 200 种候选及输出索引。模型权重为 CC BY-NC 4.0。
 
 BirdNET 可以用于本次非商业比赛原型；如果产品商业化，需要重新确认模型权重授权或替换为许可兼容的模型。模型哈希和标签范围记录在 `assets/models/manifest.json`。
 

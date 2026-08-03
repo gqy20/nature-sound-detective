@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/pcm_resampler.dart';
 import 'package:nature_sound_detective/core/inference/audio_inference.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
@@ -10,7 +11,7 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class BirdnetDetector implements AudioDetector {
-  BirdnetDetector._(this._interpreter, this._isolate);
+  BirdnetDetector._(this._interpreter, this._isolate, this._species);
 
   static Future<BirdnetDetector> load() async {
     final timer = Stopwatch()..start();
@@ -21,16 +22,19 @@ class BirdnetDetector implements AudioDetector {
     );
     try {
       final options = InterpreterOptions()..threads = 2;
-      final interpreter = await Interpreter.fromAsset(
-        'assets/models/birdnet.tflite',
-        options: options,
-      );
+      final results = await Future.wait<Object>([
+        Interpreter.fromAsset('assets/models/birdnet.tflite', options: options),
+        rootBundle.loadString('assets/labels/birdnet_hz.json'),
+      ]);
+      final interpreter = results[0] as Interpreter;
+      final catalog = BirdnetSpeciesCatalog.fromJson(results[1] as String);
       final detector = BirdnetDetector._(
         interpreter,
         await IsolateInterpreter.create(
           address: interpreter.address,
           debugName: 'BirdnetInference',
         ),
+        catalog.species,
       );
       timer.stop();
       AppLog.info(
@@ -39,6 +43,7 @@ class BirdnetDetector implements AudioDetector {
         fields: {
           'duration_ms': timer.elapsedMilliseconds,
           'model_version': detector.modelVersion,
+          'species_count': detector._species.length,
         },
       );
       return detector;
@@ -59,6 +64,7 @@ class BirdnetDetector implements AudioDetector {
   static const _threshold = 0.05;
   final Interpreter _interpreter;
   final IsolateInterpreter _isolate;
+  final List<BirdnetSpecies> _species;
 
   @override
   String get modelId => 'birdnet-acoustic';
@@ -87,7 +93,7 @@ class BirdnetDetector implements AudioDetector {
       final available = math.min(_windowSamples, waveform.length - offset);
       window.setRange(0, available, waveform, offset);
       final scores = await _runWindow(window);
-      for (final species in hangzhouBirdnetSpecies) {
+      for (final species in _species) {
         if (species.outputIndex >= scores.length) continue;
         final score = scores[species.outputIndex];
         if (score < _threshold) continue;

@@ -1,0 +1,1409 @@
+{
+  "model": "BirdNET 2.4",
+  "selection": "annual geographic prior, with six verified MVP species retained",
+  "latitude": 30.2741,
+  "longitude": 120.1551,
+  "species_count": 200,
+  "species": [
+    {
+      "output_index": 4252,
+      "scientific_name": "Passer montanus",
+      "name_zh": "麻雀",
+      "name_en": "Eurasian Tree Sparrow",
+      "geo_score": 0.999874
+    },
+    {
+      "output_index": 5149,
+      "scientific_name": "Pycnonotus sinensis",
+      "name_zh": "白头鹎",
+      "name_en": "Light-vented Bulbul",
+      "geo_score": 0.999162
+    },
+    {
+      "output_index": 2047,
+      "scientific_name": "Egretta garzetta",
+      "name_zh": "小白鷺",
+      "name_en": "Little Egret",
+      "geo_score": 0.998672
+    },
+    {
+      "output_index": 5746,
+      "scientific_name": "Streptopelia chinensis",
+      "name_zh": "珠颈斑鸠",
+      "name_en": "Spotted Dove",
+      "geo_score": 0.997668
+    },
+    {
+      "output_index": 4604,
+      "scientific_name": "Pica serica",
+      "name_zh": "喜鵲",
+      "name_en": "Oriental Magpie",
+      "geo_score": 0.993491
+    },
+    {
+      "output_index": 3666,
+      "scientific_name": "Motacilla alba",
+      "name_zh": "白鶺鴒",
+      "name_en": "White Wagtail",
+      "geo_score": 0.993268
+    },
+    {
+      "output_index": 6250,
+      "scientific_name": "Turdus mandarinus",
+      "name_zh": "乌鸫",
+      "name_en": "Chinese Blackbird",
+      "geo_score": 0.990417
+    },
+    {
+      "output_index": 3082,
+      "scientific_name": "Lanius schach",
+      "name_zh": "棕背伯勞",
+      "name_en": "Long-tailed Shrike",
+      "geo_score": 0.982384
+    },
+    {
+      "output_index": 44,
+      "scientific_name": "Acridotheres cristatellus",
+      "name_zh": "八哥(冠八哥)",
+      "name_en": "Crested Myna",
+      "geo_score": 0.980576
+    },
+    {
+      "output_index": 5554,
+      "scientific_name": "Sinosuthora webbiana",
+      "name_zh": "粉紅鸚嘴",
+      "name_en": "Vinous-throated Parrotbill",
+      "geo_score": 0.973178
+    },
+    {
+      "output_index": 5867,
+      "scientific_name": "Tachybaptus ruficollis",
+      "name_zh": "小鸊鷉",
+      "name_en": "Little Grebe",
+      "geo_score": 0.959821
+    },
+    {
+      "output_index": 2802,
+      "scientific_name": "Hirundo rustica",
+      "name_zh": "家燕",
+      "name_en": "Barn Swallow",
+      "geo_score": 0.956268
+    },
+    {
+      "output_index": 1550,
+      "scientific_name": "Copsychus saularis",
+      "name_zh": "鹊鸲",
+      "name_en": "Oriental Magpie-Robin",
+      "geo_score": 0.94983
+    },
+    {
+      "output_index": 3968,
+      "scientific_name": "Nycticorax nycticorax",
+      "name_zh": "夜鷺",
+      "name_en": "Black-crowned Night-Heron",
+      "geo_score": 0.945631
+    },
+    {
+      "output_index": 4238,
+      "scientific_name": "Parus minor",
+      "name_zh": "白頰山雀",
+      "name_en": "Japanese Tit",
+      "geo_score": 0.942855
+    },
+    {
+      "output_index": 4476,
+      "scientific_name": "Phoenicurus auroreus",
+      "name_zh": "黃尾鴝",
+      "name_en": "Daurian Redstart",
+      "geo_score": 0.942085
+    },
+    {
+      "output_index": 2420,
+      "scientific_name": "Gallinula chloropus",
+      "name_zh": "黑水鸡",
+      "name_en": "Eurasian Moorhen",
+      "geo_score": 0.927951
+    },
+    {
+      "output_index": 5750,
+      "scientific_name": "Streptopelia orientalis",
+      "name_zh": "金背鳩",
+      "name_en": "Oriental Turtle-Dove",
+      "geo_score": 0.907091
+    },
+    {
+      "output_index": 6520,
+      "scientific_name": "Zosterops simplex",
+      "name_zh": "斯氏繡眼",
+      "name_en": "Swinhoe's White-eye",
+      "geo_score": 0.900635
+    },
+    {
+      "output_index": 1792,
+      "scientific_name": "Cyanopica cyanus",
+      "name_zh": "灰喜鵲",
+      "name_en": "Azure-winged Magpie",
+      "geo_score": 0.899966
+    },
+    {
+      "output_index": 2113,
+      "scientific_name": "Emberiza spodocephala",
+      "name_zh": "灰頭黑臉鵐",
+      "name_en": "Black-faced Bunting",
+      "geo_score": 0.89536
+    },
+    {
+      "output_index": 2154,
+      "scientific_name": "Eophona migratoria",
+      "name_zh": "小桑鳲",
+      "name_en": "Yellow-billed Grosbeak",
+      "geo_score": 0.88941
+    },
+    {
+      "output_index": 5647,
+      "scientific_name": "Spodiopsar sericeus",
+      "name_zh": "絲光椋鳥",
+      "name_en": "Red-billed Starling",
+      "geo_score": 0.883587
+    },
+    {
+      "output_index": 6263,
+      "scientific_name": "Turdus pallidus",
+      "name_zh": "白腹鶇",
+      "name_en": "Pale Thrush",
+      "geo_score": 0.882936
+    },
+    {
+      "output_index": 481,
+      "scientific_name": "Ardeola bacchus",
+      "name_zh": "池鷺",
+      "name_en": "Chinese Pond-Heron",
+      "geo_score": 0.880341
+    },
+    {
+      "output_index": 4554,
+      "scientific_name": "Phylloscopus inornatus",
+      "name_zh": "黃眉柳鶯",
+      "name_en": "Yellow-browed Warbler",
+      "geo_score": 0.875126
+    },
+    {
+      "output_index": 5646,
+      "scientific_name": "Spodiopsar cineraceus",
+      "name_zh": "灰椋鳥",
+      "name_en": "White-cheeked Starling",
+      "geo_score": 0.871762
+    },
+    {
+      "output_index": 349,
+      "scientific_name": "Anthus hodgsoni",
+      "name_zh": "樹鷚",
+      "name_en": "Olive-backed Pipit",
+      "geo_score": 0.858044
+    },
+    {
+      "output_index": 468,
+      "scientific_name": "Ardea cinerea",
+      "name_zh": "蒼鷺",
+      "name_en": "Gray Heron",
+      "geo_score": 0.8576
+    },
+    {
+      "output_index": 4572,
+      "scientific_name": "Phylloscopus proregulus",
+      "name_zh": "黃腰柳鶯",
+      "name_en": "Pallas's Leaf Warbler",
+      "geo_score": 0.853614
+    },
+    {
+      "output_index": 5922,
+      "scientific_name": "Tarsiger cyanurus",
+      "name_zh": "藍尾鴝",
+      "name_en": "Red-flanked Bluetail",
+      "geo_score": 0.847465
+    },
+    {
+      "output_index": 3675,
+      "scientific_name": "Motacilla tschutschensis",
+      "name_zh": "東方黃鶺鴒",
+      "name_en": "Eastern Yellow Wagtail",
+      "geo_score": 0.845766
+    },
+    {
+      "output_index": 750,
+      "scientific_name": "Bubulcus ibis",
+      "name_zh": "黃頭鷺",
+      "name_en": "Cattle Egret",
+      "geo_score": 0.843509
+    },
+    {
+      "output_index": 3680,
+      "scientific_name": "Muscicapa dauurica",
+      "name_zh": "寬嘴鶲",
+      "name_en": "Asian Brown Flycatcher",
+      "geo_score": 0.838114
+    },
+    {
+      "output_index": 1042,
+      "scientific_name": "Cecropis daurica",
+      "name_zh": "金腰燕",
+      "name_en": "Red-rumped Swallow",
+      "geo_score": 0.837939
+    },
+    {
+      "output_index": 3682,
+      "scientific_name": "Muscicapa griseisticta",
+      "name_zh": "灰斑鶲",
+      "name_en": "Gray-streaked Flycatcher",
+      "geo_score": 0.837489
+    },
+    {
+      "output_index": 273,
+      "scientific_name": "Anas zonorhyncha",
+      "name_zh": "花嘴鴨",
+      "name_en": "Eastern Spot-billed Duck",
+      "geo_score": 0.836743
+    },
+    {
+      "output_index": 6232,
+      "scientific_name": "Turdus eunomus",
+      "name_zh": "斑點鶇",
+      "name_en": "Dusky Thrush",
+      "geo_score": 0.834091
+    },
+    {
+      "output_index": 2324,
+      "scientific_name": "Ficedula zanthopygia",
+      "name_zh": "白眉鶲",
+      "name_en": "Yellow-rumped Flycatcher",
+      "geo_score": 0.825685
+    },
+    {
+      "output_index": 6321,
+      "scientific_name": "Upupa epops",
+      "name_zh": "戴勝",
+      "name_en": "Eurasian Hoopoe",
+      "geo_score": 0.81837
+    },
+    {
+      "output_index": 152,
+      "scientific_name": "Alcedo atthis",
+      "name_zh": "翠鳥",
+      "name_en": "Common Kingfisher",
+      "geo_score": 0.817061
+    },
+    {
+      "output_index": 6241,
+      "scientific_name": "Turdus hortulorum",
+      "name_zh": "灰背鶇",
+      "name_en": "Gray-backed Thrush",
+      "geo_score": 0.81689
+    },
+    {
+      "output_index": 340,
+      "scientific_name": "Anthus cervinus",
+      "name_zh": "赤喉鷚",
+      "name_en": "Red-throated Pipit",
+      "geo_score": 0.813937
+    },
+    {
+      "output_index": 6157,
+      "scientific_name": "Tringa nebularia",
+      "name_zh": "青足鷸",
+      "name_en": "Common Greenshank",
+      "geo_score": 0.812051
+    },
+    {
+      "output_index": 358,
+      "scientific_name": "Anthus richardi",
+      "name_zh": "大花鷚",
+      "name_en": "Richard's Pipit",
+      "geo_score": 0.811414
+    },
+    {
+      "output_index": 2109,
+      "scientific_name": "Emberiza pusilla",
+      "name_zh": "小鵐",
+      "name_en": "Little Bunting",
+      "geo_score": 0.804026
+    },
+    {
+      "output_index": 5379,
+      "scientific_name": "Saxicola stejnegeri",
+      "name_zh": "黑喉鴝",
+      "name_en": "Amur Stonechat",
+      "geo_score": 0.795548
+    },
+    {
+      "output_index": 4422,
+      "scientific_name": "Phasianus colchicus",
+      "name_zh": "環頸雉",
+      "name_en": "Ring-necked Pheasant",
+      "geo_score": 0.795336
+    },
+    {
+      "output_index": 467,
+      "scientific_name": "Ardea alba",
+      "name_zh": "大白鷺",
+      "name_en": "Great Egret",
+      "geo_score": 0.795173
+    },
+    {
+      "output_index": 4532,
+      "scientific_name": "Phylloscopus borealis",
+      "name_zh": "極北柳鶯",
+      "name_en": "Arctic Warbler",
+      "geo_score": 0.794326
+    },
+    {
+      "output_index": 6151,
+      "scientific_name": "Tringa erythropus",
+      "name_zh": "鶴鷸",
+      "name_en": "Spotted Redshank",
+      "geo_score": 0.790617
+    },
+    {
+      "output_index": 3112,
+      "scientific_name": "Larvivora sibilans",
+      "name_zh": "紅尾歌鴝",
+      "name_en": "Rufous-tailed Robin",
+      "geo_score": 0.787312
+    },
+    {
+      "output_index": 82,
+      "scientific_name": "Actitis hypoleucos",
+      "name_zh": "磯鷸",
+      "name_en": "Common Sandpiper",
+      "geo_score": 0.785877
+    },
+    {
+      "output_index": 2110,
+      "scientific_name": "Emberiza rustica",
+      "name_zh": "田鵐",
+      "name_en": "Rustic Bunting",
+      "geo_score": 0.780967
+    },
+    {
+      "output_index": 360,
+      "scientific_name": "Anthus rubescens",
+      "name_zh": "黃腹鷚",
+      "name_en": "American Pipit",
+      "geo_score": 0.776929
+    },
+    {
+      "output_index": 1794,
+      "scientific_name": "Cyanoptila cyanomelana",
+      "name_zh": "白腹琉璃",
+      "name_en": "Blue-and-white Flycatcher",
+      "geo_score": 0.775786
+    },
+    {
+      "output_index": 2313,
+      "scientific_name": "Ficedula mugimaki",
+      "name_zh": "白眉黃鶲",
+      "name_en": "Mugimaki Flycatcher",
+      "geo_score": 0.77545
+    },
+    {
+      "output_index": 3684,
+      "scientific_name": "Muscicapa sibirica",
+      "name_zh": "烏鶲",
+      "name_en": "Dark-sided Flycatcher",
+      "geo_score": 0.774846
+    },
+    {
+      "output_index": 2978,
+      "scientific_name": "Ixobrychus sinensis",
+      "name_zh": "黃小鷺",
+      "name_en": "Yellow Bittern",
+      "geo_score": 0.773324
+    },
+    {
+      "output_index": 3073,
+      "scientific_name": "Lanius cristatus",
+      "name_zh": "紅尾伯勞",
+      "name_en": "Brown Shrike",
+      "geo_score": 0.773317
+    },
+    {
+      "output_index": 2811,
+      "scientific_name": "Horornis canturians",
+      "name_zh": "遠東樹鶯",
+      "name_en": "Manchurian Bush Warbler",
+      "geo_score": 0.772525
+    },
+    {
+      "output_index": 2467,
+      "scientific_name": "Geokichla sibirica",
+      "name_zh": "白眉地鶇",
+      "name_en": "Siberian Thrush",
+      "geo_score": 0.767798
+    },
+    {
+      "output_index": 1206,
+      "scientific_name": "Chlidonias hybrida",
+      "name_zh": "黑腹燕鷗",
+      "name_en": "Whiskered Tern",
+      "geo_score": 0.765598
+    },
+    {
+      "output_index": 2371,
+      "scientific_name": "Fringilla montifringilla",
+      "name_zh": "花雀",
+      "name_en": "Brambling",
+      "geo_score": 0.764177
+    },
+    {
+      "output_index": 3263,
+      "scientific_name": "Lonchura punctulata",
+      "name_zh": "斑文鳥",
+      "name_en": "Scaly-breasted Munia",
+      "geo_score": 0.763707
+    },
+    {
+      "output_index": 1163,
+      "scientific_name": "Charadrius alexandrinus",
+      "name_zh": "東方環頸鴴",
+      "name_en": "Kentish Plover",
+      "geo_score": 0.761868
+    },
+    {
+      "output_index": 145,
+      "scientific_name": "Alauda gulgula",
+      "name_zh": "小雲雀",
+      "name_en": "Oriental Skylark",
+      "geo_score": 0.761504
+    },
+    {
+      "output_index": 89,
+      "scientific_name": "Aegithalos concinnus",
+      "name_zh": "紅頭山雀",
+      "name_en": "Black-throated Tit",
+      "geo_score": 0.760383
+    },
+    {
+      "output_index": 2376,
+      "scientific_name": "Fulica atra",
+      "name_zh": "白冠雞",
+      "name_en": "Eurasian Coot",
+      "geo_score": 0.759278
+    },
+    {
+      "output_index": 57,
+      "scientific_name": "Acrocephalus bistrigiceps",
+      "name_zh": "雙眉葦鶯",
+      "name_en": "Black-browed Reed Warbler",
+      "geo_score": 0.759139
+    },
+    {
+      "output_index": 1166,
+      "scientific_name": "Charadrius dubius",
+      "name_zh": "小環頸鴴",
+      "name_en": "Little Ringed Plover",
+      "geo_score": 0.756839
+    },
+    {
+      "output_index": 471,
+      "scientific_name": "Ardea intermedia",
+      "name_zh": "中白鷺",
+      "name_en": "Intermediate Egret",
+      "geo_score": 0.754079
+    },
+    {
+      "output_index": 4542,
+      "scientific_name": "Phylloscopus coronatus",
+      "name_zh": "冠羽柳鶯",
+      "name_en": "Eastern Crowned Warbler",
+      "geo_score": 0.752994
+    },
+    {
+      "output_index": 6492,
+      "scientific_name": "Zoothera aurea",
+      "name_zh": "白氏地鶇",
+      "name_en": "White's Thrush",
+      "geo_score": 0.747755
+    },
+    {
+      "output_index": 3089,
+      "scientific_name": "Larus argentatus",
+      "name_zh": "銀鷗",
+      "name_en": "Herring Gull",
+      "geo_score": 0.746481
+    },
+    {
+      "output_index": 6350,
+      "scientific_name": "Vanellus cinereus",
+      "name_zh": "跳鴴",
+      "name_en": "Gray-headed Lapwing",
+      "geo_score": 0.746388
+    },
+    {
+      "output_index": 4879,
+      "scientific_name": "Prinia inornata",
+      "name_zh": "褐頭鷦鶯",
+      "name_en": "Plain Prinia",
+      "geo_score": 0.745678
+    },
+    {
+      "output_index": 6329,
+      "scientific_name": "Urocissa erythroryncha",
+      "name_zh": "红嘴蓝鹊",
+      "name_en": "Red-billed Blue-Magpie",
+      "geo_score": 0.743376
+    },
+    {
+      "output_index": 261,
+      "scientific_name": "Anas crecca",
+      "name_zh": "小水鴨",
+      "name_en": "Green-winged Teal",
+      "geo_score": 0.740768
+    },
+    {
+      "output_index": 5645,
+      "scientific_name": "Spizixos semitorques",
+      "name_zh": "白環鸚嘴鵯",
+      "name_en": "Collared Finchbill",
+      "geo_score": 0.739894
+    },
+    {
+      "output_index": 4547,
+      "scientific_name": "Phylloscopus fuscatus",
+      "name_zh": "褐色柳鶯",
+      "name_en": "Dusky Warbler",
+      "geo_score": 0.736864
+    },
+    {
+      "output_index": 1395,
+      "scientific_name": "Cisticola juncidis",
+      "name_zh": "棕扇尾鶯",
+      "name_en": "Zitting Cisticola",
+      "geo_score": 0.736698
+    },
+    {
+      "output_index": 190,
+      "scientific_name": "Amaurornis phoenicurus",
+      "name_zh": "白腹秧雞",
+      "name_en": "White-breasted Waterhen",
+      "geo_score": 0.732726
+    },
+    {
+      "output_index": 2435,
+      "scientific_name": "Garrulax canorus",
+      "name_zh": "大陸畫眉",
+      "name_en": "Chinese Hwamei",
+      "geo_score": 0.731974
+    },
+    {
+      "output_index": 2789,
+      "scientific_name": "Himantopus himantopus",
+      "name_zh": "高蹺鴴",
+      "name_en": "Black-winged Stilt",
+      "geo_score": 0.731018
+    },
+    {
+      "output_index": 1217,
+      "scientific_name": "Chloris sinica",
+      "name_zh": "金翅雀",
+      "name_en": "Oriental Greenfinch",
+      "geo_score": 0.729891
+    },
+    {
+      "output_index": 2995,
+      "scientific_name": "Jynx torquilla",
+      "name_zh": "地啄木",
+      "name_en": "Eurasian Wryneck",
+      "geo_score": 0.729269
+    },
+    {
+      "output_index": 5323,
+      "scientific_name": "Riparia diluta",
+      "name_zh": "淺灰沙燕",
+      "name_en": "Pale Sand Martin",
+      "geo_score": 0.728512
+    },
+    {
+      "output_index": 644,
+      "scientific_name": "Bambusicola thoracicus",
+      "name_zh": "灰胸竹雞",
+      "name_en": "Chinese Bamboo-Partridge",
+      "geo_score": 0.725389
+    },
+    {
+      "output_index": 879,
+      "scientific_name": "Calliope calliope",
+      "name_zh": "野鴝",
+      "name_en": "Siberian Rubythroat",
+      "geo_score": 0.724115
+    },
+    {
+      "output_index": 4583,
+      "scientific_name": "Phylloscopus tenellipes",
+      "name_zh": "淡腳柳鶯",
+      "name_en": "Pale-legged Leaf Warbler",
+      "geo_score": 0.723798
+    },
+    {
+      "output_index": 2118,
+      "scientific_name": "Emberiza tristrami",
+      "name_zh": "白眉鵐",
+      "name_en": "Tristram's Bunting",
+      "geo_score": 0.722594
+    },
+    {
+      "output_index": 1207,
+      "scientific_name": "Chlidonias leucopterus",
+      "name_zh": "白翅黑燕鷗",
+      "name_en": "White-winged Tern",
+      "geo_score": 0.721954
+    },
+    {
+      "output_index": 2299,
+      "scientific_name": "Falco tinnunculus",
+      "name_zh": "紅隼",
+      "name_en": "Eurasian Kestrel",
+      "geo_score": 0.720042
+    },
+    {
+      "output_index": 473,
+      "scientific_name": "Ardea purpurea",
+      "name_zh": "紫鷺",
+      "name_en": "Purple Heron",
+      "geo_score": 0.720006
+    },
+    {
+      "output_index": 64,
+      "scientific_name": "Acrocephalus orientalis",
+      "name_zh": "東方大葦鶯",
+      "name_en": "Oriental Reed Warbler",
+      "geo_score": 0.719871
+    },
+    {
+      "output_index": 2814,
+      "scientific_name": "Horornis fortipes",
+      "name_zh": "小鶯",
+      "name_en": "Brownish-flanked Bush Warbler",
+      "geo_score": 0.718782
+    },
+    {
+      "output_index": 3668,
+      "scientific_name": "Motacilla cinerea",
+      "name_zh": "灰鶺鴒",
+      "name_en": "Gray Wagtail",
+      "geo_score": 0.718444
+    },
+    {
+      "output_index": 5325,
+      "scientific_name": "Riparia riparia",
+      "name_zh": "灰沙燕",
+      "name_en": "Bank Swallow",
+      "geo_score": 0.717615
+    },
+    {
+      "output_index": 2294,
+      "scientific_name": "Falco peregrinus",
+      "name_zh": "遊隼",
+      "name_en": "Peregrine Falcon",
+      "geo_score": 0.715503
+    },
+    {
+      "output_index": 3264,
+      "scientific_name": "Lonchura striata",
+      "name_zh": "白腰文鳥",
+      "name_en": "White-rumped Munia",
+      "geo_score": 0.714423
+    },
+    {
+      "output_index": 3657,
+      "scientific_name": "Monticola solitarius",
+      "name_zh": "藍磯鶇",
+      "name_en": "Blue Rock-Thrush",
+      "geo_score": 0.711367
+    },
+    {
+      "output_index": 2287,
+      "scientific_name": "Falco amurensis",
+      "name_zh": "紅腳隼",
+      "name_en": "Amur Falcon",
+      "geo_score": 0.710272
+    },
+    {
+      "output_index": 6161,
+      "scientific_name": "Tringa stagnatilis",
+      "name_zh": "小青足鷸",
+      "name_en": "Marsh Sandpiper",
+      "geo_score": 0.709479
+    },
+    {
+      "output_index": 3225,
+      "scientific_name": "Limosa limosa",
+      "name_zh": "黑尾鷸",
+      "name_en": "Black-tailed Godwit",
+      "geo_score": 0.709347
+    },
+    {
+      "output_index": 6153,
+      "scientific_name": "Tringa glareola",
+      "name_zh": "鷹斑鷸",
+      "name_en": "Wood Sandpiper",
+      "geo_score": 0.708677
+    },
+    {
+      "output_index": 4324,
+      "scientific_name": "Pericrocotus divaricatus",
+      "name_zh": "灰山椒鳥",
+      "name_en": "Ashy Minivet",
+      "geo_score": 0.707711
+    },
+    {
+      "output_index": 6227,
+      "scientific_name": "Turdus cardis",
+      "name_zh": "烏灰鶇",
+      "name_en": "Japanese Thrush",
+      "geo_score": 0.707622
+    },
+    {
+      "output_index": 1920,
+      "scientific_name": "Dicrurus hottentottus",
+      "name_zh": "髮冠卷尾",
+      "name_en": "Hair-crested Drongo",
+      "geo_score": 0.704528
+    },
+    {
+      "output_index": 2409,
+      "scientific_name": "Gallinago gallinago",
+      "name_zh": "田鷸",
+      "name_en": "Common Snipe",
+      "geo_score": 0.703952
+    },
+    {
+      "output_index": 133,
+      "scientific_name": "Agropsar sturninus",
+      "name_zh": "北椋鳥",
+      "name_en": "Daurian Starling",
+      "geo_score": 0.703091
+    },
+    {
+      "output_index": 4755,
+      "scientific_name": "Pluvialis squatarola",
+      "name_zh": "灰斑鴴",
+      "name_en": "Black-bellied Plover",
+      "geo_score": 0.702653
+    },
+    {
+      "output_index": 4763,
+      "scientific_name": "Podiceps cristatus",
+      "name_zh": "冠鸊鷉",
+      "name_en": "Great Crested Grebe",
+      "geo_score": 0.700247
+    },
+    {
+      "output_index": 2093,
+      "scientific_name": "Emberiza chrysophrys",
+      "name_zh": "黃眉鵐",
+      "name_en": "Yellow-browed Bunting",
+      "geo_score": 0.696938
+    },
+    {
+      "output_index": 6259,
+      "scientific_name": "Turdus obscurus",
+      "name_zh": "白眉鶇",
+      "name_en": "Eyebrowed Thrush",
+      "geo_score": 0.696281
+    },
+    {
+      "output_index": 1375,
+      "scientific_name": "Circus spilonotus",
+      "name_zh": "東方澤鵟",
+      "name_en": "Eastern Marsh-Harrier",
+      "geo_score": 0.695465
+    },
+    {
+      "output_index": 2891,
+      "scientific_name": "Hypsipetes leucocephalus",
+      "name_zh": "紅嘴黑鵯",
+      "name_en": "Black Bulbul",
+      "geo_score": 0.694597
+    },
+    {
+      "output_index": 4702,
+      "scientific_name": "Platalea leucorodia",
+      "name_zh": "白琵鷺",
+      "name_en": "Eurasian Spoonbill",
+      "geo_score": 0.692815
+    },
+    {
+      "output_index": 4577,
+      "scientific_name": "Phylloscopus schwarzi",
+      "name_zh": "巨嘴柳鶯",
+      "name_en": "Radde's Warbler",
+      "geo_score": 0.692595
+    },
+    {
+      "output_index": 3086,
+      "scientific_name": "Lanius tigrinus",
+      "name_zh": "虎紋伯勞",
+      "name_en": "Tiger Shrike",
+      "geo_score": 0.689679
+    },
+    {
+      "output_index": 39,
+      "scientific_name": "Accipiter trivirgatus",
+      "name_zh": "鳳頭蒼鷹",
+      "name_en": "Crested Goshawk",
+      "geo_score": 0.688611
+    },
+    {
+      "output_index": 869,
+      "scientific_name": "Calidris ruficollis",
+      "name_zh": "紅胸濱鷸",
+      "name_en": "Red-necked Stint",
+      "geo_score": 0.685693
+    },
+    {
+      "output_index": 2108,
+      "scientific_name": "Emberiza pallasi",
+      "name_zh": "葦鵐",
+      "name_en": "Pallas's Bunting",
+      "geo_score": 0.685684
+    },
+    {
+      "output_index": 6452,
+      "scientific_name": "Yungipicus canicapillus",
+      "name_zh": "小啄木",
+      "name_en": "Gray-capped Pygmy Woodpecker",
+      "geo_score": 0.68461
+    },
+    {
+      "output_index": 1864,
+      "scientific_name": "Dendrocitta formosae",
+      "name_zh": "樹鵲",
+      "name_en": "Gray Treepie",
+      "geo_score": 0.683297
+    },
+    {
+      "output_index": 0,
+      "scientific_name": "Abroscopus albogularis",
+      "name_zh": "棕面鶯",
+      "name_en": "Rufous-faced Warbler",
+      "geo_score": 0.681044
+    },
+    {
+      "output_index": 5960,
+      "scientific_name": "Terpsiphone incei",
+      "name_zh": "阿穆爾綬帶",
+      "name_en": "Amur Paradise-Flycatcher",
+      "geo_score": 0.678141
+    },
+    {
+      "output_index": 4082,
+      "scientific_name": "Oriolus chinensis",
+      "name_zh": "黃鸝",
+      "name_en": "Black-naped Oriole",
+      "geo_score": 0.673604
+    },
+    {
+      "output_index": 40,
+      "scientific_name": "Accipiter virgatus",
+      "name_zh": "松雀鷹",
+      "name_en": "Besra",
+      "geo_score": 0.672296
+    },
+    {
+      "output_index": 803,
+      "scientific_name": "Butorides striata",
+      "name_zh": "綠簑鷺",
+      "name_en": "Striated Heron",
+      "geo_score": 0.666304
+    },
+    {
+      "output_index": 2099,
+      "scientific_name": "Emberiza elegans",
+      "name_zh": "黃喉鵐",
+      "name_en": "Yellow-throated Bunting",
+      "geo_score": 0.664278
+    },
+    {
+      "output_index": 1852,
+      "scientific_name": "Delichon dasypus",
+      "name_zh": "東方毛腳燕",
+      "name_en": "Asian House-Martin",
+      "geo_score": 0.664278
+    },
+    {
+      "output_index": 6158,
+      "scientific_name": "Tringa ochropus",
+      "name_zh": "白腰草鷸",
+      "name_en": "Green Sandpiper",
+      "geo_score": 0.662669
+    },
+    {
+      "output_index": 5077,
+      "scientific_name": "Pterorhinus perspicillatus",
+      "name_zh": "黑臉噪眉",
+      "name_en": "Masked Laughingthrush",
+      "geo_score": 0.662043
+    },
+    {
+      "output_index": 3110,
+      "scientific_name": "Larvivora cyane",
+      "name_zh": "藍歌鴝",
+      "name_en": "Siberian Blue Robin",
+      "geo_score": 0.661425
+    },
+    {
+      "output_index": 1921,
+      "scientific_name": "Dicrurus leucophaeus",
+      "name_zh": "灰卷尾",
+      "name_en": "Ashy Drongo",
+      "geo_score": 0.661242
+    },
+    {
+      "output_index": 3958,
+      "scientific_name": "Numenius phaeopus",
+      "name_zh": "中杓鷸",
+      "name_en": "Whimbrel",
+      "geo_score": 0.661234
+    },
+    {
+      "output_index": 853,
+      "scientific_name": "Calidris alpina",
+      "name_zh": "黑腹濱鷸",
+      "name_en": "Dunlin",
+      "geo_score": 0.65904
+    },
+    {
+      "output_index": 5259,
+      "scientific_name": "Remiz consobrinus",
+      "name_zh": "攀雀",
+      "name_en": "Chinese Penduline-Tit",
+      "geo_score": 0.657794
+    },
+    {
+      "output_index": 2282,
+      "scientific_name": "Eurystomus orientalis",
+      "name_zh": "佛法僧",
+      "name_en": "Dollarbird",
+      "geo_score": 0.65641
+    },
+    {
+      "output_index": 2827,
+      "scientific_name": "Hydrophasianus chirurgus",
+      "name_zh": "水雉",
+      "name_en": "Pheasant-tailed Jacana",
+      "geo_score": 0.656094
+    },
+    {
+      "output_index": 2660,
+      "scientific_name": "Halcyon pileata",
+      "name_zh": "黑頭翡翠",
+      "name_en": "Black-capped Kingfisher",
+      "geo_score": 0.65573
+    },
+    {
+      "output_index": 6255,
+      "scientific_name": "Turdus naumanni",
+      "name_zh": "紅尾鶇",
+      "name_en": "Naumann's Thrush",
+      "geo_score": 0.652958
+    },
+    {
+      "output_index": 34,
+      "scientific_name": "Accipiter soloensis",
+      "name_zh": "赤腹鷹",
+      "name_en": "Chinese Sparrowhawk",
+      "geo_score": 0.65252
+    },
+    {
+      "output_index": 4335,
+      "scientific_name": "Periparus venustulus",
+      "name_zh": "黃腹山雀",
+      "name_en": "Yellow-bellied Tit",
+      "geo_score": 0.650891
+    },
+    {
+      "output_index": 258,
+      "scientific_name": "Anas acuta",
+      "name_zh": "尖尾鴨",
+      "name_en": "Northern Pintail",
+      "geo_score": 0.650583
+    },
+    {
+      "output_index": 2797,
+      "scientific_name": "Hirundapus caudacutus",
+      "name_zh": "白喉針尾雨燕",
+      "name_en": "White-throated Needletail",
+      "geo_score": 0.649357
+    },
+    {
+      "output_index": 2101,
+      "scientific_name": "Emberiza fucata",
+      "name_zh": "赤胸鵐",
+      "name_en": "Chestnut-eared Bunting",
+      "geo_score": 0.648348
+    },
+    {
+      "output_index": 4322,
+      "scientific_name": "Pericrocotus cantonensis",
+      "name_zh": "小灰山椒鳥",
+      "name_en": "Brown-rumped Minivet",
+      "geo_score": 0.644975
+    },
+    {
+      "output_index": 427,
+      "scientific_name": "Apus pacificus",
+      "name_zh": "叉尾雨燕",
+      "name_en": "Pacific Swift",
+      "geo_score": 0.64441
+    },
+    {
+      "output_index": 267,
+      "scientific_name": "Anas platyrhynchos",
+      "name_zh": "綠頭鴨",
+      "name_en": "Mallard",
+      "geo_score": 0.644296
+    },
+    {
+      "output_index": 2298,
+      "scientific_name": "Falco subbuteo",
+      "name_zh": "燕隼",
+      "name_en": "Eurasian Hobby",
+      "geo_score": 0.64277
+    },
+    {
+      "output_index": 1719,
+      "scientific_name": "Cuculus micropterus",
+      "name_zh": "四聲杜鵑",
+      "name_en": "Indian Cuckoo",
+      "geo_score": 0.642413
+    },
+    {
+      "output_index": 1890,
+      "scientific_name": "Dendronanthus indicus",
+      "name_zh": "山鶺鴒",
+      "name_en": "Forest Wagtail",
+      "geo_score": 0.641789
+    },
+    {
+      "output_index": 4754,
+      "scientific_name": "Pluvialis fulva",
+      "name_zh": "太平洋金斑鴴",
+      "name_en": "Pacific Golden-Plover",
+      "geo_score": 0.639975
+    },
+    {
+      "output_index": 6342,
+      "scientific_name": "Urosphena squameiceps",
+      "name_zh": "短尾鶯",
+      "name_en": "Asian Stubtail",
+      "geo_score": 0.638878
+    },
+    {
+      "output_index": 3392,
+      "scientific_name": "Mareca strepera",
+      "name_zh": "赤膀鴨",
+      "name_en": "Gadwall",
+      "geo_score": 0.638731
+    },
+    {
+      "output_index": 2304,
+      "scientific_name": "Ficedula albicilla",
+      "name_zh": "紅喉鶲",
+      "name_en": "Taiga Flycatcher",
+      "geo_score": 0.637381
+    },
+    {
+      "output_index": 872,
+      "scientific_name": "Calidris temminckii",
+      "name_zh": "丹氏濱鷸",
+      "name_en": "Temminck's Stint",
+      "geo_score": 0.636481
+    },
+    {
+      "output_index": 785,
+      "scientific_name": "Buteo japonicus",
+      "name_zh": "東方鵟",
+      "name_en": "Eastern Buzzard",
+      "geo_score": 0.634181
+    },
+    {
+      "output_index": 5628,
+      "scientific_name": "Spinus spinus",
+      "name_zh": "黃雀",
+      "name_en": "Eurasian Siskin",
+      "geo_score": 0.632994
+    },
+    {
+      "output_index": 2742,
+      "scientific_name": "Hemixos castanonotus",
+      "name_zh": "栗背短腳鵯",
+      "name_en": "Chestnut Bulbul",
+      "geo_score": 0.632662
+    },
+    {
+      "output_index": 4408,
+      "scientific_name": "Phalacrocorax carbo",
+      "name_zh": "鸕鷀",
+      "name_en": "Great Cormorant",
+      "geo_score": 0.631991
+    },
+    {
+      "output_index": 5754,
+      "scientific_name": "Streptopelia tranquebarica",
+      "name_zh": "紅鳩",
+      "name_en": "Red Collared-Dove",
+      "geo_score": 0.631688
+    },
+    {
+      "output_index": 2982,
+      "scientific_name": "Ixos mcclellandii",
+      "name_zh": "Mountain Bulbul",
+      "name_en": "Mountain Bulbul",
+      "geo_score": 0.630802
+    },
+    {
+      "output_index": 1276,
+      "scientific_name": "Chroicocephalus ridibundus",
+      "name_zh": "紅嘴鷗",
+      "name_en": "Black-headed Gull",
+      "geo_score": 0.630576
+    },
+    {
+      "output_index": 2155,
+      "scientific_name": "Eophona personata",
+      "name_zh": "桑鳲",
+      "name_en": "Japanese Grosbeak",
+      "geo_score": 0.629567
+    },
+    {
+      "output_index": 2096,
+      "scientific_name": "Emberiza cioides",
+      "name_zh": "草鵐",
+      "name_en": "Meadow Bunting",
+      "geo_score": 0.629049
+    },
+    {
+      "output_index": 3095,
+      "scientific_name": "Larus crassirostris",
+      "name_zh": "黑尾鷗",
+      "name_en": "Black-tailed Gull",
+      "geo_score": 0.627292
+    },
+    {
+      "output_index": 1373,
+      "scientific_name": "Circus melanoleucos",
+      "name_zh": "花澤鵟",
+      "name_en": "Pied Harrier",
+      "geo_score": 0.626733
+    },
+    {
+      "output_index": 5251,
+      "scientific_name": "Recurvirostra avosetta",
+      "name_zh": "反嘴鴴",
+      "name_en": "Pied Avocet",
+      "geo_score": 0.626442
+    },
+    {
+      "output_index": 973,
+      "scientific_name": "Caprimulgus jotaka",
+      "name_zh": "普通夜鷹",
+      "name_en": "Gray Nightjar",
+      "geo_score": 0.620054
+    },
+    {
+      "output_index": 3067,
+      "scientific_name": "Lanius bucephalus",
+      "name_zh": "紅頭伯勞",
+      "name_en": "Bull-headed Shrike",
+      "geo_score": 0.617077
+    },
+    {
+      "output_index": 139,
+      "scientific_name": "Aix galericulata",
+      "name_zh": "鴛鴦",
+      "name_en": "Mandarin Duck",
+      "geo_score": 0.616968
+    },
+    {
+      "output_index": 5882,
+      "scientific_name": "Tadorna ferruginea",
+      "name_zh": "瀆鳧",
+      "name_en": "Ruddy Shelduck",
+      "geo_score": 0.616644
+    },
+    {
+      "output_index": 1878,
+      "scientific_name": "Dendrocopos major",
+      "name_zh": "Great Spotted Woodpecker",
+      "name_en": "Great Spotted Woodpecker",
+      "geo_score": 0.614806
+    },
+    {
+      "output_index": 4243,
+      "scientific_name": "Passer cinnamomeus",
+      "name_zh": "山麻雀",
+      "name_en": "Russet Sparrow",
+      "geo_score": 0.614743
+    },
+    {
+      "output_index": 4211,
+      "scientific_name": "Pandion haliaetus",
+      "name_zh": "魚鷹",
+      "name_en": "Osprey",
+      "geo_score": 0.611292
+    },
+    {
+      "output_index": 5076,
+      "scientific_name": "Pterorhinus pectoralis",
+      "name_zh": "Greater Necklaced Laughingthrush",
+      "name_en": "Greater Necklaced Laughingthrush",
+      "geo_score": 0.608845
+    },
+    {
+      "output_index": 2146,
+      "scientific_name": "Enicurus leschenaulti",
+      "name_zh": "White-crowned Forktail",
+      "name_en": "White-crowned Forktail",
+      "geo_score": 0.608031
+    },
+    {
+      "output_index": 2518,
+      "scientific_name": "Glaucidium cuculoides",
+      "name_zh": "Asian Barred Owlet",
+      "name_en": "Asian Barred Owlet",
+      "geo_score": 0.607093
+    },
+    {
+      "output_index": 1336,
+      "scientific_name": "Cinclus pallasii",
+      "name_zh": "河烏",
+      "name_en": "Brown Dipper",
+      "geo_score": 0.607039
+    },
+    {
+      "output_index": 2074,
+      "scientific_name": "Elanus caeruleus",
+      "name_zh": "黑翅鳶",
+      "name_en": "Black-winged Kite",
+      "geo_score": 0.606252
+    },
+    {
+      "output_index": 2219,
+      "scientific_name": "Eumyias thalassinus",
+      "name_zh": "銅藍鶲",
+      "name_en": "Verditer Flycatcher",
+      "geo_score": 0.60603
+    },
+    {
+      "output_index": 1062,
+      "scientific_name": "Centropus bengalensis",
+      "name_zh": "番鵑",
+      "name_en": "Lesser Coucal",
+      "geo_score": 0.604991
+    },
+    {
+      "output_index": 1715,
+      "scientific_name": "Cuculus canorus",
+      "name_zh": "大杜鵑",
+      "name_en": "Common Cuckoo",
+      "geo_score": 0.604728
+    },
+    {
+      "output_index": 2509,
+      "scientific_name": "Glareola maldivarum",
+      "name_zh": "燕鴴",
+      "name_en": "Oriental Pratincole",
+      "geo_score": 0.603633
+    },
+    {
+      "output_index": 3390,
+      "scientific_name": "Mareca penelope",
+      "name_zh": "赤頸鴨",
+      "name_en": "Eurasian Wigeon",
+      "geo_score": 0.600609
+    },
+    {
+      "output_index": 4341,
+      "scientific_name": "Pernis ptilorhynchus",
+      "name_zh": "東方蜂鷹",
+      "name_en": "Oriental Honey-buzzard",
+      "geo_score": 0.599891
+    },
+    {
+      "output_index": 2786,
+      "scientific_name": "Hierococcyx sparverioides",
+      "name_zh": "鷹鵑",
+      "name_en": "Large Hawk-Cuckoo",
+      "geo_score": 0.599871
+    },
+    {
+      "output_index": 5375,
+      "scientific_name": "Saxicola ferreus",
+      "name_zh": "灰叢鴝",
+      "name_en": "Gray Bushchat",
+      "geo_score": 0.598367
+    },
+    {
+      "output_index": 27,
+      "scientific_name": "Accipiter gularis",
+      "name_zh": "日本松雀鷹",
+      "name_en": "Japanese Sparrowhawk",
+      "geo_score": 0.594805
+    },
+    {
+      "output_index": 311,
+      "scientific_name": "Anser cygnoides",
+      "name_zh": "鴻雁",
+      "name_en": "Swan Goose",
+      "geo_score": 0.592618
+    },
+    {
+      "output_index": 5329,
+      "scientific_name": "Rostratula benghalensis",
+      "name_zh": "彩鷸",
+      "name_en": "Greater Painted-Snipe",
+      "geo_score": 0.59185
+    },
+    {
+      "output_index": 1370,
+      "scientific_name": "Circus cyaneus",
+      "name_zh": "灰澤鵟",
+      "name_en": "Hen Harrier",
+      "geo_score": 0.59046
+    },
+    {
+      "output_index": 363,
+      "scientific_name": "Anthus spinoletta",
+      "name_zh": "水鷚",
+      "name_en": "Water Pipit",
+      "geo_score": 0.590354
+    },
+    {
+      "output_index": 776,
+      "scientific_name": "Butastur indicus",
+      "name_zh": "灰面鵟鷹",
+      "name_en": "Gray-faced Buzzard",
+      "geo_score": 0.587291
+    },
+    {
+      "output_index": 3917,
+      "scientific_name": "Ninox japonica",
+      "name_zh": "褐鷹鴞",
+      "name_en": "Northern Boobook",
+      "geo_score": 0.587049
+    },
+    {
+      "output_index": 6364,
+      "scientific_name": "Vanellus vanellus",
+      "name_zh": "小辮鴴",
+      "name_en": "Northern Lapwing",
+      "geo_score": 0.586583
+    },
+    {
+      "output_index": 4569,
+      "scientific_name": "Phylloscopus plumbeitarsus",
+      "name_zh": "雙斑綠柳鶯",
+      "name_en": "Two-barred Warbler",
+      "geo_score": 0.586177
+    }
+  ]
+}

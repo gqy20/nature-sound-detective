@@ -8,6 +8,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
+import android.view.WindowManager
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -188,6 +189,7 @@ class MainActivity : FlutterActivity() {
             recording = true
         }
         recorder.startRecording()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         Log.i(TAG, "event=recording_started recording_id=$id max_duration_ms=$maxDurationMs")
         worker.execute { captureToWav(recorder, file, id, maxDurationMs) }
         result.success(mapOf("id" to id, "started_at_ms" to startedAt))
@@ -287,6 +289,7 @@ class MainActivity : FlutterActivity() {
 
     private fun finishRecording(result: MethodChannel.Result, delete: Boolean) {
         recording = false
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         worker.execute {
             val value = synchronized(stateLock) {
                 val completed = completedRecording
@@ -343,6 +346,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         recording = false
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         worker.shutdown()
         super.onDestroy()
     }

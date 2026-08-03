@@ -66,6 +66,15 @@ flutter:
   assets:
     - assets/models/
     - assets/labels/
+    - assets/images/
+
+  fonts:
+    - family: AlibabaPuHuiTi
+      fonts:
+        - asset: assets/fonts/AlibabaPuHuiTi-Regular.otf
+          weight: 400
+        - asset: assets/fonts/AlibabaPuHuiTi-SemiBold.otf
+          weight: 600
 
   # To add assets to your application, add an assets section, like this:
   # assets:

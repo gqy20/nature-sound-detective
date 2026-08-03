@@ -78,6 +78,46 @@ def find_best_thresholds(
     return thresholds, metrics
 
 
+def find_precision_thresholds(
+    targets: np.ndarray,
+    probabilities: np.ndarray,
+    *,
+    minimum_precision: float = 0.9,
+    candidates: np.ndarray | None = None,
+) -> tuple[np.ndarray, list[dict[str, float]]]:
+    grid = candidates if candidates is not None else np.arange(0.1, 0.96, 0.05)
+    f1_thresholds, f1_metrics = find_best_thresholds(
+        targets, probabilities, candidates=grid
+    )
+    thresholds = f1_thresholds.copy()
+    metrics = list(f1_metrics)
+    for class_index in range(targets.shape[1]):
+        truth = targets[:, class_index].astype(bool)
+        eligible: list[dict[str, float]] = []
+        for threshold in grid:
+            predicted = probabilities[:, class_index] >= threshold
+            tp = int(np.logical_and(predicted, truth).sum())
+            fp = int(np.logical_and(predicted, ~truth).sum())
+            fn = int(np.logical_and(~predicted, truth).sum())
+            precision = tp / (tp + fp) if tp + fp else 0.0
+            recall = tp / (tp + fn) if tp + fn else 0.0
+            if precision >= minimum_precision and tp:
+                f1 = 2 * precision * recall / (precision + recall) if recall else 0.0
+                eligible.append(
+                    {
+                        "threshold": float(round(float(threshold), 4)),
+                        "precision": round(precision, 4),
+                        "recall": round(recall, 4),
+                        "f1": round(f1, 4),
+                    }
+                )
+        if eligible:
+            best = max(eligible, key=lambda item: (item["recall"], item["f1"], -item["threshold"]))
+            thresholds[class_index] = best["threshold"]
+            metrics[class_index] = best
+    return thresholds, metrics
+
+
 def metrics_at_thresholds(
     targets: np.ndarray,
     probabilities: np.ndarray,

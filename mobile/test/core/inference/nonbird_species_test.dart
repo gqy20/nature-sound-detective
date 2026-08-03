@@ -20,12 +20,16 @@ void main() {
           "category_id":"insect",
           "name_zh":"黑蚱蝉",
           "scientific_name":"Cryptotympana atrata",
-          "threshold":0.62
+          "threshold":0.62,
+          "centroid":[1,0],
+          "min_cosine_similarity":0.2
         }]
       }
     ''');
     expect(catalog.available, isTrue);
     expect(catalog.embeddingTensorIndex, 545);
+    expect(catalog.rejection.minSupportingWindows, 2);
+    expect(catalog.species.single.centroid, [1, 0]);
     expect(catalog.species.single.nameZh, '黑蚱蝉');
   });
 

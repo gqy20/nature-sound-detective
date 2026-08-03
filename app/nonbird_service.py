@@ -16,6 +16,7 @@ from app.config import ROOT
 from app.observability import get_logger, log_event, log_exception
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.training import sigmoid
+from ml.nonbird.rejection import accepted_window_mask
 
 
 logger = get_logger("nonbird")
@@ -79,12 +80,23 @@ class NonBirdAnalyzer:
 
         config = load_nonbird_config()
         class_map = {item.taxon_id: item for item in config.classes}
+        class_ids = tuple(str(item) for item in metadata["class_ids"])
+        thresholds = np.asarray([metadata["thresholds"][item] for item in class_ids])
+        accepted = accepted_window_mask(
+            features=features,
+            probabilities=probabilities,
+            groups=np.asarray(["recording"] * len(rows)),
+            starts=np.asarray([float(item["start_time"]) for item in rows]),
+            ends=np.asarray([float(item["end_time"]) for item in rows]),
+            class_ids=class_ids,
+            thresholds=thresholds,
+            metadata=metadata,
+        )
         detections: list[dict[str, Any]] = []
         for class_index, class_id in enumerate(metadata["class_ids"]):
             if class_id == "background":
                 continue
-            threshold = float(metadata["thresholds"][class_id])
-            active = np.flatnonzero(probabilities[:, class_index] >= threshold)
+            active = np.flatnonzero(accepted[:, class_index])
             if not len(active):
                 continue
             best_index = int(active[np.argmax(probabilities[active, class_index])])

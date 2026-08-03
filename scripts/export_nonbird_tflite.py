@@ -36,6 +36,7 @@ def main() -> None:
         "version": metadata["version"],
         "available": True,
         "label_policies": metadata.get("label_policies", []),
+        "rejection": metadata.get("rejection", {}),
         "input": {"type": "birdnet_embedding", "shape": [1, metadata["embedding_dim"]]},
         "output": {"type": "logits", "shape": [1, len(metadata["class_ids"])]},
         "birdnet_embedding_tensor_index": 545,
@@ -49,6 +50,8 @@ def main() -> None:
                 "name_zh": class_map[class_id].name_zh,
                 "scientific_name": class_map[class_id].scientific_name,
                 "threshold": metadata["thresholds"][class_id],
+                "centroid": metadata.get("embedding_reference", {}).get(class_id, {}).get("centroid", []),
+                "min_cosine_similarity": metadata.get("embedding_reference", {}).get(class_id, {}).get("min_cosine_similarity", -1.0),
             }
             for index, class_id in enumerate(metadata["class_ids"])
         ],

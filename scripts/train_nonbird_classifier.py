@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.training import (
     build_classifier,
-    find_best_thresholds,
+    find_precision_thresholds,
     load_embedding_cache,
     missing_positive_coverage,
     positive_class_weights,
@@ -20,6 +20,7 @@ from ml.nonbird.training import (
     weighted_binary_crossentropy,
     write_json,
 )
+from ml.nonbird.rejection import build_embedding_reference
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,7 +76,14 @@ def main() -> None:
     model_path = args.output_dir / "classifier.h5"
     model.save(model_path, include_optimizer=False)
     probabilities = sigmoid(model.predict(x_validation, verbose=0))
-    thresholds, metrics = find_best_thresholds(y_validation, probabilities)
+    thresholds, metrics = find_precision_thresholds(y_validation, probabilities)
+    embedding_reference = build_embedding_reference(
+        x_train,
+        y_train,
+        x_validation,
+        y_validation,
+        config.class_ids,
+    )
     write_json(
         args.output_dir / "metadata.json",
         {
@@ -92,6 +100,14 @@ def main() -> None:
                 class_id: metric
                 for class_id, metric in zip(config.class_ids, metrics, strict=True)
             },
+            "rejection": {
+                "background_margin": 0.05,
+                "min_top_margin": 0.0,
+                "min_supporting_windows": 2,
+                "short_clip_threshold_excess": 0.1,
+                "max_window_gap_seconds": 0.15,
+            },
+            "embedding_reference": embedding_reference,
             "positive_class_weights": pos_weights.tolist(),
             "train_windows": int(train_mask.sum()),
             "validation_windows": int(validation_mask.sum()),

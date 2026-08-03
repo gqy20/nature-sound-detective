@@ -45,5 +45,23 @@
     "All derived recordings retain the original test split.",
     "Noise is selected only from background recordings in the same split.",
     "This is a synthetic robustness proxy, not a Hangzhou park field evaluation."
-  ]
+  ],
+  "rejection_policy_evaluation": {
+    "model_version": "0.2.0",
+    "background_false_positive_rate_before": 0.1333,
+    "background_false_positive_rate_after": 0.0333,
+    "quiet_f1_after": {
+      "cryptotympana_atrata": 0.918,
+      "polypedates_braueri": 0.9524,
+      "other_insect": 0.8889,
+      "other_frog": 0.6667
+    },
+    "snr_minus_5_f1_after": {
+      "cryptotympana_atrata": 0.0,
+      "polypedates_braueri": 0.5333,
+      "other_insect": 0.6988,
+      "other_frog": 0.2308
+    },
+    "interpretation": "The policy favors abstention under severe noise and reduces clean-background false positives below 5%."
+  }
 }

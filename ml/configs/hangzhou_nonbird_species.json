@@ -1,6 +1,6 @@
 {
   "model_id": "hangzhou-nonbird",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "sample_rate": 48000,
   "window_seconds": 3,
   "classes": [

@@ -7,6 +7,8 @@ class NonBirdSpecies {
     required this.categoryId,
     required this.nameZh,
     required this.threshold,
+    required this.centroid,
+    required this.minCosineSimilarity,
     this.scientificName,
   });
 
@@ -16,6 +18,40 @@ class NonBirdSpecies {
   final String nameZh;
   final String? scientificName;
   final double threshold;
+  final List<double> centroid;
+  final double minCosineSimilarity;
+}
+
+class NonBirdRejectionPolicy {
+  const NonBirdRejectionPolicy({
+    this.backgroundMargin = 0.05,
+    this.minTopMargin = 0,
+    this.minSupportingWindows = 2,
+    this.shortClipThresholdExcess = 0.1,
+    this.maxWindowGapSeconds = 0.15,
+  });
+
+  factory NonBirdRejectionPolicy.fromJson(Object? source) {
+    final value = source is Map<String, dynamic>
+        ? source
+        : const <String, dynamic>{};
+    return NonBirdRejectionPolicy(
+      backgroundMargin:
+          (value['background_margin'] as num?)?.toDouble() ?? 0.05,
+      minTopMargin: (value['min_top_margin'] as num?)?.toDouble() ?? 0,
+      minSupportingWindows: value['min_supporting_windows'] as int? ?? 2,
+      shortClipThresholdExcess:
+          (value['short_clip_threshold_excess'] as num?)?.toDouble() ?? 0.1,
+      maxWindowGapSeconds:
+          (value['max_window_gap_seconds'] as num?)?.toDouble() ?? 0.15,
+    );
+  }
+
+  final double backgroundMargin;
+  final double minTopMargin;
+  final int minSupportingWindows;
+  final double shortClipThresholdExcess;
+  final double maxWindowGapSeconds;
 }
 
 class NonBirdModelCatalog {
@@ -26,6 +62,7 @@ class NonBirdModelCatalog {
     required this.embeddingTensorIndex,
     required this.embeddingTensorName,
     required this.species,
+    required this.rejection,
   });
 
   factory NonBirdModelCatalog.fromJson(String source) {
@@ -65,6 +102,16 @@ class NonBirdModelCatalog {
             nameZh: row['name_zh'] as String,
             scientificName: row['scientific_name'] as String?,
             threshold: threshold.toDouble(),
+            centroid: switch (row['centroid']) {
+              final List values =>
+                values
+                    .whereType<num>()
+                    .map((item) => item.toDouble())
+                    .toList(growable: false),
+              _ => const [],
+            },
+            minCosineSimilarity:
+                (row['min_cosine_similarity'] as num?)?.toDouble() ?? -1,
           );
         })
         .toList(growable: false);
@@ -80,6 +127,7 @@ class NonBirdModelCatalog {
       embeddingTensorName:
           value['birdnet_embedding_tensor_name'] as String? ?? '',
       species: species,
+      rejection: NonBirdRejectionPolicy.fromJson(value['rejection']),
     );
   }
 
@@ -89,4 +137,5 @@ class NonBirdModelCatalog {
   final int embeddingTensorIndex;
   final String embeddingTensorName;
   final List<NonBirdSpecies> species;
+  final NonBirdRejectionPolicy rejection;
 }

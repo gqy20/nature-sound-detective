@@ -50,25 +50,65 @@ class NonBirdDetector {
     List<BirdnetEmbeddingWindow> windows,
   ) async {
     if (windows.isEmpty) return const [];
-    final best = <NonBirdSpecies, _NonBirdScore>{};
+    final scores = <_WindowScores>[];
     for (final window in windows) {
       final outputShape = _interpreter.getOutputTensor(0).shape;
       final output = createTensorOutputBuffer(outputShape);
       await _isolate.run([window.embedding], output);
       final logits = flattenTensorOutput(output);
-      for (final species in catalog.species) {
-        if (species.outputIndex >= logits.length ||
-            species.taxonId == 'background') {
+      scores.add(
+        _WindowScores(window, [
+          for (final value in logits) 1 / (1 + math.exp(-value)),
+        ]),
+      );
+    }
+    final best = <NonBirdSpecies, _NonBirdScore>{};
+    final background = catalog.species
+        .where((item) => item.taxonId == 'background')
+        .firstOrNull;
+    final candidates = catalog.species
+        .where((item) => item.taxonId != 'background')
+        .toList(growable: false);
+    for (final species in candidates) {
+      final active = <int>[];
+      for (var index = 0; index < scores.length; index++) {
+        final item = scores[index];
+        if (species.outputIndex >= item.probabilities.length) continue;
+        final probability = item.probabilities[species.outputIndex];
+        final backgroundProbability =
+            background == null ||
+                background.outputIndex >= item.probabilities.length
+            ? 0.0
+            : item.probabilities[background.outputIndex];
+        var runnerUp = 0.0;
+        for (final other in candidates) {
+          if (other == species ||
+              other.outputIndex >= item.probabilities.length) {
+            continue;
+          }
+          runnerUp = math.max(runnerUp, item.probabilities[other.outputIndex]);
+        }
+        if (probability < species.threshold ||
+            probability - backgroundProbability <
+                catalog.rejection.backgroundMargin ||
+            (catalog.rejection.minTopMargin > 0 &&
+                probability - runnerUp < catalog.rejection.minTopMargin) ||
+            _cosine(item.window.embedding, species.centroid) <
+                species.minCosineSimilarity) {
           continue;
         }
-        final probability = 1 / (1 + math.exp(-logits[species.outputIndex]));
-        if (probability < species.threshold) continue;
+        active.add(index);
+      }
+      final accepted = _temporallySupported(active, scores, species);
+      for (final index in accepted) {
+        final item = scores[index];
+        final probability = item.probabilities[species.outputIndex];
         final current = best[species];
         if (current == null) {
-          best[species] = _NonBirdScore(probability, [window.interval]);
+          best[species] = _NonBirdScore(probability, [item.window.interval]);
         } else {
           current.confidence = math.max(current.confidence, probability);
-          current.intervals.add(window.interval);
+          current.intervals.add(item.window.interval);
         }
       }
     }
@@ -96,6 +136,51 @@ class NonBirdDetector {
     return detections;
   }
 
+  Set<int> _temporallySupported(
+    List<int> active,
+    List<_WindowScores> scores,
+    NonBirdSpecies species,
+  ) {
+    final accepted = <int>{};
+    var run = <int>[];
+    void finishRun() {
+      if (run.length >= catalog.rejection.minSupportingWindows) {
+        accepted.addAll(run);
+      } else if (run.length == 1 &&
+          scores[run.single].probabilities[species.outputIndex] >=
+              species.threshold + catalog.rejection.shortClipThresholdExcess) {
+        accepted.add(run.single);
+      }
+      run = <int>[];
+    }
+
+    for (final index in active) {
+      if (run.isNotEmpty &&
+          scores[index].window.interval.startSeconds >
+              scores[run.last].window.interval.endSeconds +
+                  catalog.rejection.maxWindowGapSeconds) {
+        finishRun();
+      }
+      run.add(index);
+    }
+    finishRun();
+    return accepted;
+  }
+
+  double _cosine(Float32List embedding, List<double> centroid) {
+    if (centroid.length != embedding.length) return 1;
+    var dot = 0.0;
+    var leftNorm = 0.0;
+    var rightNorm = 0.0;
+    for (var index = 0; index < embedding.length; index++) {
+      dot += embedding[index] * centroid[index];
+      leftNorm += embedding[index] * embedding[index];
+      rightNorm += centroid[index] * centroid[index];
+    }
+    if (leftNorm <= 0 || rightNorm <= 0) return -1;
+    return dot / math.sqrt(leftNorm * rightNorm);
+  }
+
   Future<void> close() async {
     await _isolate.close();
     _interpreter.close();
@@ -107,4 +192,11 @@ class _NonBirdScore {
 
   double confidence;
   final List<DetectionInterval> intervals;
+}
+
+class _WindowScores {
+  const _WindowScores(this.window, this.probabilities);
+
+  final BirdnetEmbeddingWindow window;
+  final List<double> probabilities;
 }

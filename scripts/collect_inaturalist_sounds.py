@@ -46,6 +46,7 @@ def observation_records(
     taxon: dict[str, Any],
     *,
     commercial_only: bool,
+    trust_source_labels: bool = False,
 ) -> list[dict[str, Any]]:
     coordinates = (observation.get("geojson") or {}).get("coordinates") or ["", ""]
     rows: list[dict[str, Any]] = []
@@ -58,11 +59,14 @@ def observation_records(
             continue
         sound_id = str(sound["id"])
         observation_id = str(observation["id"])
+        taxon_fields = dict(taxon)
+        if taxon.get("preserve_observed_taxon"):
+            taxon_fields["scientific_name"] = (observation.get("taxon") or {}).get("name", "")
         rows.append(
             {
                 "source": "inaturalist",
                 "source_id": f"inat_{observation_id}_{sound_id}",
-                **taxon,
+                **taxon_fields,
                 "source_url": observation.get("uri", f"https://www.inaturalist.org/observations/{observation_id}"),
                 "media_url": sound.get("file_url", ""),
                 **license_info,
@@ -73,13 +77,24 @@ def observation_records(
                 "latitude": coordinates[1] if len(coordinates) > 1 else "",
                 "locality": observation.get("place_guess", ""),
                 "split_group": f"inaturalist_observation_{observation_id}",
-                "review_status": "pending",
+                "review_status": "source_curated" if trust_source_labels else "pending",
+                "review_notes": (
+                    "trusted iNaturalist research-grade community label"
+                    if trust_source_labels
+                    else ""
+                ),
             }
         )
     return rows
 
 
-def collect(config: dict[str, Any], *, limit_per_taxon: int | None, commercial_only: bool) -> list[dict[str, Any]]:
+def collect(
+    config: dict[str, Any],
+    *,
+    limit_per_taxon: int | None,
+    commercial_only: bool,
+    trust_source_labels: bool = False,
+) -> list[dict[str, Any]]:
     source = config["inaturalist"]
     all_rows: list[dict[str, Any]] = []
     for taxon in source["taxa"]:
@@ -90,7 +105,7 @@ def collect(config: dict[str, Any], *, limit_per_taxon: int | None, commercial_o
             payload = api_get(
                 source["api_url"],
                 {
-                    "taxon_name": taxon["scientific_name"],
+                    "taxon_name": taxon.get("query_name") or taxon["scientific_name"],
                     "sounds": "true",
                     "quality_grade": source["quality_grade"],
                     "place_id": source["place_id"],
@@ -104,11 +119,15 @@ def collect(config: dict[str, Any], *, limit_per_taxon: int | None, commercial_o
             if not observations:
                 break
             for observation in observations:
+                observed_taxon = str((observation.get("taxon") or {}).get("name", ""))
+                if observed_taxon in set(taxon.get("exclude_scientific_names", [])):
+                    continue
                 taxon_rows.extend(
                     observation_records(
                         observation,
                         taxon,
                         commercial_only=commercial_only,
+                        trust_source_labels=trust_source_labels,
                     )
                 )
                 if len(taxon_rows) >= target:
@@ -117,7 +136,8 @@ def collect(config: dict[str, Any], *, limit_per_taxon: int | None, commercial_o
                 break
             page += 1
             time.sleep(0.5)
-        print(f"{taxon['scientific_name']}: {len(taxon_rows[:target])} candidates")
+        query_name = taxon.get("query_name") or taxon["scientific_name"]
+        print(f"{query_name}: {len(taxon_rows[:target])} candidates")
         all_rows.extend(taxon_rows[:target])
     return all_rows
 
@@ -130,12 +150,14 @@ def main() -> None:
     parser.add_argument("--limit-per-taxon", type=int)
     parser.add_argument("--download", action="store_true")
     parser.add_argument("--commercial-only", action="store_true")
+    parser.add_argument("--trust-source-labels", action="store_true")
     args = parser.parse_args()
     config = json.loads(args.config.read_text(encoding="utf-8"))
     rows = collect(
         config,
         limit_per_taxon=args.limit_per_taxon,
         commercial_only=args.commercial_only,
+        trust_source_labels=args.trust_source_labels,
     )
     if args.download:
         for index, row in enumerate(rows, start=1):

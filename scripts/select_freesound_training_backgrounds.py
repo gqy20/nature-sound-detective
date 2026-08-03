@@ -13,15 +13,26 @@ from ml.data_sources.candidates import license_is_usable, normalize_license, wri
 APPROVED = {"human_reviewed", "expert_confirmed", "approved"}
 
 
-def select_backgrounds(path: Path, *, commercial_only: bool) -> list[dict[str, object]]:
+def select_backgrounds(
+    path: Path,
+    *,
+    commercial_only: bool,
+    trust_source_labels: bool = False,
+) -> list[dict[str, object]]:
     selected: list[dict[str, object]] = []
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         for row in csv.DictReader(handle):
-            if row.get("review_status", "").strip() not in APPROVED:
+            source_approved = trust_source_labels and (
+                row.get("intended_use") == "background"
+                or row.get("provisional_class") == "background_candidate"
+            )
+            if row.get("review_status", "").strip() not in APPROVED and not source_approved:
                 continue
             reviewed_class = (row.get("human_final_class") or row.get("reviewed_class") or "").strip()
             contains_speech = (row.get("human_contains_speech") or row.get("contains_speech") or "").strip()
-            if reviewed_class != "background" or contains_speech == "yes":
+            if reviewed_class != "background" and not source_approved:
+                continue
+            if contains_speech in {"yes", "likely"}:
                 continue
             license_info = normalize_license(row.get("license") or row.get("license_code"))
             code = str(license_info["license_code"])
@@ -45,8 +56,12 @@ def select_backgrounds(path: Path, *, commercial_only: bool) -> list[dict[str, o
                     "split_group": f"freesound_{sound_id}",
                     "local_path": row.get("local_path", ""),
                     "sha256": row.get("preview_sha256", ""),
-                    "review_status": row["review_status"],
-                    "review_notes": row.get("human_review_notes") or row.get("review_notes", ""),
+                    "review_status": "source_curated" if source_approved else row["review_status"],
+                    "review_notes": (
+                        "trusted Freesound query/provisional background label"
+                        if source_approved
+                        else row.get("human_review_notes") or row.get("review_notes", "")
+                    ),
                 }
             )
     return selected
@@ -57,8 +72,13 @@ def main() -> None:
     parser.add_argument("input", type=Path, nargs="?", default=Path("data/metadata/freesound_review_queue.csv"))
     parser.add_argument("--output", type=Path, default=Path("data/metadata/freesound_background_candidates.csv"))
     parser.add_argument("--commercial-only", action="store_true")
+    parser.add_argument("--trust-source-labels", action="store_true")
     args = parser.parse_args()
-    rows = select_backgrounds(args.input, commercial_only=args.commercial_only)
+    rows = select_backgrounds(
+        args.input,
+        commercial_only=args.commercial_only,
+        trust_source_labels=args.trust_source_labels,
+    )
     write_candidates(rows, args.output)
     print(f"wrote {len(rows)} reviewed background candidates to {args.output}")
 

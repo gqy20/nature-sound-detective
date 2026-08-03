@@ -18,6 +18,26 @@
         "name_zh": "布氏泛树蛙",
         "category_id": "frog",
         "target_count": 150
+      },
+      {
+        "taxon_id": "other_insect",
+        "query_name": "Cicadidae",
+        "scientific_name": "",
+        "name_zh": "其他鸣虫",
+        "category_id": "insect",
+        "target_count": 100,
+        "preserve_observed_taxon": true,
+        "exclude_scientific_names": ["Cryptotympana atrata"]
+      },
+      {
+        "taxon_id": "other_frog",
+        "query_name": "Anura",
+        "scientific_name": "",
+        "name_zh": "其他蛙类",
+        "category_id": "frog",
+        "target_count": 100,
+        "preserve_observed_taxon": true,
+        "exclude_scientific_names": ["Polypedates braueri"]
       }
     ]
   },

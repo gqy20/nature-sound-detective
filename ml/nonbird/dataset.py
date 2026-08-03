@@ -7,7 +7,12 @@ from pathlib import Path
 from ml.nonbird.config import NonBirdConfig
 
 
-APPROVED_REVIEW_STATES = {"human_reviewed", "expert_confirmed", "approved"}
+APPROVED_REVIEW_STATES = {
+    "human_reviewed",
+    "expert_confirmed",
+    "approved",
+    "source_curated",
+}
 VALID_SPLITS = {"train", "validation", "test"}
 
 

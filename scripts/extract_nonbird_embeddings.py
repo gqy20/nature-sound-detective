@@ -33,6 +33,7 @@ def main() -> None:
     paths: list[str] = []
     starts: list[float] = []
     ends: list[float] = []
+    review_statuses: list[str] = []
     class_index = {name: index for index, name in enumerate(config.class_ids)}
 
     for row in rows:
@@ -52,6 +53,7 @@ def main() -> None:
             paths.append(str(row.audio_path))
             starts.append(start)
             ends.append(end)
+            review_statuses.append(row.review_status)
     if not features:
         raise RuntimeError("没有生成任何 embedding，请检查有效时间段")
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +66,7 @@ def main() -> None:
         audio_paths=np.asarray(paths),
         start_seconds=np.asarray(starts, dtype=np.float32),
         end_seconds=np.asarray(ends, dtype=np.float32),
+        review_statuses=np.asarray(review_statuses),
         class_ids=np.asarray(config.class_ids),
     )
     print(f"saved {len(features)} embeddings to {args.output}")

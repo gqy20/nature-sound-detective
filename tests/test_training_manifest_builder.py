@@ -80,6 +80,29 @@ def test_freesound_adapter_only_accepts_reviewed_background_without_speech(tmp_p
     assert [row["source_id"] for row in rows] == ["freesound_1"]
 
 
+def test_freesound_source_labels_can_be_trusted_explicitly(tmp_path: Path):
+    source = tmp_path / "freesound.csv"
+    _write_csv(
+        source,
+        [
+            {
+                "freesound_id": "1",
+                "review_status": "machine_labeled_needs_listening",
+                "intended_use": "background",
+                "contains_speech": "unlikely",
+                "license": "CC-BY",
+                "local_path": "audio.mp3",
+            }
+        ],
+    )
+    rows = select_backgrounds(
+        source,
+        commercial_only=False,
+        trust_source_labels=True,
+    )
+    assert rows[0]["review_status"] == "source_curated"
+
+
 def test_manifest_builder_excludes_pending_and_preserves_group_split(tmp_path: Path):
     audio = tmp_path / "frog.wav"
     audio.write_bytes(b"RIFF-test")

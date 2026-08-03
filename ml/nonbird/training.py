@@ -113,6 +113,21 @@ def load_embedding_cache(path: Path) -> dict[str, np.ndarray]:
         return {key: value[key] for key in value.files}
 
 
+def missing_positive_coverage(
+    targets: np.ndarray,
+    splits: np.ndarray,
+    class_ids: tuple[str, ...],
+    required_splits: tuple[str, ...],
+) -> list[str]:
+    missing: list[str] = []
+    for split in required_splits:
+        split_targets = targets[splits == split]
+        for index, class_id in enumerate(class_ids):
+            if not len(split_targets) or not split_targets[:, index].any():
+                missing.append(f"{split}:{class_id}")
+    return missing
+
+
 def write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")

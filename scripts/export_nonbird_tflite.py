@@ -34,6 +34,7 @@ def main() -> None:
         "id": metadata["model_id"],
         "version": metadata["version"],
         "available": True,
+        "label_policies": metadata.get("label_policies", []),
         "input": {"type": "birdnet_embedding", "shape": [1, metadata["embedding_dim"]]},
         "output": {"type": "logits", "shape": [1, len(metadata["class_ids"])]},
         "birdnet_embedding_tensor_index": 545,

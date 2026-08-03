@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml.nonbird.training import (
     load_embedding_cache,
     metrics_at_thresholds,
+    missing_positive_coverage,
     sigmoid,
     write_json,
 )
@@ -29,6 +30,11 @@ def main() -> None:
     class_ids = tuple(str(item) for item in cache["class_ids"])
     if tuple(metadata["class_ids"]) != class_ids:
         raise ValueError("模型与缓存的类别顺序不一致")
+    missing = missing_positive_coverage(
+        cache["targets"], cache["splits"], class_ids, ("test",)
+    )
+    if missing:
+        raise ValueError(f"测试集缺少正样本: {missing}")
     test_mask = cache["splits"] == "test"
     if not test_mask.any():
         raise ValueError("缓存中没有测试窗口")
@@ -40,6 +46,7 @@ def main() -> None:
         args.output,
         {
             "test_windows": int(test_mask.sum()),
+            "label_policies": metadata.get("label_policies", []),
             "metrics": {name: value for name, value in zip(class_ids, metrics, strict=True)},
         },
     )

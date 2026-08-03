@@ -50,6 +50,34 @@ def test_inaturalist_observation_expands_each_licensed_sound():
     assert rows[0]["review_status"] == "pending"
 
 
+def test_inaturalist_source_labels_can_be_trusted_explicitly():
+    rows = observation_records(
+        {
+            "id": 9,
+            "quality_grade": "research",
+            "taxon": {"name": "Hyla chinensis"},
+            "sounds": [
+                {
+                    "id": 8,
+                    "license_code": "cc-by",
+                    "file_url": "https://example.test/frog.m4a",
+                }
+            ],
+        },
+        {
+            "taxon_id": "other_frog",
+            "scientific_name": "",
+            "name_zh": "其他蛙类",
+            "category_id": "frog",
+            "preserve_observed_taxon": True,
+        },
+        commercial_only=False,
+        trust_source_labels=True,
+    )
+    assert rows[0]["review_status"] == "source_curated"
+    assert rows[0]["scientific_name"] == "Hyla chinensis"
+
+
 def test_insectset_selection_preserves_source_split_and_uses_other_insect(tmp_path: Path):
     annotation = tmp_path / "annotation.csv"
     annotation.write_text(

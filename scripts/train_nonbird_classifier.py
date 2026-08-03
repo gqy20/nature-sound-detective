@@ -14,6 +14,7 @@ from ml.nonbird.training import (
     build_classifier,
     find_best_thresholds,
     load_embedding_cache,
+    missing_positive_coverage,
     positive_class_weights,
     sigmoid,
     weighted_binary_crossentropy,
@@ -38,6 +39,11 @@ def main() -> None:
     cache_classes = tuple(str(item) for item in cache["class_ids"])
     if cache_classes != config.class_ids:
         raise ValueError("embedding cache 类别顺序与当前配置不一致")
+    missing = missing_positive_coverage(
+        cache["targets"], cache["splits"], cache_classes, ("train", "validation")
+    )
+    if missing:
+        raise ValueError(f"训练/验证集缺少正样本: {missing}")
     train_mask = cache["splits"] == "train"
     validation_mask = cache["splits"] == "validation"
     if not train_mask.any() or not validation_mask.any():
@@ -89,6 +95,9 @@ def main() -> None:
             "positive_class_weights": pos_weights.tolist(),
             "train_windows": int(train_mask.sum()),
             "validation_windows": int(validation_mask.sum()),
+            "label_policies": sorted(
+                {str(item) for item in cache.get("review_statuses", np.asarray([]))}
+            ),
         },
     )
     print(f"saved classifier to {model_path}")

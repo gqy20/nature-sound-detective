@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml.nonbird.config import load_nonbird_config
 
 
-APPROVED = {"human_reviewed", "expert_confirmed", "approved"}
+APPROVED = {"human_reviewed", "expert_confirmed", "approved", "source_curated"}
 VALID_SPLITS = {"train", "validation", "test"}
 FIELDS = (
     "audio_path",

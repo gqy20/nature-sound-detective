@@ -3,7 +3,11 @@ import pytest
 
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.dataset import load_manifest
-from ml.nonbird.training import find_best_thresholds, positive_class_weights
+from ml.nonbird.training import (
+    find_best_thresholds,
+    missing_positive_coverage,
+    positive_class_weights,
+)
 
 
 def test_nonbird_config_has_stable_class_order():
@@ -30,6 +34,14 @@ def test_positive_class_weights_upweight_rare_class():
     targets = np.asarray([[1, 0], [1, 0], [0, 0], [0, 1]], dtype=np.float32)
     weights = positive_class_weights(targets)
     assert weights.tolist() == [1.0, 3.0]
+
+
+def test_missing_positive_coverage_reports_each_split_and_class():
+    targets = np.asarray([[1, 0], [0, 1]], dtype=np.float32)
+    splits = np.asarray(["train", "validation"])
+    assert missing_positive_coverage(
+        targets, splits, ("frog", "insect"), ("train", "validation")
+    ) == ["train:insect", "validation:frog"]
 
 
 def test_manifest_ignores_pending_rows_and_loads_approved_rows(tmp_path):

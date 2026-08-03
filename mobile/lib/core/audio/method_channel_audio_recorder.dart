@@ -50,4 +50,14 @@ class MethodChannelAudioRecorder implements AudioRecorder {
 
   @override
   Future<void> cancel() => _channel.invokeMethod<void>('cancelRecording');
+
+  Future<RecordedAudio> loadDebugDemo() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'loadDebugDemo',
+    );
+    if (value == null) {
+      throw const FormatException('调试示例声音没有返回音频文件。');
+    }
+    return RecordedAudio.fromMap(value);
+  }
 }

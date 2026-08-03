@@ -38,4 +38,27 @@ void main() {
     expect(audio.sampleRate, 48000);
     expect(audio.duration, const Duration(milliseconds: 3200));
   });
+
+  test('maps the debug demo response', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          expect(call.method, 'loadDebugDemo');
+          return <String, Object>{
+            'id': 'demo_1',
+            'path': '/cache/demo/demo.wav',
+            'duration_ms': 12000,
+            'sample_rate': 48000,
+            'channel_count': 1,
+            'byte_length': 1152044,
+          };
+        });
+
+    final recording = await MethodChannelAudioRecorder(
+      channel: channel,
+    ).loadDebugDemo();
+
+    expect(recording.id, 'demo_1');
+    expect(recording.duration, const Duration(seconds: 12));
+    expect(recording.sampleRate, 48000);
+  });
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
@@ -240,6 +241,57 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  Future<void> _loadDebugDemo() async {
+    if (_busy || !kDebugMode || _recorder is! MethodChannelAudioRecorder) {
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _recording = null;
+      _quality = null;
+      _detections = const [];
+      _hasAnalyzed = false;
+      _saved = false;
+      _cloudCard = null;
+      _error = null;
+    });
+    try {
+      final recording = await _recorder.loadDebugDemo();
+      final quality = await _qualityAnalyzer.analyze(recording.path);
+      AppLog.info(
+        'audio',
+        'debug_demo_loaded',
+        traceId: recording.id,
+        fields: {
+          'duration_ms': recording.duration.inMilliseconds,
+          'sample_rate': recording.sampleRate,
+          'channels': recording.channelCount,
+          'byte_length': recording.byteLength,
+          'quality_usable': quality.usable,
+        },
+      );
+      if (!mounted) return;
+      setState(() {
+        _recording = recording;
+        _quality = quality;
+        _elapsed = recording.duration;
+      });
+    } on PlatformException catch (error, stackTrace) {
+      AppLog.warning(
+        'audio',
+        'debug_demo_load_failed',
+        fields: {'platform_code': error.code},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        setState(() => _error = error.message ?? '无法载入示例声音。');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _analyzeRecording() async {
     final recording = _recording;
     if (recording == null || _analyzing) return;
@@ -414,6 +466,15 @@ class _CapturePageState extends State<CapturePage> {
               icon: Icon(_isRecording ? Icons.stop_rounded : Icons.mic_rounded),
               label: Text(_isRecording ? '结束录音' : '开始录音'),
             ),
+            if (kDebugMode && _recorder is MethodChannelAudioRecorder) ...[
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                key: const Key('debug-demo-button'),
+                onPressed: _busy || _isRecording ? null : _loadDebugDemo,
+                icon: const Icon(Icons.science_outlined),
+                label: const Text('载入演示声音'),
+              ),
+            ],
             if (_recording case final recording?) ...[
               const SizedBox(height: 16),
               Text(

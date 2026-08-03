@@ -1,6 +1,7 @@
 package com.xykw.nature_sound_detective
 
 import android.Manifest
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -58,7 +59,58 @@ class MainActivity : FlutterActivity() {
             "startRecording" -> startRecording(call, result)
             "stopRecording" -> finishRecording(result, delete = false)
             "cancelRecording" -> finishRecording(result, delete = true)
+            "loadDebugDemo" -> loadDebugDemo(result)
             else -> result.notImplemented()
+        }
+    }
+
+    private fun loadDebugDemo(result: MethodChannel.Result) {
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE == 0) {
+            result.notImplemented()
+            return
+        }
+        val file = File(cacheDir, "demo/demo.wav")
+        if (!file.isFile || file.length() <= 44L) {
+            result.error(
+                "demo_missing",
+                "请先通过 ADB 将演示 WAV 放入应用私有缓存。",
+                null,
+            )
+            return
+        }
+        try {
+            RandomAccessFile(file, "r").use { wav ->
+                val header = ByteArray(44)
+                wav.readFully(header)
+                if (String(header, 0, 4) != "RIFF" || String(header, 8, 4) != "WAVE") {
+                    throw IllegalArgumentException("演示文件不是 WAV。")
+                }
+                val values = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
+                val channels = values.getShort(22).toInt()
+                val sampleRate = values.getInt(24)
+                val bitsPerSample = values.getShort(34).toInt()
+                if (channels <= 0 || sampleRate <= 0 || bitsPerSample != 16) {
+                    throw IllegalArgumentException("演示文件必须是 16-bit PCM WAV。")
+                }
+                val dataBytes = file.length() - 44L
+                val bytesPerSecond = sampleRate.toLong() * channels * 2L
+                val durationMs = dataBytes * 1000L / bytesPerSecond
+                result.success(mapOf(
+                    "id" to "demo_${System.currentTimeMillis()}",
+                    "path" to file.absolutePath,
+                    "duration_ms" to durationMs,
+                    "sample_rate" to sampleRate,
+                    "channel_count" to channels,
+                    "byte_length" to file.length().toInt(),
+                ))
+                Log.i(
+                    TAG,
+                    "event=debug_demo_loaded duration_ms=$durationMs byte_length=${file.length()}",
+                )
+            }
+        } catch (error: Exception) {
+            Log.e(TAG, "event=debug_demo_load_failed", error)
+            result.error("demo_invalid", error.message ?: "演示声音无效。", null)
         }
     }
 

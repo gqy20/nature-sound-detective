@@ -1,0 +1,49 @@
+{
+  "model_id": "hangzhou-nonbird",
+  "model_version": "0.1.0",
+  "evaluated_at": "2026-08-03",
+  "recordings": 371,
+  "windows": 2278,
+  "conditions": {
+    "background_clean": {
+      "windows": 30,
+      "false_positive_rate": 0.1333,
+      "false_positive_windows_per_minute": 2.6667
+    },
+    "snr_-5": {
+      "cryptotympana_atrata_f1": 0.7719,
+      "polypedates_braueri_f1": 0.5556,
+      "other_insect_f1": 0.8053,
+      "other_frog_f1": 0.5481
+    },
+    "snr_0": {
+      "cryptotympana_atrata_f1": 0.9206,
+      "polypedates_braueri_f1": 0.7,
+      "other_insect_f1": 0.8647,
+      "other_frog_f1": 0.6
+    },
+    "snr_5": {
+      "cryptotympana_atrata_f1": 0.9375,
+      "polypedates_braueri_f1": 0.8235,
+      "other_insect_f1": 0.9079,
+      "other_frog_f1": 0.6225
+    },
+    "phone_band": {
+      "cryptotympana_atrata_f1": 0.9,
+      "polypedates_braueri_f1": 0.9,
+      "other_insect_f1": 0.8477,
+      "other_frog_f1": 0.7684
+    },
+    "reverb": {
+      "cryptotympana_atrata_f1": 0.9538,
+      "polypedates_braueri_f1": 0.9091,
+      "other_insect_f1": 0.9068,
+      "other_frog_f1": 0.7439
+    }
+  },
+  "notes": [
+    "All derived recordings retain the original test split.",
+    "Noise is selected only from background recordings in the same split.",
+    "This is a synthetic robustness proxy, not a Hangzhou park field evaluation."
+  ]
+}

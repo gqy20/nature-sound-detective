@@ -25,6 +25,7 @@ class ManifestRow:
     review_status: str
     start_seconds: float | None = None
     end_seconds: float | None = None
+    condition: str = "clean"
 
     def accepts_window(self, start: float, end: float) -> bool:
         if self.start_seconds is None or self.end_seconds is None:
@@ -73,6 +74,7 @@ def load_manifest(path: Path, config: NonBirdConfig) -> list[ManifestRow]:
                     review_status=review_status,
                     start_seconds=start,
                     end_seconds=end,
+                    condition=(value.get("stress_condition") or "clean").strip(),
                 )
             )
     if not rows:

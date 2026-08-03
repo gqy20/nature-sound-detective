@@ -36,6 +36,7 @@ def main() -> None:
     starts: list[float] = []
     ends: list[float] = []
     review_statuses: list[str] = []
+    conditions: list[str] = []
     class_index = {name: index for index, name in enumerate(config.class_ids)}
 
     rows_by_path: dict[Path, list] = {}
@@ -66,6 +67,7 @@ def main() -> None:
             starts.append(start)
             ends.append(end)
             review_statuses.append(row.review_status)
+            conditions.append(row.condition)
     if not features:
         raise RuntimeError("没有生成任何 embedding，请检查有效时间段")
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -79,6 +81,7 @@ def main() -> None:
         start_seconds=np.asarray(starts, dtype=np.float32),
         end_seconds=np.asarray(ends, dtype=np.float32),
         review_statuses=np.asarray(review_statuses),
+        conditions=np.asarray(conditions),
         class_ids=np.asarray(config.class_ids),
     )
     print(f"saved {len(features)} embeddings to {args.output}")

@@ -1,5 +1,6 @@
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 
 class ExplorationRecord {
   const ExplorationRecord({
@@ -11,6 +12,7 @@ class ExplorationRecord {
     required this.audioQuality,
     required this.detections,
     this.confirmedByUser = false,
+    this.feedback,
   });
 
   factory ExplorationRecord.fromJson(Map<String, Object?> json) {
@@ -37,6 +39,12 @@ class ExplorationRecord {
                 .toList(growable: false)
           : const [],
       confirmedByUser: json['confirmed_by_user'] as bool? ?? false,
+      feedback: switch (json['feedback']) {
+        Map<Object?, Object?> value => ExplorationFeedback.fromJson(
+          value.cast<String, Object?>(),
+        ),
+        _ => null,
+      },
     );
   }
 
@@ -48,8 +56,12 @@ class ExplorationRecord {
   final AudioQuality audioQuality;
   final List<SoundDetection> detections;
   final bool confirmedByUser;
+  final ExplorationFeedback? feedback;
 
-  ExplorationRecord copyWith({bool? confirmedByUser}) {
+  ExplorationRecord copyWith({
+    bool? confirmedByUser,
+    ExplorationFeedback? feedback,
+  }) {
     return ExplorationRecord(
       id: id,
       createdAt: createdAt,
@@ -59,6 +71,7 @@ class ExplorationRecord {
       audioQuality: audioQuality,
       detections: detections,
       confirmedByUser: confirmedByUser ?? this.confirmedByUser,
+      feedback: feedback ?? this.feedback,
     );
   }
 
@@ -71,5 +84,6 @@ class ExplorationRecord {
     'audio_quality': audioQuality.toJson(),
     'detections': detections.map((item) => item.toJson()).toList(),
     'confirmed_by_user': confirmedByUser,
+    if (feedback != null) 'feedback': feedback!.toJson(),
   };
 }

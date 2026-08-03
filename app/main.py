@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import re
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
-from uuid import uuid4
+from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
@@ -25,6 +23,7 @@ from app.config import (
     ensure_runtime_dirs,
 )
 from app.jobs import JobStore
+from app.feedback import save_feedback_record
 from app.observability import install_observability
 
 
@@ -59,8 +58,12 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 class FeedbackSubmission(BaseModel):
     job_id: str = Field(max_length=80)
-    is_correct: bool
+    recording_id: str | None = Field(default=None, max_length=80)
+    is_correct: bool | None = None
+    decision: str | None = Field(default=None, max_length=20)
     corrected_type: str | None = Field(default=None, max_length=40)
+    corrected_taxon_id: str | None = Field(default=None, max_length=80)
+    consent_to_retain_audio: bool = False
 
 
 @app.get("/")
@@ -176,10 +179,12 @@ def delete_job(job_id: str) -> None:
 
 
 @app.post("/api/feedback", status_code=201)
-def save_feedback(feedback: FeedbackSubmission) -> dict[str, str]:
-    payload = feedback.model_dump()
-    payload["created_at"] = datetime.now(timezone.utc).isoformat()
-    feedback_id = uuid4().hex
-    path = FEEDBACK_DIR / f"{feedback_id}.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    return {"id": feedback_id, "status": "saved"}
+def save_feedback(feedback: FeedbackSubmission) -> dict[str, Any]:
+    try:
+        return save_feedback_record(
+            feedback.model_dump(),
+            job=jobs.get(feedback.job_id),
+            feedback_dir=FEEDBACK_DIR,
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc

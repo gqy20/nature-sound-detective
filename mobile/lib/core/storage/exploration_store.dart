@@ -5,6 +5,7 @@ import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -19,6 +20,10 @@ abstract interface class ExplorationStore {
   Future<List<ExplorationRecord>> list();
 
   Future<void> setConfirmed(String id, bool confirmed);
+
+  Future<void> setFeedback(String id, ExplorationFeedback feedback);
+
+  Future<Directory> exportReviewPackage(Directory destination);
 
   Future<void> delete(String id);
 }
@@ -111,6 +116,16 @@ class FileExplorationStore implements ExplorationStore {
 
   @override
   Future<void> setConfirmed(String id, bool confirmed) async {
+    await setFeedback(
+      id,
+      ExplorationFeedback(
+        decision: confirmed ? FeedbackDecision.correct : FeedbackDecision.wrong,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setFeedback(String id, ExplorationFeedback feedback) async {
     _validateId(id);
     final root = await _rootProvider();
     final directory = Directory('${root.path}${Platform.pathSeparator}records');
@@ -120,8 +135,41 @@ class FileExplorationStore implements ExplorationStore {
     if (value is! Map<String, Object?>) throw const FormatException('声音记录已损坏。');
     await _writeRecord(
       directory,
-      ExplorationRecord.fromJson(value).copyWith(confirmedByUser: confirmed),
+      ExplorationRecord.fromJson(value).copyWith(
+        confirmedByUser: feedback.decision == FeedbackDecision.correct,
+        feedback: feedback,
+      ),
     );
+  }
+
+  @override
+  Future<Directory> exportReviewPackage(Directory destination) async {
+    final package = Directory(
+      '${destination.path}${Platform.pathSeparator}nature_sound_review',
+    );
+    final audioDirectory = Directory(
+      '${package.path}${Platform.pathSeparator}audio',
+    );
+    await audioDirectory.create(recursive: true);
+    final rows = <String>[];
+    for (final record in await list()) {
+      final feedback = record.feedback;
+      if (feedback == null || !feedback.consentToRetainAudio) continue;
+      final source = File(record.audioPath);
+      if (!await source.exists()) continue;
+      final audioName = '${record.id}.wav';
+      await source.copy(
+        '${audioDirectory.path}${Platform.pathSeparator}$audioName',
+      );
+      final payload = record.toJson()
+        ..['audio_path'] = 'audio/$audioName'
+        ..['review_status'] = 'user_reported';
+      rows.add(jsonEncode(payload));
+    }
+    await File(
+      '${package.path}${Platform.pathSeparator}feedback.jsonl',
+    ).writeAsString(rows.isEmpty ? '' : '${rows.join('\n')}\n', flush: true);
+    return package;
   }
 
   @override

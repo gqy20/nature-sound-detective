@@ -176,8 +176,20 @@
             <option>人声</option>
             <option>交通或机械噪声</option>
           </select>
+          <select id="corrected-taxon" aria-label="可选的正确物种">
+            <option value="">不确定具体物种</option>
+            <option value="cryptotympana_atrata">黑蚱蝉</option>
+            <option value="polypedates_braueri">布氏泛树蛙</option>
+            <option value="other_insect">其他鸣虫</option>
+            <option value="other_frog">其他蛙类</option>
+            <option value="background">背景或未知声音</option>
+          </select>
           <button id="submit-correction" class="primary-button compact" type="button">提交更正</button>
         </div>
+        <label class="feedback-consent">
+          <input id="feedback-consent" type="checkbox">
+          我同意保留这段录音用于人工复核和改进模型
+        </label>
         <p id="feedback-status" class="feedback-status" aria-live="polite"></p>
       </section>
 

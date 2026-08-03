@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 
 void main() {
@@ -39,6 +40,23 @@ void main() {
     expect((await store.list()).single.detections.single.categoryId, 'frog');
     await store.setConfirmed('rec_1', true);
     expect((await store.list()).single.confirmedByUser, isTrue);
+    await store.setFeedback(
+      'rec_1',
+      const ExplorationFeedback(
+        decision: FeedbackDecision.wrong,
+        correctedTaxonId: 'other_frog',
+        consentToRetainAudio: true,
+      ),
+    );
+    final updated = (await store.list()).single;
+    expect(updated.feedback?.correctedTaxonId, 'other_frog');
+    final exported = await store.exportReviewPackage(root);
+    expect(
+      await File(
+        '${exported.path}${Platform.pathSeparator}feedback.jsonl',
+      ).readAsString(),
+      contains('other_frog'),
+    );
     await store.delete('rec_1');
     expect(await store.list(), isEmpty);
   });

@@ -134,10 +134,12 @@ h2 { margin: 0; font-size: clamp(30px, 4vw, 40px); font-weight: 700; line-height
 .feedback-block h3 { margin: 0 0 13px; font-size: 16px; }
 .feedback-actions { display: flex; gap: 10px; }
 .compact-control { min-height: 44px; }
-.correction-panel { display: grid; grid-template-columns: auto minmax(150px, 1fr) auto; align-items: center; gap: 10px; margin-top: 14px; }
+.correction-panel { display: grid; grid-template-columns: auto minmax(140px, 1fr) minmax(150px, 1fr) auto; align-items: center; gap: 10px; margin-top: 14px; }
 .correction-panel label { color: var(--muted); font-size: 14px; font-weight: 600; }
 select { min-height: 44px; padding: 0 12px; color: var(--ink); border: 1px solid #b8c7bd; border-radius: 10px; background: #fbfcfa; }
 .feedback-status { min-height: 22px; margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+.feedback-consent { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.feedback-consent input { width: 18px; height: 18px; margin-top: 1px; }
 .error-panel { border-color: #e2c0bd; }
 .error-panel .step-label { color: var(--danger); }
 .error-panel p:not(.step-label) { color: var(--muted); line-height: 1.65; }

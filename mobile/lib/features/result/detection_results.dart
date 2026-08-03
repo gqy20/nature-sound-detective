@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 
 class DetectionResults extends StatelessWidget {
-  const DetectionResults({super.key, required this.detections});
+  const DetectionResults({
+    super.key,
+    required this.detections,
+    this.onFeedback,
+  });
 
   final List<SoundDetection> detections;
+  final ValueChanged<ExplorationFeedback>? onFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,105 @@ class DetectionResults extends StatelessWidget {
             _DetectionCard(detection: detection),
             const SizedBox(height: 10),
           ],
+          if (onFeedback != null) ...[
+            const SizedBox(height: 8),
+            _DetectionFeedbackPanel(
+              detections: detections,
+              onSubmitted: onFeedback!,
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _DetectionFeedbackPanel extends StatefulWidget {
+  const _DetectionFeedbackPanel({
+    required this.detections,
+    required this.onSubmitted,
+  });
+
+  final List<SoundDetection> detections;
+  final ValueChanged<ExplorationFeedback> onSubmitted;
+
+  @override
+  State<_DetectionFeedbackPanel> createState() =>
+      _DetectionFeedbackPanelState();
+}
+
+class _DetectionFeedbackPanelState extends State<_DetectionFeedbackPanel> {
+  FeedbackDecision? _decision;
+  String? _correctedTaxonId;
+  bool _consent = false;
+  bool _submitted = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_submitted) return const Text('反馈已保存在本机，等待人工复核。');
+    final taxa = widget.detections
+        .map((item) => item.specificSpecies)
+        .whereType<SpeciesCandidate>()
+        .where((item) => item.taxonomyId != null)
+        .toList(growable: false);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('这个结果像吗？'),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final decision in FeedbackDecision.values)
+                  ChoiceChip(
+                    label: Text(switch (decision) {
+                      FeedbackDecision.correct => '像',
+                      FeedbackDecision.wrong => '不像',
+                      FeedbackDecision.uncertain => '不确定',
+                    }),
+                    selected: _decision == decision,
+                    onSelected: (_) => setState(() => _decision = decision),
+                  ),
+              ],
+            ),
+            if (_decision == FeedbackDecision.wrong && taxa.isNotEmpty)
+              DropdownButton<String>(
+                hint: const Text('可选正确物种'),
+                value: _correctedTaxonId,
+                items: [
+                  for (final taxon in taxa)
+                    DropdownMenuItem(
+                      value: taxon.taxonomyId,
+                      child: Text(taxon.nameZh),
+                    ),
+                ],
+                onChanged: (value) => setState(() => _correctedTaxonId = value),
+              ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _consent,
+              title: const Text('允许将录音加入人工复核包'),
+              onChanged: (value) => setState(() => _consent = value ?? false),
+            ),
+            FilledButton(
+              onPressed: _decision == null
+                  ? null
+                  : () {
+                      widget.onSubmitted(
+                        ExplorationFeedback(
+                          decision: _decision!,
+                          correctedTaxonId: _correctedTaxonId,
+                          consentToRetainAudio: _consent,
+                        ),
+                      );
+                      setState(() => _submitted = true);
+                    },
+              child: const Text('保存反馈'),
+            ),
+          ],
+        ),
       ),
     );
   }

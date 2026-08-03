@@ -861,7 +861,16 @@ async function deleteCollectionItem(job) {
 
 async function submitFeedback(isCorrect, correctedType = null) {
   if (!currentJob || currentJob.is_demo) return;
-  const payload = { job_id: currentJob.id, is_correct: isCorrect, corrected_type: correctedType };
+  const correctedTaxon = $("corrected-taxon").value || null;
+  const payload = {
+    job_id: currentJob.id,
+    recording_id: currentJob.id,
+    is_correct: isCorrect,
+    decision: isCorrect ? "correct" : (correctedType === "无法判断" ? "uncertain" : "wrong"),
+    corrected_type: correctedType,
+    corrected_taxon_id: correctedTaxon,
+    consent_to_retain_audio: $("feedback-consent").checked,
+  };
   try {
     const response = await tracedFetch(apiUrl("/api/feedback"), {
       method: "POST",
@@ -879,6 +888,7 @@ async function submitFeedback(isCorrect, correctedType = null) {
   $("feedback-yes").disabled = true;
   $("feedback-no").disabled = true;
   $("correction-panel").hidden = true;
+  $("feedback-consent").disabled = true;
 }
 
 function readableError(error) {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import time
 import json
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -51,6 +52,37 @@ def test_feedback_endpoint_saves_minimal_correction(tmp_path, monkeypatch):
     saved = list(tmp_path.glob("*.json"))
     assert len(saved) == 1
     assert "蛙类鸣叫" in saved[0].read_text(encoding="utf-8")
+
+
+def test_feedback_retains_audio_only_with_consent(tmp_path):
+    from app.feedback import save_feedback_record
+
+    source = tmp_path / "source.wav"
+    source.write_bytes(b"audio")
+    job = {
+        "audio_path": str(source),
+        "location": "杭州植物园",
+        "result": {
+            "models": {"nonbird_species": "hangzhou-nonbird 0.2.0"},
+            "detections": [{"category_id": "frog", "confidence": 0.8}],
+        },
+    }
+    result = save_feedback_record(
+        {
+            "job_id": "job-1",
+            "decision": "wrong",
+            "corrected_taxon_id": "other_frog",
+            "consent_to_retain_audio": True,
+        },
+        job=job,
+        feedback_dir=tmp_path / "feedback",
+    )
+    payload = json.loads(
+        (tmp_path / "feedback" / f"{result['id']}.json").read_text(encoding="utf-8")
+    )
+    assert result["audio_retained"] is True
+    assert Path(payload["retained_audio_path"]).read_bytes() == b"audio"
+    assert payload["review_status"] == "user_reported"
 
 
 def test_job_store_restores_completed_jobs_after_restart(tmp_path, monkeypatch):

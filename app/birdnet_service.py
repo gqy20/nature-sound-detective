@@ -9,19 +9,10 @@ from typing import Any
 import birdnet
 
 from app.observability import get_logger, log_event, log_exception
+from app.species_catalog import birdnet_label_map
 
 
 logger = get_logger("birdnet")
-
-
-SPECIES = {
-    "Copsychus saularis_Oriental Magpie-Robin": "鹊鸲",
-    "Pycnonotus sinensis_Light-vented Bulbul": "白头鹎",
-    "Turdus mandarinus_Chinese Blackbird": "乌鸫",
-    "Streptopelia chinensis_Spotted Dove": "珠颈斑鸠",
-    "Urocissa erythroryncha_Red-billed Blue-Magpie": "红嘴蓝鹊",
-    "Gallinula chloropus_Eurasian Moorhen": "黑水鸡",
-}
 
 
 def _seconds(value: Any) -> float:
@@ -53,11 +44,12 @@ class BirdNetAnalyzer:
 
     def analyze(self, audio_path: Path) -> dict[str, Any]:
         started = time.perf_counter()
+        species = birdnet_label_map()
         with self._lock:
             model = self._load()
             rows = model.predict(
                 [str(audio_path.resolve())],
-                custom_species_list=list(SPECIES),
+                custom_species_list=list(species),
                 top_k=3,
                 default_confidence_threshold=0.05,
                 n_producers=1,
@@ -74,7 +66,7 @@ class BirdNetAnalyzer:
             current = best_by_species.get(label)
             if current is None or confidence > current["confidence"]:
                 best_by_species[label] = {
-                    "name_zh": SPECIES.get(label, label),
+                    "name_zh": species.get(label, label),
                     "label": label,
                     "confidence": round(confidence, 4),
                     "start_seconds": round(_seconds(row["start_time"]), 3),
@@ -95,6 +87,6 @@ class BirdNetAnalyzer:
         )
         return {
             "model": "BirdNET acoustic 2.4",
-            "scope": "杭州MVP六种常见鸟类",
+            "scope": f"杭州全年地理先验候选鸟类（{len(species)}种）",
             "detections": detections[:3],
         }

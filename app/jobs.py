@@ -74,7 +74,14 @@ class JobStore:
         path = JOB_DIR / f"{job['id']}.json"
         path.write_text(json.dumps(job, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    def create(self, audio_path: Path, location: str, duration: float) -> dict[str, Any]:
+    def create(
+        self,
+        audio_path: Path,
+        location: str,
+        duration: float,
+        *,
+        general_audio_path: Path | None = None,
+    ) -> dict[str, Any]:
         job_id = uuid4().hex
         now = datetime.now(timezone.utc).isoformat()
         job = {
@@ -88,6 +95,7 @@ class JobStore:
             "duration_seconds": duration,
             "audio_url": f"/api/jobs/{job_id}/audio",
             "audio_path": str(audio_path),
+            "general_audio_path": str(general_audio_path or audio_path),
             "result": None,
             "error": None,
             "creation": {"status": "idle", "stage_message": ""},
@@ -122,7 +130,12 @@ class JobStore:
                 self._update(job_id, status=status, stage_message=message)
                 log_event(logger, logging.INFO, "analysis_job_progress", job_id=job_id, stage=status)
 
-            result = self._pipeline.run(Path(job["audio_path"]), job["location"], progress)
+            result = self._pipeline.run(
+                Path(job["audio_path"]),
+                job["location"],
+                progress,
+                general_audio_path=Path(job.get("general_audio_path") or job["audio_path"]),
+            )
             self._update(
                 job_id,
                 status="completed",
@@ -148,6 +161,7 @@ class JobStore:
     def public(job: dict[str, Any]) -> dict[str, Any]:
         value = json.loads(json.dumps(job))
         value.pop("audio_path", None)
+        value.pop("general_audio_path", None)
         creation = value.get("creation") or {}
         for key in ("music_path", "narration_path", "video_path"):
             creation.pop(key, None)
@@ -223,6 +237,9 @@ class JobStore:
         if not job:
             return False
         Path(job["audio_path"]).unlink(missing_ok=True)
+        general_path = Path(job.get("general_audio_path") or job["audio_path"])
+        if general_path != Path(job["audio_path"]):
+            general_path.unlink(missing_ok=True)
         for key in ("music_path", "narration_path", "video_path"):
             media_path = (job.get("creation") or {}).get(key)
             if media_path:

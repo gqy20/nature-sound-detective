@@ -1,0 +1,52 @@
+{
+  "model_id": "hangzhou-nonbird",
+  "version": "0.1.0",
+  "sample_rate": 48000,
+  "window_seconds": 3,
+  "classes": [
+    {
+      "taxon_id": "cryptotympana_atrata",
+      "category_id": "insect",
+      "name_zh": "黑蚱蝉",
+      "scientific_name": "Cryptotympana atrata",
+      "status": "mvp",
+      "default_threshold": 0.6,
+      "season_months": [7, 8, 9],
+      "habitats": ["park", "woodland"]
+    },
+    {
+      "taxon_id": "polypedates_braueri",
+      "category_id": "frog",
+      "name_zh": "布氏泛树蛙",
+      "scientific_name": "Polypedates braueri",
+      "status": "phase2",
+      "default_threshold": 0.6,
+      "season_months": [4, 5, 6, 7, 8, 9],
+      "habitats": ["pond", "wetland", "woodland"]
+    },
+    {
+      "taxon_id": "other_insect",
+      "category_id": "insect",
+      "name_zh": "其他鸣虫",
+      "scientific_name": null,
+      "status": "support",
+      "default_threshold": 0.55
+    },
+    {
+      "taxon_id": "other_frog",
+      "category_id": "frog",
+      "name_zh": "其他蛙类",
+      "scientific_name": null,
+      "status": "support",
+      "default_threshold": 0.55
+    },
+    {
+      "taxon_id": "background",
+      "category_id": "background",
+      "name_zh": "背景或未知声音",
+      "scientific_name": null,
+      "status": "support",
+      "default_threshold": 0.5
+    }
+  ]
+}

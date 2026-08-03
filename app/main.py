@@ -96,18 +96,26 @@ async def analyze(
                 raise HTTPException(413, "录音文件不能超过15MB")
             handle.write(chunk)
 
-    prepared_path = UPLOAD_DIR / f"{token}_analysis.wav"
+    prepared_path = UPLOAD_DIR / f"{token}_bioacoustic.wav"
+    general_path = UPLOAD_DIR / f"{token}_general.wav"
     try:
-        await run_in_threadpool(prepare_audio, source_path, prepared_path)
+        await run_in_threadpool(prepare_audio, source_path, prepared_path, general_path)
     except AudioPreparationError as exc:
         source_path.unlink(missing_ok=True)
+        prepared_path.unlink(missing_ok=True)
+        general_path.unlink(missing_ok=True)
         raise HTTPException(422, str(exc)) from exc
     finally:
         if source_path != prepared_path:
             source_path.unlink(missing_ok=True)
 
     duration = await run_in_threadpool(duration_seconds, prepared_path)
-    return jobs.create(prepared_path, location.strip()[:80] or "杭州", duration)
+    return jobs.create(
+        prepared_path,
+        location.strip()[:80] or "杭州",
+        duration,
+        general_audio_path=general_path,
+    )
 
 
 @app.get("/api/jobs/{job_id}")

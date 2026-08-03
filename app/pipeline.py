@@ -27,11 +27,15 @@ class AnalysisPipeline:
         audio_path: Path,
         location: str,
         progress: ProgressCallback,
+        *,
+        general_audio_path: Path | None = None,
     ) -> dict[str, Any]:
         log_event(logger, logging.INFO, "analysis_pipeline_started")
         progress("analyzing", "正在寻找声音线索")
         with ThreadPoolExecutor(max_workers=2) as executor:
-            qwen_future = executor.submit(self.qwen.analyze, audio_path, location)
+            qwen_future = executor.submit(
+                self.qwen.analyze, general_audio_path or audio_path, location
+            )
             bird_future = executor.submit(self.birdnet.analyze, audio_path)
             qwen = qwen_future.result()
             progress("enriching", "正在核对自然知识")

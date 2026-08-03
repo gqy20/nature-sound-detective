@@ -42,8 +42,10 @@ def test_pipeline_reuses_one_birdnet_forward_for_both_heads(tmp_path):
     class Bird:
         calls = 0
 
-        def infer_windows(self, _path):
+        def infer_windows(self, _path, progress_callback=None):
             self.calls += 1
+            if progress_callback is not None:
+                progress_callback(marker, 1, 1)
             return marker
 
         def summarize(self, windows):
@@ -66,6 +68,9 @@ def test_pipeline_reuses_one_birdnet_forward_for_both_heads(tmp_path):
     bird = Bird()
     pipeline = AnalysisPipeline(qwen=Qwen(), birdnet=bird, nonbird=NonBird())
 
-    pipeline.run(tmp_path / "unused.wav", "杭州", lambda *_: None)
+    updates = []
+    pipeline.run(tmp_path / "unused.wav", "杭州", lambda *args: updates.append(args))
 
     assert bird.calls == 1
+    partial_updates = [item for item in updates if len(item) == 3 and item[2]]
+    assert partial_updates[0][2]["partial_result"]["processed_windows"] == 1

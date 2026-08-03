@@ -82,8 +82,14 @@ class BirdnetDetector implements AudioDetector {
   }
 
   Future<BirdnetDetectionResult> detectWithEmbeddings(
-    AudioInferenceInput input,
-  ) async {
+    AudioInferenceInput input, {
+    Future<void> Function(
+      BirdnetDetectionResult result,
+      int processed,
+      int total,
+    )?
+    onProgress,
+  }) async {
     final timer = Stopwatch()..start();
     final waveform = PcmResampler.toMonoFloat32(
       input,
@@ -96,6 +102,8 @@ class BirdnetDetector implements AudioDetector {
 
     final bestBySpecies = <BirdnetSpecies, _BirdScore>{};
     final embeddings = <BirdnetEmbeddingWindow>[];
+    final totalWindows = (waveform.length / _windowSamples).ceil();
+    var processedWindows = 0;
     for (var offset = 0; offset < waveform.length; offset += _windowSamples) {
       final window = Float32List(_windowSamples);
       final available = math.min(_windowSamples, waveform.length - offset);
@@ -124,8 +132,37 @@ class BirdnetDetector implements AudioDetector {
           current.intervals.add(interval);
         }
       }
+      processedWindows += 1;
+      if (onProgress != null) {
+        await onProgress(
+          BirdnetDetectionResult(
+            _buildDetections(bestBySpecies),
+            List.unmodifiable(embeddings),
+          ),
+          processedWindows,
+          totalWindows,
+        );
+      }
     }
 
+    final result = _buildDetections(bestBySpecies);
+    timer.stop();
+    AppLog.info(
+      'birdnet',
+      'inference_completed',
+      traceId: input.recordingId,
+      fields: {
+        'duration_ms': timer.elapsedMilliseconds,
+        'window_count': totalWindows,
+        'detection_count': result.length,
+      },
+    );
+    return BirdnetDetectionResult(result, embeddings);
+  }
+
+  List<SoundDetection> _buildDetections(
+    Map<BirdnetSpecies, _BirdScore> bestBySpecies,
+  ) {
     final detections =
         bestBySpecies.entries
             .map(
@@ -143,19 +180,7 @@ class BirdnetDetector implements AudioDetector {
             )
             .toList(growable: false)
           ..sort((left, right) => right.confidence.compareTo(left.confidence));
-    final result = detections.take(3).toList(growable: false);
-    timer.stop();
-    AppLog.info(
-      'birdnet',
-      'inference_completed',
-      traceId: input.recordingId,
-      fields: {
-        'duration_ms': timer.elapsedMilliseconds,
-        'window_count': (waveform.length / _windowSamples).ceil(),
-        'detection_count': result.length,
-      },
-    );
-    return BirdnetDetectionResult(result, embeddings);
+    return detections.take(3).toList(growable: false);
   }
 
   Future<_BirdnetWindowResult> _runWindow(Float32List window) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/app.dart';
@@ -71,6 +73,36 @@ void main() {
     expect(find.text('声音有点远'), findsOneWidget);
     expect(find.byKey(const Key('retry-recording-button')), findsOneWidget);
   });
+
+  testWidgets('shows progressive window clues while local analysis continues', (
+    tester,
+  ) async {
+    final recorder = _FakeRecorder();
+    final analyzer = _ProgressiveAnalyzer();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: recorder,
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: analyzer,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('analyze-button')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('analysis-window-progress')), findsOneWidget);
+    expect(find.textContaining('1 / 2'), findsOneWidget);
+
+    analyzer.finish.complete();
+    await tester.pumpAndSettle();
+  });
 }
 
 class _FakeRecorder implements AudioRecorder {
@@ -133,8 +165,37 @@ class _FakeAnalyzer implements RecordingAnalyzer {
   const _FakeAnalyzer();
 
   @override
-  Future<List<SoundDetection>> analyze(RecordedAudio recording) async =>
-      const [];
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async => const [];
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _ProgressiveAnalyzer implements RecordingAnalyzer {
+  final finish = Completer<void>();
+
+  static const detection = SoundDetection(
+    categoryId: 'bird',
+    nameZh: '鸟类鸣叫',
+    confidence: 0.8,
+    model: 'fake',
+    specificSpecies: SpeciesCandidate(nameZh: '珠颈斑鸠'),
+  );
+
+  @override
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async {
+    onProgress?.call(const [detection], 1, 2);
+    await finish.future;
+    return const [detection];
+  }
 
   @override
   Future<void> dispose() async {}

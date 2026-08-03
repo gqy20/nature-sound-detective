@@ -17,7 +17,7 @@ from app.observability import get_logger, log_event, log_exception
 logger = get_logger("pipeline")
 
 
-ProgressCallback = Callable[[str, str], None]
+ProgressCallback = Callable[[str, str, dict[str, Any] | None], None]
 
 
 class AnalysisPipeline:
@@ -56,21 +56,55 @@ class AnalysisPipeline:
         log_event(logger, logging.INFO, "analysis_pipeline_preload_completed", **report)
         return report
 
-    def _analyze_bioacoustics(self, audio_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
-        windows = self.birdnet.infer_windows(audio_path)
+    def _analyze_bioacoustics(
+        self,
+        audio_path: Path,
+        on_partial: Callable[[dict[str, Any]], None] | None = None,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        latest: tuple[dict[str, Any], dict[str, Any]] | None = None
+
+        def window_progress(windows, processed: int, total: int) -> None:
+            nonlocal latest
+            birdnet = self.birdnet.summarize(windows)
+            try:
+                nonbird = self.nonbird.analyze_windows(windows)
+            except Exception as exc:
+                log_exception(logger, "nonbird_partial_fallback_used")
+                nonbird = self._nonbird_fallback(exc)
+            latest = (birdnet, nonbird)
+            if on_partial is not None:
+                on_partial(
+                    {
+                        "processed_windows": processed,
+                        "total_windows": total,
+                        "bird_species": birdnet.get("detections", []),
+                        "nonbird_species": nonbird.get("detections", []),
+                    }
+                )
+
+        windows = self.birdnet.infer_windows(
+            audio_path,
+            progress_callback=window_progress if on_partial is not None else None,
+        )
+        if latest is not None:
+            return latest
         birdnet = self.birdnet.summarize(windows)
         try:
             nonbird = self.nonbird.analyze_windows(windows)
         except Exception as exc:
             log_exception(logger, "nonbird_fallback_used")
-            nonbird = {
-                "model": "hangzhou-nonbird-unavailable",
-                "scope": "杭州本地蛙类与鸣虫",
-                "detections": [],
-                "available": False,
-                "warning": str(exc),
-            }
+            nonbird = self._nonbird_fallback(exc)
         return birdnet, nonbird
+
+    @staticmethod
+    def _nonbird_fallback(exc: Exception) -> dict[str, Any]:
+        return {
+            "model": "hangzhou-nonbird-unavailable",
+            "scope": "杭州本地蛙类与鸣虫",
+            "detections": [],
+            "available": False,
+            "warning": str(exc),
+        }
 
     def run(
         self,
@@ -81,14 +115,32 @@ class AnalysisPipeline:
         general_audio_path: Path | None = None,
     ) -> dict[str, Any]:
         log_event(logger, logging.INFO, "analysis_pipeline_started")
-        progress("analyzing", "正在寻找声音线索")
+        progress("analyzing", "正在寻找声音线索", None)
+
+        def publish_partial(partial: dict[str, Any]) -> None:
+            processed = partial["processed_windows"]
+            total = partial["total_windows"]
+            progress(
+                "analyzing",
+                f"已经听完第 {processed}/{total} 段，正在继续核对",
+                {
+                    "partial_result": partial,
+                    "analysis_progress": {
+                        "processed_windows": processed,
+                        "total_windows": total,
+                    },
+                },
+            )
+
         with ThreadPoolExecutor(max_workers=2) as executor:
             qwen_future = executor.submit(
                 self._qwen().analyze, general_audio_path or audio_path, location
             )
-            bioacoustic_future = executor.submit(self._analyze_bioacoustics, audio_path)
+            bioacoustic_future = executor.submit(
+                self._analyze_bioacoustics, audio_path, publish_partial
+            )
             qwen = qwen_future.result()
-            progress("enriching", "正在核对自然知识")
+            progress("enriching", "正在核对自然知识", None)
             try:
                 birdnet, nonbird = bioacoustic_future.result()
             except Exception as exc:
@@ -106,7 +158,7 @@ class AnalysisPipeline:
                     "available": False,
                     "warning": str(exc),
                 }
-        progress("composing", "正在生成声音卡")
+        progress("composing", "正在生成声音卡", None)
         result = fuse_results(qwen, birdnet, nonbird)
         log_event(
             logger,

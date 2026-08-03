@@ -6,7 +6,7 @@ import time
 import wave
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import tensorflow as tf
@@ -32,6 +32,9 @@ class BirdNetWindows:
     @property
     def count(self) -> int:
         return int(self.scores.shape[0])
+
+
+WindowProgressCallback = Callable[[BirdNetWindows, int, int], None]
 
 
 def _read_waveform(audio_path: Path) -> np.ndarray:
@@ -111,7 +114,31 @@ class BirdNetAnalyzer:
             "duration_ms": round((time.perf_counter() - started) * 1000),
         }
 
-    def infer_windows(self, audio_path: Path) -> BirdNetWindows:
+    @staticmethod
+    def _invoke(
+        interpreter: tf.lite.Interpreter, windows: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
+        input_detail = interpreter.get_input_details()[0]
+        expected_shape = [len(windows), WINDOW_SAMPLES]
+        if input_detail["shape"].tolist() != expected_shape:
+            interpreter.resize_tensor_input(input_detail["index"], expected_shape)
+            interpreter.allocate_tensors()
+            input_detail = interpreter.get_input_details()[0]
+        interpreter.set_tensor(input_detail["index"], windows)
+        interpreter.invoke()
+        outputs = interpreter.get_output_details()
+        logits = np.asarray(interpreter.get_tensor(outputs[0]["index"]), dtype=np.float32)
+        scores = (1.0 / (1.0 + np.exp(-logits))).astype(np.float32, copy=False)
+        embeddings = np.asarray(
+            interpreter.get_tensor(outputs[1]["index"]), dtype=np.float32
+        )
+        return scores, embeddings
+
+    def infer_windows(
+        self,
+        audio_path: Path,
+        progress_callback: WindowProgressCallback | None = None,
+    ) -> BirdNetWindows:
         started = time.perf_counter()
         waveform = _read_waveform(audio_path)
         windows, starts, ends = _window_waveform(waveform)
@@ -124,20 +151,26 @@ class BirdNetAnalyzer:
             )
         with self._lock:
             interpreter = self._load()
-            input_detail = interpreter.get_input_details()[0]
-            expected_shape = [len(windows), WINDOW_SAMPLES]
-            if input_detail["shape"].tolist() != expected_shape:
-                interpreter.resize_tensor_input(input_detail["index"], expected_shape)
-                interpreter.allocate_tensors()
-                input_detail = interpreter.get_input_details()[0]
-            interpreter.set_tensor(input_detail["index"], windows)
-            interpreter.invoke()
-            outputs = interpreter.get_output_details()
-            logits = np.asarray(interpreter.get_tensor(outputs[0]["index"]), dtype=np.float32)
-            scores = (1.0 / (1.0 + np.exp(-logits))).astype(np.float32, copy=False)
-            embeddings = np.asarray(
-                interpreter.get_tensor(outputs[1]["index"]), dtype=np.float32
-            )
+            if progress_callback is None:
+                scores, embeddings = self._invoke(interpreter, windows)
+            else:
+                score_batches: list[np.ndarray] = []
+                embedding_batches: list[np.ndarray] = []
+                for index in range(len(windows)):
+                    scores_one, embeddings_one = self._invoke(
+                        interpreter, windows[index : index + 1]
+                    )
+                    score_batches.append(scores_one)
+                    embedding_batches.append(embeddings_one)
+                    current = BirdNetWindows(
+                        scores=np.concatenate(score_batches),
+                        embeddings=np.concatenate(embedding_batches),
+                        starts=starts[: index + 1],
+                        ends=ends[: index + 1],
+                    )
+                    progress_callback(current, index + 1, len(windows))
+                scores = np.concatenate(score_batches)
+                embeddings = np.concatenate(embedding_batches)
         if scores.shape != (len(windows), 6522) or embeddings.shape != (
             len(windows),
             1024,

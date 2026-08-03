@@ -8,7 +8,11 @@ import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 
 abstract interface class RecordingAnalyzer {
-  Future<List<SoundDetection>> analyze(RecordedAudio recording);
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  });
 
   Future<void> dispose();
 }
@@ -61,19 +65,44 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
   }
 
   @override
-  Future<List<SoundDetection>> analyze(RecordedAudio recording) async {
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async {
     final total = Stopwatch()..start();
     AppLog.info('inference', 'analysis_started', traceId: recording.id);
     final input = await reader.read(
       recordingId: recording.id,
       path: recording.path,
     );
-    final yamnet = await _detector.load();
-    final birdnet = await _birdDetector.load();
-    final yamnetDetections = await yamnet.detect(input);
-    final birdnetResult = await birdnet.detectWithEmbeddings(input);
-    final nonBird = await _nonBirdDetector.load();
-    final nonBirdDetections = nonBird == null
+    final yamnetLoader = _detector.load();
+    final birdnetLoader = _birdDetector.load();
+    final nonBirdLoader = _nonBirdDetector.load();
+    final yamnet = await yamnetLoader;
+    final birdnet = await birdnetLoader;
+    final nonBird = await nonBirdLoader;
+    final yamnetFuture = yamnet.detect(input);
+    var latestNonBirdDetections = const <SoundDetection>[];
+    final birdnetResult = await birdnet.detectWithEmbeddings(
+      input,
+      onProgress: onProgress == null
+          ? null
+          : (partial, processed, total) async {
+              latestNonBirdDetections = nonBird == null
+                  ? const <SoundDetection>[]
+                  : await nonBird.detectEmbeddings(partial.embeddings);
+              onProgress(
+                fusion.fuse([partial.detections, latestNonBirdDetections]),
+                processed,
+                total,
+              );
+            },
+    );
+    final yamnetDetections = await yamnetFuture;
+    final nonBirdDetections = onProgress != null
+        ? latestNonBirdDetections
+        : nonBird == null
         ? const <SoundDetection>[]
         : await nonBird.detectEmbeddings(birdnetResult.embeddings);
     final fused = fusion.fuse([

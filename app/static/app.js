@@ -110,6 +110,8 @@ function resetCapture() {
   $("analyze-button").disabled = false;
   $("save-status").textContent = "";
   $("progress-help").textContent = "通常需要 20–60 秒";
+  $("partial-clues").hidden = true;
+  $("partial-clue-list").replaceChildren();
   $("record-label").textContent = "开始录音";
   $("timer").textContent = "20秒以内";
   $("record-button").classList.remove("recording");
@@ -473,6 +475,25 @@ function updateStage(status, message) {
   $("stage-fill").style.width = `${percent}%`;
 }
 
+function renderPartialClues(partial) {
+  const birdNames = (partial?.bird_species || []).map((item) => item.name_zh).filter(Boolean);
+  const nonbirdNames = (partial?.nonbird_species || []).map((item) => item.name_zh).filter(Boolean);
+  const names = [...new Set([...birdNames, ...nonbirdNames])].slice(0, 5);
+  const container = $("partial-clue-list");
+  container.replaceChildren();
+  for (const name of names) {
+    const clue = document.createElement("span");
+    clue.className = "partial-clue";
+    clue.textContent = name;
+    container.append(clue);
+  }
+  $("partial-clues").hidden = names.length === 0;
+  if (partial?.total_windows) {
+    const ratio = Math.min(1, partial.processed_windows / partial.total_windows);
+    $("stage-fill").style.width = `${Math.round(30 + ratio * 35)}%`;
+  }
+}
+
 async function pollJob(jobId, runId, startedAt) {
   while (true) {
     await new Promise((resolve) => setTimeout(resolve, 1400));
@@ -497,6 +518,7 @@ async function pollJob(jobId, runId, startedAt) {
       return;
     }
     updateStage(job.status, job.stage_message);
+    renderPartialClues(job.partial_result);
   }
 }
 

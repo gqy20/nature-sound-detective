@@ -56,6 +56,8 @@ class _CapturePageState extends State<CapturePage> {
   AudioQuality? _quality;
   bool _isPlaying = false;
   bool _analyzing = false;
+  int _analysisProcessedWindows = 0;
+  int _analysisTotalWindows = 0;
   bool _hasAnalyzed = false;
   bool _saving = false;
   bool _saved = false;
@@ -312,9 +314,21 @@ class _CapturePageState extends State<CapturePage> {
       _error = null;
       _detections = const [];
       _hasAnalyzed = false;
+      _analysisProcessedWindows = 0;
+      _analysisTotalWindows = 0;
     });
     try {
-      final detections = await _analyzer.analyze(recording);
+      final detections = await _analyzer.analyze(
+        recording,
+        onProgress: (partial, processed, total) {
+          if (!mounted) return;
+          setState(() {
+            _detections = partial;
+            _analysisProcessedWindows = processed;
+            _analysisTotalWindows = total;
+          });
+        },
+      );
       AppLog.info(
         'inference',
         'analysis_presented',
@@ -928,6 +942,18 @@ class _CapturePageState extends State<CapturePage> {
                     ),
                   ],
                   if (_detections.isNotEmpty) ...[
+                    if (_analyzing && _analysisTotalWindows > 0) ...[
+                      const SizedBox(height: 14),
+                      LinearProgressIndicator(
+                        value:
+                            _analysisProcessedWindows / _analysisTotalWindows,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '已听完 $_analysisProcessedWindows / $_analysisTotalWindows 段，候选还会继续更新',
+                        key: const Key('analysis-window-progress'),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     DetectionResults(detections: _detections),
                   ] else if (_hasAnalyzed && !_analyzing) ...[

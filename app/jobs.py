@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -105,6 +106,11 @@ class JobStore:
             "audio_path": str(audio_path),
             "general_audio_path": str(general_audio_path or audio_path),
             "result": None,
+            "partial_result": None,
+            "analysis_progress": {
+                "processed_windows": 0,
+                "total_windows": max(1, math.ceil(duration / 3)),
+            },
             "error": None,
             "creation": {"status": "idle", "stage_message": ""},
         }
@@ -133,8 +139,13 @@ class JobStore:
     def _run_with_trace(self, job_id: str, job: dict[str, Any]) -> None:
         try:
             pipeline = self._get_pipeline()
-            def progress(status: str, message: str) -> None:
-                self._update(job_id, status=status, stage_message=message)
+
+            def progress(
+                status: str,
+                message: str,
+                details: dict[str, Any] | None = None,
+            ) -> None:
+                self._update(job_id, status=status, stage_message=message, **(details or {}))
                 log_event(logger, logging.INFO, "analysis_job_progress", job_id=job_id, stage=status)
 
             result = pipeline.run(

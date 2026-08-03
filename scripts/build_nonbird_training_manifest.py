@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import csv
 import hashlib
 import os
@@ -52,6 +53,42 @@ def parse_intervals(value: str) -> list[tuple[str, str]]:
     return intervals
 
 
+def ensure_positive_split_coverage(rows: list[dict[str, str]]) -> None:
+    labels = sorted({row["labels"] for row in rows})
+    for label in labels:
+        label_rows = [row for row in rows if row["labels"] == label]
+        present = {row["split"] for row in label_rows}
+        for missing_split in sorted(VALID_SPLITS - present):
+            movable_groups = sorted(
+                {
+                    row["split_group"]
+                    for row in label_rows
+                    if row.get("_split_locked") != "true"
+                },
+                key=lambda group: hashlib.sha256(
+                    f"{label}:{missing_split}:{group}".encode("utf-8")
+                ).hexdigest(),
+            )
+            if not movable_groups:
+                raise ValueError(f"{label} 无法补齐 {missing_split} 正样本")
+            source_counts = Counter(row["split"] for row in label_rows)
+            chosen = next(
+                (
+                    group
+                    for group in movable_groups
+                    if source_counts[
+                        next(row["split"] for row in label_rows if row["split_group"] == group)
+                    ]
+                    > 1
+                ),
+                movable_groups[0],
+            )
+            for row in rows:
+                if row["split_group"] == chosen:
+                    row["split"] = missing_split
+            present.add(missing_split)
+
+
 def build_rows(paths: list[Path], *, output: Path, commercial_only: bool) -> list[dict[str, str]]:
     config = load_nonbird_config()
     valid_labels = set(config.class_ids)
@@ -99,15 +136,17 @@ def build_rows(paths: list[Path], *, output: Path, commercial_only: bool) -> lis
                             "license": candidate.get("license_code", ""),
                             "commercial_compatible": str(commercial).lower(),
                             "reviewer": candidate.get("reviewer", ""),
+                            "_split_locked": str(split_hint in VALID_SPLITS).lower(),
                         }
                     )
+    ensure_positive_split_coverage(rows)
     return rows
 
 
 def write_manifest(rows: list[dict[str, str]], output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=FIELDS, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 

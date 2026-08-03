@@ -22,6 +22,7 @@
       {
         "taxon_id": "other_insect",
         "query_name": "Cicadidae",
+        "query_taxon_id": 50186,
         "scientific_name": "",
         "name_zh": "其他鸣虫",
         "category_id": "insect",
@@ -32,6 +33,7 @@
       {
         "taxon_id": "other_frog",
         "query_name": "Anura",
+        "query_taxon_id": 20979,
         "scientific_name": "",
         "name_zh": "其他蛙类",
         "category_id": "frog",

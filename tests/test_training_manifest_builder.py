@@ -3,7 +3,11 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from scripts.build_nonbird_training_manifest import build_rows, deterministic_split
+from scripts.build_nonbird_training_manifest import (
+    build_rows,
+    deterministic_split,
+    ensure_positive_split_coverage,
+)
 from scripts.import_curated_bioacoustics import load_curated_rows
 from scripts.select_freesound_training_backgrounds import select_backgrounds
 
@@ -123,6 +127,28 @@ def test_manifest_builder_excludes_pending_and_preserves_group_split(tmp_path: P
             },
             {
                 "source": "test",
+                "source_id": "approved-train",
+                "taxon_id": "polypedates_braueri",
+                "local_path": str(audio),
+                "license_code": "CC-BY-NC",
+                "commercial_compatible": "false",
+                "review_status": "human_reviewed",
+                "split_group": "train-recording",
+                "split_hint": "train",
+            },
+            {
+                "source": "test",
+                "source_id": "approved-validation",
+                "taxon_id": "polypedates_braueri",
+                "local_path": str(audio),
+                "license_code": "CC-BY-NC",
+                "commercial_compatible": "false",
+                "review_status": "human_reviewed",
+                "split_group": "validation-recording",
+                "split_hint": "validation",
+            },
+            {
+                "source": "test",
                 "source_id": "pending",
                 "taxon_id": "polypedates_braueri",
                 "local_path": str(audio),
@@ -132,7 +158,21 @@ def test_manifest_builder_excludes_pending_and_preserves_group_split(tmp_path: P
         ],
     )
     rows = build_rows([candidates], output=tmp_path / "manifest.csv", commercial_only=False)
-    assert len(rows) == 1
-    assert rows[0]["split"] == "test"
-    assert rows[0]["labels"] == "polypedates_braueri"
+    assert len(rows) == 3
+    assert {row["split"] for row in rows} == {"train", "validation", "test"}
+    assert {row["labels"] for row in rows} == {"polypedates_braueri"}
     assert deterministic_split("same-recording") == deterministic_split("same-recording")
+
+
+def test_source_split_coverage_moves_only_unlocked_groups():
+    rows = [
+        {
+            "labels": "frog",
+            "split": "train",
+            "split_group": f"group-{index}",
+            "_split_locked": "false",
+        }
+        for index in range(4)
+    ]
+    ensure_positive_split_coverage(rows)
+    assert {row["split"] for row in rows} == {"train", "validation", "test"}

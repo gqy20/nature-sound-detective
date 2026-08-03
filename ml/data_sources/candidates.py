@@ -92,21 +92,36 @@ def download_file(url: str, destination: Path, retries: int = 3) -> str:
     raise RuntimeError(f"download failed: {url}")
 
 
+def _replace_with_retries(source: Path, destination: Path, retries: int = 5) -> None:
+    for attempt in range(retries):
+        try:
+            os.replace(source, destination)
+            return
+        except OSError:
+            if attempt + 1 >= retries:
+                raise
+            time.sleep(0.1 * (attempt + 1))
+
+
 def write_candidates(records: Iterable[dict[str, Any]], output: Path) -> list[dict[str, Any]]:
     rows = sorted(
         ({field: row.get(field, "") for field in CANDIDATE_FIELDS} for row in records),
         key=lambda row: (str(row["taxon_id"]), str(row["source_id"])),
     )
     output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("w", encoding="utf-8-sig", newline="") as handle:
+    csv_temporary = output.with_suffix(output.suffix + ".tmp")
+    with csv_temporary.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=CANDIDATE_FIELDS)
         writer.writeheader()
         writer.writerows(rows)
+    _replace_with_retries(csv_temporary, output)
     jsonl = output.with_suffix(".jsonl")
-    jsonl.write_text(
+    jsonl_temporary = jsonl.with_suffix(jsonl.suffix + ".tmp")
+    jsonl_temporary.write_text(
         "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
         encoding="utf-8",
     )
+    _replace_with_retries(jsonl_temporary, jsonl)
     return rows
 
 

@@ -102,10 +102,15 @@ def collect(
         page = 1
         taxon_rows: list[dict[str, Any]] = []
         while len(taxon_rows) < target:
+            taxon_query = (
+                {"taxon_id": taxon["query_taxon_id"]}
+                if taxon.get("query_taxon_id")
+                else {"taxon_name": taxon.get("query_name") or taxon["scientific_name"]}
+            )
             payload = api_get(
                 source["api_url"],
                 {
-                    "taxon_name": taxon.get("query_name") or taxon["scientific_name"],
+                    **taxon_query,
                     "sounds": "true",
                     "quality_grade": source["quality_grade"],
                     "place_id": source["place_id"],
@@ -178,14 +183,18 @@ def main() -> None:
             except Exception as exc:
                 row["review_notes"] = f"download_failed:{type(exc).__name__}"
                 print(f"warning: failed {index}/{len(rows)} {row['source_id']}: {type(exc).__name__}")
-            write_candidates(rows, args.output)
+            if index % 10 == 0:
+                write_candidates(rows, args.output)
             time.sleep(0.15)
         duplicates = mark_duplicate_audio(rows)
         if duplicates:
             print(f"marked {duplicates} duplicate audio records")
     written = write_candidates(rows, args.output)
     print(f"wrote {len(written)} candidates to {args.output}")
-    print("All records remain review_status=pending until a human listens to them.")
+    if args.trust_source_labels:
+        print("Research-grade source labels are recorded as review_status=source_curated.")
+    else:
+        print("All records remain review_status=pending until a human listens to them.")
 
 
 if __name__ == "__main__":

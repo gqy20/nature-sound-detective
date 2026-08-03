@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 
-APPROVED = {"human_reviewed", "expert_confirmed", "approved"}
+APPROVED = {"human_reviewed", "expert_confirmed", "approved", "source_curated"}
 
 
 def audit(paths: list[Path]) -> dict[str, object]:

@@ -1,0 +1,38 @@
+{
+  "candidates": 290,
+  "downloaded": 285,
+  "ready_for_training": 283,
+  "by_taxon": {
+    "cryptotympana_atrata": 44,
+    "other_frog": 100,
+    "other_insect": 100,
+    "polypedates_braueri": 16,
+    "background": 30
+  },
+  "by_license": {
+    "CC-BY": 24,
+    "CC-BY-NC": 226,
+    "CC0": 36,
+    "CC-BY-NC-SA": 4
+  },
+  "by_review_status": {
+    "source_curated": 288,
+    "duplicate": 2
+  },
+  "downloaded_by_taxon": {
+    "cryptotympana_atrata": 44,
+    "other_frog": 100,
+    "other_insect": 95,
+    "polypedates_braueri": 16,
+    "background": 30
+  },
+  "ready_by_taxon": {
+    "cryptotympana_atrata": 43,
+    "other_frog": 100,
+    "other_insect": 94,
+    "polypedates_braueri": 16,
+    "background": 30
+  },
+  "missing_attribution": 0,
+  "duplicate_identities": 2
+}

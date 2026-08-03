@@ -32,6 +32,8 @@ CANDIDATE_FIELDS = (
     "local_path",
     "sha256",
     "review_status",
+    "reviewer",
+    "valid_intervals",
     "review_notes",
 )
 
@@ -98,4 +100,3 @@ def write_candidates(records: Iterable[dict[str, Any]], output: Path) -> list[di
         encoding="utf-8",
     )
     return rows
-

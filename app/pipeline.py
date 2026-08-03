@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from app.birdnet_service import BirdNetAnalyzer
+from app.nonbird_service import NonBirdAnalyzer
 from app.qwen_service import QwenNatureAnalyzer
 from app.result_fusion import fuse_results
 from app.observability import get_logger, log_event, log_exception
@@ -21,6 +22,7 @@ class AnalysisPipeline:
     def __init__(self) -> None:
         self.qwen = QwenNatureAnalyzer()
         self.birdnet = BirdNetAnalyzer()
+        self.nonbird = NonBirdAnalyzer()
 
     def run(
         self,
@@ -32,11 +34,12 @@ class AnalysisPipeline:
     ) -> dict[str, Any]:
         log_event(logger, logging.INFO, "analysis_pipeline_started")
         progress("analyzing", "正在寻找声音线索")
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             qwen_future = executor.submit(
                 self.qwen.analyze, general_audio_path or audio_path, location
             )
             bird_future = executor.submit(self.birdnet.analyze, audio_path)
+            nonbird_future = executor.submit(self.nonbird.analyze, audio_path)
             qwen = qwen_future.result()
             progress("enriching", "正在核对自然知识")
             try:
@@ -49,13 +52,25 @@ class AnalysisPipeline:
                     "detections": [],
                     "warning": str(exc),
                 }
+            try:
+                nonbird = nonbird_future.result()
+            except Exception as exc:
+                log_exception(logger, "nonbird_fallback_used")
+                nonbird = {
+                    "model": "hangzhou-nonbird-unavailable",
+                    "scope": "杭州本地蛙类与鸣虫",
+                    "detections": [],
+                    "available": False,
+                    "warning": str(exc),
+                }
         progress("composing", "正在生成声音卡")
-        result = fuse_results(qwen, birdnet)
+        result = fuse_results(qwen, birdnet, nonbird)
         log_event(
             logger,
             logging.INFO,
             "analysis_pipeline_completed",
             bird_detection_count=len(birdnet.get("detections", [])),
+            nonbird_detection_count=len(nonbird.get("detections", [])),
             sound_type_count=len(result.get("sound_types", [])),
         )
         return result

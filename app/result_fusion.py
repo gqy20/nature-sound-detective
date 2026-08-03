@@ -87,7 +87,12 @@ def _safe_card(primary: str) -> dict[str, str]:
     }
 
 
-def fuse_results(qwen: dict[str, Any], birdnet: dict[str, Any]) -> dict[str, Any]:
+def fuse_results(
+    qwen: dict[str, Any],
+    birdnet: dict[str, Any],
+    nonbird: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    nonbird = nonbird or {"model": None, "detections": [], "available": False}
     sound_types = _sound_list(qwen.get("sound_types", []))
     possible_sound_types = _sound_list(qwen.get("possible_sound_types", []))
     requested_primary = str(qwen.get("primary_sound_type", "")).strip()
@@ -99,10 +104,22 @@ def fuse_results(qwen: dict[str, Any], birdnet: dict[str, Any]) -> dict[str, Any
     strong_birds = [
         item for item in birdnet.get("detections", []) if item["confidence"] >= 0.25
     ]
-    if strong_birds and "鸟类鸣叫" not in sound_types:
+    strong_nonbirds = [
+        item for item in nonbird.get("detections", []) if item.get("confidence", 0) >= 0.5
+    ]
+    specialist_candidates = [
+        *[("鸟类鸣叫", item) for item in strong_birds],
+        *[
+            ("蛙类鸣叫" if item.get("category_id") == "frog" else "昆虫鸣叫", item)
+            for item in strong_nonbirds
+            if item.get("category_id") in {"frog", "insect"}
+        ],
+    ]
+    specialist_candidates.sort(key=lambda pair: pair[1]["confidence"], reverse=True)
+    if specialist_candidates and specialist_candidates[0][0] not in sound_types:
         if primary != "无法判断":
             possible_sound_types.append(primary)
-        primary = "鸟类鸣叫"
+        primary = specialist_candidates[0][0]
         sound_types = [primary]
     possible_sound_types = [
         item for item in possible_sound_types if item != primary and item != "无法判断"
@@ -120,14 +137,53 @@ def fuse_results(qwen: dict[str, Any], birdnet: dict[str, Any]) -> dict[str, Any
     elif primary == "鸟类鸣叫" and strong_birds:
         best_bird = max(item["confidence"] for item in strong_birds)
         confidence = "high" if best_bird >= 0.5 else "medium"
+    elif primary in {"蛙类鸣叫", "昆虫鸣叫"} and strong_nonbirds:
+        best_nonbird = max(item["confidence"] for item in strong_nonbirds)
+        confidence = "high" if best_nonbird >= 0.75 else "medium"
+    detected_sound_types = list(sound_types)
+    for sound_type, _ in specialist_candidates:
+        if sound_type not in detected_sound_types:
+            detected_sound_types.append(sound_type)
+    normalized_detections = [
+        {
+            "category_id": "bird",
+            "name_zh": "鸟类鸣叫",
+            "confidence": item["confidence"],
+            "model": birdnet.get("model"),
+            "intervals": [{"start": item.get("start_seconds", 0), "end": item.get("end_seconds", 0)}],
+            "specific_species": {
+                "name_zh": item.get("name_zh", ""),
+                "scientific_name": str(item.get("label", "")).split("_", 1)[0] or None,
+            },
+        }
+        for item in strong_birds
+    ] + [
+        {
+            "category_id": item.get("category_id", "unknown"),
+            "name_zh": "蛙类鸣叫" if item.get("category_id") == "frog" else "昆虫鸣叫",
+            "confidence": item["confidence"],
+            "model": nonbird.get("model"),
+            "intervals": [{"start": item.get("start_seconds", 0), "end": item.get("end_seconds", 0)}],
+            "specific_species": {
+                "name_zh": item.get("name_zh", ""),
+                "scientific_name": item.get("scientific_name"),
+                "taxonomy_id": item.get("taxon_id"),
+            },
+        }
+        for item in strong_nonbirds
+    ]
+    normalized_detections.sort(key=lambda item: item["confidence"], reverse=True)
     return {
         "sound_types": sound_types or ["无法判断"],
         "primary_sound_type": primary,
+        "detected_sound_types": detected_sound_types,
         "possible_sound_types": possible_sound_types,
         "dominant_sound": primary,
         "confidence_level": confidence,
         "possible_species": qwen.get("possible_species", []) if isinstance(qwen.get("possible_species", []), list) else [],
         "bird_species": strong_birds,
+        "nonbird_species": strong_nonbirds,
+        "detections": normalized_detections,
         "evidence": evidence,
         "uncertainty": qwen.get("uncertainty", ""),
         "card": {**card, "question": question},
@@ -135,6 +191,8 @@ def fuse_results(qwen: dict[str, Any], birdnet: dict[str, Any]) -> dict[str, Any
             "general_audio": qwen.get("model"),
             "bird_species": birdnet.get("model"),
             "bird_scope": birdnet.get("scope"),
+            "nonbird_species": nonbird.get("model"),
+            "nonbird_available": bool(nonbird.get("available")),
         },
         "usage": qwen.get("usage"),
     }

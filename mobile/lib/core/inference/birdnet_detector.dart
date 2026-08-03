@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/pcm_resampler.dart';
 import 'package:nature_sound_detective/core/inference/audio_inference.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
+import 'package:nature_sound_detective/core/inference/nonbird_detector.dart';
 import 'package:nature_sound_detective/core/inference/tensor_output_buffer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -77,6 +78,12 @@ class BirdnetDetector implements AudioDetector {
 
   @override
   Future<List<SoundDetection>> detect(AudioInferenceInput input) async {
+    return (await detectWithEmbeddings(input)).detections;
+  }
+
+  Future<BirdnetDetectionResult> detectWithEmbeddings(
+    AudioInferenceInput input,
+  ) async {
     final timer = Stopwatch()..start();
     final waveform = PcmResampler.toMonoFloat32(
       input,
@@ -84,26 +91,31 @@ class BirdnetDetector implements AudioDetector {
     );
     if (waveform.isEmpty) {
       AppLog.warning('birdnet', 'empty_input', traceId: input.recordingId);
-      return const [];
+      return const BirdnetDetectionResult([], []);
     }
 
     final bestBySpecies = <BirdnetSpecies, _BirdScore>{};
+    final embeddings = <BirdnetEmbeddingWindow>[];
     for (var offset = 0; offset < waveform.length; offset += _windowSamples) {
       final window = Float32List(_windowSamples);
       final available = math.min(_windowSamples, waveform.length - offset);
       window.setRange(0, available, waveform, offset);
-      final scores = await _runWindow(window);
+      final result = await _runWindow(window);
+      final scores = result.scores;
+      final interval = DetectionInterval(
+        startSeconds: offset / requiredSampleRate,
+        endSeconds: math.min(
+          (offset + available) / requiredSampleRate,
+          waveform.length / requiredSampleRate,
+        ),
+      );
+      embeddings.add(
+        BirdnetEmbeddingWindow(embedding: result.embedding, interval: interval),
+      );
       for (final species in _species) {
         if (species.outputIndex >= scores.length) continue;
         final score = scores[species.outputIndex];
         if (score < _threshold) continue;
-        final interval = DetectionInterval(
-          startSeconds: offset / requiredSampleRate,
-          endSeconds: math.min(
-            (offset + available) / requiredSampleRate,
-            waveform.length / requiredSampleRate,
-          ),
-        );
         final current = bestBySpecies[species];
         if (current == null) {
           bestBySpecies[species] = _BirdScore(score, [interval]);
@@ -143,14 +155,33 @@ class BirdnetDetector implements AudioDetector {
         'detection_count': result.length,
       },
     );
-    return result;
+    return BirdnetDetectionResult(result, embeddings);
   }
 
-  Future<List<double>> _runWindow(Float32List window) async {
+  Future<_BirdnetWindowResult> _runWindow(Float32List window) async {
     final outputShape = _interpreter.getOutputTensor(0).shape;
     final output = createTensorOutputBuffer(outputShape);
-    await _isolate.run([window], output);
-    return flattenTensorOutput(output);
+    if (_interpreter.getOutputTensors().length != 2) {
+      throw StateError(
+        'BirdNET model is missing its explicit embedding output',
+      );
+    }
+    final embeddingShape = _interpreter.getOutputTensor(1).shape;
+    final embeddingOutput = createTensorOutputBuffer(embeddingShape);
+    await _isolate.runForMultipleInputs(
+      [
+        [window],
+      ],
+      {0: output, 1: embeddingOutput},
+    );
+    final embedding = flattenTensorOutput(embeddingOutput);
+    if (embedding.length != 1024) {
+      throw StateError('BirdNET embedding output changed: ${embedding.length}');
+    }
+    return _BirdnetWindowResult(
+      flattenTensorOutput(output),
+      Float32List.fromList(embedding),
+    );
   }
 
   Future<void> close() async {
@@ -158,6 +189,20 @@ class BirdnetDetector implements AudioDetector {
     _interpreter.close();
     AppLog.debug('birdnet', 'model_closed');
   }
+}
+
+class BirdnetDetectionResult {
+  const BirdnetDetectionResult(this.detections, this.embeddings);
+
+  final List<SoundDetection> detections;
+  final List<BirdnetEmbeddingWindow> embeddings;
+}
+
+class _BirdnetWindowResult {
+  const _BirdnetWindowResult(this.scores, this.embedding);
+
+  final List<double> scores;
+  final Float32List embedding;
 }
 
 class _BirdScore {

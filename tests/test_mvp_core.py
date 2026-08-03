@@ -90,3 +90,37 @@ def test_strong_birdnet_detection_can_mark_result_high_confidence():
     result = fuse_results(qwen, birdnet)
     assert result["primary_sound_type"] == "鸟类鸣叫"
     assert result["confidence_level"] == "high"
+
+
+def test_nonbird_detector_adds_specific_insect_without_hiding_bird_candidate():
+    qwen = {
+        "sound_types": ["风和树叶"],
+        "primary_sound_type": "风和树叶",
+        "confidence_level": "low",
+        "model": "qwen-test",
+    }
+    birdnet = {
+        "model": "birdnet-test",
+        "scope": "杭州200种鸟",
+        "detections": [{"name_zh": "乌鸫", "confidence": 0.55}],
+    }
+    nonbird = {
+        "model": "nonbird-test",
+        "available": True,
+        "detections": [
+            {
+                "category_id": "insect",
+                "taxon_id": "cryptotympana_atrata",
+                "name_zh": "黑蚱蝉",
+                "scientific_name": "Cryptotympana atrata",
+                "confidence": 0.82,
+                "start_seconds": 3,
+                "end_seconds": 6,
+            }
+        ],
+    }
+    result = fuse_results(qwen, birdnet, nonbird)
+    assert result["primary_sound_type"] == "昆虫鸣叫"
+    assert result["detected_sound_types"] == ["昆虫鸣叫", "鸟类鸣叫"]
+    assert result["nonbird_species"][0]["name_zh"] == "黑蚱蝉"
+    assert {item["category_id"] for item in result["detections"]} == {"bird", "insect"}

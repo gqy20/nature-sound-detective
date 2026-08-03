@@ -1,0 +1,13 @@
+{
+  "id": "hangzhou-nonbird",
+  "version": "0.1.0",
+  "available": false,
+  "reason": "等待已审核的杭州黑蚱蝉和蛙类数据完成训练后，由 export_nonbird_tflite.py 安装",
+  "input": {
+    "type": "birdnet_embedding",
+    "shape": [1, 1024]
+  },
+  "birdnet_embedding_tensor_index": 545,
+  "birdnet_embedding_tensor_name": "model/GLOBAL_AVG_POOL/Mean",
+  "classes": []
+}

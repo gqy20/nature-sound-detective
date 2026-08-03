@@ -64,12 +64,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/models/yamnet.tflite
-    - assets/models/yamnet.json
-    - assets/models/birdnet.tflite
-    - assets/models/birdnet.json
-    - assets/labels/yamnet.csv
-    - assets/labels/birdnet_hz.json
+    - assets/models/
+    - assets/labels/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

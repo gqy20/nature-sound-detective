@@ -16,6 +16,10 @@ data/*.flac
 data/*.ogg
 data/raw/freesound/previews/*
 data/raw/freesound/api_responses/*
+data/raw/inaturalist/
+data/raw/insectset459/
+data/raw/curated_nonbird/
+data/external/
 data/interim/*
 data/processed/*
 !data/raw/freesound/previews/README.md

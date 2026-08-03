@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:nature_sound_detective/app.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
+import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 
 Future<void> main() async {
   await runZonedGuarded<Future<void>>(
@@ -58,7 +59,11 @@ Future<void> main() async {
         }
       }
       AppLog.info('app', 'started', fields: deviceFields);
-      runApp(const NatureSoundApp());
+      final analyzer = LocalRecordingAnalyzer();
+      runApp(NatureSoundApp(analyzer: analyzer));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        unawaited(analyzer.preload());
+      });
     },
     (error, stackTrace) {
       AppLog.error(

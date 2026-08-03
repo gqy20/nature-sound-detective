@@ -74,6 +74,8 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8770
 
 浏览器打开 `http://127.0.0.1:8770/`。MVP 支持手机录音或上传，使用 Qwen3.5-Omni 识别自然声音大类；本地完整版再用 BirdNET 补充杭州 200 种鸟类候选。蛙类与鸣虫扩展见 [多类群声学识别接入](./docs/20-多类群声学识别接入.md)。
 
+本地服务默认在启动完成前预加载 BirdNET 和非鸟分类头，避免第一条录音再承担模型加载时间；`GET /api/health` 的 `models` 字段可查看加载状态和耗时。内存受限时可用 `PRELOAD_MODELS=false` 恢复按需加载。Qwen 客户端仍按需创建，不会在启动时发起网络请求。
+
 线上展示版：[xykw-web.vercel.app](https://xykw-web.vercel.app)。它连接 [xykw-api.vercel.app](https://xykw-api.vercel.app)，使用 Qwen 完成声音大类识别；BirdNET、音乐、旁白和视频创作仍由本地完整版提供。
 
 复制 `.env.example` 后填写密钥。`WAN_VIDEO_MODE` 默认为 `mock`，不会产生视频费用；比赛演示可设为 `reuse` 并指定已有成片，只有最终验收才显式设为 `live`。

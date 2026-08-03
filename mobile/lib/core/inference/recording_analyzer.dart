@@ -21,9 +21,44 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
 
   final WavPcmReader reader;
   final NatureDetectionFusion fusion;
-  Future<YamnetDetector>? _detector;
-  Future<BirdnetDetector>? _birdDetector;
-  Future<NonBirdDetector?>? _nonBirdDetector;
+  late final CachedModel<YamnetDetector> _detector = CachedModel(
+    YamnetDetector.load,
+  );
+  late final CachedModel<BirdnetDetector> _birdDetector = CachedModel(
+    BirdnetDetector.load,
+  );
+  late final CachedModel<NonBirdDetector?> _nonBirdDetector = CachedModel(
+    NonBirdDetector.tryLoad,
+  );
+
+  Future<bool> preload() async {
+    final timer = Stopwatch()..start();
+    AppLog.info('inference', 'model_preload_started');
+    try {
+      await Future.wait([
+        _detector.load(),
+        _birdDetector.load(),
+        _nonBirdDetector.load(),
+      ]);
+      timer.stop();
+      AppLog.info(
+        'inference',
+        'model_preload_completed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+      );
+      return true;
+    } catch (error, stackTrace) {
+      timer.stop();
+      AppLog.warning(
+        'inference',
+        'model_preload_failed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
 
   @override
   Future<List<SoundDetection>> analyze(RecordedAudio recording) async {
@@ -33,11 +68,11 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
       recordingId: recording.id,
       path: recording.path,
     );
-    final yamnet = await (_detector ??= YamnetDetector.load());
-    final birdnet = await (_birdDetector ??= BirdnetDetector.load());
+    final yamnet = await _detector.load();
+    final birdnet = await _birdDetector.load();
     final yamnetDetections = await yamnet.detect(input);
     final birdnetResult = await birdnet.detectWithEmbeddings(input);
-    final nonBird = await (_nonBirdDetector ??= NonBirdDetector.tryLoad());
+    final nonBird = await _nonBirdDetector.load();
     final nonBirdDetections = nonBird == null
         ? const <SoundDetection>[]
         : await nonBird.detectEmbeddings(birdnetResult.embeddings);
@@ -64,11 +99,45 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
 
   @override
   Future<void> dispose() async {
-    final detector = _detector;
-    if (detector != null) await (await detector).close();
-    final birdDetector = _birdDetector;
-    if (birdDetector != null) await (await birdDetector).close();
-    final nonBirdDetector = _nonBirdDetector;
-    if (nonBirdDetector != null) await (await nonBirdDetector)?.close();
+    final detector = await _detector.loadedValue();
+    if (detector != null) await detector.close();
+    final birdDetector = await _birdDetector.loadedValue();
+    if (birdDetector != null) await birdDetector.close();
+    final nonBirdDetector = await _nonBirdDetector.loadedValue();
+    if (nonBirdDetector != null) await nonBirdDetector.close();
+  }
+}
+
+class CachedModel<T> {
+  CachedModel(this._loader);
+
+  final Future<T> Function() _loader;
+  Future<T>? _future;
+
+  Future<T> load() {
+    final current = _future;
+    if (current != null) return current;
+    final created = _loadAndResetOnFailure();
+    _future = created;
+    return created;
+  }
+
+  Future<T> _loadAndResetOnFailure() async {
+    try {
+      return await _loader();
+    } catch (_) {
+      _future = null;
+      rethrow;
+    }
+  }
+
+  Future<T?> loadedValue() async {
+    final current = _future;
+    if (current == null) return null;
+    try {
+      return await current;
+    } catch (_) {
+      return null;
+    }
   }
 }

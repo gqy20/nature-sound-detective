@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -15,6 +16,11 @@ GENERATED_DIR = RUNTIME_DIR / "generated"
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 MAX_ANALYSIS_SECONDS = 20
 RETENTION_HOURS = 24
+MODEL_PRELOAD_ENABLED = os.getenv("PRELOAD_MODELS", "true").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+}
 ALLOWED_EXTENSIONS = {
     ".wav", ".mp3", ".aac", ".amr", ".3gp", ".3gpp",
     ".m4a", ".mp4", ".ogg", ".opus", ".webm",

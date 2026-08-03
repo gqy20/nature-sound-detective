@@ -17,6 +17,7 @@ from app.config import (
     ALLOWED_EXTENSIONS,
     FEEDBACK_DIR,
     MAX_UPLOAD_BYTES,
+    MODEL_PRELOAD_ENABLED,
     STATIC_DIR,
     UPLOAD_DIR,
     cleanup_expired_runtime,
@@ -33,6 +34,13 @@ cleanup_expired_runtime()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if MODEL_PRELOAD_ENABLED:
+        try:
+            await asyncio.to_thread(jobs.preload)
+        except Exception:
+            # A preload failure is observable through /api/health, while analysis
+            # still gets a chance to retry or use its existing fallback behavior.
+            pass
     cleanup_task = asyncio.create_task(_cleanup_loop())
     try:
         yield
@@ -72,8 +80,8 @@ def index() -> FileResponse:
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict[str, Any]:
+    return {"status": "ok", "models": jobs.model_status()}
 
 
 @app.post("/api/analyze", status_code=202)

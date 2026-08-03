@@ -50,6 +50,25 @@ class NonBirdAnalyzer:
         )
         self._encoder = birdnet.load("acoustic", "2.4", "tf")
 
+    @property
+    def loaded(self) -> bool:
+        return self._classifier is not None and self._encoder is not None
+
+    def preload(self) -> dict[str, Any]:
+        if not self.available:
+            return {"status": "unavailable", "duration_ms": 0}
+        started = time.perf_counter()
+        with self._lock:
+            self._load()
+        duration_ms = round((time.perf_counter() - started) * 1000)
+        log_event(
+            logger,
+            logging.INFO,
+            "nonbird_model_preload_completed",
+            duration_ms=duration_ms,
+        )
+        return {"status": "ready", "duration_ms": duration_ms}
+
     def analyze(self, audio_path: Path) -> dict[str, Any]:
         if not self.available:
             return {

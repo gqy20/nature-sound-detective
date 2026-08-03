@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
 
 class NatureSoundApp extends StatelessWidget {
-  const NatureSoundApp({super.key});
+  const NatureSoundApp({super.key, this.analyzer});
+
+  final RecordingAnalyzer? analyzer;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +83,7 @@ class NatureSoundApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CapturePage(),
+      home: CapturePage(analyzer: analyzer),
     );
   }
 }

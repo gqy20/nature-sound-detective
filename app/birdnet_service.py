@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import threading
 import logging
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -41,6 +41,19 @@ class BirdNetAnalyzer:
                 duration_ms=round((time.perf_counter() - started) * 1000),
             )
         return self._model
+
+    @property
+    def loaded(self) -> bool:
+        return self._model is not None
+
+    def preload(self) -> dict[str, Any]:
+        started = time.perf_counter()
+        with self._lock:
+            self._load()
+        return {
+            "status": "ready",
+            "duration_ms": round((time.perf_counter() - started) * 1000),
+        }
 
     def analyze(self, audio_path: Path) -> dict[str, Any]:
         started = time.perf_counter()

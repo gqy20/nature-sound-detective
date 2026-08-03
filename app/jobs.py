@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,6 +26,13 @@ class JobStore:
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="nature-job")
         self._creation_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="creation-job")
         self._pipeline: AnalysisPipeline | None = None
+        self._pipeline_lock = threading.Lock()
+        self._model_status: dict[str, Any] = {
+            "status": "idle",
+            "duration_ms": None,
+            "components": {},
+            "error": None,
+        }
         self._load_existing()
 
     def _load_existing(self) -> None:
@@ -124,13 +132,12 @@ class JobStore:
 
     def _run_with_trace(self, job_id: str, job: dict[str, Any]) -> None:
         try:
-            if self._pipeline is None:
-                self._pipeline = AnalysisPipeline()
+            pipeline = self._get_pipeline()
             def progress(status: str, message: str) -> None:
                 self._update(job_id, status=status, stage_message=message)
                 log_event(logger, logging.INFO, "analysis_job_progress", job_id=job_id, stage=status)
 
-            result = self._pipeline.run(
+            result = pipeline.run(
                 Path(job["audio_path"]),
                 job["location"],
                 progress,
@@ -151,6 +158,41 @@ class JobStore:
                 stage_message="这次没有听清",
                 error=str(exc),
             )
+
+    def _get_pipeline(self) -> AnalysisPipeline:
+        if self._pipeline is None:
+            with self._pipeline_lock:
+                if self._pipeline is None:
+                    self._pipeline = AnalysisPipeline()
+        return self._pipeline
+
+    def preload(self) -> dict[str, Any]:
+        started = time.perf_counter()
+        with self._pipeline_lock:
+            self._model_status = {
+                "status": "loading",
+                "duration_ms": None,
+                "components": {},
+                "error": None,
+            }
+            try:
+                if self._pipeline is None:
+                    self._pipeline = AnalysisPipeline()
+                report = self._pipeline.preload()
+                self._model_status = {**report, "error": None}
+            except Exception as exc:
+                self._model_status = {
+                    "status": "failed",
+                    "duration_ms": round((time.perf_counter() - started) * 1000),
+                    "components": {},
+                    "error": str(exc),
+                }
+                raise
+            return json.loads(json.dumps(self._model_status))
+
+    def model_status(self) -> dict[str, Any]:
+        with self._pipeline_lock:
+            return json.loads(json.dumps(self._model_status))
 
     def get(self, job_id: str) -> dict[str, Any] | None:
         with self._lock:

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/pcm_resampler.dart';
 import 'package:nature_sound_detective/core/inference/audio_inference.dart';
+import 'package:nature_sound_detective/core/inference/tensor_output_buffer.dart';
 import 'package:nature_sound_detective/core/inference/yamnet_category_map.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -113,12 +114,10 @@ class YamnetDetector implements AudioDetector {
   Future<List<double>> _runWindow(Float32List window) async {
     final inputShape = _interpreter.getInputTensor(0).shape;
     final outputShape = _interpreter.getOutputTensor(0).shape;
-    final outputSize = outputShape.reduce((left, right) => left * right);
-    final output = Float32List(outputSize);
     final input = inputShape.length == 2 ? [window] : window;
-    final outputValue = outputShape.length == 2 ? [output] : output;
-    await _isolate.run(input, outputValue);
-    return output.toList(growable: false);
+    final output = createTensorOutputBuffer(outputShape);
+    await _isolate.run(input, output);
+    return flattenTensorOutput(output);
   }
 
   List<SoundDetection> _aggregate(List<List<double>> frames) {

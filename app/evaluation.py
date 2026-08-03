@@ -20,17 +20,32 @@ def split_expected(value: str | None) -> list[str]:
 def score_case(case: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
     expected_types = split_expected(str(case.get("expected_sound_types", "")))
     primary = str(result.get("primary_sound_type", ""))
+    predicted_types = result.get("detected_sound_types", [])
+    if not isinstance(predicted_types, list):
+        predicted_types = []
+    predicted_types = list(dict.fromkeys([primary, *map(str, predicted_types)]))
     expected_species = str(case.get("expected_species", "")).strip()
-    birds = result.get("bird_species", [])
-    if not isinstance(birds, list):
-        birds = []
-    predicted_species = [str(item.get("name_zh", "")) for item in birds if isinstance(item, dict)]
+    predicted_species: list[str] = []
+    for key in ("bird_species", "nonbird_species"):
+        rows = result.get(key, [])
+        if isinstance(rows, list):
+            predicted_species.extend(
+                str(item.get("name_zh", "")) for item in rows if isinstance(item, dict)
+            )
+    detections = result.get("detections", [])
+    if isinstance(detections, list):
+        for detection in detections:
+            species = detection.get("specific_species") if isinstance(detection, dict) else None
+            if isinstance(species, dict):
+                predicted_species.append(str(species.get("name_zh", "")))
+    predicted_species = list(dict.fromkeys(name for name in predicted_species if name))
     return {
         "sound_type_evaluable": bool(expected_types),
-        "sound_type_hit": primary in expected_types if expected_types else None,
+        "sound_type_hit": bool(set(expected_types) & set(predicted_types)) if expected_types else None,
         "species_evaluable": bool(expected_species),
         "species_hit": expected_species in predicted_species if expected_species else None,
         "predicted_primary_sound_type": primary,
+        "predicted_sound_types": predicted_types,
         "predicted_species": predicted_species,
     }
 

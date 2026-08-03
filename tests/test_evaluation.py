@@ -16,6 +16,20 @@ def test_species_candidate_hit_uses_child_facing_chinese_name():
     assert scored["species_hit"] is True
 
 
+def test_nonbird_species_hit_uses_normalized_detection():
+    case = {"expected_sound_types": "昆虫鸣叫", "expected_species": "黑蚱蝉"}
+    result = {
+        "primary_sound_type": "鸟类鸣叫",
+        "detected_sound_types": ["鸟类鸣叫", "昆虫鸣叫"],
+        "detections": [
+            {"category_id": "insect", "specific_species": {"name_zh": "黑蚱蝉"}}
+        ],
+    }
+    scored = score_case(case, result)
+    assert scored["sound_type_hit"] is True
+    assert scored["species_hit"] is True
+
+
 def test_summary_warns_when_weak_labels_are_present():
     report = summarize([
         {"label_status": "weak", "expected_sound_types": "风和树叶",

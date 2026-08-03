@@ -33,6 +33,20 @@ void main() {
     expect(result.map((item) => item.categoryId), ['frog', 'running_water']);
   });
 
+  test('keeps exact non-bird species beside a bird candidate', () {
+    final result = fusion.fuse([
+      [
+        _detection('insect', 0.78, model: 'nonbird', species: '黑蚱蝉'),
+        _detection('bird', 0.72, model: 'birdnet', species: '乌鸫'),
+      ],
+    ]);
+
+    expect(
+      result.map((item) => item.specificSpecies?.nameZh),
+      containsAll(['黑蚱蝉', '乌鸫']),
+    );
+  });
+
   test('returns no detection for empty or invalid outputs', () {
     final result = fusion.fuse([
       [_detection('frog', double.nan, model: 'yamnet')],

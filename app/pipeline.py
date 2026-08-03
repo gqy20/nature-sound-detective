@@ -56,6 +56,22 @@ class AnalysisPipeline:
         log_event(logger, logging.INFO, "analysis_pipeline_preload_completed", **report)
         return report
 
+    def _analyze_bioacoustics(self, audio_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+        windows = self.birdnet.infer_windows(audio_path)
+        birdnet = self.birdnet.summarize(windows)
+        try:
+            nonbird = self.nonbird.analyze_windows(windows)
+        except Exception as exc:
+            log_exception(logger, "nonbird_fallback_used")
+            nonbird = {
+                "model": "hangzhou-nonbird-unavailable",
+                "scope": "杭州本地蛙类与鸣虫",
+                "detections": [],
+                "available": False,
+                "warning": str(exc),
+            }
+        return birdnet, nonbird
+
     def run(
         self,
         audio_path: Path,
@@ -66,28 +82,23 @@ class AnalysisPipeline:
     ) -> dict[str, Any]:
         log_event(logger, logging.INFO, "analysis_pipeline_started")
         progress("analyzing", "正在寻找声音线索")
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=2) as executor:
             qwen_future = executor.submit(
                 self._qwen().analyze, general_audio_path or audio_path, location
             )
-            bird_future = executor.submit(self.birdnet.analyze, audio_path)
-            nonbird_future = executor.submit(self.nonbird.analyze, audio_path)
+            bioacoustic_future = executor.submit(self._analyze_bioacoustics, audio_path)
             qwen = qwen_future.result()
             progress("enriching", "正在核对自然知识")
             try:
-                birdnet = bird_future.result()
+                birdnet, nonbird = bioacoustic_future.result()
             except Exception as exc:
-                log_exception(logger, "birdnet_fallback_used")
+                log_exception(logger, "bioacoustic_fallback_used")
                 birdnet = {
                     "model": "BirdNET acoustic 2.4",
-                    "scope": "杭州MVP六种常见鸟类",
+                    "scope": "杭州全年地理先验候选鸟类（200种）",
                     "detections": [],
                     "warning": str(exc),
                 }
-            try:
-                nonbird = nonbird_future.result()
-            except Exception as exc:
-                log_exception(logger, "nonbird_fallback_used")
                 nonbird = {
                     "model": "hangzhou-nonbird-unavailable",
                     "scope": "杭州本地蛙类与鸣虫",

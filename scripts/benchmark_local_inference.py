@@ -10,7 +10,6 @@ import sys
 import tempfile
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -131,38 +130,38 @@ def benchmark(audio_path: Path, durations: list[float], iterations: int) -> dict
             clip = temporary_dir / f"clip-{requested_seconds:g}s.wav"
             _prepare_clip(audio_path, clip, requested_seconds)
             actual_seconds = duration_seconds(clip)
-            bird_runs: list[dict[str, int]] = []
-            nonbird_runs: list[dict[str, int]] = []
-            parallel_runs: list[dict[str, int]] = []
+            forward_runs: list[dict[str, int]] = []
+            bird_head_runs: list[dict[str, int]] = []
+            nonbird_head_runs: list[dict[str, int]] = []
+            unified_runs: list[dict[str, int]] = []
             for _ in range(iterations):
-                _, metrics = _measure(lambda: birdnet.analyze(clip))
-                bird_runs.append(metrics)
-                _, metrics = _measure(lambda: nonbird.analyze(clip))
-                nonbird_runs.append(metrics)
+                windows, metrics = _measure(lambda: birdnet.infer_windows(clip))
+                forward_runs.append(metrics)
+                _, metrics = _measure(lambda: birdnet.summarize(windows))
+                bird_head_runs.append(metrics)
+                _, metrics = _measure(lambda: nonbird.analyze_windows(windows))
+                nonbird_head_runs.append(metrics)
 
-                def run_parallel() -> None:
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        futures = [
-                            executor.submit(birdnet.analyze, clip),
-                            executor.submit(nonbird.analyze, clip),
-                        ]
-                        for future in futures:
-                            future.result()
+                def run_unified() -> None:
+                    current = birdnet.infer_windows(clip)
+                    birdnet.summarize(current)
+                    nonbird.analyze_windows(current)
 
-                _, metrics = _measure(run_parallel)
-                parallel_runs.append(metrics)
+                _, metrics = _measure(run_unified)
+                unified_runs.append(metrics)
             results.append(
                 {
                     "requested_seconds": requested_seconds,
                     "actual_seconds": actual_seconds,
-                    "birdnet": _summarize(bird_runs),
-                    "nonbird": _summarize(nonbird_runs),
-                    "parallel": _summarize(parallel_runs),
+                    "shared_birdnet_forward": _summarize(forward_runs),
+                    "bird_head": _summarize(bird_head_runs),
+                    "nonbird_head": _summarize(nonbird_head_runs),
+                    "unified": _summarize(unified_runs),
                 }
             )
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source_audio": str(audio_path.resolve()),
         "environment": {

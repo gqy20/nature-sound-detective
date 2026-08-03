@@ -179,7 +179,9 @@ class BirdnetDetector implements AudioDetector {
       throw StateError('BirdNET embedding output changed: ${embedding.length}');
     }
     return _BirdnetWindowResult(
-      flattenTensorOutput(output),
+      flattenTensorOutput(
+        output,
+      ).map(birdnetLogitToProbability).toList(growable: false),
       Float32List.fromList(embedding),
     );
   }
@@ -189,6 +191,10 @@ class BirdnetDetector implements AudioDetector {
     _interpreter.close();
     AppLog.debug('birdnet', 'model_closed');
   }
+}
+
+double birdnetLogitToProbability(double logit) {
+  return 1 / (1 + math.exp(-logit));
 }
 
 class BirdnetDetectionResult {

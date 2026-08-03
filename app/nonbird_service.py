@@ -8,10 +8,10 @@ import time
 from pathlib import Path
 from typing import Any
 
-import birdnet
 import numpy as np
 import tensorflow as tf
 
+from app.birdnet_service import BirdNetAnalyzer, BirdNetWindows
 from app.config import ROOT
 from app.observability import get_logger, log_event, log_exception
 from ml.nonbird.config import load_nonbird_config
@@ -28,9 +28,9 @@ class NonBirdAnalyzer:
         self.model_dir = model_dir or (
             Path(configured) if configured else ROOT / "artifacts" / "nonbird" / "model"
         )
-        self._encoder = None
         self._classifier = None
         self._metadata: dict[str, Any] | None = None
+        self._standalone_birdnet: BirdNetAnalyzer | None = None
         self._lock = threading.Lock()
 
     @property
@@ -48,11 +48,10 @@ class NonBirdAnalyzer:
         self._classifier = tf.keras.models.load_model(
             self.model_dir / "classifier.h5", compile=False
         )
-        self._encoder = birdnet.load("acoustic", "2.4", "tf")
 
     @property
     def loaded(self) -> bool:
-        return self._classifier is not None and self._encoder is not None
+        return self._classifier is not None
 
     def preload(self) -> dict[str, Any]:
         if not self.available:
@@ -71,27 +70,30 @@ class NonBirdAnalyzer:
 
     def analyze(self, audio_path: Path) -> dict[str, Any]:
         if not self.available:
+            return self._unavailable_result()
+        if self._standalone_birdnet is None:
+            self._standalone_birdnet = BirdNetAnalyzer()
+        windows = self._standalone_birdnet.infer_windows(audio_path)
+        return self.analyze_windows(windows)
+
+    def analyze_windows(self, windows: BirdNetWindows) -> dict[str, Any]:
+        if not self.available:
+            return self._unavailable_result()
+        if not windows.count:
             return {
-                "model": "hangzhou-nonbird-unavailable",
+                "model": "hangzhou-nonbird-empty-input",
                 "scope": "杭州本地蛙类与鸣虫",
                 "detections": [],
-                "available": False,
+                "available": True,
             }
         started = time.perf_counter()
         try:
             with self._lock:
                 self._load()
-                assert self._encoder is not None
                 assert self._classifier is not None
                 assert self._metadata is not None
-                encoded = self._encoder.encode(
-                    audio_path,
-                    n_workers=1,
-                    batch_size=8,
-                ).to_dataframe()
-                features = np.stack(encoded["embedding"].map(np.asarray)).astype(np.float32)
+                features = windows.embeddings
                 probabilities = sigmoid(self._classifier.predict(features, verbose=0))
-                rows = encoded.to_dict(orient="records")
                 metadata = self._metadata
         except Exception:
             log_exception(logger, "nonbird_inference_failed")
@@ -104,9 +106,9 @@ class NonBirdAnalyzer:
         accepted = accepted_window_mask(
             features=features,
             probabilities=probabilities,
-            groups=np.asarray(["recording"] * len(rows)),
-            starts=np.asarray([float(item["start_time"]) for item in rows]),
-            ends=np.asarray([float(item["end_time"]) for item in rows]),
+            groups=np.asarray(["recording"] * windows.count),
+            starts=windows.starts,
+            ends=windows.ends,
             class_ids=class_ids,
             thresholds=thresholds,
             metadata=metadata,
@@ -127,8 +129,8 @@ class NonBirdAnalyzer:
                     "name_zh": item.name_zh,
                     "scientific_name": item.scientific_name,
                     "confidence": round(float(probabilities[best_index, class_index]), 4),
-                    "start_seconds": round(float(rows[best_index]["start_time"]), 3),
-                    "end_seconds": round(float(rows[best_index]["end_time"]), 3),
+                    "start_seconds": round(float(windows.starts[best_index]), 3),
+                    "end_seconds": round(float(windows.ends[best_index]), 3),
                     "status": "likely" if probabilities[best_index, class_index] >= 0.75 else "candidate",
                 }
             )
@@ -145,4 +147,13 @@ class NonBirdAnalyzer:
             "scope": "杭州本地蛙类与鸣虫",
             "detections": detections,
             "available": True,
+        }
+
+    @staticmethod
+    def _unavailable_result() -> dict[str, Any]:
+        return {
+            "model": "hangzhou-nonbird-unavailable",
+            "scope": "杭州本地蛙类与鸣虫",
+            "detections": [],
+            "available": False,
         }

@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("cache", type=Path)
     parser.add_argument("model_dir", type=Path)
     parser.add_argument("--minimum-precision", type=float, default=0.9)
+    parser.add_argument("--version")
     args = parser.parse_args()
     cache = load_embedding_cache(args.cache)
     metadata_path = args.model_dir / "metadata.json"
@@ -40,7 +41,7 @@ def main() -> None:
         class_id: float(threshold)
         for class_id, threshold in zip(class_ids, thresholds, strict=True)
     }
-    metadata["version"] = config.version
+    metadata["version"] = args.version or config.version
     metadata["validation_metrics"] = {
         class_id: metric for class_id, metric in zip(class_ids, metrics, strict=True)
     }

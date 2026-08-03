@@ -17,6 +17,7 @@ from ml.nonbird.training import (
     sigmoid,
     write_json,
 )
+from ml.nonbird.rejection import accepted_window_mask
 
 
 def main() -> None:
@@ -41,12 +42,28 @@ def main() -> None:
     model = tf.keras.models.load_model(args.model_dir / "classifier.h5", compile=False)
     probabilities = sigmoid(model.predict(cache["features"][test_mask], verbose=0))
     thresholds = np.asarray([metadata["thresholds"][item] for item in class_ids])
-    metrics = metrics_at_thresholds(cache["targets"][test_mask], probabilities, thresholds)
+    test_features = cache["features"][test_mask]
+    accepted = accepted_window_mask(
+        features=test_features,
+        probabilities=probabilities,
+        groups=cache.get("audio_paths", cache["groups"])[test_mask],
+        starts=cache["start_seconds"][test_mask],
+        ends=cache["end_seconds"][test_mask],
+        class_ids=class_ids,
+        thresholds=thresholds,
+        metadata=metadata,
+    )
+    metrics = metrics_at_thresholds(
+        cache["targets"][test_mask],
+        accepted.astype(np.float32),
+        np.full(len(class_ids), 0.5),
+    )
     write_json(
         args.output,
         {
             "test_windows": int(test_mask.sum()),
             "label_policies": metadata.get("label_policies", []),
+            "rejection_applied": bool(metadata.get("rejection")),
             "metrics": {name: value for name, value in zip(class_ids, metrics, strict=True)},
         },
     )

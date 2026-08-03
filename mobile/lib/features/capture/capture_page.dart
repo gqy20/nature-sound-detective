@@ -523,7 +523,7 @@ class _CapturePageState extends State<CapturePage> {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/hangzhou_mist.png',
+            'assets/images/hangzhou_mist.webp',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
           ),

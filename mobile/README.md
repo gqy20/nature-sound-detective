@@ -41,6 +41,10 @@ flutter run --dart-define=XYKW_API_BASE_URL=http://10.0.2.2:8000
 
 本地识别按 BirdNET 的 3 秒窗口逐段发布候选，结果面板会显示当前窗口进度；全部窗口完成后再与并行运行的 YAMNet 结果融合。阶段结果仅作为动态线索，保存与云端科普使用最终结果。
 
+release APK 只打包 CPU 推理库，界面使用平台中文字体，杭州背景图采用 WebP；BirdNET、YAMNet、非鸟分类头和对应标签不会因包体优化而裁剪。
+
+2026-08-04 的 Android arm64 干净 release 构建从 68,050,394 字节降至 51,605,504 字节，减少约 24.2%。包内检查确认三套模型仍在，且不再包含 GPU JNI、AlibabaPuHuiTi 字体和旧 PNG。
+
 ## 日志与诊断
 
 首页右上角的诊断按钮可以查看结构化运行事件并导出脱敏 JSONL。一次录音以录音 ID 贯穿端侧分析和云端请求；Android 原生录音日志可通过 `adb logcat -s NatureAudio flutter` 查看。完整字段、轮转策略和隐私边界见 [`docs/logs.md`](../docs/logs.md)。

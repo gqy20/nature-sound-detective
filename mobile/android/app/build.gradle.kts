@@ -37,6 +37,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packaging {
+        jniLibs {
+            // All inference paths use the CPU interpreter. Avoid shipping the
+            // unused GPU delegate in the competition APK.
+            excludes += setOf("**/libtensorflowlite_gpu_jni.so")
+        }
+    }
 }
 
 kotlin {

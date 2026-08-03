@@ -28,7 +28,6 @@ class NatureSoundApp extends StatelessWidget {
               onSurface: ink,
               outline: const Color(0xFFB9B7AB),
             ),
-        fontFamily: 'AlibabaPuHuiTi',
         scaffoldBackgroundColor: ivory,
         textTheme: const TextTheme(
           headlineMedium: TextStyle(

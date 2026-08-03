@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from ml.data_sources.candidates import license_is_usable, normalize_license, write_candidates
+from ml.data_sources.candidates import (
+    license_is_usable,
+    mark_duplicate_audio,
+    normalize_license,
+    write_candidates,
+)
 from scripts.collect_inaturalist_sounds import observation_records
 from scripts.select_insectset459 import select_rows
 
@@ -74,3 +79,13 @@ def test_candidate_writer_has_stable_csv_and_jsonl(tmp_path: Path):
     assert output.is_file()
     assert output.with_suffix(".jsonl").is_file()
     assert rows[0]["review_status"] == ""
+
+
+def test_duplicate_audio_is_quarantined_before_review():
+    rows = [
+        {"source_id": "first", "sha256": "same", "review_status": "pending"},
+        {"source_id": "second", "sha256": "same", "review_status": "pending"},
+    ]
+    assert mark_duplicate_audio(rows) == 1
+    assert rows[1]["review_status"] == "duplicate"
+    assert rows[1]["review_notes"] == "duplicate_of:first"

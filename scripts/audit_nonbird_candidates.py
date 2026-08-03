@@ -16,18 +16,20 @@ def audit(paths: list[Path]) -> dict[str, object]:
         with path.open("r", encoding="utf-8-sig", newline="") as handle:
             rows.extend(csv.DictReader(handle))
     identities = [row.get("sha256") or f"{row.get('source')}:{row.get('source_id')}" for row in rows]
+    downloaded = [row for row in rows if Path(row.get("local_path", "")).is_file()]
     ready = [
         row
-        for row in rows
+        for row in downloaded
         if row.get("review_status") in APPROVED
-        and Path(row.get("local_path", "")).is_file()
     ]
     return {
         "candidates": len(rows),
+        "downloaded": len(downloaded),
         "ready_for_training": len(ready),
         "by_taxon": dict(Counter(row.get("taxon_id", "") for row in rows)),
         "by_license": dict(Counter(row.get("license_code", "") for row in rows)),
         "by_review_status": dict(Counter(row.get("review_status", "") for row in rows)),
+        "downloaded_by_taxon": dict(Counter(row.get("taxon_id", "") for row in downloaded)),
         "ready_by_taxon": dict(Counter(row.get("taxon_id", "") for row in ready)),
         "missing_attribution": sum(not row.get("attribution", "").strip() for row in rows),
         "duplicate_identities": len(identities) - len(set(identities)),

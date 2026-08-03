@@ -87,5 +87,6 @@ def test_audit_only_counts_reviewed_existing_audio_as_ready(tmp_path: Path):
     _candidate(manifest)
     report = audit([manifest])
     assert report["candidates"] == 1
+    assert report["downloaded"] == 0
     assert report["ready_for_training"] == 0
     assert report["by_taxon"] == {"polypedates_braueri": 1}

@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml.data_sources.candidates import (
     download_file,
     license_is_usable,
+    mark_duplicate_audio,
     normalize_license,
     write_candidates,
 )
@@ -144,13 +145,22 @@ def main() -> None:
                     "file_content_type": "",
                 })
             )
-            row["sha256"] = (
-                download_file(row["media_url"], destination)
-                if not destination.exists()
-                else hashlib.sha256(destination.read_bytes()).hexdigest()
-            )
-            row["local_path"] = str(destination)
-            print(f"downloaded {index}/{len(rows)} {row['source_id']}")
+            try:
+                row["sha256"] = (
+                    download_file(row["media_url"], destination)
+                    if not destination.exists()
+                    else hashlib.sha256(destination.read_bytes()).hexdigest()
+                )
+                row["local_path"] = str(destination)
+                print(f"downloaded {index}/{len(rows)} {row['source_id']}")
+            except Exception as exc:
+                row["review_notes"] = f"download_failed:{type(exc).__name__}"
+                print(f"warning: failed {index}/{len(rows)} {row['source_id']}: {type(exc).__name__}")
+            write_candidates(rows, args.output)
+            time.sleep(0.15)
+        duplicates = mark_duplicate_audio(rows)
+        if duplicates:
+            print(f"marked {duplicates} duplicate audio records")
     written = write_candidates(rows, args.output)
     print(f"wrote {len(written)} candidates to {args.output}")
     print("All records remain review_status=pending until a human listens to them.")

@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import time
 from typing import Any, Iterable
 import urllib.request
 
@@ -68,20 +69,27 @@ def license_is_usable(code: str) -> bool:
     return code not in {"UNKNOWN", "CC-BY-ND", "CC-BY-NC-ND"}
 
 
-def download_file(url: str, destination: Path) -> str:
+def download_file(url: str, destination: Path, retries: int = 3) -> str:
     destination.parent.mkdir(parents=True, exist_ok=True)
     partial = destination.with_suffix(destination.suffix + ".part")
-    digest = hashlib.sha256()
     request = urllib.request.Request(
         url,
         headers={"User-Agent": "nature-sound-detective-research/0.1"},
     )
-    with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as handle:
-        while chunk := response.read(1024 * 1024):
-            handle.write(chunk)
-            digest.update(chunk)
-    os.replace(partial, destination)
-    return digest.hexdigest()
+    for attempt in range(retries):
+        digest = hashlib.sha256()
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as handle:
+                while chunk := response.read(1024 * 1024):
+                    handle.write(chunk)
+                    digest.update(chunk)
+            os.replace(partial, destination)
+            return digest.hexdigest()
+        except Exception:
+            if attempt + 1 >= retries:
+                raise
+            time.sleep(2**attempt)
+    raise RuntimeError(f"download failed: {url}")
 
 
 def write_candidates(records: Iterable[dict[str, Any]], output: Path) -> list[dict[str, Any]]:
@@ -100,3 +108,19 @@ def write_candidates(records: Iterable[dict[str, Any]], output: Path) -> list[di
         encoding="utf-8",
     )
     return rows
+
+
+def mark_duplicate_audio(records: list[dict[str, Any]]) -> int:
+    seen: dict[str, str] = {}
+    duplicates = 0
+    for row in records:
+        digest = str(row.get("sha256", "")).strip()
+        if not digest:
+            continue
+        if digest in seen:
+            row["review_status"] = "duplicate"
+            row["review_notes"] = f"duplicate_of:{seen[digest]}"
+            duplicates += 1
+        else:
+            seen[digest] = str(row.get("source_id", ""))
+    return duplicates

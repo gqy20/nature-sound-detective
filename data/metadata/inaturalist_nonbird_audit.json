@@ -1,5 +1,6 @@
 {
   "candidates": 60,
+  "downloaded": 60,
   "ready_for_training": 0,
   "by_taxon": {
     "cryptotympana_atrata": 44,
@@ -12,9 +13,14 @@
     "CC-BY-NC-SA": 1
   },
   "by_review_status": {
-    "pending": 60
+    "pending": 59,
+    "duplicate": 1
+  },
+  "downloaded_by_taxon": {
+    "cryptotympana_atrata": 44,
+    "polypedates_braueri": 16
   },
   "ready_by_taxon": {},
   "missing_attribution": 0,
-  "duplicate_identities": 0
+  "duplicate_identities": 1
 }

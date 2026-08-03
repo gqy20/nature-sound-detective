@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("model_dir", type=Path)
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/nonbird/export"))
     parser.add_argument("--install-mobile", action="store_true")
+    parser.add_argument("--install-server", action="store_true")
     args = parser.parse_args()
     metadata = json.loads((args.model_dir / "metadata.json").read_text(encoding="utf-8"))
     config = load_nonbird_config()
@@ -61,6 +62,11 @@ def main() -> None:
         mobile_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(model_path, mobile_dir / model_path.name)
         shutil.copy2(metadata_path, mobile_dir / metadata_path.name)
+    if args.install_server:
+        server_dir = Path("artifacts/nonbird/model")
+        server_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(args.model_dir / "classifier.h5", server_dir / "classifier.h5")
+        shutil.copy2(args.model_dir / "metadata.json", server_dir / "metadata.json")
     print(f"exported {model_path} and {metadata_path}")
 
 

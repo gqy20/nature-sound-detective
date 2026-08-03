@@ -1,7 +1,10 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/inference/nonbird_species.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('parses installed non-bird model metadata', () {
     final catalog = NonBirdModelCatalog.fromJson('''
       {
@@ -38,5 +41,23 @@ void main() {
     ''');
     expect(catalog.available, isFalse);
     expect(catalog.species, isEmpty);
+  });
+
+  test('ships the source-curated five-class model', () async {
+    final catalog = NonBirdModelCatalog.fromJson(
+      await rootBundle.loadString('assets/models/nonbird.json'),
+    );
+    expect(catalog.available, isTrue);
+    expect(catalog.species, hasLength(5));
+    expect(
+      catalog.species.map((item) => item.taxonId),
+      containsAll([
+        'cryptotympana_atrata',
+        'polypedates_braueri',
+        'other_insect',
+        'other_frog',
+        'background',
+      ]),
+    );
   });
 }

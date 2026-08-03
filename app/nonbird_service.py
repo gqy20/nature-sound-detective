@@ -64,7 +64,11 @@ class NonBirdAnalyzer:
                 assert self._encoder is not None
                 assert self._classifier is not None
                 assert self._metadata is not None
-                encoded = self._encoder.encode(audio_path).to_dataframe()
+                encoded = self._encoder.encode(
+                    audio_path,
+                    n_workers=1,
+                    batch_size=8,
+                ).to_dataframe()
                 features = np.stack(encoded["embedding"].map(np.asarray)).astype(np.float32)
                 probabilities = sigmoid(self._classifier.predict(features, verbose=0))
                 rows = encoded.to_dict(orient="records")

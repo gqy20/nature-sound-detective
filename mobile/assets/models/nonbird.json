@@ -1,13 +1,67 @@
 {
   "id": "hangzhou-nonbird",
   "version": "0.1.0",
-  "available": false,
-  "reason": "等待已审核的杭州黑蚱蝉和蛙类数据完成训练后，由 export_nonbird_tflite.py 安装",
+  "available": true,
+  "label_policies": [
+    "source_curated"
+  ],
   "input": {
     "type": "birdnet_embedding",
-    "shape": [1, 1024]
+    "shape": [
+      1,
+      1024
+    ]
+  },
+  "output": {
+    "type": "logits",
+    "shape": [
+      1,
+      5
+    ]
   },
   "birdnet_embedding_tensor_index": 545,
   "birdnet_embedding_tensor_name": "model/GLOBAL_AVG_POOL/Mean",
-  "classes": []
+  "sha256": "78895206281ecf5edd77bcdee8109ba45795cf852fbdfbb22457c76d041b71ce",
+  "classes": [
+    {
+      "output_index": 0,
+      "taxon_id": "cryptotympana_atrata",
+      "category_id": "insect",
+      "name_zh": "黑蚱蝉",
+      "scientific_name": "Cryptotympana atrata",
+      "threshold": 0.8500000238418579
+    },
+    {
+      "output_index": 1,
+      "taxon_id": "polypedates_braueri",
+      "category_id": "frog",
+      "name_zh": "布氏泛树蛙",
+      "scientific_name": "Polypedates braueri",
+      "threshold": 0.75
+    },
+    {
+      "output_index": 2,
+      "taxon_id": "other_insect",
+      "category_id": "insect",
+      "name_zh": "其他鸣虫",
+      "scientific_name": null,
+      "threshold": 0.10000000149011612
+    },
+    {
+      "output_index": 3,
+      "taxon_id": "other_frog",
+      "category_id": "frog",
+      "name_zh": "其他蛙类",
+      "scientific_name": null,
+      "threshold": 0.8500000238418579
+    },
+    {
+      "output_index": 4,
+      "taxon_id": "background",
+      "category_id": "background",
+      "name_zh": "背景或未知声音",
+      "scientific_name": null,
+      "threshold": 0.44999998807907104
+    }
+  ]
 }

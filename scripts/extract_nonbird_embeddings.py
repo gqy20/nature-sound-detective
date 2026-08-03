@@ -18,6 +18,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--output", type=Path, default=Path("artifacts/nonbird/embeddings.npz"))
     parser.add_argument("--overlap", type=float, default=0.0)
+    parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument("--batch-size", type=int, default=8)
     return parser.parse_args()
 
 
@@ -36,9 +38,19 @@ def main() -> None:
     review_statuses: list[str] = []
     class_index = {name: index for index, name in enumerate(config.class_ids)}
 
+    rows_by_path: dict[Path, list] = {}
     for row in rows:
-        encoded = model.encode(row.audio_path, overlap_duration_s=args.overlap)
-        for value in encoded.to_dataframe().to_dict(orient="records"):
+        rows_by_path.setdefault(row.audio_path.resolve(), []).append(row)
+    encoded = model.encode(
+        list(rows_by_path),
+        overlap_duration_s=args.overlap,
+        n_workers=args.workers,
+        batch_size=args.batch_size,
+        show_stats="progress",
+    )
+    for value in encoded.to_dataframe().to_dict(orient="records"):
+        input_path = Path(value["input"]).resolve()
+        for row in rows_by_path[input_path]:
             start = float(value["start_time"])
             end = float(value["end_time"])
             if not row.accepts_window(start, end):

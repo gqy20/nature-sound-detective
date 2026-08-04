@@ -30,12 +30,11 @@ void main() {
     );
 
     expect(find.text('乌鸫'), findsOneWidget);
-    expect(find.text('BirdNET'), findsOneWidget);
+    expect(find.text('BirdNET'), findsNothing);
     expect(find.text('72%'), findsOneWidget);
-    expect(find.text('模型置信度'), findsOneWidget);
-    expect(find.text('最可能的物种'), findsOneWidget);
+    expect(find.text('模型置信度'), findsNothing);
     expect(find.text('准确率'), findsNothing);
-    expect(find.textContaining('分数不是准确率'), findsOneWidget);
+    expect(find.textContaining('分数不是准确率'), findsNothing);
   });
 
   testWidgets('collects an explicit local review decision', (tester) async {
@@ -66,7 +65,7 @@ void main() {
     await tester.tap(find.text('保存反馈'));
     await tester.pump();
     expect(submitted?.decision, FeedbackDecision.wrong);
-    expect(find.text('本地声学模型'), findsOneWidget);
+    expect(find.text('本地声学模型'), findsNothing);
     expect(find.textContaining('等待人工复核'), findsOneWidget);
   });
 
@@ -91,8 +90,8 @@ void main() {
       ),
     );
 
-    expect(find.text('昆虫鸣叫'), findsOneWidget);
-    expect(find.text('本地声学模型 + YAMNet'), findsOneWidget);
+    expect(find.textContaining('同时听到：昆虫鸣叫'), findsOneWidget);
+    expect(find.text('本地声学模型 + YAMNet'), findsNothing);
   });
 
   testWidgets('labels a tentative species as a weak guess', (tester) async {
@@ -119,10 +118,40 @@ void main() {
       ),
     );
 
-    expect(find.text('较弱物种猜想'), findsOneWidget);
     expect(find.text('较弱猜想'), findsOneWidget);
     expect(find.text('16%'), findsOneWidget);
-    expect(find.textContaining('建议靠近后再录一次'), findsOneWidget);
     expect(find.text('乌鸫'), findsOneWidget);
+  });
+
+  testWidgets('opens a species clue from a ranked candidate', (tester) async {
+    SoundDetection? tapped;
+    int? tappedRank;
+    const detection = SoundDetection(
+      categoryId: 'bird',
+      nameZh: '鸟类鸣叫',
+      confidence: 0.62,
+      model: 'birdnet',
+      specificSpecies: SpeciesCandidate(
+        nameZh: '乌鸫',
+        scientificName: 'Turdus mandarinus',
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DetectionResults(
+            detections: const [detection],
+            onDetectionTap: (value, rank) {
+              tapped = value;
+              tappedRank = rank;
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('乌鸫'));
+    expect(tapped, same(detection));
+    expect(tappedRank, 1);
   });
 }

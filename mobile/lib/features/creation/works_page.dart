@@ -129,15 +129,12 @@ class _WorksPageState extends State<WorksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('自然作品册')),
+      appBar: AppBar(title: const Text('作品')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _records.isEmpty
           ? const Center(
-              child: Text(
-                '还没有作品\n完成一次声音创作后会保存在这里',
-                textAlign: TextAlign.center,
-              ),
+              child: Text('完成的音乐与短片会保存在这里', textAlign: TextAlign.center),
             )
           : RefreshIndicator(
               onRefresh: _load,

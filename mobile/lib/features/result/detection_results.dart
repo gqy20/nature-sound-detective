@@ -7,25 +7,23 @@ class DetectionResults extends StatelessWidget {
     super.key,
     required this.detections,
     this.onFeedback,
+    this.onDetectionTap,
   });
 
   final List<SoundDetection> detections;
   final ValueChanged<ExplorationFeedback>? onFeedback;
+  final void Function(SoundDetection detection, int? rank)? onDetectionTap;
 
   @override
   Widget build(BuildContext context) {
-    final allTentative = detections.every((item) => item.tentative);
-    final hasTentative = detections.any((item) => item.tentative);
-    final rankedBirds =
-        detections
-            .where(
-              (item) =>
-                  item.categoryId == 'bird' && item.specificSpecies != null,
-            )
-            .toList(growable: false)
+    final rankedSpecies =
+        detections.where((item) => item.specificSpecies != null).toList()
           ..sort((left, right) => right.confidence.compareTo(left.confidence));
-    int? birdRank(SoundDetection detection) {
-      final index = rankedBirds.indexOf(detection);
+    final ambientClues = detections
+        .where((item) => item.specificSpecies == null)
+        .toList(growable: false);
+    int? speciesRank(SoundDetection detection) {
+      final index = rankedSpecies.indexOf(detection);
       return index < 0 ? null : index + 1;
     }
 
@@ -35,28 +33,17 @@ class DetectionResults extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            rankedBirds.isNotEmpty
-                ? (allTentative ? '较弱物种猜想' : '最可能的物种')
-                : '这次听见了',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            rankedBirds.isNotEmpty
-                ? (allTentative
-                      ? '按模型置信度排序，证据仍较弱，建议靠近后再录一次。'
-                      : '按模型置信度排序；分数不是准确率，仍需结合现场观察。')
-                : hasTentative
-                ? '包含较弱猜想，需要结合现场观察确认。'
-                : '以下是声音线索，需要结合现场观察确认。',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          for (final detection in detections) ...[
-            _DetectionCard(detection: detection, rank: birdRank(detection)),
+          for (final detection in rankedSpecies) ...[
+            _DetectionCard(
+              detection: detection,
+              rank: speciesRank(detection),
+              onTap: onDetectionTap == null
+                  ? null
+                  : () => onDetectionTap!(detection, speciesRank(detection)),
+            ),
             const SizedBox(height: 10),
           ],
+          if (ambientClues.isNotEmpty) _AmbientClues(detections: ambientClues),
           if (onFeedback != null) ...[
             const SizedBox(height: 8),
             _DetectionFeedbackPanel(
@@ -162,67 +149,69 @@ class _DetectionFeedbackPanelState extends State<_DetectionFeedbackPanel> {
 }
 
 class _DetectionCard extends StatelessWidget {
-  const _DetectionCard({required this.detection, this.rank});
+  const _DetectionCard({required this.detection, this.rank, this.onTap});
 
   final SoundDetection detection;
   final int? rank;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final species = detection.specificSpecies;
-    final source = _sourceLabel(detection);
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (rank case final value?) ...[
-                  _RankMarker(rank: value),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        species?.nameZh ?? detection.nameZh,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      if (species?.scientificName case final name?)
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (rank case final value?) ...[
+                    _RankMarker(rank: value),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          name,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontStyle: FontStyle.italic),
+                          species?.nameZh ?? detection.nameZh,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                    ],
+                        if (species?.scientificName case final name?)
+                          Text(
+                            name,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontStyle: FontStyle.italic),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                _StrengthBadge(
-                  confidence: detection.confidence,
-                  tentative: detection.tentative,
-                  showConfidence: rank != null,
+                  _StrengthBadge(
+                    confidence: detection.confidence,
+                    tentative: detection.tentative,
+                    showConfidence: true,
+                  ),
+                  if (onTap != null) ...[
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right_rounded, size: 20),
+                  ],
+                ],
+              ),
+              if (detection.intervals.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _MetaChip(
+                  icon: Icons.graphic_eq_rounded,
+                  label: _intervalLabel(detection.intervals.first),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                _MetaChip(icon: Icons.memory_rounded, label: source),
-                if (detection.intervals.isNotEmpty)
-                  _MetaChip(
-                    icon: Icons.schedule_rounded,
-                    label: _intervalLabel(detection.intervals.first),
-                  ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -232,17 +221,6 @@ class _DetectionCard extends StatelessWidget {
     final start = interval.startSeconds.toStringAsFixed(1);
     final end = interval.endSeconds.toStringAsFixed(1);
     return '$start–$end 秒';
-  }
-
-  String _sourceLabel(SoundDetection detection) {
-    final labels = detection.evidenceModels.map((model) {
-      final normalized = model.toLowerCase();
-      if (normalized.contains('birdnet')) return 'BirdNET';
-      if (normalized.contains('nonbird')) return '本地声学模型';
-      if (normalized.contains('yamnet')) return 'YAMNet';
-      return '声学模型';
-    }).toSet();
-    return labels.join(' + ');
   }
 }
 
@@ -277,10 +255,8 @@ class _StrengthBadge extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Text(
-            tentative ? '较弱猜想' : '模型置信度',
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
+          if (tentative)
+            Text('较弱猜想', style: Theme.of(context).textTheme.labelSmall),
         ],
       );
     }
@@ -299,6 +275,40 @@ class _StrengthBadge extends StatelessWidget {
           ],
           Text(label, style: Theme.of(context).textTheme.labelMedium),
         ],
+      ),
+    );
+  }
+}
+
+class _AmbientClues extends StatelessWidget {
+  const _AmbientClues({required this.detections});
+
+  final List<SoundDetection> detections;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = detections.map((item) => item.nameZh).toSet().join(' · ');
+    return Semantics(
+      label: '同时听到 $labels',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 8, 4, 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.waves_rounded,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Text(
+                '同时听到：$labels',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

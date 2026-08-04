@@ -133,7 +133,7 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                 children: [
                   Text('音乐', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 6),
-                  const Text('使用你自己的 MiniMax 账户生成纯音乐。密钥只保存在本机。'),
+                  const Text('MiniMax · 密钥仅存本机'),
                   const SizedBox(height: 16),
                   TextFormField(
                     key: const Key('minimax-api-key-field'),
@@ -157,20 +157,10 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                     ),
                     validator: _requiredKey,
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _minimaxModel,
-                    decoration: const InputDecoration(
-                      labelText: '音乐模型',
-                      helperText: '默认 music-2.6，可按账户实际权限修改',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: _required,
-                  ),
                   const SizedBox(height: 28),
                   Text('视频', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 6),
-                  const Text('使用你自己的阿里云百炼账户生成竖屏短片，视频调用可能产生较高费用。'),
+                  const Text('阿里云百炼 · 可能产生费用'),
                   const SizedBox(height: 16),
                   TextFormField(
                     key: const Key('dashscope-api-key-field'),
@@ -195,40 +185,57 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                     ),
                     validator: _requiredKey,
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _region,
-                    decoration: const InputDecoration(
-                      labelText: '地域',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'beijing', child: Text('北京')),
-                      DropdownMenuItem(value: 'singapore', child: Text('新加坡')),
+                  const SizedBox(height: 20),
+                  ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(top: 8),
+                    title: const Text('高级设置'),
+                    children: [
+                      TextFormField(
+                        controller: _minimaxModel,
+                        decoration: const InputDecoration(
+                          labelText: '音乐模型',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: _region,
+                        decoration: const InputDecoration(
+                          labelText: '地域',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'beijing', child: Text('北京')),
+                          DropdownMenuItem(
+                            value: 'singapore',
+                            child: Text('新加坡'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) setState(() => _region = value);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _workspaceId,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          labelText: 'Workspace ID（可选）',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _wanModel,
+                        decoration: const InputDecoration(
+                          labelText: '视频模型',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: _required,
+                      ),
                     ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => _region = value);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _workspaceId,
-                    autocorrect: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Workspace ID（可选）',
-                      helperText: '使用百炼新版工作空间域名时填写',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _wanModel,
-                    decoration: const InputDecoration(
-                      labelText: '视频模型',
-                      helperText: '默认 wan2.7-t2v',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: _required,
                   ),
                   const SizedBox(height: 24),
                   FilledButton.icon(
@@ -246,7 +253,7 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                   TextButton.icon(
                     onPressed: _clear,
                     icon: const Icon(Icons.delete_outline_rounded),
-                    label: const Text('清除本机密钥'),
+                    label: const Text('清除密钥'),
                   ),
                 ],
               ),

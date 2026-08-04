@@ -14,10 +14,11 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/cloud_content_service.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
-import 'package:nature_sound_detective/features/creation/works_page.dart';
+import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
+import 'package:nature_sound_detective/features/species/species_detail_page.dart';
 
 class CapturePage extends StatefulWidget {
   const CapturePage({
@@ -504,7 +505,15 @@ class _CapturePageState extends State<CapturePage> {
         traceId: recording.id,
         fields: {'detection_count': _detections.length},
       );
-      if (mounted) setState(() => _saved = true);
+      if (mounted) {
+        setState(() => _saved = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('已保存到自然册'),
+            action: SnackBarAction(label: '查看', onPressed: _openNatureBook),
+          ),
+        );
+      }
     } catch (error, stackTrace) {
       AppLog.error(
         'storage',
@@ -602,10 +611,10 @@ class _CapturePageState extends State<CapturePage> {
     );
   }
 
-  void _openWorks() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const WorksPage()));
+  void _openNatureBook() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => NatureBookPage(store: _store)),
+    );
   }
 
   Future<void> _showDebugActions() async {
@@ -735,7 +744,6 @@ class _CapturePageState extends State<CapturePage> {
                     Spacer(flex: compact ? 2 : 3),
                     _buildRecordControl(controlDimension),
                     Spacer(flex: compact ? 2 : 4),
-                    const _ListeningHints(),
                     if (_recording != null && !_resultVisible) ...[
                       SizedBox(height: compact ? 6 : 10),
                       TextButton.icon(
@@ -793,9 +801,9 @@ class _CapturePageState extends State<CapturePage> {
         const SizedBox(width: 6),
         IconButton(
           key: const Key('works-button'),
-          tooltip: '自然作品册',
+          tooltip: '自然册',
           visualDensity: VisualDensity.compact,
-          onPressed: _openWorks,
+          onPressed: _openNatureBook,
           icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
         ),
         IconButton(
@@ -1139,7 +1147,18 @@ class _CapturePageState extends State<CapturePage> {
                   ],
                   if (_detections.isNotEmpty) ...[
                     const SizedBox(height: 24),
-                    DetectionResults(detections: _detections),
+                    DetectionResults(
+                      detections: _detections,
+                      onDetectionTap: (detection, rank) =>
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => SpeciesDetailPage(
+                                detection: detection,
+                                rank: rank,
+                              ),
+                            ),
+                          ),
+                    ),
                   ] else if (_hasAnalyzed && !_analyzing) ...[
                     const SizedBox(height: 20),
                     const Text(
@@ -1256,39 +1275,17 @@ class _CapturePageState extends State<CapturePage> {
     if (_quality?.usable == false) return '没有录到有效声音';
     if (_analyzing) return '正在识别声音';
     if (_error != null && !_hasAnalyzed) return '识别没有完成';
-    final birdSpeciesCount = _detections
-        .where(
-          (item) => item.categoryId == 'bird' && item.specificSpecies != null,
-        )
+    final speciesCount = _detections
+        .where((item) => item.specificSpecies != null)
         .length;
-    if (birdSpeciesCount > 1) return '找到 $birdSpeciesCount 个鸟种候选';
+    if (speciesCount > 1) return '$speciesCount 个物种候选';
+    if (speciesCount == 1) return '1 个物种候选';
     if (_detections.isNotEmpty && _detections.every((item) => item.tentative)) {
       return '找到一个较弱猜想';
     }
     if (_detections.isNotEmpty) return '找到一些声音线索';
     if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
     return '录音完成';
-  }
-}
-
-class _ListeningHints extends StatelessWidget {
-  const _ListeningHints();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _ListeningHint(icon: Icons.eco_outlined, label: '靠近'),
-        _HintDivider(),
-        _ListeningHint(icon: Icons.volume_off_outlined, label: '安静'),
-        _HintDivider(),
-        _ListeningHint(
-          icon: Icons.directions_car_filled_outlined,
-          label: '远离车流',
-        ),
-      ],
-    );
   }
 }
 
@@ -1361,46 +1358,6 @@ class _QualityIndicator extends StatelessWidget {
           child: Icon(icon, color: foreground, size: 25),
         ),
       ),
-    );
-  }
-}
-
-class _ListeningHint extends StatelessWidget {
-  const _ListeningHint({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 88,
-      child: Column(
-        children: [
-          Icon(icon, size: 24, color: const Color(0xFF174936)),
-          const SizedBox(height: 7),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF66716B),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HintDivider extends StatelessWidget {
-  const _HintDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 34,
-      child: VerticalDivider(width: 1, thickness: 1, color: Color(0xFFD9D7CC)),
     );
   }
 }

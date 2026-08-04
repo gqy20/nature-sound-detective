@@ -341,13 +341,15 @@ class _CreationPageState extends State<CreationPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('自然创作'),
-        actions: [
-          IconButton(
-            tooltip: '创作设置',
-            onPressed: _creating ? null : _openSettings,
-            icon: const Icon(Icons.tune_rounded),
-          ),
-        ],
+        actions: _settings.canCreate
+            ? [
+                IconButton(
+                  tooltip: '创作设置',
+                  onPressed: _creating ? null : _openSettings,
+                  icon: const Icon(Icons.tune_rounded),
+                ),
+              ]
+            : null,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -363,9 +365,12 @@ class _CreationPageState extends State<CreationPage>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('这次听见', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 4),
-                      Text(widget.subject, style: theme.textTheme.titleLarge),
+                      Text(
+                        widget.subject,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontSize: 26,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -383,21 +388,19 @@ class _CreationPageState extends State<CreationPage>
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.key_rounded, size: 34),
-                          const SizedBox(height: 10),
-                          Text('先配置创作账户', style: theme.textTheme.titleLarge),
-                          const SizedBox(height: 6),
-                          const Text(
-                            '需要 MiniMax 和阿里云百炼 API Key，费用由你的账户承担。',
-                            textAlign: TextAlign.center,
-                          ),
+                          const Icon(Icons.key_rounded, size: 30),
+                          const SizedBox(height: 18),
+                          Text('连接创作服务', style: theme.textTheme.titleLarge),
+                          const SizedBox(height: 4),
+                          const Text('MiniMax + 阿里云百炼'),
                           const SizedBox(height: 16),
                           FilledButton.icon(
                             key: const Key('open-creation-settings'),
                             onPressed: _openSettings,
                             icon: const Icon(Icons.settings_outlined),
-                            label: const Text('配置账户'),
+                            label: const Text('去设置'),
                           ),
                         ],
                       ),

@@ -1,0 +1,175 @@
+{
+  "generated_at": "2026-08-04T07:34:08.578720+00:00",
+  "baseline": "BirdNET acoustic 2.4 on organizer-provided standard sounds",
+  "warning": "标准声仅用于覆盖检查和初始校准，不是独立野外测试集。",
+  "runtime_seconds": 35.115,
+  "target_bird_species": 12,
+  "birdnet_mapped_species": 11,
+  "taxonomy_conflicts": [
+    "普通夜莺"
+  ],
+  "evaluated_recordings": 18,
+  "recall_at_0_05": 1.0,
+  "recall_at_0_25": 0.8333,
+  "recall_at_0_50": 0.8333,
+  "recordings_by_species": {
+    "乌鸫": 2,
+    "喜鹊": 1,
+    "大杜鹃": 1,
+    "强脚树莺": 2,
+    "棕背伯劳": 1,
+    "棕脸鹟莺": 2,
+    "珠颈斑鸠": 1,
+    "白头鹎": 2,
+    "红嘴蓝鹊": 2,
+    "鹊鸲": 2,
+    "麻雀": 2
+  },
+  "recordings": [
+    {
+      "source_path": "鸟/乌鸫/乌鸫(1).wav",
+      "species_name_zh": "乌鸫",
+      "best_expected_confidence": 0.771478,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/乌鸫/乌鸫.wav",
+      "species_name_zh": "乌鸫",
+      "best_expected_confidence": 0.111233,
+      "hit_at_0_05": true,
+      "hit_at_0_25": false,
+      "hit_at_0_50": false
+    },
+    {
+      "source_path": "鸟/喜鹊/喜鹊.wav",
+      "species_name_zh": "喜鹊",
+      "best_expected_confidence": 0.972491,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/大杜鹃/大杜鹃.wav",
+      "species_name_zh": "大杜鹃",
+      "best_expected_confidence": 0.977239,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/强脚树莺/强脚树莺 (1).wav",
+      "species_name_zh": "强脚树莺",
+      "best_expected_confidence": 0.999158,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/强脚树莺/强脚树莺 (2).wav",
+      "species_name_zh": "强脚树莺",
+      "best_expected_confidence": 0.990155,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/棕背伯劳/棕背伯劳.wav",
+      "species_name_zh": "棕背伯劳",
+      "best_expected_confidence": 0.971013,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/棕脸鹟莺/棕脸(1).wav",
+      "species_name_zh": "棕脸鹟莺",
+      "best_expected_confidence": 0.999787,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/棕脸鹟莺/棕脸.wav",
+      "species_name_zh": "棕脸鹟莺",
+      "best_expected_confidence": 0.999957,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/珠颈斑鸠/珠颈斑鸠.wav",
+      "species_name_zh": "珠颈斑鸠",
+      "best_expected_confidence": 0.996557,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/白头鹎/白头鹎(1).wav",
+      "species_name_zh": "白头鹎",
+      "best_expected_confidence": 0.203225,
+      "hit_at_0_05": true,
+      "hit_at_0_25": false,
+      "hit_at_0_50": false
+    },
+    {
+      "source_path": "鸟/白头鹎/白头鹎.wav",
+      "species_name_zh": "白头鹎",
+      "best_expected_confidence": 0.910657,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/红嘴蓝鹊/红嘴蓝鹊(1).wav",
+      "species_name_zh": "红嘴蓝鹊",
+      "best_expected_confidence": 0.053728,
+      "hit_at_0_05": true,
+      "hit_at_0_25": false,
+      "hit_at_0_50": false
+    },
+    {
+      "source_path": "鸟/红嘴蓝鹊/红嘴蓝鹊.wav",
+      "species_name_zh": "红嘴蓝鹊",
+      "best_expected_confidence": 0.64923,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/鹊鸲/鹊鸲(1).wav",
+      "species_name_zh": "鹊鸲",
+      "best_expected_confidence": 0.995285,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/鹊鸲/鹊鸲.wav",
+      "species_name_zh": "鹊鸲",
+      "best_expected_confidence": 0.99437,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/麻雀/麻雀(1).wav",
+      "species_name_zh": "麻雀",
+      "best_expected_confidence": 0.689259,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    },
+    {
+      "source_path": "鸟/麻雀/麻雀.wav",
+      "species_name_zh": "麻雀",
+      "best_expected_confidence": 0.891515,
+      "hit_at_0_05": true,
+      "hit_at_0_25": true,
+      "hit_at_0_50": true
+    }
+  ],
+  "detection_rows": 273
+}

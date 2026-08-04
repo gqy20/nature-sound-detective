@@ -31,13 +31,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/nonbird/model"))
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--config", type=Path)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     tf.keras.utils.set_random_seed(20260803)
-    config = load_nonbird_config()
+    config = load_nonbird_config(args.config) if args.config else load_nonbird_config()
     cache = load_embedding_cache(args.cache)
     cache_classes = tuple(str(item) for item in cache["class_ids"])
     if cache_classes != config.class_ids:

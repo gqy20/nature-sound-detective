@@ -20,9 +20,10 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/nonbird/export"))
     parser.add_argument("--install-mobile", action="store_true")
     parser.add_argument("--install-server", action="store_true")
+    parser.add_argument("--config", type=Path)
     args = parser.parse_args()
     metadata = json.loads((args.model_dir / "metadata.json").read_text(encoding="utf-8"))
-    config = load_nonbird_config()
+    config = load_nonbird_config(args.config) if args.config else load_nonbird_config()
     model = tf.keras.models.load_model(args.model_dir / "classifier.h5", compile=False)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -31,6 +32,19 @@ def main() -> None:
     model_path = args.output_dir / "nonbird.tflite"
     model_path.write_bytes(model_bytes)
     class_map = {item.taxon_id: item for item in config.classes}
+    class_entries = [
+        {
+            "output_index": index,
+            "taxon_id": class_id,
+            "category_id": class_map[class_id].category_id,
+            "name_zh": class_map[class_id].name_zh,
+            "scientific_name": class_map[class_id].scientific_name,
+            "threshold": metadata["thresholds"][class_id],
+            "centroid": metadata.get("embedding_reference", {}).get(class_id, {}).get("centroid", []),
+            "min_cosine_similarity": metadata.get("embedding_reference", {}).get(class_id, {}).get("min_cosine_similarity", -1.0),
+        }
+        for index, class_id in enumerate(metadata["class_ids"])
+    ]
     mobile_metadata = {
         "id": metadata["model_id"],
         "version": metadata["version"],
@@ -42,19 +56,7 @@ def main() -> None:
         "birdnet_embedding_tensor_index": 545,
         "birdnet_embedding_tensor_name": "model/GLOBAL_AVG_POOL/Mean",
         "sha256": hashlib.sha256(model_bytes).hexdigest(),
-        "classes": [
-            {
-                "output_index": index,
-                "taxon_id": class_id,
-                "category_id": class_map[class_id].category_id,
-                "name_zh": class_map[class_id].name_zh,
-                "scientific_name": class_map[class_id].scientific_name,
-                "threshold": metadata["thresholds"][class_id],
-                "centroid": metadata.get("embedding_reference", {}).get(class_id, {}).get("centroid", []),
-                "min_cosine_similarity": metadata.get("embedding_reference", {}).get(class_id, {}).get("min_cosine_similarity", -1.0),
-            }
-            for index, class_id in enumerate(metadata["class_ids"])
-        ],
+        "classes": class_entries,
     }
     metadata_path = args.output_dir / "nonbird.json"
     metadata_path.write_text(
@@ -69,7 +71,10 @@ def main() -> None:
         server_dir = Path("artifacts/nonbird/model")
         server_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(args.model_dir / "classifier.h5", server_dir / "classifier.h5")
-        shutil.copy2(args.model_dir / "metadata.json", server_dir / "metadata.json")
+        server_metadata = {**metadata, "classes": class_entries}
+        (server_dir / "metadata.json").write_text(
+            json.dumps(server_metadata, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     print(f"exported {model_path} and {metadata_path}")
 
 

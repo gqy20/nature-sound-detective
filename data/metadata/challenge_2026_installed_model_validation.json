@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "errors": [],
+  "birdnet": {
+    "candidate_count": 200,
+    "input_shapes": [
+      [
+        1,
+        144000
+      ]
+    ],
+    "output_shapes": [
+      [
+        1,
+        6522
+      ],
+      [
+        1,
+        1024
+      ]
+    ]
+  },
+  "nonbird": {
+    "installed": true,
+    "status": "ready"
+  }
+}

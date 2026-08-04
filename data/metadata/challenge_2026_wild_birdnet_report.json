@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-08-04T07:50:01.541320+00:00",
+  "method": "BirdNET acoustic 2.4, eleven organizer target birds",
+  "warning": "野外数据没有逐段真值；本报告是候选分布，不是准确率。",
+  "full_scan": false,
+  "indexed_files": 6289,
+  "scanned_files": 96,
+  "scanned_duration_seconds": 5760.0,
+  "runtime_seconds": 216.684,
+  "candidate_rows": 343,
+  "candidate_counts": {
+    "白头鹎": 190,
+    "乌鸫": 19,
+    "珠颈斑鸠": 99,
+    "麻雀": 1,
+    "鹊鸲": 16,
+    "棕背伯劳": 2,
+    "强脚树莺": 13,
+    "喜鹊": 2,
+    "红嘴蓝鹊": 1
+  },
+  "high_confidence_counts": {
+    "珠颈斑鸠": 56,
+    "白头鹎": 47,
+    "鹊鸲": 8,
+    "乌鸫": 1,
+    "强脚树莺": 2
+  }
+}

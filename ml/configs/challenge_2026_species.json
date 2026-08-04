@@ -1,0 +1,168 @@
+{
+  "catalog_id": "shengshengbuxi-2026-targets",
+  "version": "1.0.0",
+  "location": "杭州固定监测位点",
+  "classes": [
+    {
+      "taxon_id": "pycnonotus_sinensis",
+      "category_id": "bird",
+      "name_zh": "白头鹎",
+      "scientific_name": "Pycnonotus sinensis",
+      "birdnet_scientific_name": "Pycnonotus sinensis",
+      "aliases": []
+    },
+    {
+      "taxon_id": "cuculus_canorus",
+      "category_id": "bird",
+      "name_zh": "大杜鹃",
+      "scientific_name": "Cuculus canorus",
+      "birdnet_scientific_name": "Cuculus canorus",
+      "aliases": ["大杜鵑"]
+    },
+    {
+      "taxon_id": "urocissa_erythroryncha",
+      "category_id": "bird",
+      "name_zh": "红嘴蓝鹊",
+      "scientific_name": "Urocissa erythroryncha",
+      "birdnet_scientific_name": "Urocissa erythroryncha",
+      "aliases": []
+    },
+    {
+      "taxon_id": "passer_montanus",
+      "category_id": "bird",
+      "name_zh": "麻雀",
+      "scientific_name": "Passer montanus",
+      "birdnet_scientific_name": "Passer montanus",
+      "aliases": ["树麻雀"]
+    },
+    {
+      "taxon_id": "official_nightingale_conflict",
+      "category_id": "bird",
+      "name_zh": "普通夜莺",
+      "scientific_name": null,
+      "birdnet_scientific_name": null,
+      "aliases": ["普通夜鹰"],
+      "taxonomy_status": "conflict_needs_organizer_confirmation",
+      "note": "目录为普通夜莺，文件名为普通夜鹰；两者不是同一物种。"
+    },
+    {
+      "taxon_id": "horornis_fortipes",
+      "category_id": "bird",
+      "name_zh": "强脚树莺",
+      "scientific_name": "Horornis fortipes",
+      "birdnet_scientific_name": "Horornis fortipes",
+      "aliases": ["小莺", "小鶯"]
+    },
+    {
+      "taxon_id": "copsychus_saularis",
+      "category_id": "bird",
+      "name_zh": "鹊鸲",
+      "scientific_name": "Copsychus saularis",
+      "birdnet_scientific_name": "Copsychus saularis",
+      "aliases": []
+    },
+    {
+      "taxon_id": "turdus_mandarinus",
+      "category_id": "bird",
+      "name_zh": "乌鸫",
+      "scientific_name": "Turdus mandarinus",
+      "birdnet_scientific_name": "Turdus mandarinus",
+      "aliases": []
+    },
+    {
+      "taxon_id": "pica_serica",
+      "category_id": "bird",
+      "name_zh": "喜鹊",
+      "scientific_name": "Pica serica",
+      "birdnet_scientific_name": "Pica serica",
+      "aliases": ["喜鵲"]
+    },
+    {
+      "taxon_id": "spilopelia_chinensis",
+      "category_id": "bird",
+      "name_zh": "珠颈斑鸠",
+      "scientific_name": "Spilopelia chinensis",
+      "birdnet_scientific_name": "Streptopelia chinensis",
+      "aliases": []
+    },
+    {
+      "taxon_id": "lanius_schach",
+      "category_id": "bird",
+      "name_zh": "棕背伯劳",
+      "scientific_name": "Lanius schach",
+      "birdnet_scientific_name": "Lanius schach",
+      "aliases": ["棕背伯勞"]
+    },
+    {
+      "taxon_id": "abroscopus_albogularis",
+      "category_id": "bird",
+      "name_zh": "棕脸鹟莺",
+      "scientific_name": "Abroscopus albogularis",
+      "birdnet_scientific_name": "Abroscopus albogularis",
+      "aliases": ["棕面莺", "棕面鶯"]
+    },
+    {
+      "taxon_id": "mecopoda_elongata",
+      "category_id": "insect",
+      "name_zh": "纺织娘",
+      "scientific_name": "Mecopoda elongata",
+      "aliases": []
+    },
+    {
+      "taxon_id": "cryptotympana_atrata",
+      "category_id": "insect",
+      "name_zh": "黑蚱蝉",
+      "scientific_name": "Cryptotympana atrata",
+      "aliases": []
+    },
+    {
+      "taxon_id": "teleogryllus_emma",
+      "category_id": "insect",
+      "name_zh": "黄脸油葫芦",
+      "scientific_name": "Teleogryllus emma",
+      "aliases": []
+    },
+    {
+      "taxon_id": "streeyola_mongolica",
+      "category_id": "insect",
+      "name_zh": "蒙古寒蝉",
+      "scientific_name": "Streeyola mongolica",
+      "aliases": []
+    },
+    {
+      "taxon_id": "velarifictorus_micado",
+      "category_id": "insect",
+      "name_zh": "迷卡斗蟋",
+      "scientific_name": "Velarifictorus micado",
+      "aliases": []
+    },
+    {
+      "taxon_id": "pelophylax_nigromaculatus",
+      "category_id": "frog",
+      "name_zh": "黑斑侧褶蛙",
+      "scientific_name": "Pelophylax nigromaculatus",
+      "aliases": []
+    },
+    {
+      "taxon_id": "nidirana_mangveni",
+      "category_id": "frog",
+      "name_zh": "孟闻琴蛙",
+      "scientific_name": "Nidirana mangveni",
+      "aliases": []
+    },
+    {
+      "taxon_id": "microhyla_fissipes",
+      "category_id": "frog",
+      "name_zh": "饰纹姬蛙",
+      "scientific_name": "Microhyla fissipes",
+      "aliases": ["饰纹姬蛙"]
+    },
+    {
+      "taxon_id": "fejervarya_multistriata",
+      "category_id": "frog",
+      "name_zh": "泽陆蛙",
+      "scientific_name": "Fejervarya multistriata",
+      "aliases": ["泽路蛙"]
+    }
+  ]
+}

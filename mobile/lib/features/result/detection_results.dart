@@ -143,7 +143,11 @@ class _DetectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final species = detection.specificSpecies;
-    final source = detection.model.startsWith('birdnet') ? 'BirdNET' : 'YAMNet';
+    final source = switch (detection.model.toLowerCase()) {
+      final model when model.contains('birdnet') => 'BirdNET',
+      final model when model.contains('nonbird') => '本地声学模型',
+      _ => 'YAMNet',
+    };
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(

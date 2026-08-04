@@ -19,6 +19,7 @@ data/raw/freesound/api_responses/*
 data/raw/inaturalist/
 data/raw/insectset459/
 data/raw/curated_nonbird/
+data/raw/challenge_2026/standard_sounds/
 data/external/
 data/interim/*
 data/processed/*

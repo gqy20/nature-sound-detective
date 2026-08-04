@@ -1,0 +1,41 @@
+{
+  "inaturalist": {
+    "api_url": "https://api.inaturalist.org/v1/observations",
+    "place_id": 6903,
+    "place_name": "China",
+    "quality_grade": "research",
+    "taxa": [
+      {"taxon_id":"mecopoda_elongata","scientific_name":"Mecopoda elongata","name_zh":"纺织娘","category_id":"insect","target_count":30,"place_id":null},
+      {"taxon_id":"cryptotympana_atrata","scientific_name":"Cryptotympana atrata","name_zh":"黑蚱蝉","category_id":"insect","target_count":30},
+      {"taxon_id":"teleogryllus_emma","scientific_name":"Teleogryllus emma","name_zh":"黄脸油葫芦","category_id":"insect","target_count":30},
+      {"taxon_id":"streeyola_mongolica","scientific_name":"Streeyola mongolica","name_zh":"蒙古寒蝉","category_id":"insect","target_count":30},
+      {"taxon_id":"velarifictorus_micado","scientific_name":"Velarifictorus micado","name_zh":"迷卡斗蟋","category_id":"insect","target_count":30},
+      {"taxon_id":"pelophylax_nigromaculatus","scientific_name":"Pelophylax nigromaculatus","name_zh":"黑斑侧褶蛙","category_id":"frog","target_count":30},
+      {"taxon_id":"nidirana_mangveni","scientific_name":"Nidirana mangveni","name_zh":"孟闻琴蛙","category_id":"frog","target_count":30},
+      {"taxon_id":"microhyla_fissipes","scientific_name":"Microhyla fissipes","name_zh":"饰纹姬蛙","category_id":"frog","target_count":30},
+      {"taxon_id":"fejervarya_multistriata","scientific_name":"Fejervarya multistriata","name_zh":"泽陆蛙","category_id":"frog","target_count":30},
+      {
+        "taxon_id":"other_insect",
+        "query_name":"Orthoptera",
+        "query_taxon_id":47651,
+        "scientific_name":"",
+        "name_zh":"其他鸣虫",
+        "category_id":"insect",
+        "target_count":40,
+        "preserve_observed_taxon":true,
+        "exclude_scientific_names":["Mecopoda elongata","Teleogryllus emma","Velarifictorus micado"]
+      },
+      {
+        "taxon_id":"other_frog",
+        "query_name":"Anura",
+        "query_taxon_id":20979,
+        "scientific_name":"",
+        "name_zh":"其他蛙类",
+        "category_id":"frog",
+        "target_count":40,
+        "preserve_observed_taxon":true,
+        "exclude_scientific_names":["Pelophylax nigromaculatus","Nidirana mangveni","Microhyla fissipes","Fejervarya multistriata"]
+      }
+    ]
+  }
+}

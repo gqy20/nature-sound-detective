@@ -64,6 +64,7 @@ void main() {
     await tester.tap(find.text('保存反馈'));
     await tester.pump();
     expect(submitted?.decision, FeedbackDecision.wrong);
+    expect(find.text('本地声学模型'), findsOneWidget);
     expect(find.textContaining('等待人工复核'), findsOneWidget);
   });
 }

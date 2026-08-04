@@ -164,11 +164,15 @@ def fuse_results(
             "confidence": item["confidence"],
             "model": nonbird.get("model"),
             "intervals": [{"start": item.get("start_seconds", 0), "end": item.get("end_seconds", 0)}],
-            "specific_species": {
-                "name_zh": item.get("name_zh", ""),
-                "scientific_name": item.get("scientific_name"),
-                "taxonomy_id": item.get("taxon_id"),
-            },
+            "specific_species": (
+                {
+                    "name_zh": item.get("name_zh", ""),
+                    "scientific_name": item.get("scientific_name"),
+                    "taxonomy_id": item.get("taxon_id"),
+                }
+                if item.get("scientific_name")
+                else None
+            ),
         }
         for item in strong_nonbirds
     ]

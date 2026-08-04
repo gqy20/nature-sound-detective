@@ -20,12 +20,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--overlap", type=float, default=0.0)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--config", type=Path)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    config = load_nonbird_config()
+    config = load_nonbird_config(args.config) if args.config else load_nonbird_config()
     rows = load_manifest(args.manifest, config)
     model = birdnet.load("acoustic", "2.4", "tf")
     features: list[np.ndarray] = []

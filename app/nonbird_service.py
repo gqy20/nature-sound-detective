@@ -99,8 +99,14 @@ class NonBirdAnalyzer:
             log_exception(logger, "nonbird_inference_failed")
             raise
 
-        config = load_nonbird_config()
-        class_map = {item.taxon_id: item for item in config.classes}
+        metadata_classes = metadata.get("classes", [])
+        if metadata_classes:
+            class_map = {
+                str(item["taxon_id"]): item for item in metadata_classes
+            }
+        else:
+            config = load_nonbird_config()
+            class_map = {item.taxon_id: item for item in config.classes}
         class_ids = tuple(str(item) for item in metadata["class_ids"])
         thresholds = np.asarray([metadata["thresholds"][item] for item in class_ids])
         accepted = accepted_window_mask(
@@ -122,12 +128,22 @@ class NonBirdAnalyzer:
                 continue
             best_index = int(active[np.argmax(probabilities[active, class_index])])
             item = class_map[class_id]
+            if isinstance(item, dict):
+                category_id = str(item["category_id"])
+                taxon_id = str(item["taxon_id"])
+                name_zh = str(item["name_zh"])
+                scientific_name = item.get("scientific_name")
+            else:
+                category_id = item.category_id
+                taxon_id = item.taxon_id
+                name_zh = item.name_zh
+                scientific_name = item.scientific_name
             detections.append(
                 {
-                    "category_id": item.category_id,
-                    "taxon_id": item.taxon_id,
-                    "name_zh": item.name_zh,
-                    "scientific_name": item.scientific_name,
+                    "category_id": category_id,
+                    "taxon_id": taxon_id,
+                    "name_zh": name_zh,
+                    "scientific_name": scientific_name,
                     "confidence": round(float(probabilities[best_index, class_index]), 4),
                     "start_seconds": round(float(windows.starts[best_index]), 3),
                     "end_seconds": round(float(windows.ends[best_index]), 3),

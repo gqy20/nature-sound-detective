@@ -47,23 +47,25 @@ void main() {
     expect(catalog.species, isEmpty);
   });
 
-  test('ships the source-curated ten-class model', () async {
+  test('ships the challenge demo twelve-class model', () async {
     final catalog = NonBirdModelCatalog.fromJson(
       await rootBundle.loadString('assets/models/nonbird.json'),
     );
     expect(catalog.available, isTrue);
-    expect(catalog.version, '0.3.0');
-    expect(catalog.species, hasLength(10));
+    expect(catalog.version, '0.1.0-reference');
+    expect(catalog.species, hasLength(12));
     expect(
       catalog.species.map((item) => item.taxonId),
       containsAll([
         'cryptotympana_atrata',
-        'polypedates_braueri',
-        'hyla_chinensis',
+        'mecopoda_elongata',
+        'teleogryllus_emma',
         'pelophylax_nigromaculatus',
-        'kaloula_borealis',
-        'planopleura_kaempferi',
+        'nidirana_mangveni',
+        'microhyla_fissipes',
+        'fejervarya_multistriata',
         'streeyola_mongolica',
+        'velarifictorus_micado',
         'other_insect',
         'other_frog',
         'background',
@@ -71,9 +73,9 @@ void main() {
     );
     expect(
       catalog.species
-          .firstWhere((item) => item.taxonId == 'hyla_chinensis')
+          .firstWhere((item) => item.taxonId == 'microhyla_fissipes')
           .nameZh,
-      '中国雨蛙',
+      '饰纹姬蛙',
     );
   });
 }

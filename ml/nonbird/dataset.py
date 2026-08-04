@@ -12,6 +12,7 @@ APPROVED_REVIEW_STATES = {
     "expert_confirmed",
     "approved",
     "source_curated",
+    "official_reference",
 }
 VALID_SPLITS = {"train", "validation", "test"}
 

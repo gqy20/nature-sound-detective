@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.config import ROOT
 from app.species_catalog import load_hangzhou_birdnet_catalog
-from ml.nonbird.config import load_nonbird_config
 
 
 def _sha256(path: Path) -> str:
@@ -48,9 +47,8 @@ def validate() -> dict[str, Any]:
     nonbird_installed = bool(nonbird_metadata.get("available"))
     nonbird_model = model_dir / "nonbird.tflite"
     if nonbird_installed:
-        config = load_nonbird_config()
-        configured_ids = set(config.class_ids)
-        exported_ids = {str(item["taxon_id"]) for item in nonbird_metadata.get("classes", [])}
+        class_rows = nonbird_metadata.get("classes", [])
+        exported_ids = {str(item["taxon_id"]) for item in class_rows}
         if not nonbird_model.is_file():
             errors.append("nonbird.json 标记可用，但 nonbird.tflite 不存在")
         else:
@@ -64,8 +62,8 @@ def validate() -> dict[str, Any]:
                 errors.append(f"非鸟分类头输出应为 {expected_output}，实际为 {output_shapes_nonbird}")
             if _sha256(nonbird_model) != nonbird_metadata.get("sha256"):
                 errors.append("非鸟分类头 SHA-256 与元数据不一致")
-        if not exported_ids or not exported_ids <= configured_ids:
-            errors.append("非鸟分类头类别不在统一物种配置中")
+        if not exported_ids or len(exported_ids) != len(class_rows):
+            errors.append("非鸟分类头必须提供唯一的自描述类别目录")
 
     return {
         "ok": not errors,

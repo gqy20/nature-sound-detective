@@ -1,0 +1,34 @@
+﻿category,species_name_zh,source_path,prepared_path,source_sha256
+虫,纺织娘,data/raw/challenge_2026/standard_sounds/虫/纺织娘/纺织娘.m4a,data/interim/challenge_2026_standard_48k_v2/虫/纺织娘/纺织娘__m4a.wav,b93da83120c48cfb2ef2ecb7af37f6becb779d2ee6d6425788d718f438973752
+虫,蒙古寒蝉,data/raw/challenge_2026/standard_sounds/虫/蒙古寒蝉/蒙古寒蝉(1).m4a,data/interim/challenge_2026_standard_48k_v2/虫/蒙古寒蝉/蒙古寒蝉(1)__m4a.wav,f24db9b7ddaf1a7bc7883a498336a2a8373d559a937f074bf266cf7f21e0d83c
+虫,蒙古寒蝉,data/raw/challenge_2026/standard_sounds/虫/蒙古寒蝉/蒙古寒蝉.m4a,data/interim/challenge_2026_standard_48k_v2/虫/蒙古寒蝉/蒙古寒蝉__m4a.wav,0d0487113ad10794a1a0c229c3503d180bdf7e9750f8fe1be376e7b8cdd69845
+虫,迷卡斗蟋,data/raw/challenge_2026/standard_sounds/虫/迷卡斗蟋/迷卡斗蟋.m4a,data/interim/challenge_2026_standard_48k_v2/虫/迷卡斗蟋/迷卡斗蟋__m4a.wav,45a84e9230a52e9ed67f427fbd9d9bc1f3af88b9fa4a4f354de6c2550a31f88e
+虫,黄脸油葫芦,data/raw/challenge_2026/standard_sounds/虫/黄脸油葫芦/黄脸油葫芦.m4a,data/interim/challenge_2026_standard_48k_v2/虫/黄脸油葫芦/黄脸油葫芦__m4a.wav,4557d8276dc0788f79f2be7875c2d6b2a4283e18a81a790c6cda2891f15cf75c
+虫,黑蚱蝉,data/raw/challenge_2026/standard_sounds/虫/黑蚱蝉/黑蚱蝉(1).m4a,data/interim/challenge_2026_standard_48k_v2/虫/黑蚱蝉/黑蚱蝉(1)__m4a.wav,85a6d1ab28a02b4151998d4ff84bb6077c442450052830c22a6cbb8ae545cdc9
+虫,黑蚱蝉,data/raw/challenge_2026/standard_sounds/虫/黑蚱蝉/黑蚱蝉.m4a,data/interim/challenge_2026_standard_48k_v2/虫/黑蚱蝉/黑蚱蝉__m4a.wav,668693af7a937746dc7ca9d9e0f203ad91684139d8b04fa1f41583ef6f6903c4
+蛙,孟闻琴蛙,data/raw/challenge_2026/standard_sounds/蛙/孟闻琴蛙/孟闻琴蛙.wav,data/interim/challenge_2026_standard_48k_v2/蛙/孟闻琴蛙/孟闻琴蛙__wav.wav,a7348b5680fa0df83a59a7f1d3b87f27ea87c9369e2d46d41a9f072523cf27cf
+蛙,泽路蛙,data/raw/challenge_2026/standard_sounds/蛙/泽路蛙/泽陆蛙.m4a,data/interim/challenge_2026_standard_48k_v2/蛙/泽路蛙/泽陆蛙__m4a.wav,a4b4595fe9148e78a1534c9b336a5cbec446552a1a76d12884009a42d84d5ce6
+蛙,泽路蛙,data/raw/challenge_2026/standard_sounds/蛙/泽路蛙/泽陆蛙.wav,data/interim/challenge_2026_standard_48k_v2/蛙/泽路蛙/泽陆蛙__wav.wav,ee14ecabb17b8e5d8a8facddb30169383c8023c4203511389b454cc1a96d2bf1
+蛙,饰纹姬蛙,data/raw/challenge_2026/standard_sounds/蛙/饰纹姬蛙/饰纹姬蛙.m4a,data/interim/challenge_2026_standard_48k_v2/蛙/饰纹姬蛙/饰纹姬蛙__m4a.wav,a94f9144b640d068b16e2a937232a7dd08e680dda0d608fd8f13207c27c0e2ef
+蛙,饰纹姬蛙,data/raw/challenge_2026/standard_sounds/蛙/饰纹姬蛙/饰纹姬蛙.wav,data/interim/challenge_2026_standard_48k_v2/蛙/饰纹姬蛙/饰纹姬蛙__wav.wav,782c2b9108c485f96c5f0a21fd066af7ce266e23e6fe38aa2514fa94e556bcab
+蛙,黑斑侧褶蛙,data/raw/challenge_2026/standard_sounds/蛙/黑斑侧褶蛙/黑斑侧褶蛙.MP3,data/interim/challenge_2026_standard_48k_v2/蛙/黑斑侧褶蛙/黑斑侧褶蛙__mp3.wav,7c71317cf2df5d2109911cfae6efb2afc8a91a29eea9eee855eeafe776581c5c
+蛙,黑斑侧褶蛙,data/raw/challenge_2026/standard_sounds/蛙/黑斑侧褶蛙/黑斑侧褶蛙.wav,data/interim/challenge_2026_standard_48k_v2/蛙/黑斑侧褶蛙/黑斑侧褶蛙__wav.wav,c344732c2c0bd1929023beda6cd7a290f359db857d1db944031e08691e0c2849
+鸟,乌鸫,data/raw/challenge_2026/standard_sounds/鸟/乌鸫/乌鸫(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/乌鸫/乌鸫(1)__m4a.wav,b706226fed4eaf83826e283b61cf07bdacda75fe89732d01197c8ddcf9a168e6
+鸟,乌鸫,data/raw/challenge_2026/standard_sounds/鸟/乌鸫/乌鸫.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/乌鸫/乌鸫__m4a.wav,3f4cfcdbae43b374c4fe90844d49522422dcd15a0b1f222030a8b4ea25453e23
+鸟,喜鹊,data/raw/challenge_2026/standard_sounds/鸟/喜鹊/喜鹊.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/喜鹊/喜鹊__m4a.wav,018026e1f610515e10a3330491a6520b05f654c3bee26ec626709fd9c2d17168
+鸟,大杜鹃,data/raw/challenge_2026/standard_sounds/鸟/大杜鹃/大杜鹃.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/大杜鹃/大杜鹃__m4a.wav,ea3b2a6ac730ea85c16de1481f23496a174eeca348a9ee149f04049580bdcd4b
+鸟,强脚树莺,data/raw/challenge_2026/standard_sounds/鸟/强脚树莺/强脚树莺 (1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/强脚树莺/强脚树莺 (1)__m4a.wav,499acbfc0a4236eaf93d925a2d261117955cc43641fd1c2b5ce3a9cba7a24874
+鸟,强脚树莺,data/raw/challenge_2026/standard_sounds/鸟/强脚树莺/强脚树莺 (2).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/强脚树莺/强脚树莺 (2)__m4a.wav,a4f2fa8601ecc8146f98a4b7342788a3a5463a9779f8cbc74a33637fd0953164
+鸟,普通夜莺,data/raw/challenge_2026/standard_sounds/鸟/普通夜莺/普通夜鹰.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/普通夜莺/普通夜鹰__m4a.wav,ad51b0d3318965307c32debc3f7f330d48373eec2198d9b6517f2bee994c6e2e
+鸟,棕背伯劳,data/raw/challenge_2026/standard_sounds/鸟/棕背伯劳/棕背伯劳.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/棕背伯劳/棕背伯劳__m4a.wav,43afc20581ba64dee24e3a95bce528deddec0aa39617c36467945cbea525c660
+鸟,棕脸鹟莺,data/raw/challenge_2026/standard_sounds/鸟/棕脸鹟莺/棕脸(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/棕脸鹟莺/棕脸(1)__m4a.wav,76bbc1c6613fbed7063ff69a45c205e6544bdbaea2e07de72319b89445f6e72e
+鸟,棕脸鹟莺,data/raw/challenge_2026/standard_sounds/鸟/棕脸鹟莺/棕脸.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/棕脸鹟莺/棕脸__m4a.wav,093b4d824eeb2123122d566d3470d9287daf2fdde16e34134f732187f06643f4
+鸟,珠颈斑鸠,data/raw/challenge_2026/standard_sounds/鸟/珠颈斑鸠/珠颈斑鸠.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/珠颈斑鸠/珠颈斑鸠__m4a.wav,5efd33cb7a3ab840a6dc47a543c63b45432a529e09756bc30075438f6d5c8c1f
+鸟,白头鹎,data/raw/challenge_2026/standard_sounds/鸟/白头鹎/白头鹎(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/白头鹎/白头鹎(1)__m4a.wav,39e09587bbcedff342b23d45f13bf9be669668f87d1daaf89e83b4c8c1b098c3
+鸟,白头鹎,data/raw/challenge_2026/standard_sounds/鸟/白头鹎/白头鹎.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/白头鹎/白头鹎__m4a.wav,344e4f95910e8b65b7280cc54d3ea69e4bddd6a4dc8f97b63fd3f2af6ef92503
+鸟,红嘴蓝鹊,data/raw/challenge_2026/standard_sounds/鸟/红嘴蓝鹊/红嘴蓝鹊(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/红嘴蓝鹊/红嘴蓝鹊(1)__m4a.wav,da2091474d98d7436980e188e096699ac61f37556f1364913d607b545996ddd6
+鸟,红嘴蓝鹊,data/raw/challenge_2026/standard_sounds/鸟/红嘴蓝鹊/红嘴蓝鹊.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/红嘴蓝鹊/红嘴蓝鹊__m4a.wav,9544ebd9f15e97f408b92ec358fbf913512c570e6b77df33d85e1969a06f6a65
+鸟,鹊鸲,data/raw/challenge_2026/standard_sounds/鸟/鹊鸲/鹊鸲(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/鹊鸲/鹊鸲(1)__m4a.wav,5854703d587991c4b2b69652f2f2ce4a910a71dda65db489f7154d3ba835ca79
+鸟,鹊鸲,data/raw/challenge_2026/standard_sounds/鸟/鹊鸲/鹊鸲.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/鹊鸲/鹊鸲__m4a.wav,81fd2554a113bc76a8f4462fc621b497ea9e1f0c66dd2087e46a5c4d3dd6d596
+鸟,麻雀,data/raw/challenge_2026/standard_sounds/鸟/麻雀/麻雀(1).m4a,data/interim/challenge_2026_standard_48k_v2/鸟/麻雀/麻雀(1)__m4a.wav,a2e8fd54b5da66d325c36e73c81c4a80c56d053c8dc557a6dc76a443086ed3db
+鸟,麻雀,data/raw/challenge_2026/standard_sounds/鸟/麻雀/麻雀.m4a,data/interim/challenge_2026_standard_48k_v2/鸟/麻雀/麻雀__m4a.wav,9906730b312cd0f074e1a698b8cf6e6c6afa2062a9cea3f777dc9eadf378e13e

@@ -13,7 +13,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ml.nonbird.config import load_nonbird_config
 
 
-APPROVED = {"human_reviewed", "expert_confirmed", "approved", "source_curated"}
+APPROVED = {
+    "human_reviewed",
+    "expert_confirmed",
+    "approved",
+    "source_curated",
+    "official_reference",
+}
 VALID_SPLITS = {"train", "validation", "test"}
 FIELDS = (
     "audio_path",
@@ -89,8 +95,14 @@ def ensure_positive_split_coverage(rows: list[dict[str, str]]) -> None:
             present.add(missing_split)
 
 
-def build_rows(paths: list[Path], *, output: Path, commercial_only: bool) -> list[dict[str, str]]:
-    config = load_nonbird_config()
+def build_rows(
+    paths: list[Path],
+    *,
+    output: Path,
+    commercial_only: bool,
+    config_path: Path | None = None,
+) -> list[dict[str, str]]:
+    config = load_nonbird_config(config_path) if config_path else load_nonbird_config()
     valid_labels = set(config.class_ids)
     label_by_scientific_name = {
         item.scientific_name.casefold(): item.taxon_id
@@ -165,8 +177,14 @@ def main() -> None:
     parser.add_argument("candidates", type=Path, nargs="+")
     parser.add_argument("--output", type=Path, default=Path("data/metadata/nonbird_training_manifest.csv"))
     parser.add_argument("--commercial-only", action="store_true")
+    parser.add_argument("--config", type=Path)
     args = parser.parse_args()
-    rows = build_rows(args.candidates, output=args.output, commercial_only=args.commercial_only)
+    rows = build_rows(
+        args.candidates,
+        output=args.output,
+        commercial_only=args.commercial_only,
+        config_path=args.config,
+    )
     if not rows:
         raise SystemExit("没有可训练样本：请先下载音频并完成人工审核")
     write_manifest(rows, args.output)

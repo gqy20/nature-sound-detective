@@ -20,11 +20,12 @@ def main() -> None:
     parser.add_argument("model_dir", type=Path)
     parser.add_argument("--minimum-precision", type=float, default=0.9)
     parser.add_argument("--version")
+    parser.add_argument("--config", type=Path)
     args = parser.parse_args()
     cache = load_embedding_cache(args.cache)
     metadata_path = args.model_dir / "metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-    config = load_nonbird_config()
+    config = load_nonbird_config(args.config) if args.config else load_nonbird_config()
     class_ids = tuple(str(item) for item in cache["class_ids"])
     if tuple(metadata["class_ids"]) != class_ids:
         raise ValueError("模型与嵌入缓存类别不一致")

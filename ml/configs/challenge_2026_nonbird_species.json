@@ -1,0 +1,20 @@
+{
+  "model_id": "shengshengbuxi-2026-nonbird",
+  "version": "0.1.0-reference",
+  "sample_rate": 48000,
+  "window_seconds": 3,
+  "classes": [
+    {"taxon_id":"mecopoda_elongata","category_id":"insect","name_zh":"纺织娘","scientific_name":"Mecopoda elongata","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"cryptotympana_atrata","category_id":"insect","name_zh":"黑蚱蝉","scientific_name":"Cryptotympana atrata","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"teleogryllus_emma","category_id":"insect","name_zh":"黄脸油葫芦","scientific_name":"Teleogryllus emma","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"streeyola_mongolica","category_id":"insect","name_zh":"蒙古寒蝉","scientific_name":"Streeyola mongolica","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"velarifictorus_micado","category_id":"insect","name_zh":"迷卡斗蟋","scientific_name":"Velarifictorus micado","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"pelophylax_nigromaculatus","category_id":"frog","name_zh":"黑斑侧褶蛙","scientific_name":"Pelophylax nigromaculatus","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"nidirana_mangveni","category_id":"frog","name_zh":"孟闻琴蛙","scientific_name":"Nidirana mangveni","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"microhyla_fissipes","category_id":"frog","name_zh":"饰纹姬蛙","scientific_name":"Microhyla fissipes","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"fejervarya_multistriata","category_id":"frog","name_zh":"泽陆蛙","scientific_name":"Fejervarya multistriata","status":"experimental","default_threshold":0.65},
+    {"taxon_id":"other_insect","category_id":"insect","name_zh":"其他鸣虫","scientific_name":null,"status":"support","default_threshold":0.55},
+    {"taxon_id":"other_frog","category_id":"frog","name_zh":"其他蛙类","scientific_name":null,"status":"support","default_threshold":0.55},
+    {"taxon_id":"background","category_id":"background","name_zh":"背景或未知声音","scientific_name":null,"status":"support","default_threshold":0.50}
+  ]
+}

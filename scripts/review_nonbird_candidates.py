@@ -19,13 +19,13 @@ from ml.nonbird.config import load_nonbird_config
 HTML = r"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>蛙虫声音复核</title><style>body{font:16px system-ui;margin:auto;max-width:820px;padding:24px;background:#eef2ea;color:#172018}.card{background:white;border-radius:16px;padding:20px;margin:14px 0}audio{width:100%}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:flex;flex-direction:column;gap:5px}input,select,textarea,button{font:inherit;padding:9px}textarea{min-height:70px}.actions{display:flex;gap:8px;margin-top:14px}.approve{background:#245c35;color:white}@media(max-width:650px){.grid{grid-template-columns:1fr}}</style></head>
 <body><h1>蛙虫声音人工复核</h1><div id="progress"></div><section class="card"><h2 id="title"></h2><p id="meta"></p><audio id="audio" controls></audio><div class="grid"><label>确认标签<select id="label"></select></label><label>复核人<input id="reviewer"></label><label>有效区间<input id="intervals" placeholder="例如 3.0-8.5;12-16"></label><label>备注<textarea id="notes"></textarea></label></div><div class="actions"><button onclick="save('rejected')">剔除</button><button onclick="save('uncertain')">不确定</button><button class="approve" onclick="save('human_reviewed')">确认并下一条</button></div></section>
-<script>let rows=[],labels=[],i=0;const $=x=>document.getElementById(x);async function init(){const p=await(await fetch('/api/items')).json();rows=p.items;labels=p.labels;const n=rows.findIndex(x=>x.review_status==='pending');i=n<0?0:n;show()}function show(){const x=rows[i];if(!x)return;$('progress').textContent=`${i+1} / ${rows.length} · ${x.review_status}`;$('title').textContent=`${x.name_zh} · ${x.scientific_name||x.source_id}`;$('meta').textContent=`${x.locality||''} | ${x.license_code} | ${x.attribution||''}`;$('audio').src=`/audio/${encodeURIComponent(x.source_id)}`;$('label').innerHTML=labels.map(v=>`<option value="${v.taxon_id}" ${v.taxon_id===x.taxon_id?'selected':''}>${v.name_zh}</option>`).join('');$('reviewer').value=localStorage.reviewer||x.reviewer||'';$('intervals').value=x.valid_intervals||'';$('notes').value=x.review_notes||''}async function save(status){const x=rows[i],body={source_id:x.source_id,status,taxon_id:$('label').value,reviewer:$('reviewer').value.trim(),valid_intervals:$('intervals').value.trim(),review_notes:$('notes').value.trim()};localStorage.reviewer=body.reviewer;const r=await fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){alert(await r.text());return}Object.assign(x,body,{review_status:status});if(i<rows.length-1)i++;show()}init()</script></body></html>"""
+<script>let rows=[],labels=[],i=0;const $=x=>document.getElementById(x);async function init(){const p=await(await fetch('/api/items')).json();rows=p.items;labels=p.labels;const n=rows.findIndex(x=>x.review_status==='pending');i=n<0?0:n;show()}function show(){const x=rows[i];if(!x)return;$('progress').textContent=`${i+1} / ${rows.length} · ${x.review_status}`;$('title').textContent=`${x.name_zh} · ${x.scientific_name||x.source_id}`;$('meta').textContent=`${x.period||x.locality||''} | 相似度 ${x.reference_similarity||'-'} | ${x.attribution||''}`;const start=x.start_seconds||0,end=x.end_seconds||'';$('audio').src=`/audio/${encodeURIComponent(x.source_id)}#t=${start},${end}`;$('label').innerHTML=labels.map(v=>`<option value="${v.taxon_id}" ${v.taxon_id===x.taxon_id?'selected':''}>${v.name_zh}</option>`).join('');$('reviewer').value=localStorage.reviewer||x.reviewer||'';$('intervals').value=x.valid_intervals||'';$('notes').value=x.review_notes||''}async function save(status){const x=rows[i],body={source_id:x.source_id,status,taxon_id:$('label').value,reviewer:$('reviewer').value.trim(),valid_intervals:$('intervals').value.trim(),review_notes:$('notes').value.trim()};localStorage.reviewer=body.reviewer;const r=await fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){alert(await r.text());return}Object.assign(x,body,{review_status:status});if(i<rows.length-1)i++;show()}init()</script></body></html>"""
 
 
 class CandidateReviewStore:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, config_path: Path | None = None):
         self.path = path
-        config = load_nonbird_config()
+        config = load_nonbird_config(config_path) if config_path else load_nonbird_config()
         self.classes = {item.taxon_id: item for item in config.classes}
 
     def rows(self) -> list[dict[str, str]]:
@@ -136,9 +136,10 @@ def main() -> None:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8766)
+    parser.add_argument("--config", type=Path)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    store = CandidateReviewStore(args.manifest.resolve())
+    store = CandidateReviewStore(args.manifest.resolve(), args.config)
     if args.check:
         counts: dict[str, int] = {}
         for row in store.rows():

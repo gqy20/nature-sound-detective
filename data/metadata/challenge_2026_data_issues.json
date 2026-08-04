@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-08-04T07:32:37.948608+00:00",
+  "source_root": "E:\\tmp\\生声不息AI挑战资料\\2026_07_31_生声不息AI挑战说明",
+  "copied_wild_audio": false,
+  "indexed_recordings": 6322,
+  "standard_recordings": 33,
+  "wild_recordings": 6289,
+  "indexed_bytes": 38281169612,
+  "indexed_duration_seconds": 399672.271,
+  "issues": [
+    {
+      "code": "partial_download",
+      "relative_path": "2026A 0116-0122\\AAA001_20260120_000005.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026B 0326-0401\\AAA001_20260401_094004.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026C 0507-0513\\AAA001_20260513_100003.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026D 0614-0608\\AAA001_20260614_165506.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026D 0614-0608\\AAA001_20260614_212503.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026D 0614-0608\\AAA001_20260614_213002.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    },
+    {
+      "code": "partial_download",
+      "relative_path": "2026D 0614-0608\\AAA001_20260614_213505.wav.folderdownload.crdownload",
+      "byte_length": 5760044
+    }
+  ]
+}

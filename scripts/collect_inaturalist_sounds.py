@@ -107,18 +107,21 @@ def collect(
                 if taxon.get("query_taxon_id")
                 else {"taxon_name": taxon.get("query_name") or taxon["scientific_name"]}
             )
+            place_id = taxon.get("place_id", source.get("place_id"))
+            query = {
+                **taxon_query,
+                "sounds": "true",
+                "quality_grade": source["quality_grade"],
+                "per_page": 200,
+                "page": page,
+                "order_by": "observed_on",
+                "order": "desc",
+            }
+            if place_id:
+                query["place_id"] = place_id
             payload = api_get(
                 source["api_url"],
-                {
-                    **taxon_query,
-                    "sounds": "true",
-                    "quality_grade": source["quality_grade"],
-                    "place_id": source["place_id"],
-                    "per_page": 200,
-                    "page": page,
-                    "order_by": "observed_on",
-                    "order": "desc",
-                },
+                query,
             )
             observations = payload.get("results") or []
             if not observations:

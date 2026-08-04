@@ -1,0 +1,274 @@
+﻿candidate_birdnet_label,candidate_name_zh,confidence,end_seconds,expected_birdnet_label,expected_name_zh,is_expected,source_path,start_seconds
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.046637,3.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,0.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.413908,9.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,6.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.272538,12.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,9.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.41014,15.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,12.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.322792,18.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,15.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.013452,21.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,18.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.383654,24.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,21.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.114235,27.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,24.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.771478,30.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,27.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.244142,33.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,30.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.430097,36.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫(1).wav,33.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.111233,6.0,Turdus mandarinus_Chinese Blackbird,乌鸫,True,鸟/乌鸫/乌鸫.wav,3.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.049128,9.0,Turdus mandarinus_Chinese Blackbird,乌鸫,False,鸟/乌鸫/乌鸫.wav,6.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.024382,9.0,Turdus mandarinus_Chinese Blackbird,乌鸫,False,鸟/乌鸫/乌鸫.wav,6.0
+Pica serica_Oriental Magpie,喜鹊,0.314361,6.0,Pica serica_Oriental Magpie,喜鹊,True,鸟/喜鹊/喜鹊.wav,3.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.033436,9.0,Pica serica_Oriental Magpie,喜鹊,False,鸟/喜鹊/喜鹊.wav,6.0
+Pica serica_Oriental Magpie,喜鹊,0.972491,12.0,Pica serica_Oriental Magpie,喜鹊,True,鸟/喜鹊/喜鹊.wav,9.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.012782,15.0,Pica serica_Oriental Magpie,喜鹊,False,鸟/喜鹊/喜鹊.wav,12.0
+Pica serica_Oriental Magpie,喜鹊,0.102581,18.0,Pica serica_Oriental Magpie,喜鹊,True,鸟/喜鹊/喜鹊.wav,15.0
+Pica serica_Oriental Magpie,喜鹊,0.872187,21.0,Pica serica_Oriental Magpie,喜鹊,True,鸟/喜鹊/喜鹊.wav,18.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.942974,3.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,0.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.971377,6.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,3.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.977239,9.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,6.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.958875,12.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,9.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.904964,15.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,12.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.947554,18.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,15.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.829531,21.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,18.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.810062,24.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,21.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.729278,27.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,24.0
+Cuculus canorus_Common Cuckoo,大杜鹃,0.048399,30.0,Cuculus canorus_Common Cuckoo,大杜鹃,True,鸟/大杜鹃/大杜鹃.wav,27.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.349293,3.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,0.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.890535,9.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,6.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.999158,12.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,9.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.066619,15.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,12.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.236849,18.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,15.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.022356,21.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,18.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.014793,21.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,18.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.226706,24.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,21.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.188137,27.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,24.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.015923,27.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,24.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.135984,30.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,27.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.103491,33.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,30.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.031307,36.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,33.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.018084,36.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,33.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.019449,39.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,36.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.057695,42.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,39.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.013127,42.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,39.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.188337,45.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,42.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.012523,45.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,42.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.071801,48.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,45.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.019022,48.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,45.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.107381,51.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,48.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.011186,51.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,48.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.112236,54.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,51.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.018765,54.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (1).wav,51.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.017521,54.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (1).wav,51.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.123296,6.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,3.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.016527,6.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,3.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.015172,6.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,3.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.990155,9.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,6.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.013439,9.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,6.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.237823,12.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,9.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.024323,12.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,9.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.052058,15.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,12.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.02737,15.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,12.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.986702,18.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,15.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.043639,18.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,15.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.159793,21.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,18.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.074075,21.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,18.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.020021,24.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,21.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.010031,24.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,21.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.609782,27.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,24.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.3248,27.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,24.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.879419,30.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,27.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.013034,30.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,27.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.771372,33.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,30.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.056102,36.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,33.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.388612,39.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,36.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.012417,39.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,True,鸟/强脚树莺/强脚树莺 (2).wav,36.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.181351,42.0,Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,False,鸟/强脚树莺/强脚树莺 (2).wav,39.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.416909,3.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,0.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.089515,3.0,Lanius schach_Long-tailed Shrike,棕背伯劳,False,鸟/棕背伯劳/棕背伯劳.wav,0.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.471146,6.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,3.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.152952,6.0,Lanius schach_Long-tailed Shrike,棕背伯劳,False,鸟/棕背伯劳/棕背伯劳.wav,3.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.866915,9.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,6.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.794372,12.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,9.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.1987,15.0,Lanius schach_Long-tailed Shrike,棕背伯劳,False,鸟/棕背伯劳/棕背伯劳.wav,12.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.022699,15.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,12.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.537257,18.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,15.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.621764,21.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,18.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.617703,24.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,21.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.935217,27.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,24.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.652325,30.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,27.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.712201,33.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,30.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.648868,36.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,33.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.505108,39.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,36.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.847861,42.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,39.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.967695,45.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,42.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.683051,48.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,45.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.029289,48.0,Lanius schach_Long-tailed Shrike,棕背伯劳,False,鸟/棕背伯劳/棕背伯劳.wav,45.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.809016,51.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,48.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.837671,54.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,51.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.691483,57.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,54.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.92569,60.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,57.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.971013,63.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,60.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.891106,66.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,63.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.880879,69.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,66.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.789882,72.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,69.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.854124,75.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,72.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.805525,78.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,75.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.535378,81.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,78.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.843491,84.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,81.0
+Lanius schach_Long-tailed Shrike,棕背伯劳,0.82063,87.0,Lanius schach_Long-tailed Shrike,棕背伯劳,True,鸟/棕背伯劳/棕背伯劳.wav,84.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.970942,3.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,0.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.997999,6.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,3.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.99913,9.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,6.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999787,12.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,9.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.972702,15.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,12.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.012844,15.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,12.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999462,18.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,15.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.997929,21.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,18.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.014415,21.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,18.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.998132,24.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,21.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.037575,24.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,21.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999593,27.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,24.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.997291,30.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,27.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999529,33.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,30.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.01216,33.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,30.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.998918,39.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,36.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.015282,39.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,36.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.998798,42.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,39.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999391,45.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,42.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.995683,48.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,45.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.022573,48.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,45.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.011986,48.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,45.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.905128,51.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,48.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.995452,54.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,51.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.040849,54.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,51.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.763763,57.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,54.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.084281,57.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,54.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.015438,57.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,54.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.970048,60.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,57.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.040084,60.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,57.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.995036,63.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,60.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.012027,63.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸(1).wav,60.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.214678,63.438,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸(1).wav,63.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.957652,3.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,0.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.99981,6.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,3.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999408,9.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,6.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.010118,9.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,6.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.99973,12.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,9.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.012086,12.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,9.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.981829,15.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,12.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999658,18.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,15.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.03235,18.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,15.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999745,21.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,18.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.010875,21.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,18.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999957,24.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,21.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.025505,24.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,21.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999664,27.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,24.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.984149,30.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,27.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.066879,30.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,27.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.037423,30.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,27.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999752,33.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,30.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.999754,36.0,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,33.0
+Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,0.342315,37.562,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,True,鸟/棕脸鹟莺/棕脸.wav,36.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.011984,37.562,Abroscopus albogularis_Rufous-faced Warbler,棕脸鹟莺,False,鸟/棕脸鹟莺/棕脸.wav,36.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.461464,3.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,0.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.991493,6.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,3.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.992831,9.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,6.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.981009,12.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,9.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.99037,15.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,12.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.996557,21.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,18.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.993617,24.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,21.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.984344,27.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,24.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.947353,30.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,27.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.087585,33.0,Streptopelia chinensis_Spotted Dove,珠颈斑鸠,True,鸟/珠颈斑鸠/珠颈斑鸠.wav,30.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.128646,9.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,6.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.055785,12.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,9.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.011135,12.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,9.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.195531,15.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,12.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.011755,15.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,12.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.230025,18.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,15.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.203225,18.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,15.0
+Streptopelia chinensis_Spotted Dove,珠颈斑鸠,0.061234,21.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,18.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.057159,21.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,18.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.111938,24.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,21.0
+Horornis fortipes_Brownish-flanked Bush Warbler,强脚树莺,0.027433,24.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,21.0
+Pica serica_Oriental Magpie,喜鹊,0.026501,24.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,21.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.025821,27.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎(1).wav,24.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.014343,27.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,24.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.016457,30.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎(1).wav,27.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.778082,3.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎.wav,0.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.647675,6.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎.wav,3.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.014965,6.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,False,鸟/白头鹎/白头鹎.wav,3.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.910657,9.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎.wav,6.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.050162,12.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎.wav,9.0
+Pycnonotus sinensis_Light-vented Bulbul,白头鹎,0.807785,15.0,Pycnonotus sinensis_Light-vented Bulbul,白头鹎,True,鸟/白头鹎/白头鹎.wav,12.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.017026,9.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊(1).wav,6.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.053728,12.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊(1).wav,9.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.58823,3.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊.wav,0.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.291572,6.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊.wav,3.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.64923,9.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊.wav,6.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.016479,12.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,False,鸟/红嘴蓝鹊/红嘴蓝鹊.wav,9.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.292417,15.0,Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,True,鸟/红嘴蓝鹊/红嘴蓝鹊.wav,12.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.911664,3.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,0.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.938809,6.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,3.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.041232,9.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,6.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.995285,12.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,9.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.012383,12.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲(1).wav,9.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.992171,18.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,15.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.934584,24.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,21.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.013794,24.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲(1).wav,21.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.975296,33.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲(1).wav,30.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.012753,35.188,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲(1).wav,33.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.040416,3.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,0.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.250498,6.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,3.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.813731,9.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,6.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.02339,9.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,6.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.496807,12.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,9.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.058165,12.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,9.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.946,15.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,12.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.010936,15.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,12.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.669012,18.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,15.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.374943,21.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,18.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.441911,24.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,21.0
+Turdus mandarinus_Chinese Blackbird,乌鸫,0.039013,24.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,21.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.613456,27.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,24.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.833471,30.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,27.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.50191,33.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,30.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.087549,36.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,33.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.408634,39.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,36.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.867593,42.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,39.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.56,45.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,42.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.957249,48.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,45.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.973776,51.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,48.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.905603,54.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,51.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.804202,57.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,54.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.973757,60.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,57.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.067588,63.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,60.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.92632,66.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,63.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.917929,69.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,66.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.752183,72.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,69.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.890321,75.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,72.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.048349,78.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,75.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.833858,81.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,78.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.057885,81.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,78.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.93863,84.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,81.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.977731,87.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,84.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.977651,90.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,87.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.988359,93.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,90.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.97304,96.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,93.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.985944,99.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,96.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.855654,102.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,99.0
+Urocissa erythroryncha_Red-billed Blue-Magpie,红嘴蓝鹊,0.013858,102.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,False,鸟/鹊鸲/鹊鸲.wav,99.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.860832,105.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,102.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.99437,108.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,105.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.382605,111.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,108.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.979571,114.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,111.0
+Copsychus saularis_Oriental Magpie-Robin,鹊鸲,0.975371,117.0,Copsychus saularis_Oriental Magpie-Robin,鹊鸲,True,鸟/鹊鸲/鹊鸲.wav,114.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.285428,3.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀(1).wav,0.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.059434,6.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀(1).wav,3.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.689259,9.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀(1).wav,6.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.071727,12.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀(1).wav,9.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.190233,15.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀(1).wav,12.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.803041,3.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,0.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.564167,6.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,3.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.80808,9.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,6.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.232968,12.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,9.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.820224,15.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,12.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.891515,18.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,15.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.848633,21.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,18.0
+Passer montanus_Eurasian Tree Sparrow,麻雀,0.762257,24.0,Passer montanus_Eurasian Tree Sparrow,麻雀,True,鸟/麻雀/麻雀.wav,21.0

@@ -11,10 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.training import (
+    apply_threshold_floors,
     build_classifier,
     find_precision_thresholds,
     load_embedding_cache,
     missing_positive_coverage,
+    metrics_at_thresholds,
     positive_class_weights,
     sigmoid,
     weighted_binary_crossentropy,
@@ -77,6 +79,17 @@ def main() -> None:
     model.save(model_path, include_optimizer=False)
     probabilities = sigmoid(model.predict(x_validation, verbose=0))
     thresholds, metrics = find_precision_thresholds(y_validation, probabilities)
+    thresholds = apply_threshold_floors(
+        thresholds,
+        np.asarray(
+            [
+                item.default_threshold if item.status == "experimental" else 0.0
+                for item in config.classes
+            ],
+            dtype=np.float32,
+        ),
+    )
+    metrics = metrics_at_thresholds(y_validation, probabilities, thresholds)
     embedding_reference = build_embedding_reference(
         x_train,
         y_train,

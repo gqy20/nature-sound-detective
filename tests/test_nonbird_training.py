@@ -4,6 +4,7 @@ import pytest
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.dataset import load_manifest
 from ml.nonbird.training import (
+    apply_threshold_floors,
     find_best_thresholds,
     missing_positive_coverage,
     positive_class_weights,
@@ -33,6 +34,14 @@ def test_threshold_search_finds_separating_threshold():
     thresholds, metrics = find_best_thresholds(targets, probabilities)
     assert 0.2 < thresholds[0] <= 0.7
     assert metrics[0]["f1"] == 1.0
+
+
+def test_experimental_threshold_floor_cannot_lower_calibrated_threshold():
+    thresholds = np.asarray([0.3, 0.8], dtype=np.float32)
+    floors = np.asarray([0.65, 0.65], dtype=np.float32)
+    assert apply_threshold_floors(thresholds, floors).tolist() == pytest.approx(
+        [0.65, 0.8]
+    )
 
 
 def test_positive_class_weights_upweight_rare_class():

@@ -46,6 +46,14 @@ def sigmoid(values: np.ndarray) -> np.ndarray:
     return 1.0 / (1.0 + np.exp(-np.clip(values, -30, 30)))
 
 
+def apply_threshold_floors(
+    thresholds: np.ndarray, floors: np.ndarray
+) -> np.ndarray:
+    if thresholds.shape != floors.shape:
+        raise ValueError("thresholds 与 floors 形状必须一致")
+    return np.maximum(thresholds, floors).astype(np.float32)
+
+
 def find_best_thresholds(
     targets: np.ndarray,
     probabilities: np.ndarray,

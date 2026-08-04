@@ -34,7 +34,7 @@ Future<void> main() async {
       final deviceFields = <String, Object?>{
         'platform': Platform.operatingSystem,
         'os_version': Platform.operatingSystemVersion,
-        'app_version': '0.1.0+1',
+        'app_version': '0.2.0+2003',
         'build_mode': kReleaseMode ? 'release' : 'debug',
       };
       if (Platform.isAndroid) {

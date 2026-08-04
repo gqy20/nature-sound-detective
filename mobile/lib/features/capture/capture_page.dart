@@ -13,8 +13,11 @@ import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/cloud_content_service.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
+import 'package:nature_sound_detective/features/creation/creation_page.dart';
+import 'package:nature_sound_detective/features/creation/works_page.dart';
 import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
+import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
 
 class CapturePage extends StatefulWidget {
   const CapturePage({
@@ -453,6 +456,32 @@ class _CapturePageState extends State<CapturePage> {
     ).push(MaterialPageRoute<void>(builder: (_) => const DiagnosticsPage()));
   }
 
+  void _openCreationSettings() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const CreationSettingsPage()),
+    );
+  }
+
+  void _openCreation() {
+    final primary = _detections.firstOrNull;
+    final subject =
+        primary?.specificSpecies?.nameZh ?? primary?.nameZh ?? '自然环境声';
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CreationPage(
+          subject: subject,
+          sourceAudioPath: _recording?.path ?? '',
+        ),
+      ),
+    );
+  }
+
+  void _openWorks() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const WorksPage()));
+  }
+
   Future<void> _showDebugActions() async {
     if (!kDebugMode) return;
     await showModalBottomSheet<void>(
@@ -619,27 +648,34 @@ class _CapturePageState extends State<CapturePage> {
             ),
           ),
         ),
-        GestureDetector(
-          onLongPress: kDebugMode ? _showDebugActions : null,
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.location_on_outlined,
-                size: 17,
-                color: Color(0xFF52615A),
-              ),
-              SizedBox(width: 4),
-              Text(
-                '杭州',
-                style: TextStyle(
-                  color: Color(0xFF52615A),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+        const Icon(
+          Icons.location_on_outlined,
+          size: 17,
+          color: Color(0xFF52615A),
+        ),
+        const SizedBox(width: 4),
+        const Text(
+          '杭州',
+          style: TextStyle(
+            color: Color(0xFF52615A),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+        const SizedBox(width: 6),
+        IconButton(
+          key: const Key('works-button'),
+          tooltip: '自然作品册',
+          visualDensity: VisualDensity.compact,
+          onPressed: _openWorks,
+          icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
+        ),
+        IconButton(
+          key: const Key('creation-settings-button'),
+          tooltip: 'AI 创作设置',
+          visualDensity: VisualDensity.compact,
+          onPressed: _openCreationSettings,
+          icon: const Icon(Icons.tune_rounded, size: 20),
         ),
       ],
     );
@@ -1003,6 +1039,13 @@ class _CapturePageState extends State<CapturePage> {
                             )
                           : const Icon(Icons.auto_stories_rounded),
                       label: Text(_enriching ? '正在生成科普卡' : '生成儿童科普卡'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      key: const Key('open-creation-button'),
+                      onPressed: _openCreation,
+                      icon: const Icon(Icons.auto_awesome_rounded),
+                      label: const Text('创作音乐和短片'),
                     ),
                   ],
                   if (_cloudCard case final card?) ...[

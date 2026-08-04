@@ -56,3 +56,9 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("androidx.media3:media3-transformer:1.10.1")
+    implementation("androidx.media3:media3-effect:1.10.1")
+    implementation("androidx.work:work-runtime:2.11.2")
+}

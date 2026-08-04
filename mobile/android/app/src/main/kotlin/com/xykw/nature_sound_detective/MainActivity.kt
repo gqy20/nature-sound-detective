@@ -7,9 +7,22 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
+import android.net.Uri
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.NonNull
+import androidx.media3.common.C
+import androidx.media3.common.Effect
+import androidx.media3.common.MediaItem
+import androidx.media3.common.audio.GainProcessor
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.EditedMediaItemSequence
+import androidx.media3.transformer.Effects
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.Transformer
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -25,6 +38,8 @@ import kotlin.math.max
 class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "com.xykw.nature_sound/audio_recorder"
+        private const val MEDIA_CHANNEL = "com.xykw.nature_sound/media_composer"
+        private const val BACKGROUND_CHANNEL = "com.xykw.nature_sound/creation_background"
         private const val TAG = "NatureAudio"
         private const val PERMISSION_REQUEST = 7301
         private const val SAMPLE_RATE = 48_000
@@ -41,11 +56,138 @@ class MainActivity : FlutterActivity() {
     private var completedRecording: Map<String, Any>? = null
     private var completedFailure: Map<String, String>? = null
     private var permissionResult: MethodChannel.Result? = null
+    private var compositionResult: MethodChannel.Result? = null
+    private var activeTransformer: Transformer? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler(::handleMethodCall)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MEDIA_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "compose" -> composeCreation(call, result)
+                    else -> result.notImplemented()
+                }
+            }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BACKGROUND_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                val recordId = call.argument<String>("record_id").orEmpty()
+                when (call.method) {
+                    "schedule" -> {
+                        val taskPath = call.argument<String>("task_path").orEmpty()
+                        if (recordId.isBlank() || taskPath.isBlank()) {
+                            result.error("invalid_task", "缺少后台任务信息。", null)
+                        } else {
+                            CreationPollWorker.schedule(this, recordId, taskPath)
+                            result.success(null)
+                        }
+                    }
+                    "cancel" -> {
+                        if (recordId.isNotBlank()) CreationPollWorker.cancel(this, recordId)
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    @UnstableApi
+    private fun composeCreation(call: MethodCall, result: MethodChannel.Result) {
+        if (compositionResult != null) {
+            result.error("composition_busy", "已有作品正在合成。", null)
+            return
+        }
+        val video = requiredFile(call, "video_path", result) ?: return
+        val music = requiredFile(call, "music_path", result) ?: return
+        val nature = requiredFile(call, "nature_path", result) ?: return
+        val narrationValue = call.argument<String>("narration_path").orEmpty()
+        val narration = narrationValue.takeIf { it.isNotBlank() }?.let(::File)
+        val outputValue = call.argument<String>("output_path").orEmpty()
+        if (outputValue.isBlank()) {
+            result.error("output_missing", "缺少合成输出路径。", null)
+            return
+        }
+        val output = File(outputValue)
+        output.parentFile?.mkdirs()
+        output.delete()
+
+        fun audioItem(file: File, gain: Float): EditedMediaItem =
+            EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(file)))
+                .setRemoveVideo(true)
+                .setEffects(
+                    Effects(
+                        listOf(GainProcessor(ConstantGainProvider(gain))),
+                        emptyList<Effect>(),
+                    ),
+                )
+                .build()
+
+        val videoItem = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(video)))
+            .setRemoveAudio(true)
+            .build()
+        val sequences = mutableListOf(
+            EditedMediaItemSequence.withAudioAndVideoFrom(listOf(videoItem)),
+            EditedMediaItemSequence.withAudioFrom(listOf(audioItem(music, 0.24f)))
+                .buildUpon().setIsLooping(true).build(),
+            EditedMediaItemSequence.withAudioFrom(listOf(audioItem(nature, 0.20f))),
+        )
+        if (narration?.isFile == true && narration.length() > 0L) {
+            sequences += EditedMediaItemSequence.withAudioFrom(
+                listOf(audioItem(narration, 1.0f)),
+            )
+        }
+        val composition = Composition.Builder(sequences).build()
+        compositionResult = result
+        activeTransformer = Transformer.Builder(this)
+            .addListener(object : Transformer.Listener {
+                override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                    compositionResult?.success(mapOf(
+                        "path" to output.absolutePath,
+                        "bytes" to output.length(),
+                    ))
+                    compositionResult = null
+                    activeTransformer = null
+                }
+
+                override fun onError(
+                    composition: Composition,
+                    exportResult: ExportResult,
+                    exportException: ExportException,
+                ) {
+                    output.delete()
+                    compositionResult?.error(
+                        "composition_failed",
+                        exportException.message ?: "本机音视频合成失败。",
+                        null,
+                    )
+                    compositionResult = null
+                    activeTransformer = null
+                }
+            })
+            .build()
+        activeTransformer?.start(composition, output.absolutePath)
+    }
+
+    private fun requiredFile(
+        call: MethodCall,
+        name: String,
+        result: MethodChannel.Result,
+    ): File? {
+        val value = call.argument<String>(name).orEmpty()
+        val file = File(value)
+        if (value.isBlank() || !file.isFile || file.length() <= 0L) {
+            result.error("media_missing", "合成素材不存在：$name", null)
+            return null
+        }
+        return file
+    }
+
+    @UnstableApi
+    private class ConstantGainProvider(private val gain: Float) : GainProcessor.GainProvider {
+        override fun getGainFactorAtSamplePosition(samplePosition: Long, sampleRate: Int): Float = gain
+
+        override fun isUnityUntil(samplePosition: Long, sampleRate: Int): Long = C.TIME_UNSET
     }
 
     private fun handleMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -346,6 +488,10 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         recording = false
+        activeTransformer?.cancel()
+        compositionResult?.error("composition_cancelled", "应用关闭，合成已取消。", null)
+        compositionResult = null
+        activeTransformer = null
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         worker.shutdown()
         super.onDestroy()

@@ -92,6 +92,11 @@ def ensure_positive_split_coverage(rows: list[dict[str, str]]) -> None:
 def build_rows(paths: list[Path], *, output: Path, commercial_only: bool) -> list[dict[str, str]]:
     config = load_nonbird_config()
     valid_labels = set(config.class_ids)
+    label_by_scientific_name = {
+        item.scientific_name.casefold(): item.taxon_id
+        for item in config.classes
+        if item.scientific_name
+    }
     seen: set[str] = set()
     rows: list[dict[str, str]] = []
     for path in paths:
@@ -100,6 +105,10 @@ def build_rows(paths: list[Path], *, output: Path, commercial_only: bool) -> lis
                 if candidate.get("review_status", "").strip() not in APPROVED:
                     continue
                 label = candidate.get("taxon_id", "").strip()
+                scientific_name = candidate.get("scientific_name", "").strip()
+                promoted_label = label_by_scientific_name.get(scientific_name.casefold())
+                if promoted_label is not None:
+                    label = promoted_label
                 if label not in valid_labels:
                     raise ValueError(f"{path}:{line_number} 未知标签 {label}")
                 commercial = candidate.get("commercial_compatible", "").strip().lower() == "true"

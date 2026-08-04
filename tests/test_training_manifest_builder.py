@@ -176,3 +176,33 @@ def test_source_split_coverage_moves_only_unlocked_groups():
     ]
     ensure_positive_split_coverage(rows)
     assert {row["split"] for row in rows} == {"train", "validation", "test"}
+
+
+def test_manifest_builder_promotes_generic_source_label_to_configured_species(tmp_path: Path):
+    audio = tmp_path / "frog.wav"
+    audio.write_bytes(b"RIFF-test")
+    candidates = tmp_path / "candidates.csv"
+    rows = []
+    for index, split in enumerate(("train", "validation", "test")):
+        rows.append(
+            {
+                "source": "test",
+                "source_id": f"tree-frog-{index}",
+                "taxon_id": "other_frog",
+                "scientific_name": "Hyla chinensis",
+                "local_path": str(audio),
+                "license_code": "CC0",
+                "commercial_compatible": "true",
+                "review_status": "source_curated",
+                "split_group": f"tree-frog-{index}",
+                "split_hint": split,
+                "sha256": f"sha-{index}",
+            }
+        )
+    _write_csv(candidates, rows)
+
+    manifest = build_rows(
+        [candidates], output=tmp_path / "manifest.csv", commercial_only=False
+    )
+
+    assert {row["labels"] for row in manifest} == {"hyla_chinensis"}

@@ -15,6 +15,11 @@ def test_nonbird_config_has_stable_class_order():
     assert config.class_ids == (
         "cryptotympana_atrata",
         "polypedates_braueri",
+        "hyla_chinensis",
+        "pelophylax_nigromaculatus",
+        "kaloula_borealis",
+        "planopleura_kaempferi",
+        "streeyola_mongolica",
         "other_insect",
         "other_frog",
         "background",

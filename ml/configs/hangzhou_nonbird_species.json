@@ -1,6 +1,6 @@
 {
   "model_id": "hangzhou-nonbird",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "sample_rate": 48000,
   "window_seconds": 3,
   "classes": [
@@ -23,6 +23,56 @@
       "default_threshold": 0.6,
       "season_months": [4, 5, 6, 7, 8, 9],
       "habitats": ["pond", "wetland", "woodland"]
+    },
+    {
+      "taxon_id": "hyla_chinensis",
+      "category_id": "frog",
+      "name_zh": "中国雨蛙",
+      "scientific_name": "Hyla chinensis",
+      "status": "experimental",
+      "default_threshold": 0.65,
+      "season_months": [4, 5, 6, 7, 8],
+      "habitats": ["pond", "wetland", "woodland"]
+    },
+    {
+      "taxon_id": "pelophylax_nigromaculatus",
+      "category_id": "frog",
+      "name_zh": "黑斑侧褶蛙",
+      "scientific_name": "Pelophylax nigromaculatus",
+      "status": "experimental",
+      "default_threshold": 0.65,
+      "season_months": [4, 5, 6, 7, 8, 9],
+      "habitats": ["pond", "wetland"]
+    },
+    {
+      "taxon_id": "kaloula_borealis",
+      "category_id": "frog",
+      "name_zh": "北方狭口蛙",
+      "scientific_name": "Kaloula borealis",
+      "status": "experimental",
+      "default_threshold": 0.65,
+      "season_months": [5, 6, 7, 8],
+      "habitats": ["pond", "wetland", "grassland"]
+    },
+    {
+      "taxon_id": "planopleura_kaempferi",
+      "category_id": "insect",
+      "name_zh": "蟪蛄",
+      "scientific_name": "Planopleura kaempferi",
+      "status": "experimental",
+      "default_threshold": 0.65,
+      "season_months": [5, 6, 7, 8],
+      "habitats": ["park", "woodland"]
+    },
+    {
+      "taxon_id": "streeyola_mongolica",
+      "category_id": "insect",
+      "name_zh": "蒙古寒蝉",
+      "scientific_name": "Streeyola mongolica",
+      "status": "experimental",
+      "default_threshold": 0.65,
+      "season_months": [7, 8, 9, 10],
+      "habitats": ["park", "woodland"]
     },
     {
       "taxon_id": "other_insect",

@@ -20,6 +20,41 @@
         "target_count": 150
       },
       {
+        "taxon_id": "hyla_chinensis",
+        "scientific_name": "Hyla chinensis",
+        "name_zh": "中国雨蛙",
+        "category_id": "frog",
+        "target_count": 100
+      },
+      {
+        "taxon_id": "pelophylax_nigromaculatus",
+        "scientific_name": "Pelophylax nigromaculatus",
+        "name_zh": "黑斑侧褶蛙",
+        "category_id": "frog",
+        "target_count": 100
+      },
+      {
+        "taxon_id": "kaloula_borealis",
+        "scientific_name": "Kaloula borealis",
+        "name_zh": "北方狭口蛙",
+        "category_id": "frog",
+        "target_count": 100
+      },
+      {
+        "taxon_id": "planopleura_kaempferi",
+        "scientific_name": "Planopleura kaempferi",
+        "name_zh": "蟪蛄",
+        "category_id": "insect",
+        "target_count": 100
+      },
+      {
+        "taxon_id": "streeyola_mongolica",
+        "scientific_name": "Streeyola mongolica",
+        "name_zh": "蒙古寒蝉",
+        "category_id": "insect",
+        "target_count": 100
+      },
+      {
         "taxon_id": "other_insect",
         "query_name": "Cicadidae",
         "query_taxon_id": 50186,
@@ -28,7 +63,11 @@
         "category_id": "insect",
         "target_count": 100,
         "preserve_observed_taxon": true,
-        "exclude_scientific_names": ["Cryptotympana atrata"]
+        "exclude_scientific_names": [
+          "Cryptotympana atrata",
+          "Planopleura kaempferi",
+          "Streeyola mongolica"
+        ]
       },
       {
         "taxon_id": "other_frog",
@@ -39,7 +78,12 @@
         "category_id": "frog",
         "target_count": 100,
         "preserve_observed_taxon": true,
-        "exclude_scientific_names": ["Polypedates braueri"]
+        "exclude_scientific_names": [
+          "Polypedates braueri",
+          "Hyla chinensis",
+          "Pelophylax nigromaculatus",
+          "Kaloula borealis"
+        ]
       }
     ]
   },

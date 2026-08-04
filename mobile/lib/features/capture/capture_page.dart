@@ -69,8 +69,14 @@ class _CapturePageState extends State<CapturePage> {
   CloudSoundCard? _cloudCard;
   List<SoundDetection> _detections = const [];
   String? _error;
+  double _liveRms = 0;
+  bool _signalHeard = false;
+  bool _levelPolling = false;
+  bool _imported = false;
+  String? _audioSource;
 
   bool get _isRecording => _startedAt != null;
+  bool get _canImport => _recorder is AudioImporter;
 
   @override
   void initState() {
@@ -119,6 +125,10 @@ class _CapturePageState extends State<CapturePage> {
       _saved = false;
       _cloudCard = null;
       _error = null;
+      _liveRms = 0;
+      _signalHeard = false;
+      _imported = false;
+      _audioSource = null;
     });
     try {
       final permitted =
@@ -148,6 +158,7 @@ class _CapturePageState extends State<CapturePage> {
         setState(
           () => _elapsed = elapsed > _maxDuration ? _maxDuration : elapsed,
         );
+        unawaited(_refreshRecordingLevel());
         if (elapsed >= _maxDuration && !_busy) {
           unawaited(_stopRecording());
         }
@@ -189,6 +200,12 @@ class _CapturePageState extends State<CapturePage> {
           'byte_length': recording.byteLength,
           'quality_usable': quality.usable,
           'quality_issue_count': quality.warnings.length,
+          'quality_rms': quality.rms,
+          'quality_peak': quality.peak,
+          'quality_best_window_rms': quality.bestWindowRms,
+          'quality_active_windows': quality.activeWindowCount,
+          'quality_total_windows': quality.totalWindowCount,
+          'audio_source': _audioSource,
         },
       );
       if (!mounted) return;
@@ -198,6 +215,7 @@ class _CapturePageState extends State<CapturePage> {
         _startedAt = null;
         _elapsed = recording.duration;
         _resultVisible = true;
+        _liveRms = 0;
       });
     } on PlatformException catch (error, stackTrace) {
       AppLog.error(
@@ -225,6 +243,108 @@ class _CapturePageState extends State<CapturePage> {
         setState(() {
           _error = '录音文件处理失败，请再试一次。';
           _startedAt = null;
+          _resultVisible = true;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _refreshRecordingLevel() async {
+    final provider = _recorder;
+    if (provider is! RecordingLevelProvider || _levelPolling || !_isRecording) {
+      return;
+    }
+    _levelPolling = true;
+    try {
+      final level = await (provider as RecordingLevelProvider)
+          .getRecordingLevel();
+      if (!mounted || !_isRecording) return;
+      setState(() {
+        _liveRms = level.rms;
+        _audioSource = level.source;
+        _signalHeard = _signalHeard || level.rms >= 0.003;
+      });
+    } on PlatformException catch (error) {
+      AppLog.warning(
+        'audio',
+        'recording_level_unavailable',
+        fields: {'platform_code': error.code},
+      );
+    } finally {
+      _levelPolling = false;
+    }
+  }
+
+  Future<void> _importAudio() async {
+    final importer = _recorder;
+    if (importer is! AudioImporter || _busy || _isRecording) return;
+    setState(() {
+      _busy = true;
+      _resultVisible = false;
+      _recording = null;
+      _quality = null;
+      _detections = const [];
+      _hasAnalyzed = false;
+      _saved = false;
+      _cloudCard = null;
+      _error = null;
+      _imported = false;
+    });
+    try {
+      final recording = await (importer as AudioImporter).pickAudio();
+      if (recording == null) return;
+      final quality = await _qualityAnalyzer.analyze(recording.path);
+      AppLog.info(
+        'audio',
+        'audio_imported',
+        traceId: recording.id,
+        fields: {
+          'duration_ms': recording.duration.inMilliseconds,
+          'sample_rate': recording.sampleRate,
+          'channels': recording.channelCount,
+          'byte_length': recording.byteLength,
+          'quality_usable': quality.usable,
+          'quality_rms': quality.rms,
+          'quality_peak': quality.peak,
+          'quality_best_window_rms': quality.bestWindowRms,
+          'quality_active_windows': quality.activeWindowCount,
+          'quality_total_windows': quality.totalWindowCount,
+        },
+      );
+      if (!mounted) return;
+      setState(() {
+        _recording = recording;
+        _quality = quality;
+        _elapsed = recording.duration;
+        _resultVisible = true;
+        _imported = true;
+      });
+    } on PlatformException catch (error, stackTrace) {
+      AppLog.warning(
+        'audio',
+        'audio_import_failed',
+        fields: {'platform_code': error.code},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        setState(() {
+          _error = error.message ?? '无法读取这个音频文件。';
+          _resultVisible = true;
+        });
+      }
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'audio',
+        'audio_import_processing_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        setState(() {
+          _error = '音频文件处理失败，请换一个文件再试。';
           _resultVisible = true;
         });
       }
@@ -267,6 +387,7 @@ class _CapturePageState extends State<CapturePage> {
       _saved = false;
       _cloudCard = null;
       _error = null;
+      _imported = false;
     });
     try {
       final recording = await _recorder.loadDebugDemo();
@@ -600,7 +721,9 @@ class _CapturePageState extends State<CapturePage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _isRecording ? '保持安静，手机不要晃动' : '把手机靠近想听的方向',
+                      _isRecording
+                          ? (_signalHeard ? '已经听到声音，继续保持' : '保持安静，手机不要晃动')
+                          : '把手机靠近想听的方向',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyLarge,
                     ),
@@ -688,6 +811,7 @@ class _CapturePageState extends State<CapturePage> {
         .clamp(0.0, 1.0);
     final progressDimension = dimension * 0.846;
     final buttonDimension = dimension * 0.726;
+    final levelStrength = (_liveRms / 0.04).clamp(0.0, 1.0);
 
     return SizedBox.square(
       dimension: dimension,
@@ -696,8 +820,12 @@ class _CapturePageState extends State<CapturePage> {
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 350),
-            width: _isRecording ? dimension * 0.974 : dimension * 0.94,
-            height: _isRecording ? dimension * 0.974 : dimension * 0.94,
+            width: _isRecording
+                ? dimension * (0.94 + 0.055 * levelStrength)
+                : dimension * 0.94,
+            height: _isRecording
+                ? dimension * (0.94 + 0.055 * levelStrength)
+                : dimension * 0.94,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
@@ -736,6 +864,9 @@ class _CapturePageState extends State<CapturePage> {
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 onTap: _busy ? null : _toggleRecording,
+                onLongPress: !_busy && !_isRecording && _canImport
+                    ? _importAudio
+                    : null,
                 child: SizedBox.square(
                   dimension: buttonDimension,
                   child: _buildRecordButtonContent(seconds),
@@ -763,6 +894,24 @@ class _CapturePageState extends State<CapturePage> {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
+                ),
+              ),
+            ),
+          if (!_isRecording && _canImport)
+            Positioned(
+              right: 2,
+              bottom: 12,
+              child: Material(
+                color: const Color(0xFFFFFDF7),
+                shape: const CircleBorder(
+                  side: BorderSide(color: Color(0xFFD9D7CC)),
+                ),
+                child: IconButton(
+                  key: const Key('import-audio-button'),
+                  tooltip: '选择本地录音',
+                  onPressed: _busy ? null : _importAudio,
+                  icon: const Icon(Icons.audio_file_outlined),
+                  color: forest,
                 ),
               ),
             ),
@@ -852,7 +1001,7 @@ class _CapturePageState extends State<CapturePage> {
     final title = _resultTitle();
     final subtitle = recording == null
         ? '可以返回后再试一次'
-        : '${recording.duration.inSeconds} 秒录音';
+        : '${recording.duration.inSeconds} 秒${_imported ? '本地音频' : '录音'}';
 
     return Material(
       key: const Key('recording-result-sheet'),
@@ -921,7 +1070,11 @@ class _CapturePageState extends State<CapturePage> {
                   if (quality != null) ...[
                     const SizedBox(height: 14),
                     Text(
-                      quality.usable ? '录音质量可用于识别' : '建议重新录制',
+                      quality.usable
+                          ? (quality.warnings.isEmpty
+                                ? '录音质量可用于识别'
+                                : '已经听到声音，可以尝试识别')
+                          : '没有录到可分析的声音',
                       key: const Key('quality-status'),
                       style: TextStyle(
                         color: quality.usable
@@ -1084,9 +1237,9 @@ class _CapturePageState extends State<CapturePage> {
 
   String _resultTitle() {
     if (_error != null && _recording == null) return '这次没有录下来';
-    if (_quality?.usable == false) return '声音有点远';
+    if (_quality?.usable == false) return '没有录到有效声音';
     if (_detections.isNotEmpty) return '找到一些声音线索';
-    if (_hasAnalyzed) return '暂时不能确定';
+    if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
     return '录音清晰，可以识别';
   }
 }

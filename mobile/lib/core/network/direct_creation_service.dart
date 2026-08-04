@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/media/media_composer.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/storage/creation_store.dart';
@@ -57,6 +58,7 @@ class DirectCreationService implements CreationService {
     required CreationProgress onProgress,
   }) async {
     if (!settings.canCreate) {
+      AppLog.warning('creation', 'configuration_missing');
       throw const CreationException('请先配置 MiniMax 和阿里云百炼 API Key。');
     }
     final root = await _directoryProvider();
@@ -65,8 +67,20 @@ class DirectCreationService implements CreationService {
     await directory.create(recursive: true);
     final source = File(sourceAudioPath);
     if (!await source.exists()) {
+      AppLog.warning('creation', 'source_audio_missing', traceId: id);
       throw const CreationException('原始录音已经不存在，请重新录制。');
     }
+    AppLog.info(
+      'creation',
+      'creation_started',
+      traceId: id,
+      fields: {
+        'source_bytes': await source.length(),
+        'music_model': settings.minimaxMusicModel,
+        'video_model': settings.wanVideoModel,
+        'region': settings.dashscopeRegion,
+      },
+    );
     final copiedSource = File('${directory.path}/nature_original.wav');
     await source.copy(copiedSource.path);
     final now = DateTime.now();
@@ -95,6 +109,22 @@ class DirectCreationService implements CreationService {
       throw const CreationException('请先配置 MiniMax 和阿里云百炼 API Key。');
     }
     var current = record;
+    AppLog.info(
+      'creation',
+      'pipeline_started',
+      traceId: record.id,
+      fields: {
+        'resume':
+            record.stage != CreationStage.idle ||
+            record.wanTaskId.isNotEmpty ||
+            record.musicPath.isNotEmpty ||
+            record.videoPath.isNotEmpty,
+        'stage': record.stage.name,
+        'has_music': record.musicPath.isNotEmpty,
+        'has_video': record.videoPath.isNotEmpty,
+        'has_final_video': record.finalVideoPath.isNotEmpty,
+      },
+    );
     final directory = Directory(record.directoryPath);
     await directory.create(recursive: true);
     final musicFile = File('${directory.path}/nature_music.mp3');
@@ -105,6 +135,12 @@ class DirectCreationService implements CreationService {
     Future<void> progress(CreationStage stage, String message) async {
       current = current.copyWith(stage: stage, message: message);
       await _store.save(current);
+      AppLog.info(
+        'creation',
+        'stage_changed',
+        traceId: current.id,
+        fields: {'stage': stage.name},
+      );
       onProgress(
         CreationUpdate(
           stage: stage,
@@ -118,15 +154,34 @@ class DirectCreationService implements CreationService {
 
     if (!await musicFile.exists()) {
       await progress(CreationStage.generatingMusic, '正在生成自然配乐');
+      final stopwatch = Stopwatch()..start();
       try {
         await _generateMusic(
           settings: settings,
           prompt: _musicPrompt(current.subject, current.location),
           destination: musicFile,
+          traceId: current.id,
         );
         current = current.copyWith(musicPath: musicFile.path, musicError: '');
         await _store.save(current);
-      } catch (error) {
+        AppLog.info(
+          'creation',
+          'music_generation_succeeded',
+          traceId: current.id,
+          fields: {
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'byte_length': await musicFile.length(),
+          },
+        );
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'creation',
+          'music_generation_failed',
+          traceId: current.id,
+          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+          error: error,
+          stackTrace: stackTrace,
+        );
         current = current.copyWith(musicError: _message(error));
         await _store.save(current);
       }
@@ -134,20 +189,40 @@ class DirectCreationService implements CreationService {
 
     if (!await narrationFile.exists()) {
       await progress(CreationStage.generatingNarration, '正在生成自然科普旁白');
+      final stopwatch = Stopwatch()..start();
       try {
         await _generateNarration(
           settings: settings,
           text: _narrationText(current.subject, current.location),
           destination: narrationFile,
+          traceId: current.id,
         );
         current = current.copyWith(narrationPath: narrationFile.path);
         await _store.save(current);
-      } catch (_) {
+        AppLog.info(
+          'creation',
+          'narration_generation_succeeded',
+          traceId: current.id,
+          fields: {
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'byte_length': await narrationFile.length(),
+          },
+        );
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'creation',
+          'narration_generation_failed',
+          traceId: current.id,
+          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+          error: error,
+          stackTrace: stackTrace,
+        );
         // Narration is optional; a music-and-nature mix is still a valid work.
       }
     }
 
     if (!await videoFile.exists()) {
+      final stopwatch = Stopwatch()..start();
       try {
         var taskId = current.wanTaskId;
         if (taskId.isEmpty) {
@@ -155,6 +230,7 @@ class DirectCreationService implements CreationService {
           taskId = await _createWanTask(
             settings: settings,
             prompt: _videoPrompt(current.subject, current.location),
+            traceId: current.id,
           );
           current = current.copyWith(wanTaskId: taskId, videoError: '');
           await _store.save(current);
@@ -163,12 +239,35 @@ class DirectCreationService implements CreationService {
         final videoUrl = await _waitForWanVideo(
           settings: settings,
           taskId: taskId,
+          traceId: current.id,
         );
         await progress(CreationStage.downloadingVideo, '正在保存生成的视频');
-        await _download(Uri.parse(videoUrl), videoFile);
+        await _download(
+          Uri.parse(videoUrl),
+          videoFile,
+          traceId: current.id,
+          assetType: 'video',
+        );
         current = current.copyWith(videoPath: videoFile.path, videoError: '');
         await _store.save(current);
-      } catch (error) {
+        AppLog.info(
+          'creation',
+          'video_generation_succeeded',
+          traceId: current.id,
+          fields: {
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'byte_length': await videoFile.length(),
+          },
+        );
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'creation',
+          'video_generation_failed',
+          traceId: current.id,
+          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+          error: error,
+          stackTrace: stackTrace,
+        );
         current = current.copyWith(videoError: _message(error));
         await _store.save(current);
       }
@@ -178,6 +277,7 @@ class DirectCreationService implements CreationService {
         await musicFile.exists() &&
         !await finalVideoFile.exists()) {
       await progress(CreationStage.composing, '正在本机合成音乐、旁白和自然原声');
+      final stopwatch = Stopwatch()..start();
       try {
         await _composer.compose(
           videoPath: videoFile.path,
@@ -191,7 +291,25 @@ class DirectCreationService implements CreationService {
           compositionError: '',
         );
         await _store.save(current);
-      } catch (error) {
+        AppLog.info(
+          'creation',
+          'composition_succeeded',
+          traceId: current.id,
+          fields: {
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'byte_length': await finalVideoFile.length(),
+            'has_narration': await narrationFile.exists(),
+          },
+        );
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'creation',
+          'composition_failed',
+          traceId: current.id,
+          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+          error: error,
+          stackTrace: stackTrace,
+        );
         current = current.copyWith(compositionError: _message(error));
         await _store.save(current);
       }
@@ -211,6 +329,15 @@ class DirectCreationService implements CreationService {
       wanTaskId: current.wanTaskId,
     );
     if (!artifacts.hasMusic && !artifacts.hasVideo) {
+      AppLog.error(
+        'creation',
+        'creation_failed',
+        traceId: current.id,
+        fields: {
+          'music_failed': current.musicError.isNotEmpty,
+          'video_failed': current.videoError.isNotEmpty,
+        },
+      );
       throw CreationException(
         [
           current.musicError,
@@ -223,6 +350,17 @@ class DirectCreationService implements CreationService {
         : CreationStage.partial;
     final finalMessage = artifacts.isComplete ? '自然声音作品已经完成' : '部分作品已经完成，可稍后继续';
     await progress(finalStage, finalMessage);
+    AppLog.info(
+      'creation',
+      'creation_completed',
+      traceId: current.id,
+      fields: {
+        'complete': artifacts.isComplete,
+        'has_music': artifacts.hasMusic,
+        'has_video': artifacts.hasVideo,
+        'has_final_video': artifacts.hasFinalVideo,
+      },
+    );
     return artifacts;
   }
 
@@ -230,7 +368,9 @@ class DirectCreationService implements CreationService {
     required CreationSettings settings,
     required String prompt,
     required File destination,
+    required String traceId,
   }) async {
+    final stopwatch = Stopwatch()..start();
     final response = await _client
         .post(
           Uri.parse('https://api.minimaxi.com/v1/music_generation'),
@@ -254,6 +394,17 @@ class DirectCreationService implements CreationService {
           }),
         )
         .timeout(const Duration(minutes: 5));
+    AppLog.info(
+      'creation',
+      'provider_response_received',
+      traceId: traceId,
+      fields: {
+        'provider': 'minimax',
+        'operation': 'music',
+        'status_code': response.statusCode,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+    );
     final payload = _jsonObject(response.body, 'MiniMax 音乐');
     _checkHttp(response, payload, 'MiniMax 音乐');
     _checkMiniMax(payload, 'MiniMax 音乐');
@@ -265,7 +416,12 @@ class DirectCreationService implements CreationService {
       throw const CreationException('MiniMax 没有返回音乐文件。');
     }
     if (audio.startsWith('http://') || audio.startsWith('https://')) {
-      await _download(Uri.parse(audio), destination);
+      await _download(
+        Uri.parse(audio),
+        destination,
+        traceId: traceId,
+        assetType: 'music',
+      );
     } else {
       await destination.writeAsBytes(_decodeHex(audio), flush: true);
     }
@@ -275,7 +431,9 @@ class DirectCreationService implements CreationService {
     required CreationSettings settings,
     required String text,
     required File destination,
+    required String traceId,
   }) async {
+    final stopwatch = Stopwatch()..start();
     final response = await _client
         .post(
           Uri.parse('https://api.minimaxi.com/v1/t2a_v2'),
@@ -305,6 +463,17 @@ class DirectCreationService implements CreationService {
           }),
         )
         .timeout(const Duration(seconds: 90));
+    AppLog.info(
+      'creation',
+      'provider_response_received',
+      traceId: traceId,
+      fields: {
+        'provider': 'minimax',
+        'operation': 'narration',
+        'status_code': response.statusCode,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+    );
     final payload = _jsonObject(response.body, 'MiniMax 旁白');
     _checkHttp(response, payload, 'MiniMax 旁白');
     _checkMiniMax(payload, 'MiniMax 旁白');
@@ -321,7 +490,9 @@ class DirectCreationService implements CreationService {
   Future<String> _createWanTask({
     required CreationSettings settings,
     required String prompt,
+    required String traceId,
   }) async {
+    final stopwatch = Stopwatch()..start();
     final response = await _client
         .post(
           Uri.parse(
@@ -349,6 +520,17 @@ class DirectCreationService implements CreationService {
           }),
         )
         .timeout(const Duration(seconds: 90));
+    AppLog.info(
+      'creation',
+      'provider_response_received',
+      traceId: traceId,
+      fields: {
+        'provider': 'dashscope',
+        'operation': 'submit_video',
+        'status_code': response.statusCode,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+    );
     final payload = _jsonObject(response.body, 'Wan 视频');
     _checkHttp(response, payload, 'Wan 视频');
     final output = payload['output'];
@@ -364,8 +546,10 @@ class DirectCreationService implements CreationService {
   Future<String> _waitForWanVideo({
     required CreationSettings settings,
     required String taskId,
+    required String traceId,
   }) async {
     final deadline = DateTime.now().add(videoTimeout);
+    String? previousStatus;
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(pollInterval);
       final response = await _client
@@ -384,6 +568,15 @@ class DirectCreationService implements CreationService {
         throw const CreationException('Wan 返回了无法识别的任务状态。');
       }
       final status = output['task_status']?.toString().toUpperCase();
+      if (status != previousStatus) {
+        AppLog.info(
+          'creation',
+          'video_status_changed',
+          traceId: traceId,
+          fields: {'status': status ?? 'MISSING'},
+        );
+        previousStatus = status;
+      }
       if (status == 'SUCCEEDED') {
         final url = output['video_url']?.toString();
         if (url == null || url.isEmpty) {
@@ -400,7 +593,13 @@ class DirectCreationService implements CreationService {
     throw const CreationException('Wan 视频生成超过 7 分钟，可稍后重试。');
   }
 
-  Future<void> _download(Uri uri, File destination) async {
+  Future<void> _download(
+    Uri uri,
+    File destination, {
+    required String traceId,
+    required String assetType,
+  }) async {
+    final stopwatch = Stopwatch()..start();
     final request = http.Request('GET', uri);
     final response = await _client
         .send(request)
@@ -417,6 +616,16 @@ class DirectCreationService implements CreationService {
     if (!await destination.exists() || await destination.length() == 0) {
       throw const CreationException('下载的素材文件为空。');
     }
+    AppLog.info(
+      'creation',
+      'asset_downloaded',
+      traceId: traceId,
+      fields: {
+        'asset_type': assetType,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+        'byte_length': await destination.length(),
+      },
+    );
   }
 
   String _musicPrompt(String subject, String location) =>

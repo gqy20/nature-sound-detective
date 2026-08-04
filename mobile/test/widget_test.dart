@@ -18,6 +18,7 @@ void main() {
     expect(find.text('自然声探员'), findsOneWidget);
     expect(find.text('听听，谁在附近？'), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
+    expect(find.byKey(const Key('import-audio-button')), findsOneWidget);
     expect(find.byType(Scrollable), findsNothing);
   });
 
@@ -70,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('recording-result-sheet')), findsOneWidget);
-    expect(find.text('声音有点远'), findsOneWidget);
+    expect(find.text('没有录到有效声音'), findsOneWidget);
     expect(find.byKey(const Key('retry-recording-button')), findsOneWidget);
   });
 

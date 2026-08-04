@@ -1,13 +1,20 @@
 package com.xykw.nature_sound_detective
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.media.AudioFormat
+import android.media.AudioManager
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.NonNull
@@ -34,6 +41,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.Executors
 import kotlin.math.max
+import kotlin.math.sqrt
 
 class MainActivity : FlutterActivity() {
     companion object {
@@ -42,9 +50,12 @@ class MainActivity : FlutterActivity() {
         private const val BACKGROUND_CHANNEL = "com.xykw.nature_sound/creation_background"
         private const val TAG = "NatureAudio"
         private const val PERMISSION_REQUEST = 7301
+        private const val AUDIO_PICK_REQUEST = 7302
         private const val SAMPLE_RATE = 48_000
         private const val CHANNEL_COUNT = 1
         private const val BYTES_PER_SAMPLE = 2
+        private const val MAX_IMPORT_BYTES = 150L * 1024 * 1024
+        private const val MAX_IMPORT_DURATION_SECONDS = 600L
     }
 
     private val worker = Executors.newSingleThreadExecutor()
@@ -56,8 +67,12 @@ class MainActivity : FlutterActivity() {
     private var completedRecording: Map<String, Any>? = null
     private var completedFailure: Map<String, String>? = null
     private var permissionResult: MethodChannel.Result? = null
+    private var audioPickResult: MethodChannel.Result? = null
     private var compositionResult: MethodChannel.Result? = null
     private var activeTransformer: Transformer? = null
+    @Volatile private var currentRms = 0.0
+    @Volatile private var currentPeak = 0.0
+    @Volatile private var currentAudioSource = "MIC"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -199,12 +214,273 @@ class MainActivity : FlutterActivity() {
                 "android_sdk" to Build.VERSION.SDK_INT,
             ))
             "requestPermission" -> requestRecordPermission(result)
+            "pickAudio" -> pickAudio(result)
+            "getRecordingLevel" -> result.success(mapOf(
+                "rms" to currentRms,
+                "peak" to currentPeak,
+                "source" to currentAudioSource,
+            ))
             "startRecording" -> startRecording(call, result)
             "stopRecording" -> finishRecording(result, delete = false)
             "cancelRecording" -> finishRecording(result, delete = true)
             "loadDebugDemo" -> loadDebugDemo(result)
             else -> result.notImplemented()
         }
+    }
+
+    private fun pickAudio(result: MethodChannel.Result) {
+        if (audioPickResult != null) {
+            result.error("audio_picker_busy", "文件选择器已经打开。", null)
+            return
+        }
+        audioPickResult = result
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "audio/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                "audio/wav",
+                "audio/x-wav",
+                "audio/mpeg",
+                "audio/mp4",
+                "audio/aac",
+                "audio/flac",
+                "audio/ogg",
+            ))
+        }
+        startActivityForResult(intent, AUDIO_PICK_REQUEST)
+    }
+
+    @Deprecated("Deprecated in Android SDK, retained for FlutterActivity compatibility")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != AUDIO_PICK_REQUEST) return
+        val pending = audioPickResult ?: return
+        audioPickResult = null
+        val uri = data?.data
+        if (resultCode != Activity.RESULT_OK || uri == null) {
+            pending.success(null)
+            return
+        }
+        worker.execute {
+            try {
+                val imported = importAudio(uri)
+                runOnUiThread { pending.success(imported) }
+            } catch (error: Exception) {
+                Log.e(TAG, "event=audio_import_failed", error)
+                runOnUiThread {
+                    pending.error(
+                        "audio_import_failed",
+                        error.message ?: "无法读取这个音频文件。",
+                        null,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun importAudio(uri: Uri): Map<String, Any> {
+        contentResolver.query(
+            uri,
+            arrayOf(OpenableColumns.SIZE),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) {
+                    val size = cursor.getLong(sizeIndex)
+                    require(size <= MAX_IMPORT_BYTES) { "音频文件不能超过 150 MB。" }
+                }
+            }
+        }
+        val id = "import_${System.currentTimeMillis()}"
+        val directory = File(cacheDir, "imports").apply { mkdirs() }
+        val source = File(directory, "$id.source")
+        val output = File(directory, "$id.wav")
+        try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(source).use { destination ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    var copied = 0L
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        copied += count
+                        require(copied <= MAX_IMPORT_BYTES) { "音频文件不能超过 150 MB。" }
+                        destination.write(buffer, 0, count)
+                    }
+                }
+            } ?: error("无法打开所选音频。")
+            require(source.length() > 0L) { "所选音频是空文件。" }
+            val decoded = decodeAudioToMonoWav(source, output)
+            Log.i(
+                TAG,
+                "event=audio_import_completed duration_ms=${decoded.durationMs} " +
+                    "sample_rate=${decoded.sampleRate} byte_length=${output.length()}",
+            )
+            return mapOf(
+                "id" to id,
+                "path" to output.absolutePath,
+                "duration_ms" to decoded.durationMs,
+                "sample_rate" to decoded.sampleRate,
+                "channel_count" to CHANNEL_COUNT,
+                "byte_length" to output.length().toInt(),
+            )
+        } finally {
+            source.delete()
+            if (output.length() <= 44L) output.delete()
+        }
+    }
+
+    private data class DecodedAudio(val sampleRate: Int, val durationMs: Long)
+
+    private fun decodeAudioToMonoWav(source: File, output: File): DecodedAudio {
+        val extractor = MediaExtractor()
+        var decoder: MediaCodec? = null
+        try {
+            extractor.setDataSource(source.absolutePath)
+            val trackIndex = (0 until extractor.trackCount).firstOrNull { index ->
+                extractor.getTrackFormat(index).getString(MediaFormat.KEY_MIME)
+                    ?.startsWith("audio/") == true
+            } ?: error("文件中没有可识别的音轨。")
+            extractor.selectTrack(trackIndex)
+            val inputFormat = extractor.getTrackFormat(trackIndex)
+            if (inputFormat.containsKey(MediaFormat.KEY_DURATION)) {
+                val durationUs = inputFormat.getLong(MediaFormat.KEY_DURATION)
+                require(durationUs in 1..MAX_IMPORT_DURATION_SECONDS * 1_000_000L) {
+                    "请选择 10 分钟以内的音频。"
+                }
+            }
+            val mime = inputFormat.getString(MediaFormat.KEY_MIME)
+                ?: error("无法识别音频编码。")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                inputFormat.setInteger(
+                    MediaFormat.KEY_PCM_ENCODING,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                )
+            }
+            val activeDecoder = MediaCodec.createDecoderByType(mime)
+            decoder = activeDecoder
+            activeDecoder.configure(inputFormat, null, null, 0)
+            activeDecoder.start()
+
+            var sampleRate = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            var channels = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+            var pcmEncoding = AudioFormat.ENCODING_PCM_16BIT
+            var inputEnded = false
+            var outputEnded = false
+            var dataBytes = 0L
+            val bufferInfo = MediaCodec.BufferInfo()
+            output.parentFile?.mkdirs()
+            FileOutputStream(output).use { wav ->
+                wav.write(ByteArray(44))
+                while (!outputEnded) {
+                    if (!inputEnded) {
+                        val inputIndex = activeDecoder.dequeueInputBuffer(10_000)
+                        if (inputIndex >= 0) {
+                            val inputBuffer = activeDecoder.getInputBuffer(inputIndex)
+                                ?: error("无法取得音频解码输入缓冲区。")
+                            val size = extractor.readSampleData(inputBuffer, 0)
+                            if (size < 0) {
+                                activeDecoder.queueInputBuffer(
+                                    inputIndex,
+                                    0,
+                                    0,
+                                    0,
+                                    MediaCodec.BUFFER_FLAG_END_OF_STREAM,
+                                )
+                                inputEnded = true
+                            } else {
+                                activeDecoder.queueInputBuffer(
+                                    inputIndex,
+                                    0,
+                                    size,
+                                    extractor.sampleTime,
+                                    0,
+                                )
+                                extractor.advance()
+                            }
+                        }
+                    }
+                    when (val outputIndex = activeDecoder.dequeueOutputBuffer(bufferInfo, 10_000)) {
+                        MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
+                            val format = activeDecoder.outputFormat
+                            sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                            channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+                            if (format.containsKey(MediaFormat.KEY_PCM_ENCODING)) {
+                                pcmEncoding = format.getInteger(MediaFormat.KEY_PCM_ENCODING)
+                            }
+                        }
+                        MediaCodec.INFO_TRY_AGAIN_LATER -> Unit
+                        else -> if (outputIndex >= 0) {
+                            val decoded = activeDecoder.getOutputBuffer(outputIndex)
+                            if (decoded != null && bufferInfo.size > 0) {
+                                decoded.position(bufferInfo.offset)
+                                decoded.limit(bufferInfo.offset + bufferInfo.size)
+                                dataBytes += writeMonoPcm(
+                                    decoded.slice().order(ByteOrder.nativeOrder()),
+                                    channels,
+                                    pcmEncoding,
+                                    wav,
+                                )
+                                require(
+                                    dataBytes <= sampleRate * BYTES_PER_SAMPLE *
+                                        MAX_IMPORT_DURATION_SECONDS,
+                                ) { "请选择 10 分钟以内的音频。" }
+                            }
+                            outputEnded = bufferInfo.flags and
+                                MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
+                            activeDecoder.releaseOutputBuffer(outputIndex, false)
+                        }
+                    }
+                }
+            }
+            require(dataBytes > 0L) { "音频解码后没有有效声音数据。" }
+            writeWavHeader(output, dataBytes, sampleRate, CHANNEL_COUNT)
+            return DecodedAudio(
+                sampleRate = sampleRate,
+                durationMs = dataBytes * 1000L / (sampleRate * BYTES_PER_SAMPLE),
+            )
+        } finally {
+            try {
+                decoder?.stop()
+            } catch (_: Exception) {
+                // Decoder may not have reached the started state.
+            }
+            decoder?.release()
+            extractor.release()
+        }
+    }
+
+    private fun writeMonoPcm(
+        buffer: ByteBuffer,
+        channels: Int,
+        pcmEncoding: Int,
+        output: FileOutputStream,
+    ): Long {
+        require(channels > 0) { "音频声道信息无效。" }
+        require(
+            pcmEncoding == AudioFormat.ENCODING_PCM_16BIT ||
+                pcmEncoding == AudioFormat.ENCODING_PCM_FLOAT,
+        ) { "设备返回了暂不支持的 PCM 格式：$pcmEncoding" }
+        val bytesPerInputSample = if (pcmEncoding == AudioFormat.ENCODING_PCM_FLOAT) 4 else 2
+        val frameCount = buffer.remaining() / (bytesPerInputSample * channels)
+        val mono = ByteBuffer.allocate(frameCount * 2).order(ByteOrder.LITTLE_ENDIAN)
+        repeat(frameCount) {
+            var sum = 0.0
+            repeat(channels) {
+                sum += if (pcmEncoding == AudioFormat.ENCODING_PCM_FLOAT) {
+                    buffer.float.coerceIn(-1f, 1f).toDouble()
+                } else {
+                    buffer.short / 32768.0
+                }
+            }
+            val sample = ((sum / channels).coerceIn(-1.0, 1.0) * 32767).toInt()
+            mono.putShort(sample.toShort())
+        }
+        output.write(mono.array())
+        return mono.capacity().toLong()
     }
 
     private fun loadDebugDemo(result: MethodChannel.Result) {
@@ -330,15 +606,24 @@ class MainActivity : FlutterActivity() {
             completedFailure = null
             recording = true
         }
+        currentRms = 0.0
+        currentPeak = 0.0
         recorder.startRecording()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        Log.i(TAG, "event=recording_started recording_id=$id max_duration_ms=$maxDurationMs")
+        Log.i(
+            TAG,
+            "event=recording_started recording_id=$id max_duration_ms=$maxDurationMs " +
+                "audio_source=$currentAudioSource",
+        )
         worker.execute { captureToWav(recorder, file, id, maxDurationMs) }
         result.success(mapOf("id" to id, "started_at_ms" to startedAt))
     }
 
     private fun createAudioRecord(bufferSize: Int): AudioRecord {
-        val preferredSource = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        val audioManager = getSystemService(AudioManager::class.java)
+        val supportsUnprocessed = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            audioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) == "true"
+        val preferredSource = if (supportsUnprocessed) {
             MediaRecorder.AudioSource.UNPROCESSED
         } else {
             MediaRecorder.AudioSource.MIC
@@ -351,9 +636,15 @@ class MainActivity : FlutterActivity() {
             bufferSize,
         )
         if (preferred.state == AudioRecord.STATE_INITIALIZED || preferredSource == MediaRecorder.AudioSource.MIC) {
+            currentAudioSource = if (preferredSource == MediaRecorder.AudioSource.UNPROCESSED) {
+                "UNPROCESSED"
+            } else {
+                "MIC"
+            }
             return preferred
         }
         preferred.release()
+        currentAudioSource = "MIC"
         return AudioRecord(
             MediaRecorder.AudioSource.MIC,
             SAMPLE_RATE,
@@ -385,6 +676,7 @@ class MainActivity : FlutterActivity() {
                     if (count > 0) {
                         val allowed = minOf(count.toLong(), maxDataBytes - dataBytes).toInt()
                         output.write(buffer, 0, allowed)
+                        updateRecordingLevel(buffer, allowed)
                         dataBytes += allowed
                     } else if (count < 0) {
                         throw IllegalStateException("AudioRecord read failed: $count")
@@ -429,6 +721,24 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun updateRecordingLevel(buffer: ByteArray, count: Int) {
+        val samples = count / BYTES_PER_SAMPLE
+        if (samples <= 0) return
+        var squares = 0.0
+        var peak = 0.0
+        var offset = 0
+        repeat(samples) {
+            val value = ((buffer[offset].toInt() and 0xff) or
+                (buffer[offset + 1].toInt() shl 8)).toShort().toInt() / 32768.0
+            val absolute = kotlin.math.abs(value)
+            squares += value * value
+            peak = max(peak, absolute)
+            offset += 2
+        }
+        currentRms = sqrt(squares / samples)
+        currentPeak = peak
+    }
+
     private fun finishRecording(result: MethodChannel.Result, delete: Boolean) {
         recording = false
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -463,8 +773,13 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun writeWavHeader(file: File, dataBytes: Long) {
-        val byteRate = SAMPLE_RATE * CHANNEL_COUNT * BYTES_PER_SAMPLE
+    private fun writeWavHeader(
+        file: File,
+        dataBytes: Long,
+        sampleRate: Int = SAMPLE_RATE,
+        channelCount: Int = CHANNEL_COUNT,
+    ) {
+        val byteRate = sampleRate * channelCount * BYTES_PER_SAMPLE
         val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN).apply {
             put("RIFF".toByteArray(Charsets.US_ASCII))
             putInt((36 + dataBytes).toInt())
@@ -472,10 +787,10 @@ class MainActivity : FlutterActivity() {
             put("fmt ".toByteArray(Charsets.US_ASCII))
             putInt(16)
             putShort(1.toShort())
-            putShort(CHANNEL_COUNT.toShort())
-            putInt(SAMPLE_RATE)
+            putShort(channelCount.toShort())
+            putInt(sampleRate)
             putInt(byteRate)
-            putShort((CHANNEL_COUNT * BYTES_PER_SAMPLE).toShort())
+            putShort((channelCount * BYTES_PER_SAMPLE).toShort())
             putShort(16.toShort())
             put("data".toByteArray(Charsets.US_ASCII))
             putInt(dataBytes.toInt())
@@ -491,6 +806,8 @@ class MainActivity : FlutterActivity() {
         activeTransformer?.cancel()
         compositionResult?.error("composition_cancelled", "应用关闭，合成已取消。", null)
         compositionResult = null
+        audioPickResult?.error("audio_picker_cancelled", "应用关闭，文件选择已取消。", null)
+        audioPickResult = null
         activeTransformer = null
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         worker.shutdown()

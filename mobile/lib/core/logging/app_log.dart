@@ -115,6 +115,16 @@ class RollingFileLogSink implements LogSink {
       if (await file.exists()) await sink.addStream(file.openRead());
     }
     if (await _active.exists()) await sink.addStream(_active.openRead());
+    for (var index = backupCount; index >= 1; index--) {
+      final native = File(
+        '${directory.path}${Platform.pathSeparator}native.$index.jsonl',
+      );
+      if (await native.exists()) await sink.addStream(native.openRead());
+    }
+    final native = File(
+      '${directory.path}${Platform.pathSeparator}native.jsonl',
+    );
+    if (await native.exists()) await sink.addStream(native.openRead());
     await sink.flush();
     await sink.close();
     return output;
@@ -198,10 +208,17 @@ class AppLogger {
       )
       .replaceAll(
         RegExp(
-          r'(?:[a-z]:\\|/)[^\r\n"]+\.(?:wav|mp3|mp4|json|tmp)',
+          r'(?:[a-z]:\\|/)[^\r\n"]+\.(?:wav|mp3|mp4|m4a|aac|flac|ogg|tflite|csv|json|tmp|source|part)',
           caseSensitive: false,
         ),
         '[REDACTED_PATH]',
+      )
+      .replaceAllMapped(
+        RegExp(
+          r'([?&](?:token|access_token|api_key|signature|x-oss-signature|x-oss-security-token|ossaccesskeyid|x-amz-credential|x-amz-signature|x-amz-security-token)=)[^&\s]+',
+          caseSensitive: false,
+        ),
+        (match) => '${match.group(1)}[REDACTED]',
       );
 
   static const _sensitiveKeys = [

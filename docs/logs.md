@@ -17,7 +17,7 @@
 }
 ```
 
-一次移动端录音使用录音 ID 作为 `trace_id`。主动请求云端科普时，App 通过 `X-Trace-ID` 请求头传递该值；API 在响应头中返回同一值，并将它带入后台分析与创作线程。
+一次移动端录音使用录音 ID 作为 `trace_id`。主动请求云端科普时，App 通过 `X-Trace-ID` 请求头传递该值；API 在响应头中返回同一值。一次本地 AI 创作使用作品 ID 作为 `trace_id`，串联音乐、旁白、Wan 视频、素材下载、本机合成和后台恢复事件。
 
 ## 移动端
 
@@ -28,14 +28,16 @@ Flutter 启动时安装三类全局异常处理：Flutter 框架错误、Platfor
 - 首页右上角诊断按钮可以查看本次运行事件；
 - “导出诊断日志”生成 JSONL 快照，并把文件路径复制到剪贴板；
 - Android 录音错误同时写入 Logcat，标签为 `NatureAudio`。
+- Android 后台视频任务写入 `native.jsonl`，独立轮转，并在导出时与 Flutter 日志合并；
+- 后台日志同时写入 Logcat，标签为 `NatureDiagnostic`。
 
 常用排查命令：
 
 ```bash
-adb logcat -s NatureAudio flutter
+adb logcat -s NatureAudio NatureDiagnostic flutter
 ```
 
-关键组件包括 `audio`、`yamnet`、`birdnet`、`inference`、`storage`、`cloud`、`flutter` 和 `dart`。
+关键组件包括 `audio`、`yamnet`、`birdnet`、`inference`、`storage`、`cloud`、`creation`、`creation_worker`、`works`、`settings`、`flutter` 和 `dart`。视频轮询只在供应商状态变化时记录，避免固定间隔产生重复日志。
 
 ## 服务端
 
@@ -50,6 +52,7 @@ Python 使用标准库 `logging` 输出单行 JSON，适配本地 Uvicorn、Verc
 - 录音二进制或 Base64；
 - 录音文件完整路径；
 - API Key、Authorization、Token；
+- 带签名参数的素材下载地址；
 - 完整提示词或模型响应；
 - 设备序列号、广告标识符或用户账号。
 
@@ -63,3 +66,5 @@ Python 使用标准库 `logging` 输出单行 JSON，适配本地 Uvicorn、Verc
 4. 查看 `inference.analysis_completed` 的融合前后候选数量；
 5. 如涉及联网，用同一 `trace_id` 查询 Vercel/FastAPI 日志；
 6. 根据 `status_code`、异常类型和最后完成的阶段判断客户端、网络、模型或供应商故障。
+
+创作问题使用作品 ID 检索 `creation` 和 `creation_worker`：先找最后一个 `stage_changed`，再检查对应的供应商响应、状态变化、下载或合成事件。应用退到后台后的故障以导出文件中的 `creation_worker` 事件为准。

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/storage/creation_settings_store.dart';
 
@@ -33,17 +34,26 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
   }
 
   Future<void> _load() async {
-    final settings = await _store.load();
-    if (!mounted) return;
-    _minimaxKey.text = settings.minimaxApiKey;
-    _minimaxModel.text = settings.minimaxMusicModel;
-    _dashscopeKey.text = settings.dashscopeApiKey;
-    _workspaceId.text = settings.dashscopeWorkspaceId;
-    _wanModel.text = settings.wanVideoModel;
-    setState(() {
-      _region = settings.dashscopeRegion;
-      _loading = false;
-    });
+    try {
+      final settings = await _store.load();
+      if (!mounted) return;
+      _minimaxKey.text = settings.minimaxApiKey;
+      _minimaxModel.text = settings.minimaxMusicModel;
+      _dashscopeKey.text = settings.dashscopeApiKey;
+      _workspaceId.text = settings.dashscopeWorkspaceId;
+      _wanModel.text = settings.wanVideoModel;
+      setState(() => _region = settings.dashscopeRegion);
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'settings',
+        'creation_config_load_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('无法读取本机配置，请稍后重试。');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -59,35 +69,56 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _saving) return;
     setState(() => _saving = true);
-    await _store.save(
-      CreationSettings(
-        minimaxApiKey: _minimaxKey.text,
-        minimaxMusicModel: _minimaxModel.text,
-        dashscopeApiKey: _dashscopeKey.text,
-        dashscopeWorkspaceId: _workspaceId.text,
-        dashscopeRegion: _region,
-        wanVideoModel: _wanModel.text,
-      ),
-    );
-    if (!mounted) return;
-    setState(() => _saving = false);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('创作配置已保存在本机')));
-    Navigator.of(context).pop(true);
+    try {
+      await _store.save(
+        CreationSettings(
+          minimaxApiKey: _minimaxKey.text,
+          minimaxMusicModel: _minimaxModel.text,
+          dashscopeApiKey: _dashscopeKey.text,
+          dashscopeWorkspaceId: _workspaceId.text,
+          dashscopeRegion: _region,
+          wanVideoModel: _wanModel.text,
+        ),
+      );
+      if (!mounted) return;
+      _showMessage('创作配置已保存在本机');
+      Navigator.of(context).pop(true);
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'settings',
+        'creation_config_save_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('配置保存失败，请检查存储空间后重试。');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _clear() async {
-    await _store.clear();
-    _minimaxKey.clear();
-    _dashscopeKey.clear();
-    _workspaceId.clear();
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('本机密钥已清除')));
-    setState(() {});
+    try {
+      await _store.clear();
+      _minimaxKey.clear();
+      _dashscopeKey.clear();
+      _workspaceId.clear();
+      if (!mounted) return;
+      _showMessage('本机密钥已清除');
+      setState(() {});
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'settings',
+        'creation_config_clear_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('暂时无法清除本机密钥。');
+    }
   }
+
+  void _showMessage(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {

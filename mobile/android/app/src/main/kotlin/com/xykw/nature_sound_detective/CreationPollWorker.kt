@@ -24,33 +24,121 @@ class CreationPollWorker(
 ) : Worker(appContext, params) {
     override fun doWork(): Result {
         val taskFile = File(inputData.getString(KEY_TASK_PATH).orEmpty())
-        if (!taskFile.isFile) return Result.failure()
+        if (!taskFile.isFile) {
+            NativeDiagnosticLog.emit(
+                applicationContext,
+                "error",
+                "creation_worker",
+                "task_file_missing",
+                fields = mapOf("attempt" to runAttemptCount),
+            )
+            return Result.failure()
+        }
 
+        var activeRecordId: String? = null
         return try {
             var record = JSONObject(taskFile.readText())
+            val recordId = record.optString("id")
+            activeRecordId = recordId
+            NativeDiagnosticLog.emit(
+                applicationContext,
+                "info",
+                "creation_worker",
+                "started",
+                traceId = recordId,
+                fields = mapOf("attempt" to runAttemptCount),
+            )
             val existingVideo = record.optString("video_path")
-            if (existingVideo.isNotBlank() && File(existingVideo).isFile) return Result.success()
+            if (existingVideo.isNotBlank() && File(existingVideo).isFile) {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "info",
+                    "creation_worker",
+                    "video_already_available",
+                    traceId = recordId,
+                )
+                return Result.success()
+            }
 
             val taskId = record.optString("wan_task_id")
-            if (taskId.isBlank()) return Result.failure()
+            if (taskId.isBlank()) {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "error",
+                    "creation_worker",
+                    "task_id_missing",
+                    traceId = recordId,
+                )
+                return Result.failure()
+            }
             val settingsFile = File(applicationContext.filesDir, "config/creation_settings.json")
-            if (!settingsFile.isFile) return Result.failure()
+            if (!settingsFile.isFile) {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "error",
+                    "creation_worker",
+                    "settings_missing",
+                    traceId = recordId,
+                )
+                return Result.failure()
+            }
             val settings = JSONObject(settingsFile.readText())
             val apiKey = settings.optString("dashscope_api_key").trim()
-            if (apiKey.isBlank()) return Result.failure()
+            if (apiKey.isBlank()) {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "error",
+                    "creation_worker",
+                    "api_key_missing",
+                    traceId = recordId,
+                )
+                return Result.failure()
+            }
 
             val deadline = System.currentTimeMillis() + POLL_TIMEOUT_MS
+            var previousStatus = ""
             while (!isStopped && System.currentTimeMillis() < deadline) {
                 val output = poll(baseUrl(settings), apiKey, taskId)
-                when (output.optString("task_status").uppercase()) {
+                val status = output.optString("task_status").uppercase()
+                if (status != previousStatus) {
+                    NativeDiagnosticLog.emit(
+                        applicationContext,
+                        "info",
+                        "creation_worker",
+                        "video_status_changed",
+                        traceId = recordId,
+                        fields = mapOf("status" to status.ifBlank { "MISSING" }),
+                    )
+                    previousStatus = status
+                }
+                when (status) {
                     "SUCCEEDED" -> {
                         val videoUrl = output.optString("video_url")
                         if (videoUrl.isBlank()) {
                             mark(record, taskFile, "partial", "视频完成但未返回下载地址", "Wan 未返回视频地址")
+                            NativeDiagnosticLog.emit(
+                                applicationContext,
+                                "error",
+                                "creation_worker",
+                                "video_url_missing",
+                                traceId = recordId,
+                            )
                             return Result.failure()
                         }
                         val destination = File(taskFile.parentFile, "nature_video.mp4")
+                        val downloadStarted = System.currentTimeMillis()
                         download(videoUrl, destination)
+                        NativeDiagnosticLog.emit(
+                            applicationContext,
+                            "info",
+                            "creation_worker",
+                            "video_downloaded",
+                            traceId = recordId,
+                            fields = mapOf(
+                                "duration_ms" to System.currentTimeMillis() - downloadStarted,
+                                "byte_length" to destination.length(),
+                            ),
+                        )
                         record = JSONObject(taskFile.readText())
                         if (record.optString("stage") in setOf("composing", "completed") ||
                             record.optString("final_video_path").isNotBlank()
@@ -58,21 +146,73 @@ class CreationPollWorker(
                         record.put("video_path", destination.absolutePath)
                         record.put("video_error", "")
                         mark(record, taskFile, "partial", "视频已在后台完成，打开作品继续合成", null)
+                        NativeDiagnosticLog.emit(
+                            applicationContext,
+                            "info",
+                            "creation_worker",
+                            "completed",
+                            traceId = recordId,
+                        )
                         return Result.success()
                     }
                     "FAILED", "CANCELED", "UNKNOWN" -> {
                         val message = output.optString("message", "Wan 视频任务失败")
                         mark(record, taskFile, "partial", message, message)
+                        NativeDiagnosticLog.emit(
+                            applicationContext,
+                            "error",
+                            "creation_worker",
+                            "provider_task_failed",
+                            traceId = recordId,
+                            fields = mapOf("status" to status),
+                        )
                         return Result.failure()
                     }
                 }
                 Thread.sleep(POLL_INTERVAL_MS)
                 record = JSONObject(taskFile.readText())
             }
-            if (isStopped) Result.success() else Result.retry()
-        } catch (_: IOException) {
+            if (isStopped) {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "info",
+                    "creation_worker",
+                    "stopped",
+                    traceId = recordId,
+                )
+                Result.success()
+            } else {
+                NativeDiagnosticLog.emit(
+                    applicationContext,
+                    "warning",
+                    "creation_worker",
+                    "poll_timeout_retrying",
+                    traceId = recordId,
+                    fields = mapOf("attempt" to runAttemptCount),
+                )
+                Result.retry()
+            }
+        } catch (error: IOException) {
+            NativeDiagnosticLog.emit(
+                applicationContext,
+                "warning",
+                "creation_worker",
+                "io_failure_retrying",
+                traceId = activeRecordId,
+                fields = mapOf("attempt" to runAttemptCount),
+                error = error,
+            )
             Result.retry()
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            NativeDiagnosticLog.emit(
+                applicationContext,
+                "error",
+                "creation_worker",
+                "unexpected_failure",
+                traceId = activeRecordId,
+                fields = mapOf("attempt" to runAttemptCount),
+                error = error,
+            )
             Result.failure()
         }
     }
@@ -163,10 +303,24 @@ class CreationPollWorker(
                 ExistingWorkPolicy.KEEP,
                 request,
             )
+            NativeDiagnosticLog.emit(
+                context,
+                "info",
+                "creation_worker",
+                "scheduled",
+                traceId = recordId,
+            )
         }
 
         fun cancel(context: Context, recordId: String) {
             WorkManager.getInstance(context).cancelUniqueWork("creation_$recordId")
+            NativeDiagnosticLog.emit(
+                context,
+                "info",
+                "creation_worker",
+                "cancel_requested",
+                traceId = recordId,
+            )
         }
     }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -12,7 +13,10 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
   const WavQualityAnalyzer();
 
   @override
-  Future<AudioQuality> analyze(String path) async {
+  Future<AudioQuality> analyze(String path) =>
+      Isolate.run(() => _analyze(path));
+
+  static Future<AudioQuality> _analyze(String path) async {
     final bytes = await File(path).readAsBytes();
     final wav = _PcmWav.parse(bytes);
     if (wav.bitsPerSample != 16 || wav.channelCount != 1) {
@@ -45,17 +49,43 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
     final silentRatio = silentSamples / sampleCount;
     final clippedRatio = clippedSamples / sampleCount;
     final durationSeconds = sampleCount / wav.sampleRate;
+    final windowSamples = math.max(wav.sampleRate * 3, 1);
+    final hopSamples = math.max(windowSamples ~/ 2, 1);
+    var bestWindowRms = 0.0;
+    var activeWindowCount = 0;
+    var totalWindowCount = 0;
+    for (var start = 0; start < sampleCount; start += hopSamples) {
+      final end = math.min(start + windowSamples, sampleCount);
+      if (end <= start) break;
+      var windowSquares = 0.0;
+      for (var index = start; index < end; index++) {
+        final normalized = data.getInt16(index * 2, Endian.little) / 32768.0;
+        windowSquares += normalized * normalized;
+      }
+      final count = end - start;
+      final windowRms = math.sqrt(windowSquares / count);
+      bestWindowRms = math.max(bestWindowRms, windowRms);
+      if (windowRms >= 0.003) {
+        activeWindowCount++;
+      }
+      totalWindowCount++;
+      if (end == sampleCount) break;
+    }
+    final usable = durationSeconds >= 1 && activeWindowCount > 0;
     final warnings = <String>[];
-    if (durationSeconds < 3) {
+    if (durationSeconds < 1) {
+      warnings.add('录音不足 1 秒，请多录几次完整叫声。');
+    } else if (durationSeconds < 3) {
       warnings.add('录音少于 3 秒，多录几次叫声会更容易识别。');
     }
-    if (rms < 0.012 || silentRatio > 0.82) {
-      warnings.add('声音偏小或静音较多，请靠近目标声音再录一次。');
+    if (bestWindowRms < 0.012) {
+      warnings.add(usable ? '声音有些远，但仍可以尝试识别。' : '没有检测到清晰声音，请检查麦克风后再试。');
+    } else if (activeWindowCount < math.max(2, totalWindowCount ~/ 4)) {
+      warnings.add('声音只在少数片段出现，识别会重点分析这些片段。');
     }
     if (clippedRatio > 0.025) {
       warnings.add('声音过强并出现失真，请离声源远一点。');
     }
-    final usable = durationSeconds >= 1 && rms >= 0.003 && silentRatio <= 0.95;
     if (!usable && warnings.isEmpty) {
       warnings.add('这段录音暂时不适合识别，请重新录制。');
     }
@@ -66,6 +96,9 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
       peak: peak,
       silentRatio: silentRatio,
       clippedRatio: clippedRatio,
+      bestWindowRms: bestWindowRms,
+      activeWindowCount: activeWindowCount,
+      totalWindowCount: totalWindowCount,
     );
   }
 }

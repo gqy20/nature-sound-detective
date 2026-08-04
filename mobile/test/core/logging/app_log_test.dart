@@ -26,13 +26,17 @@ void main() {
         'authorization': 'Bearer secret-value',
         'note': 'key sk-1234567890abcdef',
       },
-      error: r'Bearer another-secret at D:\private\recordings\child.wav',
+      error:
+          r'Bearer another-secret at D:\private\recordings\child.m4a?token=visible-secret',
     );
     await logger.flush();
 
     expect(sink.entries.single.fields['authorization'], '[REDACTED]');
     expect(sink.entries.single.fields['note'], contains('[REDACTED_KEY]'));
-    expect(sink.entries.single.error, 'Bearer [REDACTED] at [REDACTED_PATH]');
+    expect(sink.entries.single.error, contains('Bearer [REDACTED]'));
+    expect(sink.entries.single.error, contains('[REDACTED_PATH]'));
+    expect(sink.entries.single.error, contains('token=[REDACTED]'));
+    expect(sink.entries.single.error, isNot(contains('visible-secret')));
   });
 
   test('rolls files and exports a bounded diagnostic log', () async {
@@ -51,13 +55,18 @@ void main() {
       );
     }
     await logger.flush();
+    await File(
+      '${root.path}${Platform.pathSeparator}native.jsonl',
+    ).writeAsString('{"component":"creation_worker","event":"completed"}\n');
     final exported = await fileSink.export();
 
     expect(await exported.exists(), isTrue);
-    expect(await exported.readAsString(), contains('rec_12345678'));
+    final contents = await exported.readAsString();
+    expect(contents, contains('rec_12345678'));
+    expect(contents, contains('creation_worker'));
     expect(
       await root.list().where((file) => file.path.endsWith('.jsonl')).length,
-      lessThanOrEqualTo(4),
+      lessThanOrEqualTo(5),
     );
   });
 }

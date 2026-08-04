@@ -1,7 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 
-class MethodChannelAudioRecorder implements AudioRecorder {
+class MethodChannelAudioRecorder
+    implements AudioRecorder, AudioImporter, RecordingLevelProvider {
   MethodChannelAudioRecorder({MethodChannel? channel})
     : _channel = channel ?? const MethodChannel(_channelName);
 
@@ -50,6 +51,20 @@ class MethodChannelAudioRecorder implements AudioRecorder {
 
   @override
   Future<void> cancel() => _channel.invokeMethod<void>('cancelRecording');
+
+  @override
+  Future<RecordedAudio?> pickAudio() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>('pickAudio');
+    return value == null ? null : RecordedAudio.fromMap(value);
+  }
+
+  @override
+  Future<RecordingLevel> getRecordingLevel() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'getRecordingLevel',
+    );
+    return RecordingLevel.fromMap(value ?? const {});
+  }
 
   Future<RecordedAudio> loadDebugDemo() async {
     final value = await _channel.invokeMapMethod<Object?, Object?>(

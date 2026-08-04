@@ -36,6 +36,28 @@ class RecordedAudio {
   final int byteLength;
 }
 
+class RecordingLevel {
+  const RecordingLevel({required this.rms, required this.peak, this.source});
+
+  factory RecordingLevel.fromMap(Map<Object?, Object?> value) => RecordingLevel(
+    rms: (value['rms'] as num?)?.toDouble() ?? 0,
+    peak: (value['peak'] as num?)?.toDouble() ?? 0,
+    source: value['source'] as String?,
+  );
+
+  final double rms;
+  final double peak;
+  final String? source;
+}
+
+abstract interface class AudioImporter {
+  Future<RecordedAudio?> pickAudio();
+}
+
+abstract interface class RecordingLevelProvider {
+  Future<RecordingLevel> getRecordingLevel();
+}
+
 abstract interface class AudioRecorder {
   Future<bool> hasPermission();
 

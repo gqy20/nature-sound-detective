@@ -6,6 +6,9 @@ class AudioQuality {
     this.peak,
     this.silentRatio,
     this.clippedRatio,
+    this.bestWindowRms,
+    this.activeWindowCount,
+    this.totalWindowCount,
   });
 
   factory AudioQuality.fromJson(Map<String, Object?> json) {
@@ -16,6 +19,9 @@ class AudioQuality {
       peak: _number(json['peak']),
       silentRatio: _number(json['silent_ratio']),
       clippedRatio: _number(json['clipped_ratio']),
+      bestWindowRms: _number(json['best_window_rms']),
+      activeWindowCount: (json['active_window_count'] as num?)?.round(),
+      totalWindowCount: (json['total_window_count'] as num?)?.round(),
     );
   }
 
@@ -25,6 +31,9 @@ class AudioQuality {
   final double? peak;
   final double? silentRatio;
   final double? clippedRatio;
+  final double? bestWindowRms;
+  final int? activeWindowCount;
+  final int? totalWindowCount;
 
   Map<String, Object?> toJson() => {
     'usable': usable,
@@ -33,6 +42,9 @@ class AudioQuality {
     if (peak != null) 'peak': peak,
     if (silentRatio != null) 'silent_ratio': silentRatio,
     if (clippedRatio != null) 'clipped_ratio': clippedRatio,
+    if (bestWindowRms != null) 'best_window_rms': bestWindowRms,
+    if (activeWindowCount != null) 'active_window_count': activeWindowCount,
+    if (totalWindowCount != null) 'total_window_count': totalWindowCount,
   };
 }
 

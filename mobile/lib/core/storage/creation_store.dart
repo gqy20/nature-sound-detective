@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -26,6 +27,12 @@ class CreationStore {
     await temporary.writeAsString(jsonEncode(record.toJson()), flush: true);
     if (await target.exists()) await target.delete();
     await temporary.rename(target.path);
+    AppLog.debug(
+      'creation_storage',
+      'record_saved',
+      traceId: record.id,
+      fields: {'stage': record.stage.name},
+    );
   }
 
   Future<CreationRecord?> load(String id) async {
@@ -53,6 +60,7 @@ class CreationStore {
       throw ArgumentError('作品目录不在应用创作目录中。');
     }
     if (await target.exists()) await target.delete(recursive: true);
+    AppLog.info('creation_storage', 'record_deleted', traceId: record.id);
   }
 
   Future<CreationRecord?> _read(File file) async {
@@ -63,7 +71,13 @@ class CreationStore {
         final record = CreationRecord.fromJson(decoded);
         return record.id.isEmpty ? null : record;
       }
-    } on FormatException {
+    } on FormatException catch (error, stackTrace) {
+      AppLog.warning(
+        'creation_storage',
+        'damaged_record_skipped',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return null;
     }
     return null;

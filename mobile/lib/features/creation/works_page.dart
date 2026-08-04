@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/storage/creation_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
@@ -28,12 +29,21 @@ class _WorksPageState extends State<WorksPage> {
   }
 
   Future<void> _load() async {
-    final records = await _store.list();
-    if (!mounted) return;
-    setState(() {
-      _records = records;
-      _loading = false;
-    });
+    try {
+      final records = await _store.list();
+      if (!mounted) return;
+      setState(() => _records = records);
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'works',
+        'list_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('作品册读取失败，请稍后重试。');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _open(CreationRecord record) async {
@@ -53,13 +63,29 @@ class _WorksPageState extends State<WorksPage> {
     final path = record.finalVideoPath.isNotEmpty
         ? record.finalVideoPath
         : (record.videoPath.isNotEmpty ? record.videoPath : record.musicPath);
-    if (path.isEmpty || !File(path).existsSync()) return;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: '我在${record.location}听见了${record.subject}，这是我的自然声音作品。',
-        files: [XFile(path)],
-      ),
-    );
+    if (path.isEmpty || !File(path).existsSync()) {
+      AppLog.warning('works', 'share_file_missing', traceId: record.id);
+      if (mounted) _showMessage('作品文件已经不存在。');
+      return;
+    }
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: '我在${record.location}听见了${record.subject}，这是我的自然声音作品。',
+          files: [XFile(path)],
+        ),
+      );
+      AppLog.info('works', 'share_opened', traceId: record.id);
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'works',
+        'share_failed',
+        traceId: record.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('暂时无法分享这件作品。');
+    }
   }
 
   Future<void> _delete(CreationRecord record) async {
@@ -81,9 +107,24 @@ class _WorksPageState extends State<WorksPage> {
       ),
     );
     if (agreed != true) return;
-    await _store.delete(record);
-    await _load();
+    try {
+      await _store.delete(record);
+      await _load();
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'works',
+        'delete_failed',
+        traceId: record.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('作品删除失败，请稍后重试。');
+    }
   }
+
+  void _showMessage(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {

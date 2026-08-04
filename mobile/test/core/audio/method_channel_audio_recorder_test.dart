@@ -61,4 +61,37 @@ void main() {
     expect(recording.duration, const Duration(seconds: 12));
     expect(recording.sampleRate, 48000);
   });
+
+  test('maps imported audio and live recording level', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'pickAudio') {
+            return <String, Object>{
+              'id': 'import_1',
+              'path': '/cache/imports/import_1.wav',
+              'duration_ms': 4500,
+              'sample_rate': 44100,
+              'channel_count': 1,
+              'byte_length': 396944,
+            };
+          }
+          if (call.method == 'getRecordingLevel') {
+            return <String, Object>{
+              'rms': 0.021,
+              'peak': 0.18,
+              'source': 'UNPROCESSED',
+            };
+          }
+          return null;
+        });
+    final recorder = MethodChannelAudioRecorder(channel: channel);
+
+    final imported = await recorder.pickAudio();
+    final level = await recorder.getRecordingLevel();
+
+    expect(imported?.id, 'import_1');
+    expect(imported?.sampleRate, 44100);
+    expect(level.rms, 0.021);
+    expect(level.source, 'UNPROCESSED');
+  });
 }

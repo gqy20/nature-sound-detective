@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/background/creation_background.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/network/direct_creation_service.dart';
 import 'package:nature_sound_detective/core/storage/creation_settings_store.dart';
@@ -78,32 +79,44 @@ class _CreationPageState extends State<CreationPage>
   }
 
   Future<void> _loadSettings() async {
-    final settings = await _settingsStore.load();
-    if (!mounted) return;
-    setState(() {
-      _settings = settings;
-      if (widget.existingRecord case final record?) {
-        _stage = record.stage;
-        _stageMessage = record.message;
-        _artifacts = CreationArtifacts(
-          id: record.id,
-          directoryPath: record.directoryPath,
-          musicPath: record.musicPath.isEmpty ? null : record.musicPath,
-          narrationPath: record.narrationPath.isEmpty
-              ? null
-              : record.narrationPath,
-          videoPath: record.videoPath.isEmpty ? null : record.videoPath,
-          finalVideoPath: record.finalVideoPath.isEmpty
-              ? null
-              : record.finalVideoPath,
-          musicError: record.musicError.isEmpty ? null : record.musicError,
-          videoError: record.videoError.isEmpty ? null : record.videoError,
-          wanTaskId: record.wanTaskId,
-        );
-      }
-      _loading = false;
-    });
-    await _initializeVideo();
+    try {
+      final settings = await _settingsStore.load();
+      if (!mounted) return;
+      setState(() {
+        _settings = settings;
+        if (widget.existingRecord case final record?) {
+          _stage = record.stage;
+          _stageMessage = record.message;
+          _artifacts = CreationArtifacts(
+            id: record.id,
+            directoryPath: record.directoryPath,
+            musicPath: record.musicPath.isEmpty ? null : record.musicPath,
+            narrationPath: record.narrationPath.isEmpty
+                ? null
+                : record.narrationPath,
+            videoPath: record.videoPath.isEmpty ? null : record.videoPath,
+            finalVideoPath: record.finalVideoPath.isEmpty
+                ? null
+                : record.finalVideoPath,
+            musicError: record.musicError.isEmpty ? null : record.musicError,
+            videoError: record.videoError.isEmpty ? null : record.videoError,
+            wanTaskId: record.wanTaskId,
+          );
+        }
+      });
+      await _initializeVideo();
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'creation_ui',
+        'page_initialization_failed',
+        traceId: widget.existingRecord?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _error = '作品信息读取失败，请稍后重试。');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -158,6 +171,12 @@ class _CreationPageState extends State<CreationPage>
       ),
     );
     if (agreed != true || !mounted) return;
+    AppLog.info(
+      'creation_ui',
+      'creation_confirmed',
+      traceId: widget.existingRecord?.id,
+      fields: {'resume': widget.existingRecord != null},
+    );
     await _playback.stop();
     await _videoController?.dispose();
     setState(() {
@@ -212,7 +231,14 @@ class _CreationPageState extends State<CreationPage>
       if (!mounted) return;
       setState(() => _artifacts = artifacts);
       await _initializeVideo();
-    } on CreationException catch (error) {
+    } on CreationException catch (error, stackTrace) {
+      AppLog.warning(
+        'creation_ui',
+        'creation_failed',
+        traceId: widget.existingRecord?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         setState(() {
           _stage = CreationStage.failed;
@@ -220,7 +246,14 @@ class _CreationPageState extends State<CreationPage>
           _error = error.message;
         });
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'creation_ui',
+        'creation_unexpected_failure',
+        traceId: widget.existingRecord?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
         setState(() {
           _stage = CreationStage.failed;
@@ -235,38 +268,71 @@ class _CreationPageState extends State<CreationPage>
     final artifacts = _artifacts;
     final path = artifacts?.finalVideoPath ?? artifacts?.videoPath;
     if (path == null || !File(path).existsSync()) return;
-    await _videoController?.dispose();
-    final controller = VideoPlayerController.file(File(path));
-    await controller.initialize();
-    await controller.setLooping(true);
-    if (!mounted) {
-      await controller.dispose();
-      return;
+    try {
+      await _videoController?.dispose();
+      final controller = VideoPlayerController.file(File(path));
+      await controller.initialize();
+      await controller.setLooping(true);
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() => _videoController = controller);
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'creation_ui',
+        'video_initialization_failed',
+        traceId: _artifacts?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _error = '视频暂时无法播放，但作品文件仍然保留。');
     }
-    setState(() => _videoController = controller);
   }
 
   Future<void> _toggleMusic() async {
     final path = _artifacts?.musicPath;
     if (path == null) return;
-    if (_playingMusic) {
-      await _playback.stop();
-    } else {
-      await _videoController?.pause();
-      await _playback.play(path);
+    try {
+      if (_playingMusic) {
+        await _playback.stop();
+      } else {
+        await _videoController?.pause();
+        await _playback.play(path);
+      }
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'creation_ui',
+        'music_playback_failed',
+        traceId: _artifacts?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _error = '音乐暂时无法播放。');
     }
   }
 
   Future<void> _toggleVideo() async {
     final controller = _videoController;
     if (controller == null) return;
-    await _playback.stop();
-    if (controller.value.isPlaying) {
-      await controller.pause();
-    } else {
-      await controller.play();
+    try {
+      await _playback.stop();
+      if (controller.value.isPlaying) {
+        await controller.pause();
+      } else {
+        await controller.play();
+      }
+      if (mounted) setState(() {});
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'creation_ui',
+        'video_playback_failed',
+        traceId: _artifacts?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _error = '视频暂时无法播放。');
     }
-    if (mounted) setState(() {});
   }
 
   @override

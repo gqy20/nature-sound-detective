@@ -1,4 +1,14 @@
 import 'dart:convert';
+import 'dart:math' as math;
+
+const minimumExactSpeciesTopMargin = 0.08;
+
+double requiredNonBirdTopMargin(
+  NonBirdSpecies species,
+  NonBirdRejectionPolicy policy,
+) => species.scientificName == null
+    ? policy.minTopMargin
+    : math.max(policy.minTopMargin, minimumExactSpeciesTopMargin);
 
 class NonBirdSpecies {
   const NonBirdSpecies({

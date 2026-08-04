@@ -35,7 +35,7 @@ void main() {
   });
 
   test(
-    'ships 200 unique Hangzhou candidates including the verified six',
+    'ships 200 unique Hangzhou candidates with official challenge names',
     () async {
       final source = await rootBundle.loadString(
         'assets/labels/birdnet_hz.json',
@@ -60,6 +60,24 @@ void main() {
             .toSet(),
         {1550, 2420, 5149, 5746, 6250, 6329},
       );
+      const officialNames = {
+        'Abroscopus albogularis': '棕脸鹟莺',
+        'Copsychus saularis': '鹊鸲',
+        'Cuculus canorus': '大杜鹃',
+        'Horornis fortipes': '强脚树莺',
+        'Lanius schach': '棕背伯劳',
+        'Passer montanus': '麻雀',
+        'Pica serica': '喜鹊',
+        'Pycnonotus sinensis': '白头鹎',
+        'Streptopelia chinensis': '珠颈斑鸠',
+        'Turdus mandarinus': '乌鸫',
+        'Urocissa erythroryncha': '红嘴蓝鹊',
+      };
+      expect({
+        for (final item in species)
+          if (officialNames.containsKey(item.scientificName))
+            item.scientificName: item.nameZh,
+      }, officialNames);
     },
   );
 }

@@ -93,16 +93,94 @@ void main() {
     await tester.tap(find.byKey(const Key('record-button')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('record-button')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('analyze-button')));
     await tester.pump();
 
+    expect(find.byKey(const Key('analyze-button')), findsNothing);
+    expect(find.byKey(const Key('analysis-progress')), findsOneWidget);
     expect(find.byKey(const Key('analysis-window-progress')), findsOneWidget);
     expect(find.textContaining('1 / 2'), findsOneWidget);
 
     analyzer.finish.complete();
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('uses compact result status, duration and action row', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final recorder = _FakeRecorder();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: recorder,
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: const _FakeAnalyzer(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('回放原声 · 5s'), findsOneWidget);
+    expect(find.byKey(const Key('quality-status')), findsOneWidget);
+    expect(find.text('录音质量可用于识别'), findsNothing);
+    expect(find.byKey(const Key('analyze-button')), findsNothing);
+    await tester.drag(
+      find.byKey(const Key('result-sheet-scroll')),
+      const Offset(0, -900),
+    );
+    await tester.pumpAndSettle();
+
+    final save = find.byKey(const Key('save-exploration-button'));
+    final card = find.byKey(const Key('cloud-card-button'));
+    final create = find.byKey(const Key('open-creation-button'));
+    expect(find.text('保存'), findsOneWidget);
+    expect(find.text('科普卡'), findsOneWidget);
+    expect(find.text('创作'), findsOneWidget);
+    expect(find.text('保存到声音册'), findsNothing);
+    expect(find.text('生成儿童科普卡'), findsNothing);
+    expect(find.text('创作音乐和短片'), findsNothing);
+    expect(tester.getTopLeft(save).dy, tester.getTopLeft(card).dy);
+    expect(tester.getTopLeft(card).dy, tester.getTopLeft(create).dy);
+  });
+
+  testWidgets('offers retry only when automatic analysis fails', (
+    tester,
+  ) async {
+    final analyzer = _FailingThenSuccessfulAnalyzer();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: _FakeRecorder(),
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: analyzer,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+
+    expect(analyzer.calls, 1);
+    expect(find.byKey(const Key('analyze-button')), findsNothing);
+    expect(find.byKey(const Key('retry-analysis-button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('retry-analysis-button')));
+    await tester.pumpAndSettle();
+
+    expect(analyzer.calls, 2);
+    expect(find.byKey(const Key('retry-analysis-button')), findsNothing);
+    expect(find.byKey(const Key('unknown-result')), findsOneWidget);
   });
 }
 
@@ -196,6 +274,24 @@ class _ProgressiveAnalyzer implements RecordingAnalyzer {
     onProgress?.call(const [detection], 1, 2);
     await finish.future;
     return const [detection];
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _FailingThenSuccessfulAnalyzer implements RecordingAnalyzer {
+  int calls = 0;
+
+  @override
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async {
+    calls += 1;
+    if (calls == 1) throw StateError('model unavailable');
+    return const [];
   }
 
   @override

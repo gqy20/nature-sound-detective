@@ -49,8 +49,10 @@ class SoundDetection {
     required this.nameZh,
     required this.confidence,
     required this.model,
+    this.supportingModels = const [],
     this.intervals = const [],
     this.specificSpecies,
+    this.tentative = false,
   }) : assert(confidence >= 0 && confidence <= 1);
 
   factory SoundDetection.fromJson(Map<String, Object?> json) {
@@ -60,6 +62,10 @@ class SoundDetection {
       nameZh: json['name_zh'] as String? ?? '无法判断',
       confidence: ((json['confidence'] as num?)?.toDouble() ?? 0).clamp(0, 1),
       model: json['model'] as String? ?? 'unknown',
+      supportingModels: switch (json['supporting_models']) {
+        final List<Object?> values => values.whereType<String>().toList(),
+        _ => const [],
+      },
       intervals: intervalValues is List<Object?>
           ? intervalValues
                 .whereType<Map<Object?, Object?>>()
@@ -75,6 +81,7 @@ class SoundDetection {
         ),
         _ => null,
       },
+      tentative: json['tentative'] as bool? ?? false,
     );
   }
 
@@ -82,15 +89,22 @@ class SoundDetection {
   final String nameZh;
   final double confidence;
   final String model;
+  final List<String> supportingModels;
   final List<DetectionInterval> intervals;
   final SpeciesCandidate? specificSpecies;
+  final bool tentative;
+
+  List<String> get evidenceModels =>
+      supportingModels.isEmpty ? <String>[model] : supportingModels;
 
   Map<String, Object?> toJson() => {
     'category_id': categoryId,
     'name_zh': nameZh,
     'confidence': confidence,
     'model': model,
+    if (supportingModels.isNotEmpty) 'supporting_models': supportingModels,
     'intervals': intervals.map((item) => item.toJson()).toList(),
     'specific_species': specificSpecies?.toJson(),
+    if (tentative) 'tentative': true,
   };
 }

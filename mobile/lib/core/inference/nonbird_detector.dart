@@ -88,11 +88,15 @@ class NonBirdDetector {
           }
           runnerUp = math.max(runnerUp, item.probabilities[other.outputIndex]);
         }
+        final requiredTopMargin = requiredNonBirdTopMargin(
+          species,
+          catalog.rejection,
+        );
         if (probability < species.threshold ||
             probability - backgroundProbability <
                 catalog.rejection.backgroundMargin ||
-            (catalog.rejection.minTopMargin > 0 &&
-                probability - runnerUp < catalog.rejection.minTopMargin) ||
+            (requiredTopMargin > 0 &&
+                probability - runnerUp < requiredTopMargin) ||
             _cosine(item.window.embedding, species.centroid) <
                 species.minCosineSimilarity) {
           continue;

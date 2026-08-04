@@ -25,6 +25,13 @@ void main() {
       fields: {
         'authorization': 'Bearer secret-value',
         'note': 'key sk-1234567890abcdef',
+        'candidate_summary': [
+          {
+            'category': 'insect',
+            'score': 0.72,
+            'audio_path': r'D:\private\child.wav',
+          },
+        ],
       },
       error:
           r'Bearer another-secret at D:\private\recordings\child.m4a?token=visible-secret',
@@ -33,6 +40,9 @@ void main() {
 
     expect(sink.entries.single.fields['authorization'], '[REDACTED]');
     expect(sink.entries.single.fields['note'], contains('[REDACTED_KEY]'));
+    final summary = sink.entries.single.fields['candidate_summary'] as List;
+    expect((summary.single as Map)['category'], 'insect');
+    expect((summary.single as Map)['audio_path'], '[REDACTED]');
     expect(sink.entries.single.error, contains('Bearer [REDACTED]'));
     expect(sink.entries.single.error, contains('[REDACTED_PATH]'));
     expect(sink.entries.single.error, contains('token=[REDACTED]'));

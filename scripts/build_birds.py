@@ -18,8 +18,14 @@ LATITUDE = 30.2741
 LONGITUDE = 120.1551
 CATALOG_SIZE = 200
 CORE_SPECIES = {
+    "Abroscopus albogularis": "棕脸鹟莺",
     "Copsychus saularis": "鹊鸲",
+    "Cuculus canorus": "大杜鹃",
     "Gallinula chloropus": "黑水鸡",
+    "Horornis fortipes": "强脚树莺",
+    "Lanius schach": "棕背伯劳",
+    "Passer montanus": "麻雀",
+    "Pica serica": "喜鹊",
     "Pycnonotus sinensis": "白头鹎",
     "Streptopelia chinensis": "珠颈斑鸠",
     "Turdus mandarinus": "乌鸫",
@@ -104,7 +110,7 @@ def build_catalog() -> dict[str, object]:
 
     return {
         "model": "BirdNET 2.4",
-        "selection": "annual geographic prior, with six verified MVP species retained",
+        "selection": "annual geographic prior, with verified and challenge species retained",
         "latitude": LATITUDE,
         "longitude": LONGITUDE,
         "species_count": len(species),

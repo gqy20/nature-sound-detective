@@ -121,9 +121,48 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
         'birdnet_candidates': birdnetResult.detections.length,
         'nonbird_candidates': nonBirdDetections.length,
         'fused_candidates': fused.length,
+        'yamnet_summary': _candidateSummary(yamnetDetections),
+        'birdnet_summary': _candidateSummary(birdnetResult.detections),
+        'nonbird_summary': _candidateSummary(nonBirdDetections),
+        'fused_summary': _candidateSummary(fused),
       },
     );
     return fused;
+  }
+
+  List<Map<String, Object?>> _candidateSummary(
+    List<SoundDetection> detections,
+  ) => detections
+      .take(8)
+      .map((item) {
+        final species = item.specificSpecies;
+        return <String, Object?>{
+          'category': item.categoryId,
+          if (species != null)
+            'species_id':
+                species.taxonomyId ?? species.scientificName ?? species.nameZh,
+          'score': (item.confidence * 100).round() / 100,
+          if (item.tentative) 'tentative': true,
+          'models': item.evidenceModels.map(_modelFamily).toSet().toList(),
+          'windows': item.intervals
+              .take(4)
+              .map(
+                (interval) => <String, Object?>{
+                  'start': (interval.startSeconds * 10).round() / 10,
+                  'end': (interval.endSeconds * 10).round() / 10,
+                },
+              )
+              .toList(),
+        };
+      })
+      .toList(growable: false);
+
+  String _modelFamily(String model) {
+    final normalized = model.toLowerCase();
+    if (normalized.contains('birdnet')) return 'birdnet';
+    if (normalized.contains('nonbird')) return 'nonbird';
+    if (normalized.contains('yamnet')) return 'yamnet';
+    return 'other';
   }
 
   @override

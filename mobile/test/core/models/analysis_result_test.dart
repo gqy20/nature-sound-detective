@@ -15,6 +15,8 @@ void main() {
           'name_zh': '蛙类鸣叫',
           'confidence': 0.82,
           'model': 'yamnet-local-head-v1',
+          'supporting_models': ['yamnet-local-head-v1', 'hangzhou-nonbird'],
+          'tentative': true,
           'intervals': [
             {'start': 2.4, 'end': 7.2},
           ],
@@ -30,6 +32,9 @@ void main() {
     expect(result.audioQuality.usable, isTrue);
     expect(result.detections.single.nameZh, '蛙类鸣叫');
     expect(result.detections.single.intervals.single.startSeconds, 2.4);
+    expect(result.detections.single.evidenceModels, hasLength(2));
+    expect(result.detections.single.tentative, isTrue);
+    expect((result.toJson()['detections'] as List).single['tentative'], isTrue);
     expect(result.toJson()['recording_id'], 'rec_001');
   });
 

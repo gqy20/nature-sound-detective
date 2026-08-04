@@ -193,6 +193,16 @@ class AppLogger {
     if (value is String) {
       return _redact(value.length > 500 ? value.substring(0, 500) : value);
     }
+    if (value is Map) {
+      final output = <String, Object?>{};
+      for (final entry in value.entries.take(20)) {
+        final key = entry.key.toString();
+        output[key] = _sensitiveKeys.any(key.toLowerCase().contains)
+            ? '[REDACTED]'
+            : _safeValue(entry.value);
+      }
+      return output;
+    }
     if (value is Iterable) return value.take(20).map(_safeValue).toList();
     return _redact(value.toString());
   }

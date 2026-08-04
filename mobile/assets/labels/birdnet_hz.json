@@ -1,6 +1,6 @@
 {
   "model": "BirdNET 2.4",
-  "selection": "annual geographic prior, with six verified MVP species retained",
+  "selection": "annual geographic prior, with verified and challenge species retained",
   "latitude": 30.2741,
   "longitude": 120.1551,
   "species_count": 200,
@@ -36,7 +36,7 @@
     {
       "output_index": 4604,
       "scientific_name": "Pica serica",
-      "name_zh": "喜鵲",
+      "name_zh": "喜鹊",
       "name_en": "Oriental Magpie",
       "geo_score": 0.993491
     },
@@ -57,7 +57,7 @@
     {
       "output_index": 3082,
       "scientific_name": "Lanius schach",
-      "name_zh": "棕背伯勞",
+      "name_zh": "棕背伯劳",
       "name_en": "Long-tailed Shrike",
       "geo_score": 0.982384
     },
@@ -680,7 +680,7 @@
     {
       "output_index": 2814,
       "scientific_name": "Horornis fortipes",
-      "name_zh": "小鶯",
+      "name_zh": "强脚树莺",
       "name_en": "Brownish-flanked Bush Warbler",
       "geo_score": 0.718782
     },
@@ -883,7 +883,7 @@
     {
       "output_index": 0,
       "scientific_name": "Abroscopus albogularis",
-      "name_zh": "棕面鶯",
+      "name_zh": "棕脸鹟莺",
       "name_en": "Rufous-faced Warbler",
       "geo_score": 0.681044
     },
@@ -1303,7 +1303,7 @@
     {
       "output_index": 1715,
       "scientific_name": "Cuculus canorus",
-      "name_zh": "大杜鵑",
+      "name_zh": "大杜鹃",
       "name_en": "Common Cuckoo",
       "geo_score": 0.604728
     },

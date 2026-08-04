@@ -72,7 +72,6 @@ class _CapturePageState extends State<CapturePage> {
   double _liveRms = 0;
   bool _signalHeard = false;
   bool _levelPolling = false;
-  bool _imported = false;
   String? _audioSource;
 
   bool get _isRecording => _startedAt != null;
@@ -127,7 +126,6 @@ class _CapturePageState extends State<CapturePage> {
       _error = null;
       _liveRms = 0;
       _signalHeard = false;
-      _imported = false;
       _audioSource = null;
     });
     try {
@@ -217,6 +215,9 @@ class _CapturePageState extends State<CapturePage> {
         _resultVisible = true;
         _liveRms = 0;
       });
+      if (quality.usable) {
+        await _analyzeRecording();
+      }
     } on PlatformException catch (error, stackTrace) {
       AppLog.error(
         'audio',
@@ -290,7 +291,6 @@ class _CapturePageState extends State<CapturePage> {
       _saved = false;
       _cloudCard = null;
       _error = null;
-      _imported = false;
     });
     try {
       final recording = await (importer as AudioImporter).pickAudio();
@@ -319,8 +319,10 @@ class _CapturePageState extends State<CapturePage> {
         _quality = quality;
         _elapsed = recording.duration;
         _resultVisible = true;
-        _imported = true;
       });
+      if (quality.usable) {
+        await _analyzeRecording();
+      }
     } on PlatformException catch (error, stackTrace) {
       AppLog.warning(
         'audio',
@@ -387,7 +389,6 @@ class _CapturePageState extends State<CapturePage> {
       _saved = false;
       _cloudCard = null;
       _error = null;
-      _imported = false;
     });
     try {
       final recording = await _recorder.loadDebugDemo();
@@ -411,6 +412,9 @@ class _CapturePageState extends State<CapturePage> {
         _elapsed = recording.duration;
         _resultVisible = true;
       });
+      if (quality.usable) {
+        await _analyzeRecording();
+      }
     } on PlatformException catch (error, stackTrace) {
       AppLog.warning(
         'audio',
@@ -585,8 +589,9 @@ class _CapturePageState extends State<CapturePage> {
 
   void _openCreation() {
     final primary = _detections.firstOrNull;
-    final subject =
-        primary?.specificSpecies?.nameZh ?? primary?.nameZh ?? '自然环境声';
+    final subject = primary?.tentative == true
+        ? primary?.nameZh ?? '自然环境声'
+        : primary?.specificSpecies?.nameZh ?? primary?.nameZh ?? '自然环境声';
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CreationPage(
@@ -999,9 +1004,6 @@ class _CapturePageState extends State<CapturePage> {
     final quality = _quality;
     final recording = _recording;
     final title = _resultTitle();
-    final subtitle = recording == null
-        ? '可以返回后再试一次'
-        : '${recording.duration.inSeconds} 秒${_imported ? '本地音频' : '录音'}';
 
     return Material(
       key: const Key('recording-result-sheet'),
@@ -1033,12 +1035,6 @@ class _CapturePageState extends State<CapturePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title, style: theme.textTheme.titleLarge),
-                        const SizedBox(height: 3),
-                        Text(
-                          subtitle,
-                          key: const Key('recording-saved'),
-                          style: theme.textTheme.bodyMedium,
-                        ),
                       ],
                     ),
                   ),
@@ -1056,35 +1052,33 @@ class _CapturePageState extends State<CapturePage> {
                 key: const Key('result-sheet-scroll'),
                 padding: const EdgeInsets.fromLTRB(22, 18, 22, 24),
                 children: [
-                  if (recording != null)
-                    OutlinedButton.icon(
-                      key: const Key('playback-button'),
-                      onPressed: _togglePlayback,
-                      icon: Icon(
-                        _isPlaying
-                            ? Icons.stop_rounded
-                            : Icons.play_arrow_rounded,
-                      ),
-                      label: Text(_isPlaying ? '停止播放' : '回放原声'),
+                  if (recording != null || quality != null)
+                    Row(
+                      children: [
+                        if (recording != null)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              key: const Key('playback-button'),
+                              onPressed: _togglePlayback,
+                              icon: Icon(
+                                _isPlaying
+                                    ? Icons.stop_rounded
+                                    : Icons.play_arrow_rounded,
+                              ),
+                              label: Text(
+                                '${_isPlaying ? '停止' : '回放原声'} · ${recording.duration.inSeconds}s',
+                              ),
+                            ),
+                          ),
+                        if (recording != null && quality != null)
+                          const SizedBox(width: 10),
+                        if (quality != null)
+                          _QualityIndicator(quality: quality),
+                      ],
                     ),
                   if (quality != null) ...[
-                    const SizedBox(height: 14),
-                    Text(
-                      quality.usable
-                          ? (quality.warnings.isEmpty
-                                ? '录音质量可用于识别'
-                                : '已经听到声音，可以尝试识别')
-                          : '没有录到可分析的声音',
-                      key: const Key('quality-status'),
-                      style: TextStyle(
-                        color: quality.usable
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                     if (quality.warnings.isNotEmpty) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 10),
                       for (final warning in quality.warnings)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 4),
@@ -1114,35 +1108,36 @@ class _CapturePageState extends State<CapturePage> {
                       ),
                     ),
                   ],
-                  if (quality?.usable == true && !_hasAnalyzed) ...[
-                    const SizedBox(height: 10),
-                    const Text('识别在手机本地完成，模型分数只表示线索强弱。'),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(
-                      key: const Key('analyze-button'),
-                      onPressed: _analyzing ? null : _analyzeRecording,
-                      icon: _analyzing
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.graphic_eq_rounded),
-                      label: Text(_analyzing ? '正在本地识别' : '识别这段声音'),
+                  if (quality?.usable == true && _analyzing) ...[
+                    const SizedBox(height: 18),
+                    LinearProgressIndicator(
+                      key: const Key('analysis-progress'),
+                      value: _analysisTotalWindows > 0
+                          ? _analysisProcessedWindows / _analysisTotalWindows
+                          : null,
+                    ),
+                    if (_analysisTotalWindows > 0) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        '$_analysisProcessedWindows / $_analysisTotalWindows',
+                        key: const Key('analysis-window-progress'),
+                        textAlign: TextAlign.right,
+                      ),
+                    ],
+                  ],
+                  if (quality?.usable == true &&
+                      !_analyzing &&
+                      !_hasAnalyzed &&
+                      _error != null) ...[
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      key: const Key('retry-analysis-button'),
+                      onPressed: _analyzeRecording,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('重试识别'),
                     ),
                   ],
                   if (_detections.isNotEmpty) ...[
-                    if (_analyzing && _analysisTotalWindows > 0) ...[
-                      const SizedBox(height: 14),
-                      LinearProgressIndicator(
-                        value:
-                            _analysisProcessedWindows / _analysisTotalWindows,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '已听完 $_analysisProcessedWindows / $_analysisTotalWindows 段，候选还会继续更新',
-                        key: const Key('analysis-window-progress'),
-                      ),
-                    ],
                     const SizedBox(height: 24),
                     DetectionResults(detections: _detections),
                   ] else if (_hasAnalyzed && !_analyzing) ...[
@@ -1169,36 +1164,57 @@ class _CapturePageState extends State<CapturePage> {
                   ],
                   if (_hasAnalyzed) ...[
                     const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      key: const Key('save-exploration-button'),
-                      onPressed: _saved || _saving ? null : _saveExploration,
-                      icon: Icon(
-                        _saved
-                            ? Icons.check_rounded
-                            : Icons.bookmark_add_rounded,
-                      ),
-                      label: Text(
-                        _saved ? '已保存到声音册' : (_saving ? '正在保存' : '保存到声音册'),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    FilledButton.icon(
-                      key: const Key('cloud-card-button'),
-                      onPressed: _enriching ? null : _requestCloudCard,
-                      icon: _enriching
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.auto_stories_rounded),
-                      label: Text(_enriching ? '正在生成科普卡' : '生成儿童科普卡'),
-                    ),
-                    const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      key: const Key('open-creation-button'),
-                      onPressed: _openCreation,
-                      icon: const Icon(Icons.auto_awesome_rounded),
-                      label: const Text('创作音乐和短片'),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Tooltip(
+                            message: _saved ? '已保存到声音册' : '保存到声音册',
+                            child: OutlinedButton.icon(
+                              key: const Key('save-exploration-button'),
+                              style: _compactActionStyle(),
+                              onPressed: _saved || _saving
+                                  ? null
+                                  : _saveExploration,
+                              icon: _saving
+                                  ? const _SmallButtonProgress()
+                                  : Icon(
+                                      _saved
+                                          ? Icons.check_rounded
+                                          : Icons.bookmark_add_rounded,
+                                    ),
+                              label: const Text('保存'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Tooltip(
+                            message: '生成儿童科普卡',
+                            child: FilledButton.icon(
+                              key: const Key('cloud-card-button'),
+                              style: _compactActionStyle(),
+                              onPressed: _enriching ? null : _requestCloudCard,
+                              icon: _enriching
+                                  ? const _SmallButtonProgress()
+                                  : const Icon(Icons.auto_stories_rounded),
+                              label: const Text('科普卡'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Tooltip(
+                            message: '创作音乐和短片',
+                            child: OutlinedButton.icon(
+                              key: const Key('open-creation-button'),
+                              style: _compactActionStyle(),
+                              onPressed: _openCreation,
+                              icon: const Icon(Icons.auto_awesome_rounded),
+                              label: const Text('创作'),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                   if (_cloudCard case final card?) ...[
@@ -1238,9 +1254,20 @@ class _CapturePageState extends State<CapturePage> {
   String _resultTitle() {
     if (_error != null && _recording == null) return '这次没有录下来';
     if (_quality?.usable == false) return '没有录到有效声音';
+    if (_analyzing) return '正在识别声音';
+    if (_error != null && !_hasAnalyzed) return '识别没有完成';
+    final birdSpeciesCount = _detections
+        .where(
+          (item) => item.categoryId == 'bird' && item.specificSpecies != null,
+        )
+        .length;
+    if (birdSpeciesCount > 1) return '找到 $birdSpeciesCount 个鸟种候选';
+    if (_detections.isNotEmpty && _detections.every((item) => item.tentative)) {
+      return '找到一个较弱猜想';
+    }
     if (_detections.isNotEmpty) return '找到一些声音线索';
     if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
-    return '录音清晰，可以识别';
+    return '录音完成';
   }
 }
 
@@ -1261,6 +1288,79 @@ class _ListeningHints extends StatelessWidget {
           label: '远离车流',
         ),
       ],
+    );
+  }
+}
+
+ButtonStyle _compactActionStyle() => ButtonStyle(
+  minimumSize: const WidgetStatePropertyAll(Size(0, 52)),
+  padding: const WidgetStatePropertyAll(
+    EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+  ),
+  iconSize: const WidgetStatePropertyAll(19),
+  textStyle: const WidgetStatePropertyAll(
+    TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+  ),
+);
+
+class _SmallButtonProgress extends StatelessWidget {
+  const _SmallButtonProgress();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.square(
+      dimension: 17,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
+  }
+}
+
+class _QualityIndicator extends StatelessWidget {
+  const _QualityIndicator({required this.quality});
+
+  final AudioQuality quality;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon, foreground, background) = switch ((
+      quality.usable,
+      quality.warnings.isEmpty,
+    )) {
+      (true, true) => (
+        '录音质量可用于识别',
+        Icons.check_rounded,
+        const Color(0xFF1F6B4F),
+        const Color(0xFFE2F2E8),
+      ),
+      (true, false) => (
+        '声音较弱，但仍可以识别',
+        Icons.hearing_rounded,
+        const Color(0xFF856018),
+        const Color(0xFFF6ECD1),
+      ),
+      _ => (
+        '没有录到可分析的声音',
+        Icons.mic_off_rounded,
+        Theme.of(context).colorScheme.error,
+        Theme.of(context).colorScheme.errorContainer,
+      ),
+    };
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        label: label,
+        child: Container(
+          key: const Key('quality-status'),
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: foreground, size: 25),
+        ),
+      ),
     );
   }
 }

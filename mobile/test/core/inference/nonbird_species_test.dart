@@ -47,6 +47,32 @@ void main() {
     expect(catalog.species, isEmpty);
   });
 
+  test('requires an extra runner-up margin for exact species', () {
+    const exact = NonBirdSpecies(
+      outputIndex: 0,
+      taxonId: 'nidirana_mangveni',
+      categoryId: 'frog',
+      nameZh: '孟闻琴蛙',
+      scientificName: 'Nidirana mangveni',
+      threshold: 0.2,
+      centroid: [],
+      minCosineSimilarity: -1,
+    );
+    const generic = NonBirdSpecies(
+      outputIndex: 1,
+      taxonId: 'other_frog',
+      categoryId: 'frog',
+      nameZh: '其他蛙类',
+      threshold: 0.3,
+      centroid: [],
+      minCosineSimilarity: -1,
+    );
+    const policy = NonBirdRejectionPolicy(minTopMargin: 0.02);
+
+    expect(requiredNonBirdTopMargin(exact, policy), 0.08);
+    expect(requiredNonBirdTopMargin(generic, policy), 0.02);
+  });
+
   test('ships the challenge demo twelve-class model', () async {
     final catalog = NonBirdModelCatalog.fromJson(
       await rootBundle.loadString('assets/models/nonbird.json'),

@@ -39,6 +39,8 @@ adb logcat -s NatureAudio NatureDiagnostic flutter
 
 关键组件包括 `audio`、`yamnet`、`birdnet`、`inference`、`storage`、`cloud`、`creation`、`creation_worker`、`works`、`settings`、`flutter` 和 `dart`。视频轮询只在供应商状态变化时记录，避免固定间隔产生重复日志。
 
+`inference.analysis_completed` 同时记录各模型和最终融合候选的诊断摘要，包括类别、物种标识、四舍五入到两位的分数、模型来源及最多四个时间窗。摘要不包含录音内容和文件路径，用于定位重复候选、阈值误报和时间窗冲突。
+
 ## 服务端
 
 Python 使用标准库 `logging` 输出单行 JSON，适配本地 Uvicorn、Vercel 函数日志和常见日志采集平台。`LOG_LEVEL` 可设置为 `DEBUG`、`INFO`、`WARNING` 或 `ERROR`，默认 `INFO`。

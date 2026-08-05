@@ -7,6 +7,8 @@ import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
+import 'package:nature_sound_detective/core/diagnostics/debug_export_service.dart';
+import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
@@ -19,6 +21,7 @@ import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dar
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CapturePage extends StatefulWidget {
   const CapturePage({
@@ -74,6 +77,7 @@ class _CapturePageState extends State<CapturePage> {
   bool _signalHeard = false;
   bool _levelPolling = false;
   String? _audioSource;
+  bool _exportingDiagnostics = false;
 
   bool get _isRecording => _startedAt != null;
   bool get _canImport => _recorder is AudioImporter;
@@ -584,10 +588,60 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  DebugSessionSnapshot? get _debugSession {
+    final recording = _recording;
+    final quality = _quality;
+    if (recording == null || quality == null) return null;
+    return DebugSessionSnapshot.current(
+      recording: recording,
+      quality: quality,
+      detections: _detections,
+    );
+  }
+
   void _openDiagnostics() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const DiagnosticsPage()));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            DiagnosticsPage(session: _debugSession, explorationStore: _store),
+      ),
+    );
+  }
+
+  Future<void> _exportDiagnostics() async {
+    if (!diagnosticsEnabled || _exportingDiagnostics) return;
+    setState(() => _exportingDiagnostics = true);
+    try {
+      final result = await DebugExportService(
+        explorationStore: _store,
+      ).export(session: _debugSession);
+      await SharePlus.instance.share(
+        ShareParams(
+          text: '自然声探员内测诊断包',
+          files: [XFile(result.file.path, mimeType: 'application/zip')],
+        ),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('诊断包已生成。')));
+      }
+    } catch (error, stackTrace) {
+      AppLog.error(
+        'diagnostics',
+        'quick_export_failed',
+        traceId: _recording?.id,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('诊断包导出失败，请进入诊断页查看日志。')));
+      }
+    } finally {
+      if (mounted) setState(() => _exportingDiagnostics = false);
+    }
   }
 
   void _openCreationSettings() {
@@ -618,7 +672,7 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Future<void> _showDebugActions() async {
-    if (!kDebugMode) return;
+    if (!diagnosticsEnabled) return;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -774,7 +828,7 @@ class _CapturePageState extends State<CapturePage> {
       children: [
         Expanded(
           child: GestureDetector(
-            onLongPress: kDebugMode ? _showDebugActions : null,
+            onLongPress: diagnosticsEnabled ? _showDebugActions : null,
             child: Text(
               '自然声探员',
               style: theme.textTheme.titleLarge?.copyWith(
@@ -799,6 +853,19 @@ class _CapturePageState extends State<CapturePage> {
           ),
         ),
         const SizedBox(width: 6),
+        if (diagnosticsEnabled)
+          IconButton(
+            key: const Key('debug-export-button'),
+            tooltip: '导出诊断包',
+            visualDensity: VisualDensity.compact,
+            onPressed: _exportingDiagnostics ? null : _exportDiagnostics,
+            icon: _exportingDiagnostics
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.bug_report_outlined, size: 20),
+          ),
         IconButton(
           key: const Key('works-button'),
           tooltip: '自然册',

@@ -6,6 +6,7 @@ import 'package:nature_sound_detective/app.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
+import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -19,6 +20,10 @@ void main() {
     expect(find.text('听听，谁在附近？'), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
     expect(find.byKey(const Key('import-audio-button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('debug-export-button')),
+      diagnosticsEnabled ? findsOneWidget : findsNothing,
+    );
     expect(find.byType(Scrollable), findsNothing);
   });
 

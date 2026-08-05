@@ -60,6 +60,7 @@ jobs:
         run: >-
           flutter build apk
           --release
+          --dart-define=ENABLE_DIAGNOSTICS=true
           --target-platform android-arm64
           --split-per-abi
           --build-number "${{ github.run_number }}"

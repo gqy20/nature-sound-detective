@@ -5,6 +5,8 @@ from typing import Any
 
 import numpy as np
 
+from ml.nonbird.reference_matching import reference_support_mask
+
 
 @dataclass(frozen=True)
 class RejectionPolicy:
@@ -69,6 +71,7 @@ def accepted_window_mask(
     class_ids: tuple[str, ...],
     thresholds: np.ndarray,
     metadata: dict[str, Any],
+    use_official_reference: bool = True,
 ) -> np.ndarray:
     policy = RejectionPolicy.from_metadata(metadata)
     accepted = probabilities >= thresholds
@@ -93,6 +96,14 @@ def accepted_window_mask(
         if centroid.shape == (features.shape[1],):
             floor = float(class_reference.get("min_cosine_similarity", -1.0))
             accepted[:, class_index] &= normalized @ centroid >= floor
+    if use_official_reference:
+        accepted |= reference_support_mask(
+            features=features,
+            probabilities=probabilities,
+            class_ids=class_ids,
+            thresholds=thresholds,
+            metadata=metadata,
+        )
     if background_index is not None:
         accepted[:, background_index] = probabilities[:, background_index] >= thresholds[background_index]
 

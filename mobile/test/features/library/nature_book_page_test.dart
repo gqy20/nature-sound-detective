@@ -70,11 +70,18 @@ class _MemoryStore implements ExplorationStore {
     required AudioQuality quality,
     required List<SoundDetection> detections,
     required String location,
+    Map<String, List<String>> fieldChecks = const {},
   }) => throw UnimplementedError();
   @override
   Future<void> setConfirmed(String id, bool confirmed) async {}
   @override
   Future<void> setFeedback(String id, ExplorationFeedback feedback) async {}
+  @override
+  Future<void> setFieldChecks(
+    String id,
+    String speciesKey,
+    List<String> checks,
+  ) async {}
   @override
   Future<Directory> exportReviewPackage(Directory destination) async =>
       destination;
@@ -87,6 +94,16 @@ class _FakePlayback implements AudioPlayback {
   Stream<bool> get playing => controller.stream;
   @override
   Future<void> play(String path) async {
+    lastPath = path;
+    controller.add(true);
+  }
+
+  @override
+  Future<void> playSegment(
+    String path, {
+    required Duration start,
+    required Duration end,
+  }) async {
     lastPath = path;
     controller.add(true);
   }

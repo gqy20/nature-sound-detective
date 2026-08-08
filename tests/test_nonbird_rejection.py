@@ -1,6 +1,10 @@
 import numpy as np
 
 from ml.nonbird.rejection import accepted_window_mask, build_embedding_reference
+from ml.nonbird.reference_matching import (
+    build_official_reference_gallery,
+    reference_similarity_scores,
+)
 from ml.nonbird.training import find_precision_thresholds
 
 
@@ -76,3 +80,35 @@ def test_precision_threshold_prefers_precision_target():
     thresholds, metrics = find_precision_thresholds(truth, probabilities, minimum_precision=1.0)
     assert thresholds[0] > 0.65
     assert metrics[0]["precision"] == 1.0
+
+
+def test_official_reference_is_supporting_evidence_and_can_be_disabled():
+    features = np.asarray([[1.0, 0.0], [0.99, 0.01], [0.0, 1.0]], dtype=np.float32)
+    targets = np.asarray([[1, 0], [1, 0], [0, 1]], dtype=np.float32)
+    gallery = build_official_reference_gallery(
+        features=features,
+        targets=targets,
+        groups=np.asarray(["frog-a", "frog-a", "insect-a"]),
+        class_ids=("frog", "insect"),
+        target_class_ids=("frog", "insect"),
+        minimum_similarity=0.7,
+    )
+    metadata = _metadata()
+    metadata["official_reference_matching"] = gallery
+    probabilities = np.asarray([[0.4, 0.1], [0.42, 0.1]], dtype=np.float32)
+    common = dict(
+        features=features[:2],
+        probabilities=probabilities,
+        groups=np.asarray(["recording", "recording"]),
+        starts=np.asarray([0.0, 3.0]),
+        ends=np.asarray([3.0, 6.0]),
+        class_ids=("frog", "insect"),
+        thresholds=np.asarray([0.8, 0.8]),
+        metadata=metadata,
+    )
+    assert accepted_window_mask(**common)[:, 0].tolist() == [True, True]
+    assert not accepted_window_mask(
+        **common, use_official_reference=False
+    )[:, 0].any()
+    scores = reference_similarity_scores(features[:2], ("frog", "insect"), metadata)
+    assert np.all(scores[:, 0] > 0.99)

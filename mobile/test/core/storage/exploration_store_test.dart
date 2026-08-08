@@ -38,6 +38,14 @@ void main() {
 
     expect(await File(saved.audioPath).exists(), isTrue);
     expect((await store.list()).single.detections.single.categoryId, 'frog');
+    await store.setFieldChecks('rec_1', 'rana-test', const [
+      'time',
+      'location',
+    ]);
+    expect((await store.list()).single.fieldChecks['rana-test'], [
+      'time',
+      'location',
+    ]);
     await store.setConfirmed('rec_1', true);
     expect((await store.list()).single.confirmedByUser, isTrue);
     await store.setFeedback(

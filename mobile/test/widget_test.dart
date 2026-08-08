@@ -242,6 +242,13 @@ class _FakePlayback implements AudioPlayback {
   Future<void> play(String path) async {}
 
   @override
+  Future<void> playSegment(
+    String path, {
+    required Duration start,
+    required Duration end,
+  }) async {}
+
+  @override
   Future<void> stop() async {}
 }
 

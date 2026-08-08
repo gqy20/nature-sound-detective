@@ -92,16 +92,43 @@ class NonBirdDetector {
           species,
           catalog.rejection,
         );
-        if (probability < species.threshold ||
-            probability - backgroundProbability <
-                catalog.rejection.backgroundMargin ||
-            (requiredTopMargin > 0 &&
-                probability - runnerUp < requiredTopMargin) ||
-            _cosine(item.window.embedding, species.centroid) <
-                species.minCosineSimilarity) {
+        final classifierAccepted =
+            probability >= species.threshold &&
+            probability - backgroundProbability >=
+                catalog.rejection.backgroundMargin &&
+            (requiredTopMargin <= 0 ||
+                probability - runnerUp >= requiredTopMargin) &&
+            _cosine(item.window.embedding, species.centroid) >=
+                species.minCosineSimilarity;
+        final referenceSimilarity = _referenceSimilarity(
+          item.window.embedding,
+          species,
+        );
+        var referenceRunnerUp = -1.0;
+        for (final other in candidates) {
+          if (other == species) continue;
+          referenceRunnerUp = math.max(
+            referenceRunnerUp,
+            _referenceSimilarity(item.window.embedding, other),
+          );
+        }
+        final referenceAccepted =
+            catalog.officialReference.enabled &&
+            probability >=
+                math.min(
+                  species.threshold,
+                  catalog.officialReference.minimumClassifierProbability,
+                ) &&
+            referenceSimilarity >= species.officialReferenceMinSimilarity &&
+            referenceSimilarity - referenceRunnerUp >=
+                catalog.officialReference.minimumTopMargin;
+        if (!classifierAccepted && !referenceAccepted) {
           continue;
         }
         active.add(index);
+        item.referenceMatches[species] = referenceAccepted
+            ? referenceSimilarity
+            : null;
       }
       final accepted = _temporallySupported(active, scores, species);
       for (final index in accepted) {
@@ -109,10 +136,19 @@ class NonBirdDetector {
         final probability = item.probabilities[species.outputIndex];
         final current = best[species];
         if (current == null) {
-          best[species] = _NonBirdScore(probability, [item.window.interval]);
+          best[species] = _NonBirdScore(probability, [
+            item.window.interval,
+          ], referenceSimilarity: item.referenceMatches[species]);
         } else {
           current.confidence = math.max(current.confidence, probability);
           current.intervals.add(item.window.interval);
+          final referenceMatch = item.referenceMatches[species];
+          if (referenceMatch != null) {
+            current.referenceSimilarity = math.max(
+              current.referenceSimilarity ?? -1,
+              referenceMatch,
+            );
+          }
         }
       }
     }
@@ -125,6 +161,12 @@ class NonBirdDetector {
                 nameZh: species.categoryId == 'frog' ? '蛙类鸣叫' : '昆虫鸣叫',
                 confidence: entry.value.confidence.clamp(0, 1),
                 model: '${catalog.modelId}-${catalog.version}',
+                supportingModels: entry.value.referenceSimilarity == null
+                    ? const []
+                    : [
+                        '${catalog.modelId}-${catalog.version}',
+                        'official-reference-match',
+                      ],
                 intervals: entry.value.intervals,
                 specificSpecies: species.scientificName == null
                     ? null
@@ -185,6 +227,14 @@ class NonBirdDetector {
     return dot / math.sqrt(leftNorm * rightNorm);
   }
 
+  double _referenceSimilarity(Float32List embedding, NonBirdSpecies species) {
+    var best = -1.0;
+    for (final prototype in species.officialReferencePrototypes) {
+      best = math.max(best, _cosine(embedding, prototype));
+    }
+    return best;
+  }
+
   Future<void> close() async {
     await _isolate.close();
     _interpreter.close();
@@ -192,15 +242,17 @@ class NonBirdDetector {
 }
 
 class _NonBirdScore {
-  _NonBirdScore(this.confidence, this.intervals);
+  _NonBirdScore(this.confidence, this.intervals, {this.referenceSimilarity});
 
   double confidence;
   final List<DetectionInterval> intervals;
+  double? referenceSimilarity;
 }
 
 class _WindowScores {
-  const _WindowScores(this.window, this.probabilities);
+  _WindowScores(this.window, this.probabilities);
 
   final BirdnetEmbeddingWindow window;
   final List<double> probabilities;
+  final Map<NonBirdSpecies, double?> referenceMatches = {};
 }

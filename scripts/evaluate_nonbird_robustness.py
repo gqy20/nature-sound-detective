@@ -88,6 +88,20 @@ def main() -> None:
     report = robustness_report(cache, probabilities, thresholds, metadata)
     report["model_id"] = metadata["model_id"]
     report["model_version"] = metadata["version"]
+    report["official_reference_matching_enabled"] = bool(
+        (metadata.get("official_reference_matching") or {}).get("enabled")
+    )
+    statuses = {str(value) for value in cache.get("review_statuses", np.asarray([]))}
+    report["evaluation_scope"] = (
+        "organizer_standard_sound_derived_stress_diagnostic"
+        if "official_reference" in statuses
+        else "independent_stress_evaluation"
+    )
+    report["warning"] = (
+        "官方标准声扰动只衡量参考匹配的抗变换能力，不代表杭州野外泛化准确率。"
+        if "official_reference" in statuses
+        else "压力集必须与训练声源隔离，才可用于模型晋级判断。"
+    )
     write_json(args.output, report)
     print(f"saved robustness report to {args.output}")
 

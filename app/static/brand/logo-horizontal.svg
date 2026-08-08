@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 108" role="img" aria-labelledby="title desc">
+  <title id="title">自然声探员</title>
+  <desc id="desc">自然声探员横版品牌标志。</desc>
+  <g fill="none" stroke="#174936" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78.75 78.75A35 35 0 1 1 84.31 36.5" stroke-width="8"/>
+    <path d="M31 58c5 0 5-10 10-10s5 18 10 18 5-28 10-28 5 21 10 21 5-8 10-8" stroke-width="8"/>
+  </g>
+  <text x="126" y="70" fill="#17251F" font-family="Alibaba PuHuiTi 3.0, Microsoft YaHei UI, PingFang SC, sans-serif" font-size="44" font-weight="600" letter-spacing="1">自然声探员</text>
+</svg>

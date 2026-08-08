@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-labelledby="title desc">
+  <title id="title">自然声探员标志</title>
+  <desc id="desc">开放的圆形声音印章，内部是一条连续的自然声纹。</desc>
+  <g fill="none" stroke="#174936" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78.75 78.75A35 35 0 1 1 84.31 36.5" stroke-width="8"/>
+    <path d="M31 58c5 0 5-10 10-10s5 18 10 18 5-28 10-28 5 21 10 21 5-8 10-8" stroke-width="8"/>
+  </g>
+</svg>

@@ -19,6 +19,8 @@ class NonBirdSpecies {
     required this.threshold,
     required this.centroid,
     required this.minCosineSimilarity,
+    this.officialReferencePrototypes = const [],
+    this.officialReferenceMinSimilarity = 1,
     this.scientificName,
   });
 
@@ -30,6 +32,8 @@ class NonBirdSpecies {
   final double threshold;
   final List<double> centroid;
   final double minCosineSimilarity;
+  final List<List<double>> officialReferencePrototypes;
+  final double officialReferenceMinSimilarity;
 }
 
 class NonBirdRejectionPolicy {
@@ -64,6 +68,31 @@ class NonBirdRejectionPolicy {
   final double maxWindowGapSeconds;
 }
 
+class NonBirdOfficialReferencePolicy {
+  const NonBirdOfficialReferencePolicy({
+    this.enabled = false,
+    this.minimumClassifierProbability = 0.25,
+    this.minimumTopMargin = 0.03,
+  });
+
+  factory NonBirdOfficialReferencePolicy.fromJson(Object? source) {
+    final value = source is Map<String, dynamic>
+        ? source
+        : const <String, dynamic>{};
+    return NonBirdOfficialReferencePolicy(
+      enabled: value['enabled'] == true,
+      minimumClassifierProbability:
+          (value['minimum_classifier_probability'] as num?)?.toDouble() ?? 0.25,
+      minimumTopMargin:
+          (value['minimum_top_margin'] as num?)?.toDouble() ?? 0.03,
+    );
+  }
+
+  final bool enabled;
+  final double minimumClassifierProbability;
+  final double minimumTopMargin;
+}
+
 class NonBirdModelCatalog {
   const NonBirdModelCatalog({
     required this.modelId,
@@ -73,6 +102,7 @@ class NonBirdModelCatalog {
     required this.embeddingTensorName,
     required this.species,
     required this.rejection,
+    this.officialReference = const NonBirdOfficialReferencePolicy(),
   });
 
   factory NonBirdModelCatalog.fromJson(String source) {
@@ -122,6 +152,25 @@ class NonBirdModelCatalog {
             },
             minCosineSimilarity:
                 (row['min_cosine_similarity'] as num?)?.toDouble() ?? -1,
+            officialReferencePrototypes:
+                switch (row['official_reference_prototypes']) {
+                  final List values =>
+                    values
+                        .whereType<List>()
+                        .map(
+                          (prototype) => prototype
+                              .whereType<num>()
+                              .map((item) => item.toDouble())
+                              .toList(growable: false),
+                        )
+                        .where((prototype) => prototype.length == 1024)
+                        .toList(growable: false),
+                  _ => const [],
+                },
+            officialReferenceMinSimilarity:
+                (row['official_reference_min_similarity'] as num?)
+                    ?.toDouble() ??
+                1,
           );
         })
         .toList(growable: false);
@@ -138,6 +187,9 @@ class NonBirdModelCatalog {
           value['birdnet_embedding_tensor_name'] as String? ?? '',
       species: species,
       rejection: NonBirdRejectionPolicy.fromJson(value['rejection']),
+      officialReference: NonBirdOfficialReferencePolicy.fromJson(
+        value['official_reference_matching'],
+      ),
     );
   }
 
@@ -148,4 +200,5 @@ class NonBirdModelCatalog {
   final String embeddingTensorName;
   final List<NonBirdSpecies> species;
   final NonBirdRejectionPolicy rejection;
+  final NonBirdOfficialReferencePolicy officialReference;
 }

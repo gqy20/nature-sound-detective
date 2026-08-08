@@ -72,6 +72,7 @@ class _CapturePageState extends State<CapturePage> {
   bool _resultVisible = false;
   CloudSoundCard? _cloudCard;
   List<SoundDetection> _detections = const [];
+  final Map<String, List<String>> _fieldChecks = <String, List<String>>{};
   String? _error;
   double _liveRms = 0;
   bool _signalHeard = false;
@@ -125,6 +126,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
       _cloudCard = null;
@@ -292,6 +294,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
       _cloudCard = null;
@@ -390,6 +393,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
       _cloudCard = null;
@@ -501,6 +505,7 @@ class _CapturePageState extends State<CapturePage> {
         recording: recording,
         quality: quality,
         detections: _detections,
+        fieldChecks: Map<String, List<String>>.unmodifiable(_fieldChecks),
         location: '杭州',
       );
       AppLog.info(
@@ -529,6 +534,43 @@ class _CapturePageState extends State<CapturePage> {
       if (mounted) setState(() => _error = '保存到声音册失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _speciesKey(SoundDetection detection) {
+    final scientificName = detection.specificSpecies?.scientificName?.trim();
+    if (scientificName != null && scientificName.isNotEmpty) {
+      return scientificName.toLowerCase();
+    }
+    return '${detection.categoryId}:${detection.specificSpecies?.nameZh ?? detection.nameZh}';
+  }
+
+  void _updateFieldChecks(SoundDetection detection, List<String> checks) {
+    final recording = _recording;
+    final key = _speciesKey(detection);
+    setState(() {
+      if (checks.isEmpty) {
+        _fieldChecks.remove(key);
+      } else {
+        _fieldChecks[key] = List<String>.unmodifiable(checks);
+      }
+    });
+    if (_saved && recording != null) {
+      unawaited(
+        _store.setFieldChecks(recording.id, key, checks).catchError((
+          error,
+          stackTrace,
+        ) {
+          AppLog.warning(
+            'storage',
+            'field_checks_save_failed',
+            traceId: recording.id,
+            fields: {'species_key': key},
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }),
+      );
     }
   }
 
@@ -829,12 +871,24 @@ class _CapturePageState extends State<CapturePage> {
         Expanded(
           child: GestureDetector(
             onLongPress: diagnosticsEnabled ? _showDebugActions : null,
-            child: Text(
-              '自然声探员',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontSize: 16,
-                letterSpacing: 0.2,
-              ),
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/images/logo_mark.png',
+                  width: 28,
+                  height: 28,
+                  filterQuality: FilterQuality.medium,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '自然声探员',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontSize: 16,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1222,6 +1276,13 @@ class _CapturePageState extends State<CapturePage> {
                               builder: (_) => SpeciesDetailPage(
                                 detection: detection,
                                 rank: rank,
+                                audioPath: _recording?.path,
+                                playback: _playback,
+                                initialChecks:
+                                    _fieldChecks[_speciesKey(detection)] ??
+                                    const [],
+                                onChecksChanged: (checks) =>
+                                    _updateFieldChecks(detection, checks),
                               ),
                             ),
                           ),

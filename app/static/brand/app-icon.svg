@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">自然声探员应用图标</title>
+  <desc id="desc">象牙白底色上的森林绿色声音线索印章。</desc>
+  <rect width="1024" height="1024" fill="#F8F5EC"/>
+  <g transform="translate(0 4) scale(9.481481)" fill="none" stroke="#174936" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78.75 78.75A35 35 0 1 1 84.31 36.5" stroke-width="8"/>
+    <path d="M31 58c5 0 5-10 10-10s5 18 10 18 5-28 10-28 5 21 10 21 5-8 10-8" stroke-width="8"/>
+  </g>
+</svg>

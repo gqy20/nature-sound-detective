@@ -17,6 +17,10 @@ from app.observability import get_logger, log_event, log_exception
 from ml.nonbird.config import load_nonbird_config
 from ml.nonbird.training import sigmoid
 from ml.nonbird.rejection import accepted_window_mask
+from ml.nonbird.reference_matching import (
+    reference_similarity_scores,
+    reference_support_mask,
+)
 
 
 logger = get_logger("nonbird")
@@ -119,6 +123,14 @@ class NonBirdAnalyzer:
             thresholds=thresholds,
             metadata=metadata,
         )
+        reference_scores = reference_similarity_scores(features, class_ids, metadata)
+        reference_supported = reference_support_mask(
+            features=features,
+            probabilities=probabilities,
+            class_ids=class_ids,
+            thresholds=thresholds,
+            metadata=metadata,
+        )
         detections: list[dict[str, Any]] = []
         for class_index, class_id in enumerate(metadata["class_ids"]):
             if class_id == "background":
@@ -148,6 +160,16 @@ class NonBirdAnalyzer:
                     "start_seconds": round(float(windows.starts[best_index]), 3),
                     "end_seconds": round(float(windows.ends[best_index]), 3),
                     "status": "likely" if probabilities[best_index, class_index] >= 0.75 else "candidate",
+                    "evidence": (
+                        ["classifier", "official_reference_match"]
+                        if reference_supported[best_index, class_index]
+                        else ["classifier"]
+                    ),
+                    "reference_similarity": (
+                        round(float(reference_scores[best_index, class_index]), 4)
+                        if reference_supported[best_index, class_index]
+                        else None
+                    ),
                 }
             )
         detections.sort(key=lambda item: item["confidence"], reverse=True)

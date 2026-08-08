@@ -14,6 +14,11 @@ void main() {
         "input":{"type":"birdnet_embedding","shape":[1,1024]},
         "birdnet_embedding_tensor_index":545,
         "birdnet_embedding_tensor_name":"model/GLOBAL_AVG_POOL/Mean",
+        "official_reference_matching":{
+          "enabled":true,
+          "minimum_classifier_probability":0.25,
+          "minimum_top_margin":0.03
+        },
         "classes":[{
           "output_index":0,
           "taxon_id":"cryptotympana_atrata",
@@ -22,14 +27,21 @@ void main() {
           "scientific_name":"Cryptotympana atrata",
           "threshold":0.62,
           "centroid":[1,0],
-          "min_cosine_similarity":0.2
+          "min_cosine_similarity":0.2,
+          "official_reference_prototypes":[[${List.filled(1024, 1).join(',')}]],
+          "official_reference_min_similarity":0.8
         }]
       }
     ''');
     expect(catalog.available, isTrue);
     expect(catalog.embeddingTensorIndex, 545);
     expect(catalog.rejection.minSupportingWindows, 2);
+    expect(catalog.officialReference.enabled, isTrue);
     expect(catalog.species.single.centroid, [1, 0]);
+    expect(
+      catalog.species.single.officialReferencePrototypes.single,
+      hasLength(1024),
+    );
     expect(catalog.species.single.nameZh, '黑蚱蝉');
   });
 
@@ -79,6 +91,7 @@ void main() {
     );
     expect(catalog.available, isTrue);
     expect(catalog.version, '0.1.0-reference');
+    expect(catalog.officialReference.enabled, isTrue);
     expect(catalog.species, hasLength(12));
     expect(
       catalog.species.map((item) => item.taxonId),
@@ -102,6 +115,12 @@ void main() {
           .firstWhere((item) => item.taxonId == 'microhyla_fissipes')
           .nameZh,
       '饰纹姬蛙',
+    );
+    expect(
+      catalog.species
+          .firstWhere((item) => item.taxonId == 'cryptotympana_atrata')
+          .officialReferencePrototypes,
+      hasLength(2),
     );
   });
 }

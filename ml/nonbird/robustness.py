@@ -77,6 +77,16 @@ def apply_stress_condition(
         return mix_at_snr(target, noise, float(condition.removeprefix("snr_")), rng=rng)
     if condition == "quiet":
         return (target * 0.15).astype(np.float32)
+    if condition.startswith("gain_db_"):
+        gain_db = float(condition.removeprefix("gain_db_"))
+        gained = target * (10.0 ** (gain_db / 20.0))
+        return np.clip(gained, -0.98, 0.98).astype(np.float32)
+    if condition.startswith("shift_ms_"):
+        shift = max(0, int(sample_rate * float(condition.removeprefix("shift_ms_")) / 1000))
+        result = np.zeros_like(target)
+        if shift < target.size:
+            result[shift:] = target[: target.size - shift]
+        return result
     if condition == "reverb":
         delayed = max(1, int(sample_rate * 0.12))
         result = target.copy()
@@ -98,4 +108,22 @@ def apply_stress_condition(
             reduced,
         )
         return (restored * 0.7).astype(np.float32)
+    if condition.startswith("resample_"):
+        reduced_rate = int(condition.removeprefix("resample_"))
+        if reduced_rate <= 0 or reduced_rate > sample_rate:
+            raise ValueError(f"无效重采样率: {reduced_rate}")
+        reduced_size = max(1, round(target.size * reduced_rate / sample_rate))
+        reduced = np.interp(
+            np.linspace(0, target.size - 1, reduced_size),
+            np.arange(target.size),
+            target,
+        )
+        restored = np.interp(
+            np.arange(target.size),
+            np.linspace(0, target.size - 1, reduced_size),
+            reduced,
+        )
+        return restored.astype(np.float32)
+    if condition == "quantize_8bit":
+        return (np.round(np.clip(target, -1, 1) * 127) / 127).astype(np.float32)
     raise ValueError(f"未知压力条件: {condition}")

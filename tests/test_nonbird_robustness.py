@@ -2,7 +2,12 @@ from pathlib import Path
 
 import numpy as np
 
-from ml.nonbird.robustness import mix_at_snr, read_pcm16_mono, write_pcm16_mono
+from ml.nonbird.robustness import (
+    apply_stress_condition,
+    mix_at_snr,
+    read_pcm16_mono,
+    write_pcm16_mono,
+)
 from scripts.evaluate_nonbird_robustness import robustness_report
 
 
@@ -37,3 +42,23 @@ def test_robustness_report_counts_background_false_positives():
     )
     assert report["conditions"]["background_clean"]["false_positive_rate"] == 1.0
     assert report["conditions"]["snr_0"]["false_positive_rate"] == 0.0
+
+
+def test_extended_stress_conditions_are_deterministic_and_keep_shape():
+    target = np.sin(np.linspace(0, 30, 4800)).astype(np.float32) * 0.2
+    noise = np.zeros_like(target)
+    for condition in (
+        "gain_db_-12",
+        "gain_db_6",
+        "shift_ms_750",
+        "resample_16000",
+        "quantize_8bit",
+    ):
+        first = apply_stress_condition(
+            target, noise, condition, rng=np.random.default_rng(9), sample_rate=48000
+        )
+        second = apply_stress_condition(
+            target, noise, condition, rng=np.random.default_rng(9), sample_rate=48000
+        )
+        assert first.shape == target.shape
+        assert np.array_equal(first, second)

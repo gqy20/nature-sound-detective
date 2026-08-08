@@ -1,0 +1,1130 @@
+{
+  "windows": 2838,
+  "conditions": {
+    "background_clean": {
+      "windows": 30,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.7333,
+          "f1": 0.8462
+        }
+      }
+    },
+    "gain_db_-12": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.9444,
+          "f1": 0.9714
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5417,
+          "f1": 0.7027
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.6842,
+          "recall": 0.65,
+          "f1": 0.6667
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 0.6667,
+          "recall": 0.2,
+          "f1": 0.3077
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.3922,
+          "recall": 0.8696,
+          "f1": 0.5405
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2286,
+          "recall": 0.8889,
+          "f1": 0.3636
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.25,
+          "recall": 0.4286,
+          "f1": 0.3158
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "gain_db_6": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.9444,
+          "f1": 0.9714
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5417,
+          "f1": 0.7027
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.7059,
+          "recall": 0.6,
+          "f1": 0.6486
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 0.6667,
+          "recall": 0.2,
+          "f1": 0.3077
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.3774,
+          "recall": 0.8696,
+          "f1": 0.5263
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2286,
+          "recall": 0.8889,
+          "f1": 0.3636
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "phone_band": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.7222,
+          "f1": 0.8387
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.0208,
+          "f1": 0.0408
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.7222,
+          "recall": 0.65,
+          "f1": 0.6842
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.4,
+          "recall": 0.8696,
+          "f1": 0.5479
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.25,
+          "recall": 0.6667,
+          "f1": 0.3636
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "quantize_8bit": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8333,
+          "f1": 0.9091
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6667
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.8667,
+          "recall": 0.65,
+          "f1": 0.7429
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.4255,
+          "recall": 0.8696,
+          "f1": 0.5714
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2424,
+          "recall": 0.8889,
+          "f1": 0.381
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "quiet": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.9444,
+          "f1": 0.9714
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5417,
+          "f1": 0.7027
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.6842,
+          "recall": 0.65,
+          "f1": 0.6667
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 0.6667,
+          "recall": 0.2,
+          "f1": 0.3077
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.3922,
+          "recall": 0.8696,
+          "f1": 0.5405
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2286,
+          "recall": 0.8889,
+          "f1": 0.3636
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.25,
+          "recall": 0.4286,
+          "f1": 0.3158
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "resample_16000": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.8125,
+          "recall": 0.65,
+          "f1": 0.7222
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 0.6667,
+          "recall": 0.2,
+          "f1": 0.3077
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.3922,
+          "recall": 0.8696,
+          "f1": 0.5405
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.1613,
+          "recall": 0.5556,
+          "f1": 0.25
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "reverb": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8333,
+          "f1": 0.9091
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.4583,
+          "f1": 0.6286
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.7059,
+          "recall": 0.6,
+          "f1": 0.6486
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.4444,
+          "recall": 0.8696,
+          "f1": 0.5882
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.1951,
+          "recall": 0.8889,
+          "f1": 0.32
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.2222,
+          "recall": 0.2857,
+          "f1": 0.25
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "shift_ms_750": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.9444,
+          "f1": 0.9714
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5208,
+          "f1": 0.6849
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.9444,
+          "f1": 0.9714
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.7222,
+          "recall": 0.65,
+          "f1": 0.6842
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.6216,
+          "f1": 0.7667
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.3704,
+          "recall": 0.8696,
+          "f1": 0.5195
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2051,
+          "recall": 0.8889,
+          "f1": 0.3333
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.1667,
+          "recall": 0.2857,
+          "f1": 0.2105
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "snr_-5": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.3333,
+          "f1": 0.5
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.6667,
+          "f1": 0.8
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2708,
+          "f1": 0.4262
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.4444,
+          "f1": 0.6154
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.1,
+          "f1": 0.1818
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2162,
+          "f1": 0.3556
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.5,
+          "recall": 0.2609,
+          "f1": 0.3429
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2222,
+          "recall": 0.4444,
+          "f1": 0.2963
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "snr_0": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.7778,
+          "f1": 0.875
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.6111,
+          "f1": 0.7586
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.375,
+          "f1": 0.5455
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.6667,
+          "f1": 0.8
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.3,
+          "f1": 0.4615
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.1,
+          "f1": 0.1818
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.3514,
+          "f1": 0.52
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.6,
+          "recall": 0.6522,
+          "f1": 0.625
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.0625,
+          "recall": 0.1111,
+          "f1": 0.08
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "snr_10": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.7222,
+          "f1": 0.8387
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5208,
+          "f1": 0.6849
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.6875,
+          "recall": 0.55,
+          "f1": 0.6111
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.475,
+          "recall": 0.8261,
+          "f1": 0.6032
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2174,
+          "recall": 0.5556,
+          "f1": 0.3125
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.1538,
+          "recall": 0.2857,
+          "f1": 0.2
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "snr_15": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5208,
+          "f1": 0.6849
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 0.6667,
+          "recall": 0.6,
+          "f1": 0.6316
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.3333
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.6216,
+          "f1": 0.7667
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.4762,
+          "recall": 0.8696,
+          "f1": 0.6154
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2083,
+          "recall": 0.5556,
+          "f1": 0.303
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.2727,
+          "recall": 0.4286,
+          "f1": 0.3333
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    },
+    "snr_5": {
+      "windows": 216,
+      "false_positive_windows": 0,
+      "false_positive_rate": 0.0,
+      "false_positive_windows_per_minute": 0.0,
+      "metrics": {
+        "mecopoda_elongata": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "cryptotympana_atrata": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8333,
+          "f1": 0.9091
+        },
+        "teleogryllus_emma": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "streeyola_mongolica": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.4375,
+          "f1": 0.6087
+        },
+        "velarifictorus_micado": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.8889,
+          "f1": 0.9412
+        },
+        "pelophylax_nigromaculatus": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.35,
+          "f1": 0.5185
+        },
+        "nidirana_mangveni": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.1,
+          "f1": 0.1818
+        },
+        "microhyla_fissipes": {
+          "threshold": 0.5,
+          "precision": 1.0,
+          "recall": 0.5946,
+          "f1": 0.7458
+        },
+        "fejervarya_multistriata": {
+          "threshold": 0.5,
+          "precision": 0.5294,
+          "recall": 0.7826,
+          "f1": 0.6316
+        },
+        "other_insect": {
+          "threshold": 0.5,
+          "precision": 0.2941,
+          "recall": 0.5556,
+          "f1": 0.3846
+        },
+        "other_frog": {
+          "threshold": 0.5,
+          "precision": 0.1667,
+          "recall": 0.2857,
+          "f1": 0.2105
+        },
+        "background": {
+          "threshold": 0.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      }
+    }
+  },
+  "model_id": "shengshengbuxi-2026-nonbird",
+  "model_version": "0.1.0-reference",
+  "official_reference_matching_enabled": true,
+  "evaluation_scope": "organizer_standard_sound_derived_stress_diagnostic",
+  "warning": "官方标准声扰动只衡量参考匹配的抗变换能力，不代表杭州野外泛化准确率。"
+}

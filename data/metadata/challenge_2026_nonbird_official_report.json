@@ -1,6 +1,7 @@
 {
   "evaluation": "organizer-provided non-bird standard sounds held out from training",
   "warning": "每类仅1到2个源录音，结果只能作为覆盖检查，不能视为正式泛化准确率。",
+  "official_reference_matching": "disabled_to_prevent_evaluation_leakage",
   "official_sources": 14,
   "official_windows": 116,
   "source_recall": 0.7857,
@@ -60,5 +61,11 @@
       "f1": 0.6897
     }
   },
-  "macro_f1": 0.6309
+  "macro_f1": 0.6309,
+  "repeat_consistency": {
+    "repeats": 10,
+    "max_probability_delta": 0.0,
+    "inconsistent_windows": 0,
+    "consistent_window_rate": 1.0
+  }
 }

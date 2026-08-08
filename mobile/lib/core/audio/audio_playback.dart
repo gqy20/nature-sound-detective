@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 
 abstract interface class AudioPlayback {
   Stream<bool> get playing;
 
   Future<void> play(String path);
+
+  Future<void> playSegment(
+    String path, {
+    required Duration start,
+    required Duration end,
+  });
 
   Future<void> stop();
 
@@ -16,6 +24,7 @@ class DeviceFileAudioPlayback implements AudioPlayback {
   }
 
   final AudioPlayer _player = AudioPlayer();
+  StreamSubscription<Duration>? _segmentSubscription;
 
   @override
   Stream<bool> get playing => _player.onPlayerStateChanged
@@ -26,8 +35,28 @@ class DeviceFileAudioPlayback implements AudioPlayback {
   Future<void> play(String path) => _player.play(DeviceFileSource(path));
 
   @override
-  Future<void> stop() => _player.stop();
+  Future<void> playSegment(
+    String path, {
+    required Duration start,
+    required Duration end,
+  }) async {
+    await _segmentSubscription?.cancel();
+    _segmentSubscription = _player.onPositionChanged.listen((position) {
+      if (position >= end) unawaited(stop());
+    });
+    await _player.play(DeviceFileSource(path), position: start);
+  }
 
   @override
-  Future<void> dispose() => _player.dispose();
+  Future<void> stop() async {
+    await _segmentSubscription?.cancel();
+    _segmentSubscription = null;
+    await _player.stop();
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _segmentSubscription?.cancel();
+    await _player.dispose();
+  }
 }

@@ -2,10 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
+import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/works_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
+
+String _speciesKey(SoundDetection detection) {
+  final scientificName = detection.specificSpecies?.scientificName?.trim();
+  if (scientificName != null && scientificName.isNotEmpty) {
+    return scientificName.toLowerCase();
+  }
+  return '${detection.categoryId}:${detection.specificSpecies?.nameZh ?? detection.nameZh}';
+}
 
 class NatureBookPage extends StatefulWidget {
   const NatureBookPage({super.key, this.store, this.playback});
@@ -91,6 +100,44 @@ class _NatureBookPageState extends State<NatureBookPage> {
     await _load();
   }
 
+  Future<void> _openSpecies(
+    ExplorationRecord record,
+    SoundDetection detection,
+  ) async {
+    if (_playingId != null) await _playback.stop();
+    if (!mounted) return;
+    final key = _speciesKey(detection);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SpeciesDetailPage(
+          detection: detection,
+          audioPath: record.audioPath,
+          playback: _playback,
+          initialChecks: record.fieldChecks[key] ?? const [],
+          onChecksChanged: (checks) {
+            unawaited(_persistFieldChecks(record.id, key, checks));
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _persistFieldChecks(
+    String recordId,
+    String speciesKey,
+    List<String> checks,
+  ) async {
+    try {
+      await _store.setFieldChecks(recordId, speciesKey, checks);
+      await _load();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('核对结果暂时没有保存')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('自然册')),
@@ -124,6 +171,8 @@ class _NatureBookPageState extends State<NatureBookPage> {
                     playing: _playingId == record.id,
                     onPlay: () => _toggle(record),
                     onDelete: () => _delete(record),
+                    onOpenDetection: (detection) =>
+                        _openSpecies(record, detection),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -171,11 +220,13 @@ class _SoundRecordCard extends StatelessWidget {
     required this.playing,
     required this.onPlay,
     required this.onDelete,
+    required this.onOpenDetection,
   });
   final ExplorationRecord record;
   final bool playing;
   final VoidCallback onPlay;
   final VoidCallback onDelete;
+  final ValueChanged<SoundDetection> onOpenDetection;
 
   @override
   Widget build(BuildContext context) {
@@ -189,13 +240,7 @@ class _SoundRecordCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: detection == null
-            ? null
-            : () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => SpeciesDetailPage(detection: detection),
-                ),
-              ),
+        onTap: detection == null ? null : () => onOpenDetection(detection),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 12, 6, 12),
           child: Row(

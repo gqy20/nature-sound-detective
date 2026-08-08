@@ -18,7 +18,21 @@ from ml.nonbird.robustness import (
 )
 
 
-DEFAULT_CONDITIONS = ("snr_-5", "snr_0", "snr_5", "snr_10", "snr_15", "quiet", "reverb", "phone_band")
+DEFAULT_CONDITIONS = (
+    "snr_-5",
+    "snr_0",
+    "snr_5",
+    "snr_10",
+    "snr_15",
+    "quiet",
+    "gain_db_-12",
+    "gain_db_6",
+    "shift_ms_750",
+    "reverb",
+    "phone_band",
+    "resample_16000",
+    "quantize_8bit",
+)
 
 
 def read_manifest(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -41,11 +55,21 @@ def build_stress_rows(
     conditions: tuple[str, ...],
     max_recordings: int | None,
     seed: int,
+    background_manifest: Path | None = None,
 ) -> list[dict[str, str]]:
     fields, rows = read_manifest(manifest)
     selected = [row for row in rows if row.get("split") == split]
     positives = [row for row in selected if row.get("labels") != "background"]
     backgrounds = [row for row in selected if row.get("labels") == "background"]
+    background_source = manifest
+    if background_manifest is not None:
+        _, background_rows = read_manifest(background_manifest)
+        backgrounds = [
+            row
+            for row in background_rows
+            if row.get("split") == split and row.get("labels") == "background"
+        ]
+        background_source = background_manifest
     if not positives or not backgrounds:
         raise ValueError(f"{split} 集必须同时包含目标声与背景声")
     positives.sort(key=lambda row: row.get("source_recording_id", ""))
@@ -57,7 +81,9 @@ def build_stress_rows(
     for index, row in enumerate(positives):
         target = read_pcm16_mono(resolve_audio(manifest, row["audio_path"]))
         background = backgrounds[chooser.randrange(len(backgrounds))]
-        noise = read_pcm16_mono(resolve_audio(manifest, background["audio_path"]))
+        noise = read_pcm16_mono(
+            resolve_audio(background_source, background["audio_path"])
+        )
         source_id = row.get("source_recording_id", f"row-{index}")
         noise_id = background.get("source_recording_id", "background")
         for condition in conditions:
@@ -82,7 +108,9 @@ def build_stress_rows(
             output_rows.append(updated)
     for row in backgrounds:
         updated = dict(row)
-        updated["audio_path"] = str(resolve_audio(manifest, row["audio_path"]))
+        updated["audio_path"] = str(
+            resolve_audio(background_source, row["audio_path"])
+        )
         updated["split_group"] = f"stress:{row['split_group']}"
         updated["stress_condition"] = "background_clean"
         updated["base_source_recording_id"] = row.get("source_recording_id", "")
@@ -109,6 +137,11 @@ def main() -> None:
     parser.add_argument("--split", default="test")
     parser.add_argument("--conditions", default=",".join(DEFAULT_CONDITIONS))
     parser.add_argument("--max-recordings", type=int)
+    parser.add_argument(
+        "--background-manifest",
+        type=Path,
+        help="可选的独立背景声清单；官方标准声压力测试应使用此参数",
+    )
     parser.add_argument("--seed", type=int, default=20260803)
     args = parser.parse_args()
     conditions = tuple(item.strip() for item in args.conditions.split(",") if item.strip())
@@ -120,6 +153,7 @@ def main() -> None:
         conditions=conditions,
         max_recordings=args.max_recordings,
         seed=args.seed,
+        background_manifest=args.background_manifest,
     )
     print(f"built {len(rows)} stress recordings at {args.output}")
 

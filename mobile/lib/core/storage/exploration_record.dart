@@ -13,6 +13,7 @@ class ExplorationRecord {
     required this.detections,
     this.confirmedByUser = false,
     this.feedback,
+    this.fieldChecks = const {},
   });
 
   factory ExplorationRecord.fromJson(Map<String, Object?> json) {
@@ -45,6 +46,17 @@ class ExplorationRecord {
         ),
         _ => null,
       },
+      fieldChecks: switch (json['field_checks']) {
+        Map<Object?, Object?> values => values.map(
+          (key, value) => MapEntry(
+            key.toString(),
+            value is List<Object?>
+                ? value.whereType<String>().toList(growable: false)
+                : const <String>[],
+          ),
+        ),
+        _ => const {},
+      },
     );
   }
 
@@ -57,10 +69,12 @@ class ExplorationRecord {
   final List<SoundDetection> detections;
   final bool confirmedByUser;
   final ExplorationFeedback? feedback;
+  final Map<String, List<String>> fieldChecks;
 
   ExplorationRecord copyWith({
     bool? confirmedByUser,
     ExplorationFeedback? feedback,
+    Map<String, List<String>>? fieldChecks,
   }) {
     return ExplorationRecord(
       id: id,
@@ -72,6 +86,7 @@ class ExplorationRecord {
       detections: detections,
       confirmedByUser: confirmedByUser ?? this.confirmedByUser,
       feedback: feedback ?? this.feedback,
+      fieldChecks: fieldChecks ?? this.fieldChecks,
     );
   }
 
@@ -85,5 +100,6 @@ class ExplorationRecord {
     'detections': detections.map((item) => item.toJson()).toList(),
     'confirmed_by_user': confirmedByUser,
     if (feedback != null) 'feedback': feedback!.toJson(),
+    if (fieldChecks.isNotEmpty) 'field_checks': fieldChecks,
   };
 }

@@ -49,6 +49,8 @@ def validate() -> dict[str, Any]:
     if nonbird_installed:
         class_rows = nonbird_metadata.get("classes", [])
         exported_ids = {str(item["taxon_id"]) for item in class_rows}
+        reference_policy = nonbird_metadata.get("official_reference_matching") or {}
+        reference_class_count = 0
         if not nonbird_model.is_file():
             errors.append("nonbird.json 标记可用，但 nonbird.tflite 不存在")
         else:
@@ -64,6 +66,23 @@ def validate() -> dict[str, Any]:
                 errors.append("非鸟分类头 SHA-256 与元数据不一致")
         if not exported_ids or len(exported_ids) != len(class_rows):
             errors.append("非鸟分类头必须提供唯一的自描述类别目录")
+        if reference_policy.get("enabled"):
+            for row in class_rows:
+                if not row.get("scientific_name"):
+                    continue
+                prototypes = row.get("official_reference_prototypes") or []
+                if not prototypes or any(len(value) != 1024 for value in prototypes):
+                    errors.append(f"官方参考库 {row['taxon_id']} 缺少 1024 维原型")
+                    continue
+                threshold = float(row.get("official_reference_min_similarity", 1.0))
+                if not 0 < threshold < 1:
+                    errors.append(f"官方参考库 {row['taxon_id']} 相似度阈值无效")
+                    continue
+                reference_class_count += 1
+        else:
+            reference_class_count = 0
+    else:
+        reference_class_count = 0
 
     return {
         "ok": not errors,
@@ -76,6 +95,7 @@ def validate() -> dict[str, Any]:
         "nonbird": {
             "installed": nonbird_installed,
             "status": "ready" if nonbird_installed else "awaiting_reviewed_training_data",
+            "official_reference_classes": reference_class_count,
         },
     }
 

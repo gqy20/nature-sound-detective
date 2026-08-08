@@ -32,6 +32,8 @@ def main() -> None:
     model_path = args.output_dir / "nonbird.tflite"
     model_path.write_bytes(model_bytes)
     class_map = {item.taxon_id: item for item in config.classes}
+    official_reference = metadata.get("official_reference_matching", {})
+    official_classes = official_reference.get("classes", {})
     class_entries = [
         {
             "output_index": index,
@@ -42,6 +44,8 @@ def main() -> None:
             "threshold": metadata["thresholds"][class_id],
             "centroid": metadata.get("embedding_reference", {}).get(class_id, {}).get("centroid", []),
             "min_cosine_similarity": metadata.get("embedding_reference", {}).get(class_id, {}).get("min_cosine_similarity", -1.0),
+            "official_reference_prototypes": official_classes.get(class_id, {}).get("prototypes", []),
+            "official_reference_min_similarity": official_classes.get(class_id, {}).get("minimum_similarity", 1.0),
         }
         for index, class_id in enumerate(metadata["class_ids"])
     ]
@@ -51,6 +55,11 @@ def main() -> None:
         "available": True,
         "label_policies": metadata.get("label_policies", []),
         "rejection": metadata.get("rejection", {}),
+        "official_reference_matching": {
+            key: value
+            for key, value in official_reference.items()
+            if key != "classes"
+        },
         "input": {"type": "birdnet_embedding", "shape": [1, metadata["embedding_dim"]]},
         "output": {"type": "logits", "shape": [1, len(metadata["class_ids"])]},
         "birdnet_embedding_tensor_index": 545,

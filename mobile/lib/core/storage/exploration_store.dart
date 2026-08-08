@@ -15,6 +15,7 @@ abstract interface class ExplorationStore {
     required AudioQuality quality,
     required List<SoundDetection> detections,
     required String location,
+    Map<String, List<String>> fieldChecks = const {},
   });
 
   Future<List<ExplorationRecord>> list();
@@ -22,6 +23,12 @@ abstract interface class ExplorationStore {
   Future<void> setConfirmed(String id, bool confirmed);
 
   Future<void> setFeedback(String id, ExplorationFeedback feedback);
+
+  Future<void> setFieldChecks(
+    String id,
+    String speciesKey,
+    List<String> checks,
+  );
 
   Future<Directory> exportReviewPackage(Directory destination);
 
@@ -49,6 +56,7 @@ class FileExplorationStore implements ExplorationStore {
     required AudioQuality quality,
     required List<SoundDetection> detections,
     required String location,
+    Map<String, List<String>> fieldChecks = const {},
   }) async {
     _validateId(recording.id);
     final root = await _rootProvider();
@@ -76,6 +84,7 @@ class FileExplorationStore implements ExplorationStore {
       duration: recording.duration,
       audioQuality: quality,
       detections: List.unmodifiable(detections),
+      fieldChecks: fieldChecks,
     );
     await _writeRecord(recordDirectory, record);
     AppLog.debug(
@@ -140,6 +149,28 @@ class FileExplorationStore implements ExplorationStore {
         feedback: feedback,
       ),
     );
+  }
+
+  @override
+  Future<void> setFieldChecks(
+    String id,
+    String speciesKey,
+    List<String> checks,
+  ) async {
+    _validateId(id);
+    final root = await _rootProvider();
+    final directory = Directory('${root.path}${Platform.pathSeparator}records');
+    final file = File('${directory.path}${Platform.pathSeparator}$id.json');
+    if (!await file.exists()) throw StateError('声音记录不存在。');
+    final value = jsonDecode(await file.readAsString());
+    if (value is! Map<String, Object?>) throw const FormatException('声音记录已损坏。');
+    final record = ExplorationRecord.fromJson(value);
+    final updated = <String, List<String>>{
+      ...record.fieldChecks,
+      if (checks.isNotEmpty) speciesKey: List.unmodifiable(checks),
+    };
+    if (checks.isEmpty) updated.remove(speciesKey);
+    await _writeRecord(directory, record.copyWith(fieldChecks: updated));
   }
 
   @override

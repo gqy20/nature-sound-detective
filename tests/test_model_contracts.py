@@ -8,3 +8,4 @@ def test_checked_in_bioacoustic_model_contracts():
     assert report["birdnet"]["candidate_count"] == 200
     assert report["birdnet"]["output_shapes"] == [[1, 6522], [1, 1024]]
     assert report["nonbird"]["installed"] is True
+    assert report["nonbird"]["official_reference_classes"] == 9

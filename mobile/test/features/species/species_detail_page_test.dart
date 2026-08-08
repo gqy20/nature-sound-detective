@@ -35,6 +35,7 @@ void main() {
 
     expect(find.bySemanticsLabel('白头鹎的参考照片'), findsOneWidget);
     expect(find.text('声音像 72%'), findsOneWidget);
+    expect(find.text('科普卡'), findsOneWidget);
 
     await tester.tap(find.text('© CharlesLam · CC BY-SA 2.0'));
     await tester.pumpAndSettle();
@@ -51,7 +52,10 @@ void main() {
     expect(playback.segmentStart, const Duration(seconds: 3));
     expect(playback.segmentEnd, const Duration(seconds: 12));
 
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('清晨'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('清晨'));
     await tester.tap(find.text('树上'));
     await tester.tap(find.text('白头'));
@@ -63,6 +67,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('✓ 全部对上'), findsNothing);
     expect(changedChecks, ['time', 'location']);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.text('认识它'), findsOneWidget);
+    expect(find.textContaining('城市公园'), findsOneWidget);
+    expect(find.text('听更多'), findsNothing);
+    expect(find.textContaining('需联网'), findsNothing);
   });
 
   testWidgets('multiple intervals show a clear position', (tester) async {

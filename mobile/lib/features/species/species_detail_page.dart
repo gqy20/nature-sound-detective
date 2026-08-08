@@ -79,7 +79,7 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
     final scientificName = species?.scientificName;
     final media = SpeciesMediaCatalog.lookup(scientificName);
     return Scaffold(
-      appBar: AppBar(title: const Text('物种线索')),
+      appBar: AppBar(title: const Text('科普卡')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
@@ -100,6 +100,21 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
             onTap: _hasAudio ? _toggleSegment : null,
             playing: _playing,
           ),
+          if (media != null &&
+              (media.habitatDescription != null ||
+                  media.voiceDescription != null))
+            _Section(
+              icon: Icons.eco_outlined,
+              title: '认识它',
+              child: Column(
+                children: [
+                  if (media.habitatDescription case final habitat?)
+                    _FactLine(icon: Icons.park_outlined, text: habitat),
+                  if (media.voiceDescription case final voice?)
+                    _FactLine(icon: Icons.hearing_rounded, text: voice),
+                ],
+              ),
+            ),
           _Section(
             icon: Icons.visibility_outlined,
             title: '现场核对',
@@ -147,6 +162,7 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
               ],
             ),
           ),
+          if (media?.observationTip case final tip?) _ObservationTip(text: tip),
         ],
       ),
     );
@@ -612,6 +628,56 @@ class _CompactInfoRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FactLine extends StatelessWidget {
+  const _FactLine({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Icon(
+            icon,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 9),
+        Expanded(child: Text(text)),
+      ],
+    ),
+  );
+}
+
+class _ObservationTip extends StatelessWidget {
+  const _ObservationTip({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 20),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF1EEDB),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.lightbulb_outline_rounded, size: 19),
+        const SizedBox(width: 9),
+        Expanded(child: Text(text)),
+      ],
+    ),
+  );
 }
 
 class _SourceLine extends StatelessWidget {

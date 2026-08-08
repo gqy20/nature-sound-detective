@@ -1,7 +1,11 @@
 {
+  "taxon_id": "pycnonotus_sinensis",
+  "name_zh": "白头鹎",
   "scientific_name": "Pycnonotus sinensis",
   "author": "CharlesLam",
   "license": "CC BY-SA 2.0",
+  "source_name": "Wikimedia Commons",
   "source_url": "https://commons.wikimedia.org/wiki/File:Light-vented_Bulbul2.jpg",
+  "reference_url": "https://ai.open.hhodata.com/species/bird/pycnonotus-sinensis/",
   "asset": "pycnonotus_sinensis.webp"
 }

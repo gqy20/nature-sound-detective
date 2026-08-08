@@ -18,7 +18,7 @@ ZIP 内容包括：
 
 - `manifest.json`：App 版本、构建模式、会话 ID 和隐私声明；
 - `device.json`：Android、设备型号、ABI 和原生录音器诊断；
-- `config.json`：云端功能是否配置及模型名称，不包含任何密钥值；
+- `config.json`：创作功能是否配置及模型名称，不包含任何密钥值；
 - `session/result.json`：录音参数、音质指标和识别候选；
 - `session/recording.*`：用户允许时包含的原始录音；
 - `logs/app.jsonl`：有界滚动日志快照；

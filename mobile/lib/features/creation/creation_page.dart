@@ -366,6 +366,15 @@ class _CreationPageState extends State<CreationPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        '音乐 · 旁白 · 短片',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
                         widget.subject,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontSize: 26,

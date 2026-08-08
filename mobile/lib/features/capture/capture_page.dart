@@ -13,7 +13,6 @@ import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
-import 'package:nature_sound_detective/core/network/cloud_content_service.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
@@ -31,7 +30,6 @@ class CapturePage extends StatefulWidget {
     this.playback,
     this.analyzer,
     this.store,
-    this.cloudService,
   });
 
   final AudioRecorder? recorder;
@@ -39,7 +37,6 @@ class CapturePage extends StatefulWidget {
   final AudioPlayback? playback;
   final RecordingAnalyzer? analyzer;
   final ExplorationStore? store;
-  final CloudContentService? cloudService;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -53,7 +50,6 @@ class _CapturePageState extends State<CapturePage> {
   late final AudioPlayback _playback;
   late final RecordingAnalyzer _analyzer;
   late final ExplorationStore _store;
-  late final CloudContentService _cloudService;
   StreamSubscription<bool>? _playbackSubscription;
   Timer? _timer;
   DateTime? _startedAt;
@@ -68,9 +64,7 @@ class _CapturePageState extends State<CapturePage> {
   bool _hasAnalyzed = false;
   bool _saving = false;
   bool _saved = false;
-  bool _enriching = false;
   bool _resultVisible = false;
-  CloudSoundCard? _cloudCard;
   List<SoundDetection> _detections = const [];
   final Map<String, List<String>> _fieldChecks = <String, List<String>>{};
   String? _error;
@@ -91,7 +85,6 @@ class _CapturePageState extends State<CapturePage> {
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _analyzer = widget.analyzer ?? LocalRecordingAnalyzer();
     _store = widget.store ?? FileExplorationStore();
-    _cloudService = widget.cloudService ?? HttpCloudContentService();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _isPlaying = playing);
     });
@@ -129,7 +122,6 @@ class _CapturePageState extends State<CapturePage> {
       _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
-      _cloudCard = null;
       _error = null;
       _liveRms = 0;
       _signalHeard = false;
@@ -297,7 +289,6 @@ class _CapturePageState extends State<CapturePage> {
       _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
-      _cloudCard = null;
       _error = null;
     });
     try {
@@ -396,7 +387,6 @@ class _CapturePageState extends State<CapturePage> {
       _fieldChecks.clear();
       _hasAnalyzed = false;
       _saved = false;
-      _cloudCard = null;
       _error = null;
     });
     try {
@@ -574,60 +564,21 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
-  Future<void> _requestCloudCard() async {
-    final recording = _recording;
-    if (recording == null || _enriching) return;
-    final agreed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('生成儿童科普卡？'),
-        content: const Text('这一步会把本次录音上传到云端并调用 AI。只有点击继续后才会产生网络请求。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('继续'),
-          ),
-        ],
+  void _openScienceCard() {
+    final detection = _detections.firstOrNull;
+    if (detection == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SpeciesDetailPage(
+          detection: detection,
+          rank: 1,
+          audioPath: _recording?.path,
+          playback: _playback,
+          initialChecks: _fieldChecks[_speciesKey(detection)] ?? const [],
+          onChecksChanged: (checks) => _updateFieldChecks(detection, checks),
+        ),
       ),
     );
-    if (agreed != true || !mounted) return;
-    setState(() {
-      _enriching = true;
-      _error = null;
-    });
-    try {
-      final card = await _cloudService.createCard(
-        recording: recording,
-        location: '杭州',
-      );
-      AppLog.info('cloud', 'card_presented', traceId: recording.id);
-      if (mounted) setState(() => _cloudCard = card);
-    } on CloudServiceException catch (error, stackTrace) {
-      AppLog.warning(
-        'cloud',
-        'card_request_rejected',
-        traceId: recording.id,
-        fields: {'status_code': error.statusCode},
-        error: error,
-        stackTrace: stackTrace,
-      );
-      if (mounted) setState(() => _error = error.message);
-    } catch (error, stackTrace) {
-      AppLog.error(
-        'cloud',
-        'card_request_failed',
-        traceId: recording.id,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      if (mounted) setState(() => _error = '科普卡生成失败，录音和本地结果仍已保留。');
-    } finally {
-      if (mounted) setState(() => _enriching = false);
-    }
   }
 
   DebugSessionSnapshot? get _debugSession {
@@ -1102,7 +1053,7 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Widget _buildResultOverlay(BuildContext context) {
-    final expanded = _detections.isNotEmpty || _cloudCard != null;
+    final expanded = _detections.isNotEmpty;
     final usable = _quality?.usable == true;
     final heightFactor = expanded ? 0.74 : (usable ? 0.60 : 0.50);
 
@@ -1336,14 +1287,14 @@ class _CapturePageState extends State<CapturePage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Tooltip(
-                            message: '生成儿童科普卡',
+                            message: '认识这个物种',
                             child: FilledButton.icon(
-                              key: const Key('cloud-card-button'),
+                              key: const Key('science-card-button'),
                               style: _compactActionStyle(),
-                              onPressed: _enriching ? null : _requestCloudCard,
-                              icon: _enriching
-                                  ? const _SmallButtonProgress()
-                                  : const Icon(Icons.auto_stories_rounded),
+                              onPressed: _detections.isEmpty
+                                  ? null
+                                  : _openScienceCard,
+                              icon: const Icon(Icons.auto_stories_rounded),
                               label: const Text('科普卡'),
                             ),
                           ),
@@ -1362,31 +1313,6 @@ class _CapturePageState extends State<CapturePage> {
                           ),
                         ),
                       ],
-                    ),
-                  ],
-                  if (_cloudCard case final card?) ...[
-                    const SizedBox(height: 24),
-                    Card(
-                      color: theme.colorScheme.secondaryContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(card.title, style: theme.textTheme.titleLarge),
-                            const SizedBox(height: 10),
-                            Text(card.explanation),
-                            if (card.question.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              Text('观察任务：${card.question}'),
-                            ],
-                            if (card.safetyNote.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text('安全提示：${card.safetyNote}'),
-                            ],
-                          ],
-                        ),
-                      ),
                     ),
                   ],
                 ],

@@ -11,6 +11,7 @@ import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
+import 'package:nature_sound_detective/features/species/species_detail_page.dart';
 
 void main() {
   testWidgets('shows the Android-first capture shell', (tester) async {
@@ -144,7 +145,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final save = find.byKey(const Key('save-exploration-button'));
-    final card = find.byKey(const Key('cloud-card-button'));
+    final card = find.byKey(const Key('science-card-button'));
     final create = find.byKey(const Key('open-creation-button'));
     expect(find.text('保存'), findsOneWidget);
     expect(find.text('科普卡'), findsOneWidget);
@@ -186,6 +187,44 @@ void main() {
     expect(analyzer.calls, 2);
     expect(find.byKey(const Key('retry-analysis-button')), findsNothing);
     expect(find.byKey(const Key('unknown-result')), findsOneWidget);
+  });
+
+  testWidgets('opens the local science card without a cloud request', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: _FakeRecorder(),
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: const _ImmediateAnalyzer(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const Key('result-sheet-scroll')),
+      const Offset(0, -900),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('science-card-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SpeciesDetailPage), findsOneWidget);
+    expect(find.text('科普卡'), findsOneWidget);
+    expect(find.text('生成儿童科普卡？'), findsNothing);
+
+    expect(find.text('听更多'), findsNothing);
+    expect(find.textContaining('基础科普和现场核对都在本机完成'), findsNothing);
   });
 }
 
@@ -261,6 +300,31 @@ class _FakeAnalyzer implements RecordingAnalyzer {
     void Function(List<SoundDetection> detections, int processed, int total)?
     onProgress,
   }) async => const [];
+
+  @override
+  Future<void> dispose() async {}
+}
+
+class _ImmediateAnalyzer implements RecordingAnalyzer {
+  const _ImmediateAnalyzer();
+
+  @override
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async => const [
+    SoundDetection(
+      categoryId: 'bird',
+      nameZh: '鸟类',
+      confidence: 0.82,
+      model: 'fake',
+      specificSpecies: SpeciesCandidate(
+        nameZh: '白头鹎',
+        scientificName: 'Pycnonotus sinensis',
+      ),
+    ),
+  ];
 
   @override
   Future<void> dispose() async {}

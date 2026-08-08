@@ -17,7 +17,7 @@
 }
 ```
 
-一次移动端录音使用录音 ID 作为 `trace_id`。主动请求云端科普时，App 通过 `X-Trace-ID` 请求头传递该值；API 在响应头中返回同一值。一次本地 AI 创作使用作品 ID 作为 `trace_id`，串联音乐、旁白、Wan 视频、素材下载、本机合成和后台恢复事件。
+一次移动端录音使用录音 ID 作为 `trace_id`，串联录制、音质检查、本地识别、保存和科普卡操作。一次 AI 创作使用作品 ID 作为 `trace_id`，串联音乐、旁白、Wan 视频、素材下载、本机合成和后台恢复事件。
 
 ## 移动端
 
@@ -37,7 +37,7 @@ Flutter 启动时安装三类全局异常处理：Flutter 框架错误、Platfor
 adb logcat -s NatureAudio NatureDiagnostic flutter
 ```
 
-关键组件包括 `audio`、`yamnet`、`birdnet`、`inference`、`storage`、`cloud`、`creation`、`creation_worker`、`works`、`settings`、`flutter` 和 `dart`。视频轮询只在供应商状态变化时记录，避免固定间隔产生重复日志。
+移动端关键组件包括 `audio`、`yamnet`、`birdnet`、`inference`、`storage`、`creation`、`creation_worker`、`works`、`settings`、`flutter` 和 `dart`。视频轮询只在供应商状态变化时记录，避免固定间隔产生重复日志。
 
 `inference.analysis_completed` 同时记录各模型和最终融合候选的诊断摘要，包括类别、物种标识、四舍五入到两位的分数、模型来源及最多四个时间窗。摘要不包含录音内容和文件路径，用于定位重复候选、阈值误报和时间窗冲突。
 

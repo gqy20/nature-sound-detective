@@ -6,6 +6,7 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/works_page.dart';
+import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
 
 String _speciesKey(SoundDetection detection) {
@@ -140,7 +141,20 @@ class _NatureBookPageState extends State<NatureBookPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('自然册')),
+    appBar: AppBar(
+      title: const Text('自然册'),
+      actions: [
+        IconButton(
+          tooltip: '共听杭州',
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => SoundscapePage(explorationStore: _store),
+            ),
+          ),
+          icon: const Icon(Icons.radar_rounded),
+        ),
+      ],
+    ),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : RefreshIndicator(

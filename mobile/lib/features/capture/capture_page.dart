@@ -15,6 +15,7 @@ import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
+import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
@@ -664,6 +665,14 @@ class _CapturePageState extends State<CapturePage> {
     );
   }
 
+  void _openSoundscape() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SoundscapePage(explorationStore: _store),
+      ),
+    );
+  }
+
   Future<void> _showDebugActions() async {
     if (!diagnosticsEnabled) return;
     await showModalBottomSheet<void>(
@@ -871,6 +880,13 @@ class _CapturePageState extends State<CapturePage> {
                   )
                 : const Icon(Icons.bug_report_outlined, size: 20),
           ),
+        IconButton(
+          key: const Key('soundscape-button'),
+          tooltip: '共听杭州',
+          visualDensity: VisualDensity.compact,
+          onPressed: _openSoundscape,
+          icon: const Icon(Icons.radar_rounded, size: 20),
+        ),
         IconButton(
           key: const Key('works-button'),
           tooltip: '自然册',

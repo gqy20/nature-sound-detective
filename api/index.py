@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from app.qwen_service import QwenNatureAnalyzer
+from app.community.routes import build_community_router
 from app.observability import get_logger, install_observability, log_exception
 from app.result_fusion import fuse_results
 
@@ -21,12 +22,13 @@ install_observability(app, "api.vercel")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",")],
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["X-Trace-ID"],
 )
 _analyzer: QwenNatureAnalyzer | None = None
 logger = get_logger("api.analysis")
+app.include_router(build_community_router())
 
 
 def _get_analyzer() -> QwenNatureAnalyzer:

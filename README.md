@@ -15,6 +15,7 @@
 - 完成体验增强：无模型示例、录音音质检查、结果纠错、本机声音册、分类错误恢复和 24 小时录音清理。
 - 跑通 MiniMax Music 3.0、Speech 2.8 HD、Wan2.7 与 FFmpeg 三轨合成的创作闭环；开发环境默认不调用付费视频接口。
 - 完成 Web、Flutter、Android 原生层与 Python 服务端的结构化日志、跨端 trace ID、脱敏滚动日志和端侧诊断导出。
+- 接入 Neon 的“共听杭州”比赛 MVP：区域级声景图、匿名探索卡、结构化协助、分层授权与撤回。
 
 所有机器标签均为候选标签，未经人工试听确认的数据不能作为正式测试集。
 
@@ -73,6 +74,22 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8770
 ```
 
 浏览器打开 `http://127.0.0.1:8770/`。MVP 支持手机录音或上传，使用 Qwen3.5-Omni 识别自然声音大类；本地完整版再用 BirdNET 补充杭州 200 种鸟类候选。蛙类与鸣虫扩展见 [多类群声学识别接入](./docs/20-多类群声学识别接入.md)。
+
+### 启动共听杭州
+
+服务端在 `.env` 中读取 `DATABASE_URL`。首次连接新的 Neon 数据库时执行：
+
+```powershell
+uv run python -c "from pathlib import Path; from dotenv import load_dotenv; import os, psycopg; load_dotenv('.env'); connection=psycopg.connect(os.environ['DATABASE_URL']); connection.execute(Path('migrations/001_community_mvp.sql').read_text(encoding='utf-8')); connection.commit(); connection.close()"
+```
+
+Android 模拟器默认访问 `http://10.0.2.2:8770`。真机或线上 API 使用编译参数指定地址：
+
+```powershell
+flutter run --dart-define=COMMUNITY_API_URL=http://192.168.1.10:8770
+```
+
+共听杭州只上传经成年人单独授权的声音记录，公开区域不包含精确坐标；撤回公开记录会同步撤下服务端短音频。比赛版本的音频存储面向本地完整演示，线上长期运行时应把 `community_media` 替换为持久对象存储。
 
 本地服务默认在启动完成前预加载 BirdNET 和非鸟分类头，避免第一条录音再承担模型加载时间；`GET /api/health` 的 `models` 字段可查看加载状态和耗时。内存受限时可用 `PRELOAD_MODELS=false` 恢复按需加载。Qwen 客户端仍按需创建，不会在启动时发起网络请求。
 

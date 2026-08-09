@@ -12,6 +12,7 @@ UPLOAD_DIR = RUNTIME_DIR / "uploads"
 JOB_DIR = RUNTIME_DIR / "jobs"
 FEEDBACK_DIR = RUNTIME_DIR / "feedback"
 GENERATED_DIR = RUNTIME_DIR / "generated"
+COMMUNITY_MEDIA_DIR = RUNTIME_DIR / "community_media"
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 MAX_ANALYSIS_SECONDS = 20
@@ -32,6 +33,7 @@ def ensure_runtime_dirs() -> None:
     JOB_DIR.mkdir(parents=True, exist_ok=True)
     FEEDBACK_DIR.mkdir(parents=True, exist_ok=True)
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
+    COMMUNITY_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def cleanup_expired_runtime() -> int:

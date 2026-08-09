@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.audio import AudioPreparationError, duration_seconds, prepare_audio
+from app.community.routes import build_community_router
 from app.config import (
     ALLOWED_EXTENSIONS,
     FEEDBACK_DIR,
@@ -60,6 +61,7 @@ async def _cleanup_loop() -> None:
 
 app = FastAPI(title="自然声探员 MVP", version="0.1.0", lifespan=lifespan)
 install_observability(app, "api.local")
+app.include_router(build_community_router())
 jobs = JobStore()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

@@ -1,0 +1,2486 @@
+{
+  "generated_at": "2026-08-09T12:52:31.396139+00:00",
+  "evaluation": "BirdNET 2.4 deterministic synthetic multi-bird stress test",
+  "warning": "Synthetic mixtures of organizer-provided reference windows; not a substitute for human-labelled wild soundscapes.",
+  "method": {
+    "sample_rate": 48000,
+    "reference_window_seconds": 3.0,
+    "reference_selection": "highest expected-species confidence window from the standard baseline",
+    "track_normalization": "DC removal, RMS 0.12, 10 ms edge fade",
+    "ranking": "maximum confidence per species across windows, threshold then top 3",
+    "candidate_species_count": 200,
+    "mapped_species": [
+      "乌鸫",
+      "喜鹊",
+      "大杜鹃",
+      "强脚树莺",
+      "棕背伯劳",
+      "棕脸鹟莺",
+      "珠颈斑鸠",
+      "白头鹎",
+      "红嘴蓝鹊",
+      "鹊鸲",
+      "麻雀"
+    ]
+  },
+  "runtime_seconds": 50.687,
+  "summary": {
+    "clip_count": 55,
+    "expected_label_count": 121,
+    "display_threshold": 0.05,
+    "top_3_label_recall": 0.8099,
+    "complete_clip_rate": 0.6364,
+    "mean_false_positives_per_clip": 0.1273,
+    "role_recall": {
+      "species_1": 0.8727,
+      "species_2": 0.7636,
+      "species_3": 0.7273
+    }
+  },
+  "by_scenario": {
+    "overlap_equal": {
+      "clip_count": 11,
+      "expected_label_count": 22,
+      "display_threshold": 0.05,
+      "top_3_label_recall": 0.8182,
+      "complete_clip_rate": 0.6364,
+      "mean_false_positives_per_clip": 0.2727,
+      "role_recall": {
+        "species_1": 0.8182,
+        "species_2": 0.8182,
+        "species_3": null
+      }
+    },
+    "overlap_secondary_minus_12db": {
+      "clip_count": 11,
+      "expected_label_count": 22,
+      "display_threshold": 0.05,
+      "top_3_label_recall": 0.7727,
+      "complete_clip_rate": 0.5455,
+      "mean_false_positives_per_clip": 0.0909,
+      "role_recall": {
+        "species_1": 1.0,
+        "species_2": 0.5455,
+        "species_3": null
+      }
+    },
+    "overlap_secondary_minus_6db": {
+      "clip_count": 11,
+      "expected_label_count": 22,
+      "display_threshold": 0.05,
+      "top_3_label_recall": 0.8182,
+      "complete_clip_rate": 0.6364,
+      "mean_false_positives_per_clip": 0.0909,
+      "role_recall": {
+        "species_1": 0.9091,
+        "species_2": 0.7273,
+        "species_3": null
+      }
+    },
+    "overlap_three_equal": {
+      "clip_count": 11,
+      "expected_label_count": 33,
+      "display_threshold": 0.05,
+      "top_3_label_recall": 0.697,
+      "complete_clip_rate": 0.3636,
+      "mean_false_positives_per_clip": 0.1818,
+      "role_recall": {
+        "species_1": 0.6364,
+        "species_2": 0.7273,
+        "species_3": 0.7273
+      }
+    },
+    "sequential_equal": {
+      "clip_count": 11,
+      "expected_label_count": 22,
+      "display_threshold": 0.05,
+      "top_3_label_recall": 1.0,
+      "complete_clip_rate": 1.0,
+      "mean_false_positives_per_clip": 0.0,
+      "role_recall": {
+        "species_1": 1.0,
+        "species_2": 1.0,
+        "species_3": null
+      }
+    }
+  },
+  "results": [
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/001__乌鸫__喜鹊.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "乌鸫",
+        "喜鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.931134
+          }
+        ],
+        "expected": [
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.024182,
+            "rank": 2,
+            "displayed": false
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.931134,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/002__乌鸫__喜鹊.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "乌鸫",
+        "喜鹊"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.777921
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.079474
+          }
+        ],
+        "expected": [
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.079474,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.777921,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/003__乌鸫__喜鹊.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "乌鸫",
+        "喜鹊"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.512057
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.14514
+          }
+        ],
+        "expected": [
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.14514,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.512057,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/004__乌鸫__喜鹊.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "乌鸫",
+        "喜鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.97302
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.762373
+          }
+        ],
+        "expected": [
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.762373,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.97302,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/005__乌鸫__喜鹊__棕背伯劳.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "乌鸫",
+        "喜鹊",
+        "棕背伯劳"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 2,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.230166
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.140514
+          }
+        ],
+        "expected": [
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.230166,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.140514,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/006__喜鹊__大杜鹃.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "喜鹊",
+        "大杜鹃"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.78513
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.550953
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.550953,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.78513,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/007__喜鹊__大杜鹃.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "喜鹊",
+        "大杜鹃"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.721586
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.578637
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.721586,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.578637,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/008__喜鹊__大杜鹃.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "喜鹊",
+        "大杜鹃"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.808112
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.808112,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/009__喜鹊__大杜鹃.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "喜鹊",
+        "大杜鹃"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.978655
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.97302
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.97302,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.978655,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/010__喜鹊__大杜鹃__棕脸鹟莺.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "喜鹊",
+        "大杜鹃",
+        "棕脸鹟莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 3,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.355094
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.211001
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.16537
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.355094,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.211001,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.16537,
+            "rank": 3,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/011__大杜鹃__强脚树莺.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "大杜鹃",
+        "强脚树莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.991452
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.269257
+          }
+        ],
+        "expected": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.269257,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.991452,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/012__大杜鹃__强脚树莺.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "大杜鹃",
+        "强脚树莺"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.973861
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.268321
+          }
+        ],
+        "expected": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.268321,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.973861,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/013__大杜鹃__强脚树莺.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "大杜鹃",
+        "强脚树莺"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.669948
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.308343
+          }
+        ],
+        "expected": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.308343,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.669948,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/014__大杜鹃__强脚树莺.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "大杜鹃",
+        "强脚树莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.999162
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.978681
+          }
+        ],
+        "expected": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.978681,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.999162,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/015__大杜鹃__强脚树莺__珠颈斑鸠.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "大杜鹃",
+        "强脚树莺",
+        "珠颈斑鸠"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 2,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.993198
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.077256
+          }
+        ],
+        "expected": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.993198,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.077256,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/016__强脚树莺__棕背伯劳.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "强脚树莺",
+        "棕背伯劳"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.849476
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.674535
+          },
+          {
+            "label": "Lanius cristatus_Brown Shrike",
+            "confidence": 0.079708
+          }
+        ],
+        "expected": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.849476,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.674535,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/017__强脚树莺__棕背伯劳.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "强脚树莺",
+        "棕背伯劳"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.835285
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.417875
+          }
+        ],
+        "expected": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.835285,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.417875,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/018__强脚树莺__棕背伯劳.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "强脚树莺",
+        "棕背伯劳"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.958145
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.054698
+          }
+        ],
+        "expected": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.958145,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.054698,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/019__强脚树莺__棕背伯劳.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "强脚树莺",
+        "棕背伯劳"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.999162
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.970085
+          }
+        ],
+        "expected": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.999162,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.970085,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "强脚树莺",
+        "棕背伯劳",
+        "白头鹎"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 2,
+        "all_expected_displayed": false,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.891264
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.572175
+          },
+          {
+            "label": "Garrulax canorus_Chinese Hwamei",
+            "confidence": 0.079966
+          }
+        ],
+        "expected": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.891264,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.572175,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.072366,
+            "rank": 4,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/021__棕背伯劳__棕脸鹟莺.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "棕背伯劳",
+        "棕脸鹟莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.959572
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.510544
+          },
+          {
+            "label": "Lanius cristatus_Brown Shrike",
+            "confidence": 0.226705
+          }
+        ],
+        "expected": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.959572,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.510544,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/022__棕背伯劳__棕脸鹟莺.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "棕背伯劳",
+        "棕脸鹟莺"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.954179
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.378913
+          },
+          {
+            "label": "Lanius cristatus_Brown Shrike",
+            "confidence": 0.316304
+          }
+        ],
+        "expected": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.954179,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.378913,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/023__棕背伯劳__棕脸鹟莺.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "棕背伯劳",
+        "棕脸鹟莺"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.949165
+          },
+          {
+            "label": "Lanius cristatus_Brown Shrike",
+            "confidence": 0.313311
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.21441
+          }
+        ],
+        "expected": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.949165,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.21441,
+            "rank": 3,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/024__棕背伯劳__棕脸鹟莺.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "棕背伯劳",
+        "棕脸鹟莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959
+          },
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.970051
+          }
+        ],
+        "expected": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.970051,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/025__棕背伯劳__棕脸鹟莺__红嘴蓝鹊.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "棕背伯劳",
+        "棕脸鹟莺",
+        "红嘴蓝鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 2,
+        "all_expected_displayed": false,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.848318
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.332663
+          },
+          {
+            "label": "Lanius cristatus_Brown Shrike",
+            "confidence": 0.161005
+          }
+        ],
+        "expected": [
+          {
+            "label": "Lanius schach_Long-tailed Shrike",
+            "confidence": 0.848318,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.332663,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/026__棕脸鹟莺__珠颈斑鸠.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "棕脸鹟莺",
+        "珠颈斑鸠"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.990244
+          }
+        ],
+        "expected": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.990244,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/027__棕脸鹟莺__珠颈斑鸠.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "棕脸鹟莺",
+        "珠颈斑鸠"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999947
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.972539
+          }
+        ],
+        "expected": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999947,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.972539,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/028__棕脸鹟莺__珠颈斑鸠.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "棕脸鹟莺",
+        "珠颈斑鸠"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.99992
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.390165
+          }
+        ],
+        "expected": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.99992,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.390165,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/029__棕脸鹟莺__珠颈斑鸠.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "棕脸鹟莺",
+        "珠颈斑鸠"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.99658
+          }
+        ],
+        "expected": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.999959,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.99658,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/030__棕脸鹟莺__珠颈斑鸠__鹊鸲.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "棕脸鹟莺",
+        "珠颈斑鸠",
+        "鹊鸲"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 3,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.990259
+          },
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.90346
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.313794
+          }
+        ],
+        "expected": [
+          {
+            "label": "Abroscopus albogularis_Rufous-faced Warbler",
+            "confidence": 0.90346,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.990259,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.313794,
+            "rank": 3,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/031__珠颈斑鸠__白头鹎.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "珠颈斑鸠",
+        "白头鹎"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.727452
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.353373
+          }
+        ],
+        "expected": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.727452,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.353373,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/032__珠颈斑鸠__白头鹎.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "珠颈斑鸠",
+        "白头鹎"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.901685
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.338887
+          }
+        ],
+        "expected": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.901685,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.338887,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/033__珠颈斑鸠__白头鹎.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "珠颈斑鸠",
+        "白头鹎"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.904778
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.185569
+          }
+        ],
+        "expected": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.904778,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.185569,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/034__珠颈斑鸠__白头鹎.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "珠颈斑鸠",
+        "白头鹎"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.996563
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.911653
+          }
+        ],
+        "expected": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.996563,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.911653,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "珠颈斑鸠",
+        "白头鹎",
+        "麻雀"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 3,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.445066
+          },
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.424989
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.052025
+          }
+        ],
+        "expected": [
+          {
+            "label": "Streptopelia chinensis_Spotted Dove",
+            "confidence": 0.424989,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.445066,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.052025,
+            "rank": 3,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "白头鹎",
+        "红嘴蓝鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 1,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.753275
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.059091
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.753275,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.033109,
+            "rank": 3,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/037__白头鹎__红嘴蓝鹊.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "白头鹎",
+        "红嘴蓝鹊"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.550005
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.550005,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/038__白头鹎__红嘴蓝鹊.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "白头鹎",
+        "红嘴蓝鹊"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.665946
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.665946,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/039__白头鹎__红嘴蓝鹊.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "白头鹎",
+        "红嘴蓝鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.911728
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.651514
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.911728,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.651514,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "白头鹎",
+        "红嘴蓝鹊",
+        "乌鸫"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 3,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.642439
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.06613
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.053483
+          }
+        ],
+        "expected": [
+          {
+            "label": "Pycnonotus sinensis_Light-vented Bulbul",
+            "confidence": 0.642439,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.053483,
+            "rank": 3,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.06613,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/041__红嘴蓝鹊__鹊鸲.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "红嘴蓝鹊",
+        "鹊鸲"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.266883
+          }
+        ],
+        "expected": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.016874,
+            "rank": 2,
+            "displayed": false
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.266883,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/042__红嘴蓝鹊__鹊鸲.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "红嘴蓝鹊",
+        "鹊鸲"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.081306
+          }
+        ],
+        "expected": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.038387,
+            "rank": 2,
+            "displayed": false
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.081306,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/043__红嘴蓝鹊__鹊鸲.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "红嘴蓝鹊",
+        "鹊鸲"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.118282
+          }
+        ],
+        "expected": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.118282,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.017903,
+            "rank": 2,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/044__红嘴蓝鹊__鹊鸲.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "红嘴蓝鹊",
+        "鹊鸲"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.995442
+          },
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.651514
+          }
+        ],
+        "expected": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.651514,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.995442,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/045__红嘴蓝鹊__鹊鸲__喜鹊.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "红嘴蓝鹊",
+        "鹊鸲",
+        "喜鹊"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 0,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [],
+        "expected": [
+          {
+            "label": "Urocissa erythroryncha_Red-billed Blue-Magpie",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          },
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.012839,
+            "rank": 3,
+            "displayed": false
+          },
+          {
+            "label": "Pica serica_Oriental Magpie",
+            "confidence": 0.033913,
+            "rank": 1,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/046__鹊鸲__麻雀.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "鹊鸲",
+        "麻雀"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.518176
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.063701
+          }
+        ],
+        "expected": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.518176,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.063701,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/047__鹊鸲__麻雀.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "鹊鸲",
+        "麻雀"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.608935
+          }
+        ],
+        "expected": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.608935,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.010521,
+            "rank": 2,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/048__鹊鸲__麻雀.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "鹊鸲",
+        "麻雀"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.841154
+          }
+        ],
+        "expected": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.841154,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "鹊鸲",
+        "麻雀"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.995435
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.891654
+          }
+        ],
+        "expected": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.995435,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.891654,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/050__鹊鸲__麻雀__大杜鹃.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "鹊鸲",
+        "麻雀",
+        "大杜鹃"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.807008
+          }
+        ],
+        "expected": [
+          {
+            "label": "Copsychus saularis_Oriental Magpie-Robin",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.02749,
+            "rank": 2,
+            "displayed": false
+          },
+          {
+            "label": "Cuculus canorus_Common Cuckoo",
+            "confidence": 0.807008,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_equal/051__麻雀__乌鸫.wav",
+      "scenario": "overlap_equal",
+      "species": [
+        "麻雀",
+        "乌鸫"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.414697
+          }
+        ],
+        "expected": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.414697,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/052__麻雀__乌鸫.wav",
+      "scenario": "overlap_secondary_minus_6db",
+      "species": [
+        "麻雀",
+        "乌鸫"
+      ],
+      "gains_db": [
+        0.0,
+        -6.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.416197
+          }
+        ],
+        "expected": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.416197,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/053__麻雀__乌鸫.wav",
+      "scenario": "overlap_secondary_minus_12db",
+      "species": [
+        "麻雀",
+        "乌鸫"
+      ],
+      "gains_db": [
+        0.0,
+        -12.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 1,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.551621
+          }
+        ],
+        "expected": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.551621,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/sequential_equal/054__麻雀__乌鸫.wav",
+      "scenario": "sequential_equal",
+      "species": [
+        "麻雀",
+        "乌鸫"
+      ],
+      "gains_db": [
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 2,
+        "hit_count": 2,
+        "all_expected_displayed": true,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.891854
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.759805
+          }
+        ],
+        "expected": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.891854,
+            "rank": 1,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.759805,
+            "rank": 2,
+            "displayed": true
+          }
+        ]
+      }
+    },
+    {
+      "path": "data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/055__麻雀__乌鸫__强脚树莺.wav",
+      "scenario": "overlap_three_equal",
+      "species": [
+        "麻雀",
+        "乌鸫",
+        "强脚树莺"
+      ],
+      "gains_db": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "score": {
+        "expected_count": 3,
+        "hit_count": 2,
+        "all_expected_displayed": false,
+        "false_positive_count": 0,
+        "displayed": [
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.955798
+          },
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.391722
+          }
+        ],
+        "expected": [
+          {
+            "label": "Passer montanus_Eurasian Tree Sparrow",
+            "confidence": 0.391722,
+            "rank": 2,
+            "displayed": true
+          },
+          {
+            "label": "Turdus mandarinus_Chinese Blackbird",
+            "confidence": 0.0,
+            "rank": null,
+            "displayed": false
+          },
+          {
+            "label": "Horornis fortipes_Brownish-flanked Bush Warbler",
+            "confidence": 0.955798,
+            "rank": 1,
+            "displayed": true
+          }
+        ]
+      }
+    }
+  ]
+}

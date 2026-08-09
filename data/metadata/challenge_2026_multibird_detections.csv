@@ -1,0 +1,166 @@
+﻿mixture_path,scenario,expected_species_zh,candidate_species_zh,candidate_birdnet_label,confidence,rank,is_expected,displayed
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/001__乌鸫__喜鹊.wav,overlap_equal,乌鸫|喜鹊,喜鹊,Pica serica_Oriental Magpie,0.931134,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/001__乌鸫__喜鹊.wav,overlap_equal,乌鸫|喜鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.024182,2,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/002__乌鸫__喜鹊.wav,overlap_secondary_minus_6db,乌鸫|喜鹊,喜鹊,Pica serica_Oriental Magpie,0.777921,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/002__乌鸫__喜鹊.wav,overlap_secondary_minus_6db,乌鸫|喜鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.079474,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/003__乌鸫__喜鹊.wav,overlap_secondary_minus_12db,乌鸫|喜鹊,喜鹊,Pica serica_Oriental Magpie,0.512057,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/003__乌鸫__喜鹊.wav,overlap_secondary_minus_12db,乌鸫|喜鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.14514,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/003__乌鸫__喜鹊.wav,overlap_secondary_minus_12db,乌鸫|喜鹊,白腹鸫,Turdus pallidus_Pale Thrush,0.012678,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/004__乌鸫__喜鹊.wav,sequential_equal,乌鸫|喜鹊,喜鹊,Pica serica_Oriental Magpie,0.97302,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/004__乌鸫__喜鹊.wav,sequential_equal,乌鸫|喜鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.762373,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/005__乌鸫__喜鹊__棕背伯劳.wav,overlap_three_equal,乌鸫|喜鹊|棕背伯劳,喜鹊,Pica serica_Oriental Magpie,0.230166,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/005__乌鸫__喜鹊__棕背伯劳.wav,overlap_three_equal,乌鸫|喜鹊|棕背伯劳,棕背伯劳,Lanius schach_Long-tailed Shrike,0.140514,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/005__乌鸫__喜鹊__棕背伯劳.wav,overlap_three_equal,乌鸫|喜鹊|棕背伯劳,红尾伯劳,Lanius cristatus_Brown Shrike,0.011661,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/006__喜鹊__大杜鹃.wav,overlap_equal,喜鹊|大杜鹃,大杜鹃,Cuculus canorus_Common Cuckoo,0.78513,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/006__喜鹊__大杜鹃.wav,overlap_equal,喜鹊|大杜鹃,喜鹊,Pica serica_Oriental Magpie,0.550953,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/007__喜鹊__大杜鹃.wav,overlap_secondary_minus_6db,喜鹊|大杜鹃,喜鹊,Pica serica_Oriental Magpie,0.721586,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/007__喜鹊__大杜鹃.wav,overlap_secondary_minus_6db,喜鹊|大杜鹃,大杜鹃,Cuculus canorus_Common Cuckoo,0.578637,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/008__喜鹊__大杜鹃.wav,overlap_secondary_minus_12db,喜鹊|大杜鹃,喜鹊,Pica serica_Oriental Magpie,0.808112,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/009__喜鹊__大杜鹃.wav,sequential_equal,喜鹊|大杜鹃,大杜鹃,Cuculus canorus_Common Cuckoo,0.978655,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/009__喜鹊__大杜鹃.wav,sequential_equal,喜鹊|大杜鹃,喜鹊,Pica serica_Oriental Magpie,0.97302,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/010__喜鹊__大杜鹃__棕脸鹟莺.wav,overlap_three_equal,喜鹊|大杜鹃|棕脸鹟莺,喜鹊,Pica serica_Oriental Magpie,0.355094,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/010__喜鹊__大杜鹃__棕脸鹟莺.wav,overlap_three_equal,喜鹊|大杜鹃|棕脸鹟莺,大杜鹃,Cuculus canorus_Common Cuckoo,0.211001,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/010__喜鹊__大杜鹃__棕脸鹟莺.wav,overlap_three_equal,喜鹊|大杜鹃|棕脸鹟莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.16537,3,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/011__大杜鹃__强脚树莺.wav,overlap_equal,大杜鹃|强脚树莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.991452,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/011__大杜鹃__强脚树莺.wav,overlap_equal,大杜鹃|强脚树莺,大杜鹃,Cuculus canorus_Common Cuckoo,0.269257,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/012__大杜鹃__强脚树莺.wav,overlap_secondary_minus_6db,大杜鹃|强脚树莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.973861,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/012__大杜鹃__强脚树莺.wav,overlap_secondary_minus_6db,大杜鹃|强脚树莺,大杜鹃,Cuculus canorus_Common Cuckoo,0.268321,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/013__大杜鹃__强脚树莺.wav,overlap_secondary_minus_12db,大杜鹃|强脚树莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.669948,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/013__大杜鹃__强脚树莺.wav,overlap_secondary_minus_12db,大杜鹃|强脚树莺,大杜鹃,Cuculus canorus_Common Cuckoo,0.308343,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/014__大杜鹃__强脚树莺.wav,sequential_equal,大杜鹃|强脚树莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.999162,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/014__大杜鹃__强脚树莺.wav,sequential_equal,大杜鹃|强脚树莺,大杜鹃,Cuculus canorus_Common Cuckoo,0.978681,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/015__大杜鹃__强脚树莺__珠颈斑鸠.wav,overlap_three_equal,大杜鹃|强脚树莺|珠颈斑鸠,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.993198,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/015__大杜鹃__强脚树莺__珠颈斑鸠.wav,overlap_three_equal,大杜鹃|强脚树莺|珠颈斑鸠,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.077256,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/016__强脚树莺__棕背伯劳.wav,overlap_equal,强脚树莺|棕背伯劳,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.849476,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/016__强脚树莺__棕背伯劳.wav,overlap_equal,强脚树莺|棕背伯劳,棕背伯劳,Lanius schach_Long-tailed Shrike,0.674535,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/016__强脚树莺__棕背伯劳.wav,overlap_equal,强脚树莺|棕背伯劳,红尾伯劳,Lanius cristatus_Brown Shrike,0.079708,3,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/017__强脚树莺__棕背伯劳.wav,overlap_secondary_minus_6db,强脚树莺|棕背伯劳,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.835285,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/017__强脚树莺__棕背伯劳.wav,overlap_secondary_minus_6db,强脚树莺|棕背伯劳,棕背伯劳,Lanius schach_Long-tailed Shrike,0.417875,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/017__强脚树莺__棕背伯劳.wav,overlap_secondary_minus_6db,强脚树莺|棕背伯劳,红尾伯劳,Lanius cristatus_Brown Shrike,0.014548,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/018__强脚树莺__棕背伯劳.wav,overlap_secondary_minus_12db,强脚树莺|棕背伯劳,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.958145,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/018__强脚树莺__棕背伯劳.wav,overlap_secondary_minus_12db,强脚树莺|棕背伯劳,棕背伯劳,Lanius schach_Long-tailed Shrike,0.054698,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/019__强脚树莺__棕背伯劳.wav,sequential_equal,强脚树莺|棕背伯劳,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.999162,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/019__强脚树莺__棕背伯劳.wav,sequential_equal,强脚树莺|棕背伯劳,棕背伯劳,Lanius schach_Long-tailed Shrike,0.970085,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/019__强脚树莺__棕背伯劳.wav,sequential_equal,强脚树莺|棕背伯劳,红尾伯劳,Lanius cristatus_Brown Shrike,0.026473,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav,overlap_three_equal,强脚树莺|棕背伯劳|白头鹎,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.891264,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav,overlap_three_equal,强脚树莺|棕背伯劳|白头鹎,棕背伯劳,Lanius schach_Long-tailed Shrike,0.572175,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav,overlap_three_equal,强脚树莺|棕背伯劳|白头鹎,大陆画眉,Garrulax canorus_Chinese Hwamei,0.079966,3,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav,overlap_three_equal,强脚树莺|棕背伯劳|白头鹎,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.072366,4,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/020__强脚树莺__棕背伯劳__白头鹎.wav,overlap_three_equal,强脚树莺|棕背伯劳|白头鹎,红尾伯劳,Lanius cristatus_Brown Shrike,0.029717,5,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/021__棕背伯劳__棕脸鹟莺.wav,overlap_equal,棕背伯劳|棕脸鹟莺,棕背伯劳,Lanius schach_Long-tailed Shrike,0.959572,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/021__棕背伯劳__棕脸鹟莺.wav,overlap_equal,棕背伯劳|棕脸鹟莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.510544,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/021__棕背伯劳__棕脸鹟莺.wav,overlap_equal,棕背伯劳|棕脸鹟莺,红尾伯劳,Lanius cristatus_Brown Shrike,0.226705,3,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/022__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_6db,棕背伯劳|棕脸鹟莺,棕背伯劳,Lanius schach_Long-tailed Shrike,0.954179,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/022__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_6db,棕背伯劳|棕脸鹟莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.378913,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/022__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_6db,棕背伯劳|棕脸鹟莺,红尾伯劳,Lanius cristatus_Brown Shrike,0.316304,3,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/023__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_12db,棕背伯劳|棕脸鹟莺,棕背伯劳,Lanius schach_Long-tailed Shrike,0.949165,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/023__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_12db,棕背伯劳|棕脸鹟莺,红尾伯劳,Lanius cristatus_Brown Shrike,0.313311,2,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/023__棕背伯劳__棕脸鹟莺.wav,overlap_secondary_minus_12db,棕背伯劳|棕脸鹟莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.21441,3,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/024__棕背伯劳__棕脸鹟莺.wav,sequential_equal,棕背伯劳|棕脸鹟莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.999959,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/024__棕背伯劳__棕脸鹟莺.wav,sequential_equal,棕背伯劳|棕脸鹟莺,棕背伯劳,Lanius schach_Long-tailed Shrike,0.970051,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/024__棕背伯劳__棕脸鹟莺.wav,sequential_equal,棕背伯劳|棕脸鹟莺,红尾伯劳,Lanius cristatus_Brown Shrike,0.026448,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/024__棕背伯劳__棕脸鹟莺.wav,sequential_equal,棕背伯劳|棕脸鹟莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.025742,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/025__棕背伯劳__棕脸鹟莺__红嘴蓝鹊.wav,overlap_three_equal,棕背伯劳|棕脸鹟莺|红嘴蓝鹊,棕背伯劳,Lanius schach_Long-tailed Shrike,0.848318,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/025__棕背伯劳__棕脸鹟莺__红嘴蓝鹊.wav,overlap_three_equal,棕背伯劳|棕脸鹟莺|红嘴蓝鹊,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.332663,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/025__棕背伯劳__棕脸鹟莺__红嘴蓝鹊.wav,overlap_three_equal,棕背伯劳|棕脸鹟莺|红嘴蓝鹊,红尾伯劳,Lanius cristatus_Brown Shrike,0.161005,3,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/026__棕脸鹟莺__珠颈斑鸠.wav,overlap_equal,棕脸鹟莺|珠颈斑鸠,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.999959,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/026__棕脸鹟莺__珠颈斑鸠.wav,overlap_equal,棕脸鹟莺|珠颈斑鸠,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.990244,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/026__棕脸鹟莺__珠颈斑鸠.wav,overlap_equal,棕脸鹟莺|珠颈斑鸠,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.037192,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/027__棕脸鹟莺__珠颈斑鸠.wav,overlap_secondary_minus_6db,棕脸鹟莺|珠颈斑鸠,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.999947,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/027__棕脸鹟莺__珠颈斑鸠.wav,overlap_secondary_minus_6db,棕脸鹟莺|珠颈斑鸠,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.972539,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/027__棕脸鹟莺__珠颈斑鸠.wav,overlap_secondary_minus_6db,棕脸鹟莺|珠颈斑鸠,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.031434,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/028__棕脸鹟莺__珠颈斑鸠.wav,overlap_secondary_minus_12db,棕脸鹟莺|珠颈斑鸠,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.99992,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/028__棕脸鹟莺__珠颈斑鸠.wav,overlap_secondary_minus_12db,棕脸鹟莺|珠颈斑鸠,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.390165,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/029__棕脸鹟莺__珠颈斑鸠.wav,sequential_equal,棕脸鹟莺|珠颈斑鸠,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.999959,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/029__棕脸鹟莺__珠颈斑鸠.wav,sequential_equal,棕脸鹟莺|珠颈斑鸠,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.99658,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/029__棕脸鹟莺__珠颈斑鸠.wav,sequential_equal,棕脸鹟莺|珠颈斑鸠,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.025742,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/030__棕脸鹟莺__珠颈斑鸠__鹊鸲.wav,overlap_three_equal,棕脸鹟莺|珠颈斑鸠|鹊鸲,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.990259,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/030__棕脸鹟莺__珠颈斑鸠__鹊鸲.wav,overlap_three_equal,棕脸鹟莺|珠颈斑鸠|鹊鸲,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.90346,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/030__棕脸鹟莺__珠颈斑鸠__鹊鸲.wav,overlap_three_equal,棕脸鹟莺|珠颈斑鸠|鹊鸲,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.313794,3,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/030__棕脸鹟莺__珠颈斑鸠__鹊鸲.wav,overlap_three_equal,棕脸鹟莺|珠颈斑鸠|鹊鸲,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.070747,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/031__珠颈斑鸠__白头鹎.wav,overlap_equal,珠颈斑鸠|白头鹎,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.727452,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/031__珠颈斑鸠__白头鹎.wav,overlap_equal,珠颈斑鸠|白头鹎,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.353373,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/031__珠颈斑鸠__白头鹎.wav,overlap_equal,珠颈斑鸠|白头鹎,白腹鸫,Turdus pallidus_Pale Thrush,0.014697,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/031__珠颈斑鸠__白头鹎.wav,overlap_equal,珠颈斑鸠|白头鹎,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.01192,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/032__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_6db,珠颈斑鸠|白头鹎,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.901685,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/032__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_6db,珠颈斑鸠|白头鹎,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.338887,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/032__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_6db,珠颈斑鸠|白头鹎,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.02428,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/032__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_6db,珠颈斑鸠|白头鹎,白腹鸫,Turdus pallidus_Pale Thrush,0.016255,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/033__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_12db,珠颈斑鸠|白头鹎,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.904778,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/033__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_12db,珠颈斑鸠|白头鹎,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.185569,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/033__珠颈斑鸠__白头鹎.wav,overlap_secondary_minus_12db,珠颈斑鸠|白头鹎,金背鸠,Streptopelia orientalis_Oriental Turtle-Dove,0.019356,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/034__珠颈斑鸠__白头鹎.wav,sequential_equal,珠颈斑鸠|白头鹎,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.996563,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/034__珠颈斑鸠__白头鹎.wav,sequential_equal,珠颈斑鸠|白头鹎,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.911653,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/034__珠颈斑鸠__白头鹎.wav,sequential_equal,珠颈斑鸠|白头鹎,白腹鸫,Turdus pallidus_Pale Thrush,0.019028,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav,overlap_three_equal,珠颈斑鸠|白头鹎|麻雀,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.445066,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav,overlap_three_equal,珠颈斑鸠|白头鹎|麻雀,珠颈斑鸠,Streptopelia chinensis_Spotted Dove,0.424989,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav,overlap_three_equal,珠颈斑鸠|白头鹎|麻雀,麻雀,Passer montanus_Eurasian Tree Sparrow,0.052025,3,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav,overlap_three_equal,珠颈斑鸠|白头鹎|麻雀,山麻雀,Passer cinnamomeus_Russet Sparrow,0.022834,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/035__珠颈斑鸠__白头鹎__麻雀.wav,overlap_three_equal,珠颈斑鸠|白头鹎|麻雀,斯氏绣眼,Zosterops simplex_Swinhoe's White-eye,0.01202,5,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav,overlap_equal,白头鹎|红嘴蓝鹊,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.753275,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav,overlap_equal,白头鹎|红嘴蓝鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.059091,2,False,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav,overlap_equal,白头鹎|红嘴蓝鹊,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.033109,3,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav,overlap_equal,白头鹎|红嘴蓝鹊,红隼,Falco tinnunculus_Eurasian Kestrel,0.011738,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/036__白头鹎__红嘴蓝鹊.wav,overlap_equal,白头鹎|红嘴蓝鹊,红嘴黑鹎,Hypsipetes leucocephalus_Black Bulbul,0.010409,5,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/037__白头鹎__红嘴蓝鹊.wav,overlap_secondary_minus_6db,白头鹎|红嘴蓝鹊,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.550005,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/037__白头鹎__红嘴蓝鹊.wav,overlap_secondary_minus_6db,白头鹎|红嘴蓝鹊,乌鸫,Turdus mandarinus_Chinese Blackbird,0.016945,2,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/038__白头鹎__红嘴蓝鹊.wav,overlap_secondary_minus_12db,白头鹎|红嘴蓝鹊,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.665946,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/039__白头鹎__红嘴蓝鹊.wav,sequential_equal,白头鹎|红嘴蓝鹊,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.911728,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/039__白头鹎__红嘴蓝鹊.wav,sequential_equal,白头鹎|红嘴蓝鹊,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.651514,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/039__白头鹎__红嘴蓝鹊.wav,sequential_equal,白头鹎|红嘴蓝鹊,白腹鸫,Turdus pallidus_Pale Thrush,0.018885,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,白头鹎,Pycnonotus sinensis_Light-vented Bulbul,0.642439,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,乌鸫,Turdus mandarinus_Chinese Blackbird,0.06613,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.053483,3,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,红嘴黑鹎,Hypsipetes leucocephalus_Black Bulbul,0.029664,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,丝光椋鸟,Spodiopsar sericeus_Red-billed Starling,0.021057,5,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,白颊山雀,Parus minor_Japanese Tit,0.015213,6,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,白腹鸫,Turdus pallidus_Pale Thrush,0.013817,7,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,红隼,Falco tinnunculus_Eurasian Kestrel,0.013612,8,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,黄鹂,Oriolus chinensis_Black-naped Oriole,0.01361,9,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/040__白头鹎__红嘴蓝鹊__乌鸫.wav,overlap_three_equal,白头鹎|红嘴蓝鹊|乌鸫,极北柳莺,Phylloscopus borealis_Arctic Warbler,0.011249,10,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/041__红嘴蓝鹊__鹊鸲.wav,overlap_equal,红嘴蓝鹊|鹊鸲,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.266883,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/041__红嘴蓝鹊__鹊鸲.wav,overlap_equal,红嘴蓝鹊|鹊鸲,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.016874,2,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/041__红嘴蓝鹊__鹊鸲.wav,overlap_equal,红嘴蓝鹊|鹊鸲,乌鸫,Turdus mandarinus_Chinese Blackbird,0.012232,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/042__红嘴蓝鹊__鹊鸲.wav,overlap_secondary_minus_6db,红嘴蓝鹊|鹊鸲,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.081306,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/042__红嘴蓝鹊__鹊鸲.wav,overlap_secondary_minus_6db,红嘴蓝鹊|鹊鸲,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.038387,2,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/043__红嘴蓝鹊__鹊鸲.wav,overlap_secondary_minus_12db,红嘴蓝鹊|鹊鸲,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.118282,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/043__红嘴蓝鹊__鹊鸲.wav,overlap_secondary_minus_12db,红嘴蓝鹊|鹊鸲,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.017903,2,True,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/044__红嘴蓝鹊__鹊鸲.wav,sequential_equal,红嘴蓝鹊|鹊鸲,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.995442,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/044__红嘴蓝鹊__鹊鸲.wav,sequential_equal,红嘴蓝鹊|鹊鸲,红嘴蓝鹊,Urocissa erythroryncha_Red-billed Blue-Magpie,0.651514,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/044__红嘴蓝鹊__鹊鸲.wav,sequential_equal,红嘴蓝鹊|鹊鸲,蓝矶鸫,Monticola solitarius_Blue Rock-Thrush,0.015015,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/044__红嘴蓝鹊__鹊鸲.wav,sequential_equal,红嘴蓝鹊|鹊鸲,乌鸫,Turdus mandarinus_Chinese Blackbird,0.01217,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/045__红嘴蓝鹊__鹊鸲__喜鹊.wav,overlap_three_equal,红嘴蓝鹊|鹊鸲|喜鹊,喜鹊,Pica serica_Oriental Magpie,0.033913,1,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/045__红嘴蓝鹊__鹊鸲__喜鹊.wav,overlap_three_equal,红嘴蓝鹊|鹊鸲|喜鹊,红隼,Falco tinnunculus_Eurasian Kestrel,0.015246,2,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/045__红嘴蓝鹊__鹊鸲__喜鹊.wav,overlap_three_equal,红嘴蓝鹊|鹊鸲|喜鹊,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.012839,3,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/046__鹊鸲__麻雀.wav,overlap_equal,鹊鸲|麻雀,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.518176,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/046__鹊鸲__麻雀.wav,overlap_equal,鹊鸲|麻雀,麻雀,Passer montanus_Eurasian Tree Sparrow,0.063701,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/046__鹊鸲__麻雀.wav,overlap_equal,鹊鸲|麻雀,山麻雀,Passer cinnamomeus_Russet Sparrow,0.029396,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/047__鹊鸲__麻雀.wav,overlap_secondary_minus_6db,鹊鸲|麻雀,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.608935,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/047__鹊鸲__麻雀.wav,overlap_secondary_minus_6db,鹊鸲|麻雀,麻雀,Passer montanus_Eurasian Tree Sparrow,0.010521,2,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/048__鹊鸲__麻雀.wav,overlap_secondary_minus_12db,鹊鸲|麻雀,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.841154,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/048__鹊鸲__麻雀.wav,overlap_secondary_minus_12db,鹊鸲|麻雀,蓝矶鸫,Monticola solitarius_Blue Rock-Thrush,0.010298,2,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav,sequential_equal,鹊鸲|麻雀,鹊鸲,Copsychus saularis_Oriental Magpie-Robin,0.995435,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav,sequential_equal,鹊鸲|麻雀,麻雀,Passer montanus_Eurasian Tree Sparrow,0.891654,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav,sequential_equal,鹊鸲|麻雀,蓝矶鸫,Monticola solitarius_Blue Rock-Thrush,0.015121,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav,sequential_equal,鹊鸲|麻雀,乌鸫,Turdus mandarinus_Chinese Blackbird,0.012209,4,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/049__鹊鸲__麻雀.wav,sequential_equal,鹊鸲|麻雀,山麻雀,Passer cinnamomeus_Russet Sparrow,0.011537,5,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/050__鹊鸲__麻雀__大杜鹃.wav,overlap_three_equal,鹊鸲|麻雀|大杜鹃,大杜鹃,Cuculus canorus_Common Cuckoo,0.807008,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/050__鹊鸲__麻雀__大杜鹃.wav,overlap_three_equal,鹊鸲|麻雀|大杜鹃,麻雀,Passer montanus_Eurasian Tree Sparrow,0.02749,2,True,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/050__鹊鸲__麻雀__大杜鹃.wav,overlap_three_equal,鹊鸲|麻雀|大杜鹃,蓝矶鸫,Monticola solitarius_Blue Rock-Thrush,0.016014,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/051__麻雀__乌鸫.wav,overlap_equal,麻雀|乌鸫,麻雀,Passer montanus_Eurasian Tree Sparrow,0.414697,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/051__麻雀__乌鸫.wav,overlap_equal,麻雀|乌鸫,燕隼,Falco subbuteo_Eurasian Hobby,0.03025,2,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/051__麻雀__乌鸫.wav,overlap_equal,麻雀|乌鸫,山麻雀,Passer cinnamomeus_Russet Sparrow,0.028285,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_equal/051__麻雀__乌鸫.wav,overlap_equal,麻雀|乌鸫,红嘴黑鹎,Hypsipetes leucocephalus_Black Bulbul,0.01007,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/052__麻雀__乌鸫.wav,overlap_secondary_minus_6db,麻雀|乌鸫,麻雀,Passer montanus_Eurasian Tree Sparrow,0.416197,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/052__麻雀__乌鸫.wav,overlap_secondary_minus_6db,麻雀|乌鸫,燕隼,Falco subbuteo_Eurasian Hobby,0.032392,2,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/052__麻雀__乌鸫.wav,overlap_secondary_minus_6db,麻雀|乌鸫,山麻雀,Passer cinnamomeus_Russet Sparrow,0.01244,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_6db/052__麻雀__乌鸫.wav,overlap_secondary_minus_6db,麻雀|乌鸫,红隼,Falco tinnunculus_Eurasian Kestrel,0.010976,4,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/053__麻雀__乌鸫.wav,overlap_secondary_minus_12db,麻雀|乌鸫,麻雀,Passer montanus_Eurasian Tree Sparrow,0.551621,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/053__麻雀__乌鸫.wav,overlap_secondary_minus_12db,麻雀|乌鸫,红隼,Falco tinnunculus_Eurasian Kestrel,0.023534,2,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_secondary_minus_12db/053__麻雀__乌鸫.wav,overlap_secondary_minus_12db,麻雀|乌鸫,地啄木,Jynx torquilla_Eurasian Wryneck,0.013386,3,False,False
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/054__麻雀__乌鸫.wav,sequential_equal,麻雀|乌鸫,麻雀,Passer montanus_Eurasian Tree Sparrow,0.891854,1,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/054__麻雀__乌鸫.wav,sequential_equal,麻雀|乌鸫,乌鸫,Turdus mandarinus_Chinese Blackbird,0.759805,2,True,True
+data/interim/challenge_2026_multibird_mixtures/sequential_equal/054__麻雀__乌鸫.wav,sequential_equal,麻雀|乌鸫,山麻雀,Passer cinnamomeus_Russet Sparrow,0.011581,3,False,False
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/055__麻雀__乌鸫__强脚树莺.wav,overlap_three_equal,麻雀|乌鸫|强脚树莺,强脚树莺,Horornis fortipes_Brownish-flanked Bush Warbler,0.955798,1,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/055__麻雀__乌鸫__强脚树莺.wav,overlap_three_equal,麻雀|乌鸫|强脚树莺,麻雀,Passer montanus_Eurasian Tree Sparrow,0.391722,2,True,True
+data/interim/challenge_2026_multibird_mixtures/overlap_three_equal/055__麻雀__乌鸫__强脚树莺.wav,overlap_three_equal,麻雀|乌鸫|强脚树莺,棕脸鹟莺,Abroscopus albogularis_Rufous-faced Warbler,0.014847,3,False,False

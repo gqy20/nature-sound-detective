@@ -16,6 +16,7 @@ class BirdNetSpecies:
     output_index: int
     scientific_name: str
     name_zh: str
+    source_name_zh: str
     name_en: str
     geo_score: float
 
@@ -41,6 +42,7 @@ def load_hangzhou_birdnet_catalog(
             output_index=int(row["output_index"]),
             scientific_name=str(row["scientific_name"]),
             name_zh=str(row["name_zh"]),
+            source_name_zh=str(row.get("source_name_zh", row["name_zh"])),
             name_en=str(row["name_en"]),
             geo_score=float(row["geo_score"]),
         )

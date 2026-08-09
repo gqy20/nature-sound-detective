@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
@@ -76,4 +78,57 @@ void main() {
 
     expect(() => store.delete('../outside'), throwsA(isA<FormatException>()));
   });
+
+  test(
+    'shows current Simplified Chinese names for historical records',
+    () async {
+      final root = await Directory.systemTemp.createTemp('xykw_store_test_');
+      addTearDown(() => root.delete(recursive: true));
+      final records = Directory('${root.path}${Platform.pathSeparator}records');
+      await records.create(recursive: true);
+      final oldRecord = {
+        'id': 'old_bird',
+        'created_at': '2026-08-01T00:00:00Z',
+        'location': '杭州',
+        'audio_path': '/tmp/old.wav',
+        'duration_ms': 3000,
+        'audio_quality': {'usable': true},
+        'detections': [
+          {
+            'category_id': 'bird',
+            'name_zh': '鸟类鸣叫',
+            'confidence': 0.8,
+            'model': 'birdnet',
+            'intervals': <Object?>[],
+            'specific_species': {
+              'name_zh': '小白鷺',
+              'scientific_name': 'Egretta garzetta',
+            },
+          },
+        ],
+      };
+      final recordFile = File(
+        '${records.path}${Platform.pathSeparator}old_bird.json',
+      );
+      await recordFile.writeAsString(jsonEncode(oldRecord));
+      final store = FileExplorationStore(
+        rootProvider: () async => root,
+        speciesCatalogProvider: () async => BirdnetSpeciesCatalog.fromJson('''
+        {"species":[{
+          "output_index":2047,
+          "scientific_name":"Egretta garzetta",
+          "name_zh":"小白鹭",
+          "source_name_zh":"小白鷺",
+          "name_en":"Little Egret",
+          "geo_score":0.99
+        }]}
+      '''),
+      );
+
+      final loaded = (await store.list()).single;
+
+      expect(loaded.detections.single.specificSpecies?.nameZh, '小白鹭');
+      expect(await recordFile.readAsString(), contains('小白鷺'));
+    },
+  );
 }

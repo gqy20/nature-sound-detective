@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
+import 'package:nature_sound_detective/core/models/detection.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,7 @@ void main() {
         "output_index":5746,
         "scientific_name":"Streptopelia chinensis",
         "name_zh":"珠颈斑鸠",
+        "source_name_zh":"Spotted Dove",
         "name_en":"Spotted Dove",
         "geo_score":0.99
       }]}
@@ -19,7 +21,36 @@ void main() {
     expect(catalog.species, hasLength(1));
     expect(catalog.species.single.outputIndex, 5746);
     expect(catalog.species.single.nameZh, '珠颈斑鸠');
+    expect(catalog.species.single.sourceNameZh, 'Spotted Dove');
     expect(catalog.species.single.geoScore, 0.99);
+  });
+
+  test('normalizes a historical Traditional Chinese species snapshot', () {
+    final catalog = BirdnetSpeciesCatalog.fromJson('''
+      {"species":[{
+        "output_index":2047,
+        "scientific_name":"Egretta garzetta",
+        "name_zh":"小白鹭",
+        "source_name_zh":"小白鷺",
+        "name_en":"Little Egret",
+        "geo_score":0.99
+      }]}
+    ''');
+    const detection = SoundDetection(
+      categoryId: 'bird',
+      nameZh: '鸟类鸣叫',
+      confidence: 0.8,
+      model: 'birdnet',
+      specificSpecies: SpeciesCandidate(
+        nameZh: '小白鷺',
+        scientificName: 'Egretta garzetta',
+      ),
+    );
+
+    final normalized = catalog.normalizeDetection(detection);
+
+    expect(normalized.specificSpecies?.nameZh, '小白鹭');
+    expect(normalized.specificSpecies?.scientificName, 'Egretta garzetta');
   });
 
   test('rejects duplicate output indices', () {
@@ -44,6 +75,16 @@ void main() {
 
       expect(species, hasLength(200));
       expect(species.map((item) => item.outputIndex).toSet(), hasLength(200));
+      expect(
+        species.every((item) => item.sourceNameZh?.isNotEmpty ?? false),
+        isTrue,
+      );
+      expect(
+        species
+            .singleWhere((item) => item.scientificName == 'Egretta garzetta')
+            .nameZh,
+        '小白鹭',
+      );
       expect(
         species
             .where(

@@ -72,6 +72,7 @@ class ExplorationRecord {
   final Map<String, List<String>> fieldChecks;
 
   ExplorationRecord copyWith({
+    List<SoundDetection>? detections,
     bool? confirmedByUser,
     ExplorationFeedback? feedback,
     Map<String, List<String>>? fieldChecks,
@@ -83,7 +84,7 @@ class ExplorationRecord {
       audioPath: audioPath,
       duration: duration,
       audioQuality: audioQuality,
-      detections: detections,
+      detections: detections ?? this.detections,
       confirmedByUser: confirmedByUser ?? this.confirmedByUser,
       feedback: feedback ?? this.feedback,
       fieldChecks: fieldChecks ?? this.fieldChecks,

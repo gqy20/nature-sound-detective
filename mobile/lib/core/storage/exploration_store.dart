@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/inference/birdnet_species.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -36,17 +38,30 @@ abstract interface class ExplorationStore {
 }
 
 typedef DirectoryProvider = Future<Directory> Function();
+typedef SpeciesCatalogProvider = Future<BirdnetSpeciesCatalog> Function();
 
 class FileExplorationStore implements ExplorationStore {
-  FileExplorationStore({DirectoryProvider? rootProvider})
-    : _rootProvider = rootProvider ?? _defaultRoot;
+  FileExplorationStore({
+    DirectoryProvider? rootProvider,
+    SpeciesCatalogProvider? speciesCatalogProvider,
+  }) : _rootProvider = rootProvider ?? _defaultRoot,
+       _speciesCatalogProvider =
+           speciesCatalogProvider ?? _defaultSpeciesCatalog;
 
   final DirectoryProvider _rootProvider;
+  final SpeciesCatalogProvider _speciesCatalogProvider;
+  Future<BirdnetSpeciesCatalog>? _speciesCatalogFuture;
 
   static Future<Directory> _defaultRoot() async {
     final documents = await getApplicationDocumentsDirectory();
     return Directory(
       '${documents.path}${Platform.pathSeparator}nature_sound_detective',
+    );
+  }
+
+  static Future<BirdnetSpeciesCatalog> _defaultSpeciesCatalog() async {
+    return BirdnetSpeciesCatalog.fromJson(
+      await rootBundle.loadString('assets/labels/birdnet_hz.json'),
     );
   }
 
@@ -119,8 +134,38 @@ class FileExplorationStore implements ExplorationStore {
         // Ignore one damaged record so the rest of the sound book remains usable.
       }
     }
+    if (_containsVersionedSpecies(records)) {
+      try {
+        final catalog = await (_speciesCatalogFuture ??=
+            _speciesCatalogProvider());
+        for (var index = 0; index < records.length; index += 1) {
+          final record = records[index];
+          records[index] = record.copyWith(
+            detections: record.detections
+                .map(catalog.normalizeDetection)
+                .toList(growable: false),
+          );
+        }
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'storage',
+          'species_names_not_normalized',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     records.sort((left, right) => right.createdAt.compareTo(left.createdAt));
     return records;
+  }
+
+  bool _containsVersionedSpecies(List<ExplorationRecord> records) {
+    return records.any(
+      (record) => record.detections.any((detection) {
+        final scientificName = detection.specificSpecies?.scientificName;
+        return scientificName != null && scientificName.trim().isNotEmpty;
+      }),
+    );
   }
 
   @override

@@ -1,0 +1,1569 @@
+{
+  "catalog_id": "hangzhou-bird-species-zh-cn",
+  "version": "1.0.0",
+  "description": "Mainland Simplified Chinese display names keyed by BirdNET scientific name.",
+  "policy": "Challenge names override; remaining BirdNET zh labels are converted offline and retained for review.",
+  "species_count": 200,
+  "names": {
+    "Passer montanus": {
+      "name_zh_cn": "麻雀",
+      "source_name_zh": "麻雀",
+      "aliases": [
+        "树麻雀"
+      ],
+      "status": "official_challenge"
+    },
+    "Pycnonotus sinensis": {
+      "name_zh_cn": "白头鹎",
+      "source_name_zh": "白頭翁",
+      "aliases": [
+        "白頭翁"
+      ],
+      "status": "official_challenge"
+    },
+    "Egretta garzetta": {
+      "name_zh_cn": "小白鹭",
+      "source_name_zh": "小白鷺",
+      "aliases": [
+        "小白鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Streptopelia chinensis": {
+      "name_zh_cn": "珠颈斑鸠",
+      "source_name_zh": "Spotted Dove",
+      "aliases": [
+        "Spotted Dove"
+      ],
+      "status": "official_challenge"
+    },
+    "Pica serica": {
+      "name_zh_cn": "喜鹊",
+      "source_name_zh": "喜鵲",
+      "aliases": [
+        "喜鵲"
+      ],
+      "status": "official_challenge"
+    },
+    "Motacilla alba": {
+      "name_zh_cn": "白鹡鸰",
+      "source_name_zh": "白鶺鴒",
+      "aliases": [
+        "白鶺鴒"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus mandarinus": {
+      "name_zh_cn": "乌鸫",
+      "source_name_zh": "中國黑鶇",
+      "aliases": [
+        "中國黑鶇"
+      ],
+      "status": "official_challenge"
+    },
+    "Lanius schach": {
+      "name_zh_cn": "棕背伯劳",
+      "source_name_zh": "棕背伯勞",
+      "aliases": [
+        "棕背伯勞"
+      ],
+      "status": "official_challenge"
+    },
+    "Acridotheres cristatellus": {
+      "name_zh_cn": "八哥(冠八哥)",
+      "source_name_zh": "八哥(冠八哥)",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Sinosuthora webbiana": {
+      "name_zh_cn": "粉红鹦嘴",
+      "source_name_zh": "粉紅鸚嘴",
+      "aliases": [
+        "粉紅鸚嘴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tachybaptus ruficollis": {
+      "name_zh_cn": "小䴙䴘",
+      "source_name_zh": "小鸊鷉",
+      "aliases": [
+        "小鸊鷉"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hirundo rustica": {
+      "name_zh_cn": "家燕",
+      "source_name_zh": "家燕",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Copsychus saularis": {
+      "name_zh_cn": "鹊鸲",
+      "source_name_zh": "鵲鴝",
+      "aliases": [
+        "鵲鴝"
+      ],
+      "status": "official_challenge"
+    },
+    "Nycticorax nycticorax": {
+      "name_zh_cn": "夜鹭",
+      "source_name_zh": "夜鷺",
+      "aliases": [
+        "夜鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Parus minor": {
+      "name_zh_cn": "白颊山雀",
+      "source_name_zh": "白頰山雀",
+      "aliases": [
+        "白頰山雀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phoenicurus auroreus": {
+      "name_zh_cn": "黄尾鸲",
+      "source_name_zh": "黃尾鴝",
+      "aliases": [
+        "黃尾鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Gallinula chloropus": {
+      "name_zh_cn": "黑水鸡",
+      "source_name_zh": "紅冠水雞",
+      "aliases": [
+        "紅冠水雞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Streptopelia orientalis": {
+      "name_zh_cn": "金背鸠",
+      "source_name_zh": "金背鳩",
+      "aliases": [
+        "金背鳩"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Zosterops simplex": {
+      "name_zh_cn": "斯氏绣眼",
+      "source_name_zh": "斯氏繡眼",
+      "aliases": [
+        "斯氏繡眼"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cyanopica cyanus": {
+      "name_zh_cn": "灰喜鹊",
+      "source_name_zh": "灰喜鵲",
+      "aliases": [
+        "灰喜鵲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza spodocephala": {
+      "name_zh_cn": "灰头黑脸鹀",
+      "source_name_zh": "灰頭黑臉鵐",
+      "aliases": [
+        "灰頭黑臉鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Eophona migratoria": {
+      "name_zh_cn": "小桑鸤",
+      "source_name_zh": "小桑鳲",
+      "aliases": [
+        "小桑鳲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Spodiopsar sericeus": {
+      "name_zh_cn": "丝光椋鸟",
+      "source_name_zh": "絲光椋鳥",
+      "aliases": [
+        "絲光椋鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus pallidus": {
+      "name_zh_cn": "白腹鸫",
+      "source_name_zh": "白腹鶇",
+      "aliases": [
+        "白腹鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ardeola bacchus": {
+      "name_zh_cn": "池鹭",
+      "source_name_zh": "池鷺",
+      "aliases": [
+        "池鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus inornatus": {
+      "name_zh_cn": "黄眉柳莺",
+      "source_name_zh": "黃眉柳鶯",
+      "aliases": [
+        "黃眉柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Spodiopsar cineraceus": {
+      "name_zh_cn": "灰椋鸟",
+      "source_name_zh": "灰椋鳥",
+      "aliases": [
+        "灰椋鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anthus hodgsoni": {
+      "name_zh_cn": "树鹨",
+      "source_name_zh": "樹鷚",
+      "aliases": [
+        "樹鷚"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ardea cinerea": {
+      "name_zh_cn": "苍鹭",
+      "source_name_zh": "蒼鷺",
+      "aliases": [
+        "蒼鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus proregulus": {
+      "name_zh_cn": "黄腰柳莺",
+      "source_name_zh": "黃腰柳鶯",
+      "aliases": [
+        "黃腰柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tarsiger cyanurus": {
+      "name_zh_cn": "蓝尾鸲",
+      "source_name_zh": "藍尾鴝",
+      "aliases": [
+        "藍尾鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Motacilla tschutschensis": {
+      "name_zh_cn": "东方黄鹡鸰",
+      "source_name_zh": "東方黃鶺鴒",
+      "aliases": [
+        "東方黃鶺鴒"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Bubulcus ibis": {
+      "name_zh_cn": "黄头鹭",
+      "source_name_zh": "黃頭鷺",
+      "aliases": [
+        "黃頭鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Muscicapa dauurica": {
+      "name_zh_cn": "宽嘴鹟",
+      "source_name_zh": "寬嘴鶲",
+      "aliases": [
+        "寬嘴鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cecropis daurica": {
+      "name_zh_cn": "金腰燕",
+      "source_name_zh": "金腰燕",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Muscicapa griseisticta": {
+      "name_zh_cn": "灰斑鹟",
+      "source_name_zh": "灰斑鶲",
+      "aliases": [
+        "灰斑鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anas zonorhyncha": {
+      "name_zh_cn": "花嘴鸭",
+      "source_name_zh": "花嘴鴨",
+      "aliases": [
+        "花嘴鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus eunomus": {
+      "name_zh_cn": "斑点鸫",
+      "source_name_zh": "斑點鶇",
+      "aliases": [
+        "斑點鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ficedula zanthopygia": {
+      "name_zh_cn": "白眉鹟",
+      "source_name_zh": "白眉鶲",
+      "aliases": [
+        "白眉鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Upupa epops": {
+      "name_zh_cn": "戴胜",
+      "source_name_zh": "戴勝",
+      "aliases": [
+        "戴勝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Alcedo atthis": {
+      "name_zh_cn": "翠鸟",
+      "source_name_zh": "翠鳥",
+      "aliases": [
+        "翠鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus hortulorum": {
+      "name_zh_cn": "灰背鸫",
+      "source_name_zh": "灰背鶇",
+      "aliases": [
+        "灰背鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anthus cervinus": {
+      "name_zh_cn": "赤喉鹨",
+      "source_name_zh": "赤喉鷚",
+      "aliases": [
+        "赤喉鷚"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tringa nebularia": {
+      "name_zh_cn": "青足鹬",
+      "source_name_zh": "青足鷸",
+      "aliases": [
+        "青足鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anthus richardi": {
+      "name_zh_cn": "大花鹨",
+      "source_name_zh": "大花鷚",
+      "aliases": [
+        "大花鷚"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza pusilla": {
+      "name_zh_cn": "小鹀",
+      "source_name_zh": "小鵐",
+      "aliases": [
+        "小鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Saxicola stejnegeri": {
+      "name_zh_cn": "黑喉鸲",
+      "source_name_zh": "黑喉鴝",
+      "aliases": [
+        "黑喉鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phasianus colchicus": {
+      "name_zh_cn": "环颈雉",
+      "source_name_zh": "環頸雉",
+      "aliases": [
+        "環頸雉"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ardea alba": {
+      "name_zh_cn": "大白鹭",
+      "source_name_zh": "大白鷺",
+      "aliases": [
+        "大白鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus borealis": {
+      "name_zh_cn": "极北柳莺",
+      "source_name_zh": "極北柳鶯",
+      "aliases": [
+        "極北柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tringa erythropus": {
+      "name_zh_cn": "鹤鹬",
+      "source_name_zh": "鶴鷸",
+      "aliases": [
+        "鶴鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Larvivora sibilans": {
+      "name_zh_cn": "红尾歌鸲",
+      "source_name_zh": "紅尾歌鴝",
+      "aliases": [
+        "紅尾歌鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Actitis hypoleucos": {
+      "name_zh_cn": "矶鹬",
+      "source_name_zh": "磯鷸",
+      "aliases": [
+        "磯鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza rustica": {
+      "name_zh_cn": "田鹀",
+      "source_name_zh": "田鵐",
+      "aliases": [
+        "田鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anthus rubescens": {
+      "name_zh_cn": "黄腹鹨",
+      "source_name_zh": "黃腹鷚",
+      "aliases": [
+        "黃腹鷚"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cyanoptila cyanomelana": {
+      "name_zh_cn": "白腹琉璃",
+      "source_name_zh": "白腹琉璃",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ficedula mugimaki": {
+      "name_zh_cn": "白眉黄鹟",
+      "source_name_zh": "白眉黃鶲",
+      "aliases": [
+        "白眉黃鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Muscicapa sibirica": {
+      "name_zh_cn": "乌鹟",
+      "source_name_zh": "烏鶲",
+      "aliases": [
+        "烏鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ixobrychus sinensis": {
+      "name_zh_cn": "黄小鹭",
+      "source_name_zh": "黃小鷺",
+      "aliases": [
+        "黃小鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Lanius cristatus": {
+      "name_zh_cn": "红尾伯劳",
+      "source_name_zh": "紅尾伯勞",
+      "aliases": [
+        "紅尾伯勞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Horornis canturians": {
+      "name_zh_cn": "远东树莺",
+      "source_name_zh": "遠東樹鶯",
+      "aliases": [
+        "遠東樹鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Geokichla sibirica": {
+      "name_zh_cn": "白眉地鸫",
+      "source_name_zh": "白眉地鶇",
+      "aliases": [
+        "白眉地鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Chlidonias hybrida": {
+      "name_zh_cn": "黑腹燕鸥",
+      "source_name_zh": "黑腹燕鷗",
+      "aliases": [
+        "黑腹燕鷗"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Fringilla montifringilla": {
+      "name_zh_cn": "花雀",
+      "source_name_zh": "花雀",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Lonchura punctulata": {
+      "name_zh_cn": "斑文鸟",
+      "source_name_zh": "斑文鳥",
+      "aliases": [
+        "斑文鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Charadrius alexandrinus": {
+      "name_zh_cn": "东方环颈鸻",
+      "source_name_zh": "東方環頸鴴",
+      "aliases": [
+        "東方環頸鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Alauda gulgula": {
+      "name_zh_cn": "小云雀",
+      "source_name_zh": "小雲雀",
+      "aliases": [
+        "小雲雀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Aegithalos concinnus": {
+      "name_zh_cn": "红头山雀",
+      "source_name_zh": "紅頭山雀",
+      "aliases": [
+        "紅頭山雀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Fulica atra": {
+      "name_zh_cn": "白冠鸡",
+      "source_name_zh": "白冠雞",
+      "aliases": [
+        "白冠雞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Acrocephalus bistrigiceps": {
+      "name_zh_cn": "双眉苇莺",
+      "source_name_zh": "雙眉葦鶯",
+      "aliases": [
+        "雙眉葦鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Charadrius dubius": {
+      "name_zh_cn": "小环颈鸻",
+      "source_name_zh": "小環頸鴴",
+      "aliases": [
+        "小環頸鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ardea intermedia": {
+      "name_zh_cn": "中白鹭",
+      "source_name_zh": "中白鷺",
+      "aliases": [
+        "中白鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus coronatus": {
+      "name_zh_cn": "冠羽柳莺",
+      "source_name_zh": "冠羽柳鶯",
+      "aliases": [
+        "冠羽柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Zoothera aurea": {
+      "name_zh_cn": "白氏地鸫",
+      "source_name_zh": "白氏地鶇",
+      "aliases": [
+        "白氏地鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Larus argentatus": {
+      "name_zh_cn": "银鸥",
+      "source_name_zh": "銀鷗",
+      "aliases": [
+        "銀鷗"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Vanellus cinereus": {
+      "name_zh_cn": "跳鸻",
+      "source_name_zh": "跳鴴",
+      "aliases": [
+        "跳鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Prinia inornata": {
+      "name_zh_cn": "褐头鹪莺",
+      "source_name_zh": "褐頭鷦鶯",
+      "aliases": [
+        "褐頭鷦鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Urocissa erythroryncha": {
+      "name_zh_cn": "红嘴蓝鹊",
+      "source_name_zh": "紅嘴藍鵲",
+      "aliases": [
+        "紅嘴藍鵲"
+      ],
+      "status": "official_challenge"
+    },
+    "Anas crecca": {
+      "name_zh_cn": "小水鸭",
+      "source_name_zh": "小水鴨",
+      "aliases": [
+        "小水鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Spizixos semitorques": {
+      "name_zh_cn": "白环鹦嘴鹎",
+      "source_name_zh": "白環鸚嘴鵯",
+      "aliases": [
+        "白環鸚嘴鵯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus fuscatus": {
+      "name_zh_cn": "褐色柳莺",
+      "source_name_zh": "褐色柳鶯",
+      "aliases": [
+        "褐色柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cisticola juncidis": {
+      "name_zh_cn": "棕扇尾莺",
+      "source_name_zh": "棕扇尾鶯",
+      "aliases": [
+        "棕扇尾鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Amaurornis phoenicurus": {
+      "name_zh_cn": "白腹秧鸡",
+      "source_name_zh": "白腹秧雞",
+      "aliases": [
+        "白腹秧雞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Garrulax canorus": {
+      "name_zh_cn": "大陆画眉",
+      "source_name_zh": "大陸畫眉",
+      "aliases": [
+        "大陸畫眉"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Himantopus himantopus": {
+      "name_zh_cn": "高跷鸻",
+      "source_name_zh": "高蹺鴴",
+      "aliases": [
+        "高蹺鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Chloris sinica": {
+      "name_zh_cn": "金翅雀",
+      "source_name_zh": "金翅雀",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Jynx torquilla": {
+      "name_zh_cn": "地啄木",
+      "source_name_zh": "地啄木",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Riparia diluta": {
+      "name_zh_cn": "浅灰沙燕",
+      "source_name_zh": "淺灰沙燕",
+      "aliases": [
+        "淺灰沙燕"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Bambusicola thoracicus": {
+      "name_zh_cn": "灰胸竹鸡",
+      "source_name_zh": "灰胸竹雞",
+      "aliases": [
+        "灰胸竹雞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Calliope calliope": {
+      "name_zh_cn": "野鸲",
+      "source_name_zh": "野鴝",
+      "aliases": [
+        "野鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus tenellipes": {
+      "name_zh_cn": "淡脚柳莺",
+      "source_name_zh": "淡腳柳鶯",
+      "aliases": [
+        "淡腳柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza tristrami": {
+      "name_zh_cn": "白眉鹀",
+      "source_name_zh": "白眉鵐",
+      "aliases": [
+        "白眉鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Chlidonias leucopterus": {
+      "name_zh_cn": "白翅黑燕鸥",
+      "source_name_zh": "白翅黑燕鷗",
+      "aliases": [
+        "白翅黑燕鷗"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Falco tinnunculus": {
+      "name_zh_cn": "红隼",
+      "source_name_zh": "紅隼",
+      "aliases": [
+        "紅隼"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ardea purpurea": {
+      "name_zh_cn": "紫鹭",
+      "source_name_zh": "紫鷺",
+      "aliases": [
+        "紫鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Acrocephalus orientalis": {
+      "name_zh_cn": "东方大苇莺",
+      "source_name_zh": "東方大葦鶯",
+      "aliases": [
+        "東方大葦鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Horornis fortipes": {
+      "name_zh_cn": "强脚树莺",
+      "source_name_zh": "小鶯",
+      "aliases": [
+        "小莺",
+        "小鶯"
+      ],
+      "status": "official_challenge"
+    },
+    "Motacilla cinerea": {
+      "name_zh_cn": "灰鹡鸰",
+      "source_name_zh": "灰鶺鴒",
+      "aliases": [
+        "灰鶺鴒"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Riparia riparia": {
+      "name_zh_cn": "灰沙燕",
+      "source_name_zh": "灰沙燕",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Falco peregrinus": {
+      "name_zh_cn": "游隼",
+      "source_name_zh": "遊隼",
+      "aliases": [
+        "遊隼"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Lonchura striata": {
+      "name_zh_cn": "白腰文鸟",
+      "source_name_zh": "白腰文鳥",
+      "aliases": [
+        "白腰文鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Monticola solitarius": {
+      "name_zh_cn": "蓝矶鸫",
+      "source_name_zh": "藍磯鶇",
+      "aliases": [
+        "藍磯鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Falco amurensis": {
+      "name_zh_cn": "红脚隼",
+      "source_name_zh": "紅腳隼",
+      "aliases": [
+        "紅腳隼"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tringa stagnatilis": {
+      "name_zh_cn": "小青足鹬",
+      "source_name_zh": "小青足鷸",
+      "aliases": [
+        "小青足鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Limosa limosa": {
+      "name_zh_cn": "黑尾鹬",
+      "source_name_zh": "黑尾鷸",
+      "aliases": [
+        "黑尾鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tringa glareola": {
+      "name_zh_cn": "鹰斑鹬",
+      "source_name_zh": "鷹斑鷸",
+      "aliases": [
+        "鷹斑鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pericrocotus divaricatus": {
+      "name_zh_cn": "灰山椒鸟",
+      "source_name_zh": "灰山椒鳥",
+      "aliases": [
+        "灰山椒鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus cardis": {
+      "name_zh_cn": "乌灰鸫",
+      "source_name_zh": "烏灰鶇",
+      "aliases": [
+        "烏灰鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Dicrurus hottentottus": {
+      "name_zh_cn": "发冠卷尾",
+      "source_name_zh": "髮冠卷尾",
+      "aliases": [
+        "髮冠卷尾"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Gallinago gallinago": {
+      "name_zh_cn": "田鹬",
+      "source_name_zh": "田鷸",
+      "aliases": [
+        "田鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Agropsar sturninus": {
+      "name_zh_cn": "北椋鸟",
+      "source_name_zh": "北椋鳥",
+      "aliases": [
+        "北椋鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pluvialis squatarola": {
+      "name_zh_cn": "灰斑鸻",
+      "source_name_zh": "灰斑鴴",
+      "aliases": [
+        "灰斑鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Podiceps cristatus": {
+      "name_zh_cn": "冠䴙䴘",
+      "source_name_zh": "冠鸊鷉",
+      "aliases": [
+        "冠鸊鷉"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza chrysophrys": {
+      "name_zh_cn": "黄眉鹀",
+      "source_name_zh": "黃眉鵐",
+      "aliases": [
+        "黃眉鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus obscurus": {
+      "name_zh_cn": "白眉鸫",
+      "source_name_zh": "白眉鶇",
+      "aliases": [
+        "白眉鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Circus spilonotus": {
+      "name_zh_cn": "东方泽𫛭",
+      "source_name_zh": "東方澤鵟",
+      "aliases": [
+        "東方澤鵟"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hypsipetes leucocephalus": {
+      "name_zh_cn": "红嘴黑鹎",
+      "source_name_zh": "紅嘴黑鵯",
+      "aliases": [
+        "紅嘴黑鵯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Platalea leucorodia": {
+      "name_zh_cn": "白琵鹭",
+      "source_name_zh": "白琵鷺",
+      "aliases": [
+        "白琵鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus schwarzi": {
+      "name_zh_cn": "巨嘴柳莺",
+      "source_name_zh": "巨嘴柳鶯",
+      "aliases": [
+        "巨嘴柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Lanius tigrinus": {
+      "name_zh_cn": "虎纹伯劳",
+      "source_name_zh": "虎紋伯勞",
+      "aliases": [
+        "虎紋伯勞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Accipiter trivirgatus": {
+      "name_zh_cn": "凤头苍鹰",
+      "source_name_zh": "鳳頭蒼鷹",
+      "aliases": [
+        "鳳頭蒼鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Calidris ruficollis": {
+      "name_zh_cn": "红胸滨鹬",
+      "source_name_zh": "紅胸濱鷸",
+      "aliases": [
+        "紅胸濱鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza pallasi": {
+      "name_zh_cn": "苇鹀",
+      "source_name_zh": "葦鵐",
+      "aliases": [
+        "葦鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Yungipicus canicapillus": {
+      "name_zh_cn": "小啄木",
+      "source_name_zh": "小啄木",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Dendrocitta formosae": {
+      "name_zh_cn": "树鹊",
+      "source_name_zh": "樹鵲",
+      "aliases": [
+        "樹鵲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Abroscopus albogularis": {
+      "name_zh_cn": "棕脸鹟莺",
+      "source_name_zh": "棕面鶯",
+      "aliases": [
+        "棕面莺",
+        "棕面鶯"
+      ],
+      "status": "official_challenge"
+    },
+    "Terpsiphone incei": {
+      "name_zh_cn": "阿穆尔绶带",
+      "source_name_zh": "阿穆爾綬帶",
+      "aliases": [
+        "阿穆爾綬帶"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Oriolus chinensis": {
+      "name_zh_cn": "黄鹂",
+      "source_name_zh": "黃鸝",
+      "aliases": [
+        "黃鸝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Accipiter virgatus": {
+      "name_zh_cn": "松雀鹰",
+      "source_name_zh": "松雀鷹",
+      "aliases": [
+        "松雀鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Butorides striata": {
+      "name_zh_cn": "绿蓑鹭",
+      "source_name_zh": "綠簑鷺",
+      "aliases": [
+        "綠簑鷺"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza elegans": {
+      "name_zh_cn": "黄喉鹀",
+      "source_name_zh": "黃喉鵐",
+      "aliases": [
+        "黃喉鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Delichon dasypus": {
+      "name_zh_cn": "东方毛脚燕",
+      "source_name_zh": "東方毛腳燕",
+      "aliases": [
+        "東方毛腳燕"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tringa ochropus": {
+      "name_zh_cn": "白腰草鹬",
+      "source_name_zh": "白腰草鷸",
+      "aliases": [
+        "白腰草鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pterorhinus perspicillatus": {
+      "name_zh_cn": "黑脸噪眉",
+      "source_name_zh": "黑臉噪眉",
+      "aliases": [
+        "黑臉噪眉"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Larvivora cyane": {
+      "name_zh_cn": "蓝歌鸲",
+      "source_name_zh": "藍歌鴝",
+      "aliases": [
+        "藍歌鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Dicrurus leucophaeus": {
+      "name_zh_cn": "灰卷尾",
+      "source_name_zh": "灰卷尾",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Numenius phaeopus": {
+      "name_zh_cn": "中杓鹬",
+      "source_name_zh": "中杓鷸",
+      "aliases": [
+        "中杓鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Calidris alpina": {
+      "name_zh_cn": "黑腹滨鹬",
+      "source_name_zh": "黑腹濱鷸",
+      "aliases": [
+        "黑腹濱鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Remiz consobrinus": {
+      "name_zh_cn": "攀雀",
+      "source_name_zh": "攀雀",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Eurystomus orientalis": {
+      "name_zh_cn": "佛法僧",
+      "source_name_zh": "佛法僧",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hydrophasianus chirurgus": {
+      "name_zh_cn": "水雉",
+      "source_name_zh": "水雉",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Halcyon pileata": {
+      "name_zh_cn": "黑头翡翠",
+      "source_name_zh": "黑頭翡翠",
+      "aliases": [
+        "黑頭翡翠"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Turdus naumanni": {
+      "name_zh_cn": "红尾鸫",
+      "source_name_zh": "紅尾鶇",
+      "aliases": [
+        "紅尾鶇"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Accipiter soloensis": {
+      "name_zh_cn": "赤腹鹰",
+      "source_name_zh": "赤腹鷹",
+      "aliases": [
+        "赤腹鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Periparus venustulus": {
+      "name_zh_cn": "黄腹山雀",
+      "source_name_zh": "黃腹山雀",
+      "aliases": [
+        "黃腹山雀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anas acuta": {
+      "name_zh_cn": "尖尾鸭",
+      "source_name_zh": "尖尾鴨",
+      "aliases": [
+        "尖尾鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hirundapus caudacutus": {
+      "name_zh_cn": "白喉针尾雨燕",
+      "source_name_zh": "白喉針尾雨燕",
+      "aliases": [
+        "白喉針尾雨燕"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza fucata": {
+      "name_zh_cn": "赤胸鹀",
+      "source_name_zh": "赤胸鵐",
+      "aliases": [
+        "赤胸鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pericrocotus cantonensis": {
+      "name_zh_cn": "小灰山椒鸟",
+      "source_name_zh": "小灰山椒鳥",
+      "aliases": [
+        "小灰山椒鳥"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Apus pacificus": {
+      "name_zh_cn": "叉尾雨燕",
+      "source_name_zh": "叉尾雨燕",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anas platyrhynchos": {
+      "name_zh_cn": "绿头鸭",
+      "source_name_zh": "綠頭鴨",
+      "aliases": [
+        "綠頭鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Falco subbuteo": {
+      "name_zh_cn": "燕隼",
+      "source_name_zh": "燕隼",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cuculus micropterus": {
+      "name_zh_cn": "四声杜鹃",
+      "source_name_zh": "四聲杜鵑",
+      "aliases": [
+        "四聲杜鵑"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Dendronanthus indicus": {
+      "name_zh_cn": "山鹡鸰",
+      "source_name_zh": "山鶺鴒",
+      "aliases": [
+        "山鶺鴒"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pluvialis fulva": {
+      "name_zh_cn": "太平洋金斑鸻",
+      "source_name_zh": "太平洋金斑鴴",
+      "aliases": [
+        "太平洋金斑鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Urosphena squameiceps": {
+      "name_zh_cn": "短尾莺",
+      "source_name_zh": "短尾鶯",
+      "aliases": [
+        "短尾鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Mareca strepera": {
+      "name_zh_cn": "赤膀鸭",
+      "source_name_zh": "赤膀鴨",
+      "aliases": [
+        "赤膀鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ficedula albicilla": {
+      "name_zh_cn": "红喉鹟",
+      "source_name_zh": "紅喉鶲",
+      "aliases": [
+        "紅喉鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Calidris temminckii": {
+      "name_zh_cn": "丹氏滨鹬",
+      "source_name_zh": "丹氏濱鷸",
+      "aliases": [
+        "丹氏濱鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Buteo japonicus": {
+      "name_zh_cn": "东方𫛭",
+      "source_name_zh": "東方鵟",
+      "aliases": [
+        "東方鵟"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Spinus spinus": {
+      "name_zh_cn": "黄雀",
+      "source_name_zh": "黃雀",
+      "aliases": [
+        "黃雀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hemixos castanonotus": {
+      "name_zh_cn": "栗背短脚鹎",
+      "source_name_zh": "栗背短腳鵯",
+      "aliases": [
+        "栗背短腳鵯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phalacrocorax carbo": {
+      "name_zh_cn": "鸬鹚",
+      "source_name_zh": "鸕鷀",
+      "aliases": [
+        "鸕鷀"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Streptopelia tranquebarica": {
+      "name_zh_cn": "红鸠",
+      "source_name_zh": "紅鳩",
+      "aliases": [
+        "紅鳩"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ixos mcclellandii": {
+      "name_zh_cn": "Mountain Bulbul",
+      "source_name_zh": "Mountain Bulbul",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Chroicocephalus ridibundus": {
+      "name_zh_cn": "红嘴鸥",
+      "source_name_zh": "紅嘴鷗",
+      "aliases": [
+        "紅嘴鷗"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Eophona personata": {
+      "name_zh_cn": "桑鸤",
+      "source_name_zh": "桑鳲",
+      "aliases": [
+        "桑鳲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Emberiza cioides": {
+      "name_zh_cn": "草鹀",
+      "source_name_zh": "草鵐",
+      "aliases": [
+        "草鵐"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Larus crassirostris": {
+      "name_zh_cn": "黑尾鸥",
+      "source_name_zh": "黑尾鷗",
+      "aliases": [
+        "黑尾鷗"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Circus melanoleucos": {
+      "name_zh_cn": "花泽𫛭",
+      "source_name_zh": "花澤鵟",
+      "aliases": [
+        "花澤鵟"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Recurvirostra avosetta": {
+      "name_zh_cn": "反嘴鸻",
+      "source_name_zh": "反嘴鴴",
+      "aliases": [
+        "反嘴鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Caprimulgus jotaka": {
+      "name_zh_cn": "普通夜鹰",
+      "source_name_zh": "普通夜鷹",
+      "aliases": [
+        "普通夜鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Lanius bucephalus": {
+      "name_zh_cn": "红头伯劳",
+      "source_name_zh": "紅頭伯勞",
+      "aliases": [
+        "紅頭伯勞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Aix galericulata": {
+      "name_zh_cn": "鸳鸯",
+      "source_name_zh": "鴛鴦",
+      "aliases": [
+        "鴛鴦"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Tadorna ferruginea": {
+      "name_zh_cn": "渎凫",
+      "source_name_zh": "瀆鳧",
+      "aliases": [
+        "瀆鳧"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Dendrocopos major": {
+      "name_zh_cn": "Great Spotted Woodpecker",
+      "source_name_zh": "Great Spotted Woodpecker",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Passer cinnamomeus": {
+      "name_zh_cn": "山麻雀",
+      "source_name_zh": "山麻雀",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pandion haliaetus": {
+      "name_zh_cn": "鱼鹰",
+      "source_name_zh": "魚鷹",
+      "aliases": [
+        "魚鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pterorhinus pectoralis": {
+      "name_zh_cn": "Greater Necklaced Laughingthrush",
+      "source_name_zh": "Greater Necklaced Laughingthrush",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Enicurus leschenaulti": {
+      "name_zh_cn": "White-crowned Forktail",
+      "source_name_zh": "White-crowned Forktail",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Glaucidium cuculoides": {
+      "name_zh_cn": "Asian Barred Owlet",
+      "source_name_zh": "Asian Barred Owlet",
+      "aliases": [],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cinclus pallasii": {
+      "name_zh_cn": "河乌",
+      "source_name_zh": "河烏",
+      "aliases": [
+        "河烏"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Elanus caeruleus": {
+      "name_zh_cn": "黑翅鸢",
+      "source_name_zh": "黑翅鳶",
+      "aliases": [
+        "黑翅鳶"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Eumyias thalassinus": {
+      "name_zh_cn": "铜蓝鹟",
+      "source_name_zh": "銅藍鶲",
+      "aliases": [
+        "銅藍鶲"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Centropus bengalensis": {
+      "name_zh_cn": "番鹃",
+      "source_name_zh": "番鵑",
+      "aliases": [
+        "番鵑"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Cuculus canorus": {
+      "name_zh_cn": "大杜鹃",
+      "source_name_zh": "大杜鵑",
+      "aliases": [
+        "大杜鵑"
+      ],
+      "status": "official_challenge"
+    },
+    "Glareola maldivarum": {
+      "name_zh_cn": "燕鸻",
+      "source_name_zh": "燕鴴",
+      "aliases": [
+        "燕鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Mareca penelope": {
+      "name_zh_cn": "赤颈鸭",
+      "source_name_zh": "赤頸鴨",
+      "aliases": [
+        "赤頸鴨"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Pernis ptilorhynchus": {
+      "name_zh_cn": "东方蜂鹰",
+      "source_name_zh": "東方蜂鷹",
+      "aliases": [
+        "東方蜂鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Hierococcyx sparverioides": {
+      "name_zh_cn": "鹰鹃",
+      "source_name_zh": "鷹鵑",
+      "aliases": [
+        "鷹鵑"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Saxicola ferreus": {
+      "name_zh_cn": "灰丛鸲",
+      "source_name_zh": "灰叢鴝",
+      "aliases": [
+        "灰叢鴝"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Accipiter gularis": {
+      "name_zh_cn": "日本松雀鹰",
+      "source_name_zh": "日本松雀鷹",
+      "aliases": [
+        "日本松雀鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anser cygnoides": {
+      "name_zh_cn": "鸿雁",
+      "source_name_zh": "鴻雁",
+      "aliases": [
+        "鴻雁"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Rostratula benghalensis": {
+      "name_zh_cn": "彩鹬",
+      "source_name_zh": "彩鷸",
+      "aliases": [
+        "彩鷸"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Circus cyaneus": {
+      "name_zh_cn": "灰泽𫛭",
+      "source_name_zh": "灰澤鵟",
+      "aliases": [
+        "灰澤鵟"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Anthus spinoletta": {
+      "name_zh_cn": "水鹨",
+      "source_name_zh": "水鷚",
+      "aliases": [
+        "水鷚"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Butastur indicus": {
+      "name_zh_cn": "灰面𫛭鹰",
+      "source_name_zh": "灰面鵟鷹",
+      "aliases": [
+        "灰面鵟鷹"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Ninox japonica": {
+      "name_zh_cn": "褐鹰鸮",
+      "source_name_zh": "褐鷹鴞",
+      "aliases": [
+        "褐鷹鴞"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Vanellus vanellus": {
+      "name_zh_cn": "小辫鸻",
+      "source_name_zh": "小辮鴴",
+      "aliases": [
+        "小辮鴴"
+      ],
+      "status": "converted_from_birdnet_zh"
+    },
+    "Phylloscopus plumbeitarsus": {
+      "name_zh_cn": "双斑绿柳莺",
+      "source_name_zh": "雙斑綠柳鶯",
+      "aliases": [
+        "雙斑綠柳鶯"
+      ],
+      "status": "converted_from_birdnet_zh"
+    }
+  }
+}

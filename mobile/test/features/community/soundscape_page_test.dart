@@ -20,7 +20,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('共听杭州'), findsOneWidget);
-    expect(find.text('杭州声景'), findsOneWidget);
+    expect(find.text('杭州实景'), findsOneWidget);
+    expect(find.byKey(const Key('hangzhou-offline-map')), findsOneWidget);
     expect(find.byKey(const Key('soundscape-area-xihu')), findsOneWidget);
     await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
     await tester.pumpAndSettle();
@@ -32,6 +33,7 @@ void main() {
       350,
     );
     expect(find.byKey(const Key('community-post-post-1')), findsOneWidget);
+    expect(find.text('乌鸫候选'), findsOneWidget);
     expect(find.text('先听，再判断这条线索更像谁？'), findsOneWidget);
     expect(find.textContaining('公众协助中，尚未专业确认'), findsOneWidget);
   });

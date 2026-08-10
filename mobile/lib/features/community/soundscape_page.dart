@@ -335,6 +335,13 @@ class _SoundscapePageState extends State<SoundscapePage> {
       appBar: AppBar(
         title: const Text('共听杭州'),
         actions: [
+          if (!_loading && _error == null && _posts.isNotEmpty)
+            IconButton(
+              key: const Key('publish-community-sound'),
+              tooltip: '发布线索',
+              onPressed: _startPublication,
+              icon: const Icon(Icons.radar_rounded),
+            ),
           IconButton(
             tooltip: '隐私说明',
             onPressed: () => showDialog<void>(
@@ -354,14 +361,6 @@ class _SoundscapePageState extends State<SoundscapePage> {
           ),
         ],
       ),
-      floatingActionButton: !_loading && _error == null && _posts.isEmpty
-          ? null
-          : FloatingActionButton.extended(
-              key: const Key('publish-community-sound'),
-              onPressed: _startPublication,
-              icon: const Icon(Icons.radar_rounded),
-              label: const Text('发布线索'),
-            ),
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView(
@@ -520,13 +519,16 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
 
+  // Representative district centers projected into the bundled OSM image.
+  // Posts only expose district-level locations, so no recording coordinate is
+  // implied by these markers.
   static const _positions = <String, Alignment>{
-    'yuhang': Alignment(-0.66, -0.56),
-    'gongshu': Alignment(0.16, -0.61),
-    'xihu': Alignment(-0.34, -0.02),
-    'shangcheng': Alignment(0.46, -0.02),
-    'binjiang': Alignment(0.25, 0.58),
-    'xiaoshan': Alignment(0.72, 0.64),
+    'yuhang': Alignment(-0.78, -0.68),
+    'gongshu': Alignment(-0.34, -0.46),
+    'xihu': Alignment(-0.58, -0.06),
+    'shangcheng': Alignment(-0.18, 0.16),
+    'binjiang': Alignment(-0.07, 0.64),
+    'xiaoshan': Alignment(0.36, 0.66),
   };
 
   @override
@@ -555,7 +557,7 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
 
   @override
   Widget build(BuildContext context) => AspectRatio(
-    aspectRatio: 1.36,
+    aspectRatio: 1176 / 759,
     child: DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -573,29 +575,51 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
           animation: _pulseController,
           builder: (context, _) => Stack(
             children: [
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment(-0.42, -0.28),
-                      radius: 1.25,
-                      colors: [Color(0xFFF2F5EE), Color(0xFFD7E5DD)],
-                    ),
-                  ),
-                ),
-              ),
               Positioned.fill(
-                child: CustomPaint(
-                  painter: _HangzhouMapPainter(
-                    pulse: _pulseController.value,
-                    selectedAreaId: widget.selectedAreaId,
+                child: InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 2.4,
+                  panEnabled: true,
+                  scaleEnabled: true,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/maps/hangzhou_osm.png',
+                        key: const Key('hangzhou-offline-map'),
+                        fit: BoxFit.cover,
+                        filterQuality: FilterQuality.medium,
+                      ),
+                      const ColoredBox(color: Color(0x12F5F0DF)),
+                      for (final area in widget.areas)
+                        Align(
+                          alignment: _positions[area.id] ?? Alignment.center,
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween(
+                              begin: 0.92,
+                              end: widget.recentAreaId == area.id ? 1.1 : 1,
+                            ),
+                            duration: const Duration(milliseconds: 680),
+                            curve: Curves.easeOutBack,
+                            builder: (context, scale, child) =>
+                                Transform.scale(scale: scale, child: child),
+                            child: _AreaRipple(
+                              area: area,
+                              selected: widget.selectedAreaId == area.id,
+                              highlighted: widget.recentAreaId == area.id,
+                              pulse: _pulseController.value,
+                              onTap: () => widget.onSelected(area.id),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
               const Positioned(
                 left: 14,
                 top: 14,
-                child: _MapLabel(icon: Icons.waves_rounded, label: '杭州声景'),
+                child: _MapLabel(icon: Icons.map_outlined, label: '杭州实景'),
               ),
               const Positioned(
                 right: 14,
@@ -605,27 +629,6 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
                   label: '区域级',
                 ),
               ),
-              for (final area in widget.areas)
-                Align(
-                  alignment: _positions[area.id] ?? Alignment.center,
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(
-                      begin: 0.92,
-                      end: widget.recentAreaId == area.id ? 1.13 : 1,
-                    ),
-                    duration: const Duration(milliseconds: 680),
-                    curve: Curves.easeOutBack,
-                    builder: (context, scale, child) =>
-                        Transform.scale(scale: scale, child: child),
-                    child: _AreaRipple(
-                      area: area,
-                      selected: widget.selectedAreaId == area.id,
-                      highlighted: widget.recentAreaId == area.id,
-                      pulse: _pulseController.value,
-                      onTap: () => widget.onSelected(area.id),
-                    ),
-                  ),
-                ),
               if (widget.loading) const Positioned.fill(child: _MapLoading()),
               const Positioned(
                 left: 16,
@@ -712,229 +715,6 @@ class _MapLoading extends StatelessWidget {
   );
 }
 
-class _HangzhouMapPainter extends CustomPainter {
-  const _HangzhouMapPainter({
-    required this.pulse,
-    required this.selectedAreaId,
-  });
-
-  final double pulse;
-  final String? selectedAreaId;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final contour = Paint()
-      ..color = const Color(0x19315449)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (var index = 0; index < 4; index++) {
-      final inset = index * size.width * .035;
-      canvas.drawOval(
-        Rect.fromLTWH(
-          -size.width * .16 + inset,
-          size.height * .02 + inset,
-          size.width * .64 - inset * 1.1,
-          size.height * .7 - inset,
-        ),
-        contour,
-      );
-    }
-
-    final hills = Paint()..color = const Color(0x143E725A);
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, size.height * .2)
-        ..quadraticBezierTo(
-          size.width * .22,
-          size.height * .04,
-          size.width * .48,
-          size.height * .2,
-        )
-        ..quadraticBezierTo(
-          size.width * .29,
-          size.height * .31,
-          0,
-          size.height * .42,
-        )
-        ..close(),
-      hills,
-    );
-
-    final districtLine = Paint()
-      ..color = const Color(0x24315449)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1;
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * .5, size.height * .08)
-        ..quadraticBezierTo(
-          size.width * .53,
-          size.height * .35,
-          size.width * .45,
-          size.height * .58,
-        )
-        ..moveTo(size.width * .18, size.height * .47)
-        ..quadraticBezierTo(
-          size.width * .47,
-          size.height * .45,
-          size.width * .78,
-          size.height * .3,
-        ),
-      districtLine,
-    );
-
-    final riverShadow = Paint()
-      ..color = const Color(0x24739691)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.height * .13
-      ..strokeCap = StrokeCap.round;
-    final river = Path()
-      ..moveTo(-size.width * .06, size.height * .82)
-      ..cubicTo(
-        size.width * .25,
-        size.height * .63,
-        size.width * .52,
-        size.height * .88,
-        size.width * 1.06,
-        size.height * .58,
-      );
-    canvas.drawPath(river, riverShadow);
-    canvas.drawPath(
-      river,
-      Paint()
-        ..color = const Color(0xB88CB8B1)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.height * .09
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawPath(
-      river,
-      Paint()
-        ..color = const Color(0x669ECAC1)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.height * .018
-        ..strokeCap = StrokeCap.round,
-    );
-
-    final lake = Paint()..color = const Color(0xD875A29C);
-    final lakePath = Path()
-      ..moveTo(size.width * .31, size.height * .3)
-      ..cubicTo(
-        size.width * .2,
-        size.height * .34,
-        size.width * .2,
-        size.height * .59,
-        size.width * .33,
-        size.height * .62,
-      )
-      ..cubicTo(
-        size.width * .45,
-        size.height * .65,
-        size.width * .49,
-        size.height * .52,
-        size.width * .42,
-        size.height * .43,
-      )
-      ..cubicTo(
-        size.width * .38,
-        size.height * .37,
-        size.width * .4,
-        size.height * .27,
-        size.width * .31,
-        size.height * .3,
-      )
-      ..close();
-    canvas.drawPath(
-      lakePath,
-      Paint()
-        ..color = const Color(0x55FFFFFF)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 5,
-    );
-    canvas.drawPath(lakePath, lake);
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width * .28, size.height * .46)
-        ..quadraticBezierTo(
-          size.width * .34,
-          size.height * .42,
-          size.width * .42,
-          size.height * .43,
-        ),
-      Paint()
-        ..color = const Color(0xCCEBEFE5)
-        ..strokeWidth = 2.2
-        ..style = PaintingStyle.stroke,
-    );
-
-    final bridge = Paint()
-      ..color = const Color(0x99315449)
-      ..strokeWidth = 1.4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.square;
-    for (final x in [.45, .67, .84]) {
-      canvas.drawLine(
-        Offset(size.width * x, size.height * (.69 - x * .08)),
-        Offset(size.width * (x + .045), size.height * (.77 - x * .08)),
-        bridge,
-      );
-    }
-
-    _paintLabel(canvas, size, '西湖', const Offset(.14, .6));
-    _paintLabel(canvas, size, '钱塘江', const Offset(.28, .84));
-
-    if (selectedAreaId != null) {
-      const selectedCenters = <String, Offset>{
-        'yuhang': Offset(.17, .22),
-        'gongshu': Offset(.58, .20),
-        'xihu': Offset(.33, .49),
-        'shangcheng': Offset(.73, .49),
-        'binjiang': Offset(.63, .79),
-        'xiaoshan': Offset(.86, .82),
-      };
-      final center = selectedCenters[selectedAreaId] ?? const Offset(.5, .5);
-      final glow = Paint()
-        ..color = Color.lerp(
-          const Color(0x00315449),
-          const Color(0x26315449),
-          1 - pulse,
-        )!;
-      canvas.drawCircle(
-        Offset(size.width * center.dx, size.height * center.dy),
-        size.shortestSide * (.12 + pulse * .035),
-        glow,
-      );
-    }
-  }
-
-  void _paintLabel(Canvas canvas, Size size, String text, Offset alignment) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Color(0xAA315D4A),
-          fontSize: 9,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    painter.paint(
-      canvas,
-      Offset(
-        size.width * alignment.dx - painter.width / 2,
-        size.height * alignment.dy - painter.height / 2,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _HangzhouMapPainter oldDelegate) =>
-      oldDelegate.pulse != pulse ||
-      oldDelegate.selectedAreaId != selectedAreaId;
-}
-
 class _AreaRipple extends StatelessWidget {
   const _AreaRipple({
     required this.area,
@@ -953,8 +733,8 @@ class _AreaRipple extends StatelessWidget {
     label: '${area.name}，${area.postCount} 条声音线索',
     button: true,
     child: SizedBox(
-      width: 86,
-      height: 86,
+      width: 72,
+      height: 72,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -964,8 +744,8 @@ class _AreaRipple extends StatelessWidget {
               child: Opacity(
                 opacity: .36 * (1 - pulse),
                 child: Container(
-                  width: 82,
-                  height: 82,
+                  width: 68,
+                  height: 68,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -986,15 +766,15 @@ class _AreaRipple extends StatelessWidget {
               duration: const Duration(milliseconds: 260),
               curve: Curves.easeOutCubic,
               width: selected || highlighted
-                  ? 72
+                  ? 62
                   : area.postCount == 0
-                  ? 58
-                  : 66,
+                  ? 48
+                  : 56,
               height: selected || highlighted
-                  ? 72
+                  ? 62
                   : area.postCount == 0
-                  ? 58
-                  : 66,
+                  ? 48
+                  : 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: selected
@@ -1020,7 +800,7 @@ class _AreaRipple extends StatelessWidget {
                   Text(
                     area.name,
                     style: TextStyle(
-                      fontSize: area.postCount == 0 ? 10 : 11,
+                      fontSize: area.postCount == 0 ? 9 : 10,
                       fontWeight: FontWeight.w700,
                       color: selected ? Colors.white : const Color(0xFF174936),
                     ),
@@ -1029,7 +809,7 @@ class _AreaRipple extends StatelessWidget {
                   Text(
                     area.postCount == 0 ? '待发现' : '${area.postCount} 条',
                     style: TextStyle(
-                      fontSize: area.postCount == 0 ? 9 : 12,
+                      fontSize: area.postCount == 0 ? 8 : 10,
                       fontWeight: FontWeight.w600,
                       color: selected
                           ? const Color(0xFFDDECE3)
@@ -1042,8 +822,8 @@ class _AreaRipple extends StatelessWidget {
           ),
           if (area.waitingCount > 0)
             Positioned(
-              right: 5,
-              top: 6,
+              right: 3,
+              top: 4,
               child: Container(
                 width: 17,
                 height: 17,
@@ -1084,9 +864,14 @@ class _CommunitySoundCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final local = post.observedAt.toLocal();
-    final choices = post.candidateNames.isEmpty
+    final candidates = post.candidateNames
+        .where((item) => item != '暂时无法判断')
+        .toSet()
+        .toList(growable: false);
+    final choices = candidates.isEmpty
         ? <String>[post.subject, '暂时无法判断']
-        : <String>[...post.candidateNames, '暂时无法判断'];
+        : <String>[...candidates, '暂时无法判断'];
+    final isDemo = post.subject.startsWith('体验线索') || post.alias.contains('体验');
     return Card(
       key: Key('community-post-${post.id}'),
       child: Padding(
@@ -1096,21 +881,25 @@ class _CommunitySoundCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8EFE8),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${post.areaName} · ${post.soundType}',
-                    style: const TextStyle(fontSize: 12),
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 5,
+                    children: [
+                      _PostBadge(
+                        label: '${post.areaName} · ${post.soundType}',
+                        color: const Color(0xFFE8EFE8),
+                      ),
+                      if (isDemo)
+                        const _PostBadge(
+                          label: '比赛体验',
+                          color: Color(0xFFFFE5B6),
+                          foreground: Color(0xFF73501B),
+                        ),
+                    ],
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   '${local.month}月${local.day}日',
                   style: Theme.of(context).textTheme.bodySmall,
@@ -1126,7 +915,17 @@ class _CommunitySoundCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            Text(
+              post.subject,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: const Color(0xFF183C2E),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
             Row(
               children: [
                 IconButton.filled(
@@ -1192,6 +991,28 @@ class _CommunitySoundCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PostBadge extends StatelessWidget {
+  const _PostBadge({
+    required this.label,
+    required this.color,
+    this.foreground = const Color(0xFF315045),
+  });
+
+  final String label;
+  final Color color;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(label, style: TextStyle(fontSize: 12, color: foreground)),
+  );
 }
 
 class _Waveform extends StatelessWidget {

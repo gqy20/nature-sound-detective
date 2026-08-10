@@ -74,6 +74,7 @@ flutter:
     - assets/labels/
     - assets/images/hangzhou_mist.webp
     - assets/images/logo_mark.png
+    - assets/maps/hangzhou_osm.png
     - assets/species/
 
   # To add assets to your application, add an assets section, like this:

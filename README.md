@@ -62,8 +62,11 @@ flowchart LR
 ## 环境
 
 ```powershell
-uv sync
+uv sync --python 3.11
 ```
+
+本地 BirdNET/TensorFlow 完整版固定使用 Python 3.11；Vercel 云 API 会根据
+`pyproject.toml` 自动使用 Python 3.12，并跳过仅本地需要的声学模型依赖。
 
 ## 启动亲子 MVP
 
@@ -83,13 +86,30 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8770
 uv run python -c "from pathlib import Path; from dotenv import load_dotenv; import os, psycopg; load_dotenv('.env'); connection=psycopg.connect(os.environ['DATABASE_URL']); connection.execute(Path('migrations/001_community_mvp.sql').read_text(encoding='utf-8')); connection.commit(); connection.close()"
 ```
 
-Android 模拟器默认访问 `http://10.0.2.2:8770`。真机或线上 API 使用编译参数指定地址：
+Android 模拟器默认访问 `http://10.0.2.2:8770`。Release 包默认访问
+`https://xykw-api.vercel.app`，也可以通过编译参数覆盖：
 
 ```powershell
 flutter run --dart-define=COMMUNITY_API_URL=http://192.168.1.10:8770
+flutter build apk --release --dart-define=COMMUNITY_API_URL=https://api.example.com
 ```
 
-共听杭州只上传经成年人单独授权的声音记录，公开区域不包含精确坐标；撤回公开记录会同步撤下服务端短音频。比赛版本的音频存储面向本地完整演示，线上长期运行时应把 `community_media` 替换为持久对象存储。
+共听杭州只上传经成年人单独授权的声音记录，公开区域不包含精确坐标。应用首次访问时会用本机随机 ID 换取服务端签名的匿名 Bearer Token；发布者和协助者身份均由 Token 决定，客户端提交的身份字段不会被信任。线上部署必须设置长度至少 32 个字符的 `COMMUNITY_AUTH_SECRET`。
+
+本地开发默认把声音写入 `outputs/mvp/community_media`。线上部署设置以下环境变量后，会改用任意 S3 兼容对象存储（Cloudflare R2、AWS S3 或 Supabase S3）：
+
+```dotenv
+COMMUNITY_S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com
+COMMUNITY_S3_ACCESS_KEY_ID=
+COMMUNITY_S3_SECRET_ACCESS_KEY=
+COMMUNITY_S3_BUCKET=xykw-community
+COMMUNITY_S3_PUBLIC_BASE_URL=https://sounds.example.com
+COMMUNITY_S3_REGION=auto
+COMMUNITY_S3_PREFIX=community
+```
+
+对象存储配置必须整组提供，缺少任一项时服务端会拒绝启动，避免线上误写临时磁盘。撤回公开记录会同时删除对象存储中的短音频。API 仍有单实例内存限流；正式公开推广时应在 CDN/API Gateway 再增加分布式限流与滥用检测。
+Vercel Production 未配置对象存储时仍可浏览声景，但发布接口会返回 `503`，不会假装持久化成功。
 
 本地服务默认在启动完成前预加载 BirdNET 和非鸟分类头，避免第一条录音再承担模型加载时间；`GET /api/health` 的 `models` 字段可查看加载状态和耗时。内存受限时可用 `PRELOAD_MODELS=false` 恢复按需加载。Qwen 客户端仍按需创建，不会在启动时发起网络请求。
 

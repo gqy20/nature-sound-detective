@@ -136,6 +136,9 @@ class NeonCommunityRepository:
             min_size=1,
             max_size=4,
             kwargs={"row_factory": dict_row},
+            check=ConnectionPool.check_connection,
+            max_idle=60,
+            max_lifetime=600,
         )
 
     def _connection(self):

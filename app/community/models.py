@@ -48,6 +48,15 @@ class AssistSubmission(BaseModel):
     key_second: int | None = Field(default=None, ge=0, le=20)
 
 
+class DeviceSessionRequest(BaseModel):
+    device_id: str = Field(pattern=r"^device_[A-Za-z0-9_-]{12,120}$")
+
+
+class DeviceSessionResponse(BaseModel):
+    token: str
+    expires_at: int
+
+
 class CommunityPost(BaseModel):
     id: str
     alias: str

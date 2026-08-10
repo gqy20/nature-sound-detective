@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "fastapi",
-  "functions": {
-    "main.py": { "maxDuration": 60 }
-  }
+  "regions": ["sin1"]
 }

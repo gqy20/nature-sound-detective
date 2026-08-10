@@ -2,9 +2,9 @@
 name = "nature-sound-detective"
 version = "0.1.0"
 description = "Hangzhou children's nature-sound AI competition prototype"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.11,<3.13"
 dependencies = [
-  "birdnet==0.2.16",
+  "birdnet==0.2.16; python_version < '3.12'",
   "fastapi>=0.141.1",
   "httpx>=0.28.1",
   "numpy>=1.23.5,<2.0",
@@ -12,12 +12,13 @@ dependencies = [
   "python-dotenv>=1.2.2",
   "python-multipart>=0.0.32",
   "psycopg[binary]>=3.2.10",
-  "tensorflow==2.15.0",
-  "tensorflow-intel==2.15.0",
-  "tensorflow-io-gcs-filesystem==0.31.0",
+  "tensorflow==2.15.0; python_version < '3.12'",
+  "tensorflow-intel==2.15.0; python_version < '3.12'",
+  "tensorflow-io-gcs-filesystem==0.31.0; python_version < '3.12'",
   "uvicorn[standard]>=0.52.0",
   "websockets>=15.0",
   "psycopg-pool>=3.2.0",
+  "boto3>=1.40.0",
 ]
 
 [dependency-groups]

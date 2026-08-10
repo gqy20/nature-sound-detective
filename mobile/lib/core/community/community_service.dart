@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:path/path.dart' as p;
@@ -70,14 +71,21 @@ class HttpCommunityService implements CommunityService {
        _client = client ?? http.Client(),
        _identityStore = identityStore ?? CommunityIdentityStore();
 
-  static const _defaultBaseUrl = String.fromEnvironment(
-    'COMMUNITY_API_URL',
-    defaultValue: 'http://10.0.2.2:8770',
-  );
+  static const _configuredBaseUrl = String.fromEnvironment('COMMUNITY_API_URL');
+
+  static String get _defaultBaseUrl {
+    if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
+    return kReleaseMode
+        ? 'https://xykw-api.vercel.app'
+        : 'http://10.0.2.2:8770';
+  }
 
   final Uri baseUri;
   final http.Client _client;
   final CommunityIdentityStore _identityStore;
+  String? _cachedToken;
+  DateTime? _tokenExpiresAt;
+  Future<String>? _tokenRequest;
 
   Uri _uri(String path, [Map<String, String>? query]) => baseUri.replace(
     path: '${baseUri.path.replaceFirst(RegExp(r'/$'), '')}$path',
@@ -85,8 +93,47 @@ class HttpCommunityService implements CommunityService {
   );
 
   Future<Map<String, String>> _headers() async => {
-    'X-Device-ID': await _identityStore.load(),
+    'Authorization': 'Bearer ${await _token()}',
   };
+
+  Future<String> _token() async {
+    final token = _cachedToken;
+    final expiresAt = _tokenExpiresAt;
+    if (token != null &&
+        expiresAt != null &&
+        expiresAt.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
+      return token;
+    }
+    final pending = _tokenRequest;
+    if (pending != null) return pending;
+    final request = _createSession();
+    _tokenRequest = request;
+    try {
+      return await request;
+    } finally {
+      if (identical(_tokenRequest, request)) _tokenRequest = null;
+    }
+  }
+
+  Future<String> _createSession() async {
+    final response = await _client.post(
+      _uri('/api/community/session'),
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode({'device_id': await _identityStore.load()}),
+    );
+    final payload = _decodeObject(response);
+    final token = payload['token'];
+    final expiresAt = payload['expires_at'];
+    if (token is! String || expiresAt is! num) {
+      throw const CommunityException('服务器没有返回有效的匿名访问令牌。');
+    }
+    _cachedToken = token;
+    _tokenExpiresAt = DateTime.fromMillisecondsSinceEpoch(
+      expiresAt.toInt() * 1000,
+      isUtc: true,
+    );
+    return token;
+  }
 
   @override
   Future<List<SoundscapeArea>> listAreas() async {

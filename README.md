@@ -65,8 +65,8 @@ flowchart LR
 uv sync --python 3.11
 ```
 
-本地 BirdNET/TensorFlow 完整版固定使用 Python 3.11；Vercel 云 API 会根据
-`pyproject.toml` 自动使用 Python 3.12，并跳过仅本地需要的声学模型依赖。
+本地 BirdNET/TensorFlow 完整版固定使用 Python 3.11。Vercel 云 API 通过
+`.vercelignore` 排除本地模型依赖，只安装 `requirements.txt` 中的轻量 API 依赖。
 
 ## 启动亲子 MVP
 

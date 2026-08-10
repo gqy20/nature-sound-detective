@@ -22,6 +22,15 @@ def _identity_hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _database_url_from_environment() -> str:
+    """Normalize secrets copied from files or deployment dashboards.
+
+    A UTF-8 BOM can survive PowerShell pipelines and is not removed by
+    ``str.strip()``. Psycopg then interprets the entire URL as an option name.
+    """
+    return os.getenv("DATABASE_URL", "").strip().lstrip("\ufeff").strip()
+
+
 class CommunityRepository(Protocol):
     def list_posts(self, *, area_id: str | None, requester_id: str | None) -> list[CommunityPost]: ...
     def get_post(self, post_id: str, *, requester_id: str | None) -> CommunityPost | None: ...
@@ -250,5 +259,5 @@ def repository_from_environment() -> CommunityRepository:
     from dotenv import load_dotenv
 
     load_dotenv(__import__("pathlib").Path(__file__).resolve().parents[2] / ".env")
-    database_url = os.getenv("DATABASE_URL", "").strip()
+    database_url = _database_url_from_environment()
     return NeonCommunityRepository(database_url) if database_url else MemoryCommunityRepository()

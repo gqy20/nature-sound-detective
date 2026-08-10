@@ -20,7 +20,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('共听杭州'), findsOneWidget);
+    expect(find.text('杭州声景'), findsOneWidget);
     expect(find.byKey(const Key('soundscape-area-xihu')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -260));
+    await tester.pumpAndSettle();
+    expect(find.text('西湖区 · 1 条线索 · 1 条等待协助'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.byKey(const Key('community-post-post-1')),
       350,

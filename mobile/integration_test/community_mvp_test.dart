@@ -23,7 +23,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('publish-community-sound')));
+    await tester.tap(find.byKey(const Key('empty-publish-community-sound')));
     await tester.pumpAndSettle();
 
     expect(find.text('自然册里还没有声音'), findsOneWidget);

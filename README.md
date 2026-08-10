@@ -108,6 +108,11 @@ COMMUNITY_S3_REGION=auto
 COMMUNITY_S3_PREFIX=community
 ```
 
+When hosted on Vercel, the recommended alternative is a public Vercel Blob
+store linked to the API project. Vercel injects `BLOB_READ_WRITE_TOKEN` on the
+server; the web app and APK never receive this token. `COMMUNITY_MEDIA_PREFIX`
+defaults to `community`.
+
 对象存储配置必须整组提供，缺少任一项时服务端会拒绝启动，避免线上误写临时磁盘。撤回公开记录会同时删除对象存储中的短音频。API 仍有单实例内存限流；正式公开推广时应在 CDN/API Gateway 再增加分布式限流与滥用检测。
 Vercel Production 未配置对象存储时仍可浏览声景，但发布接口会返回 `503`，不会假装持久化成功。
 

@@ -46,6 +46,36 @@ class LocalCommunityMediaStore:
         return path if path.is_file() else None
 
 
+class VercelBlobCommunityMediaStore:
+    def __init__(self, *, prefix: str = "community") -> None:
+        self._prefix = prefix.strip("/")
+
+    def _path(self, media_name: str) -> str:
+        return f"{self._prefix}/{media_name}" if self._prefix else media_name
+
+    def save(self, media_name: str, payload: bytes, content_type: str) -> str:
+        from vercel.blob import put
+
+        result = put(
+            self._path(media_name),
+            payload,
+            access="public",
+            content_type=content_type,
+            add_random_suffix=False,
+            cache_control_max_age=31_536_000,
+        )
+        return result.url
+
+    def delete(self, media_name: str) -> None:
+        from vercel.blob import delete
+
+        delete(self._path(media_name))
+
+    def local_path(self, media_name: str) -> Path | None:
+        del media_name
+        return None
+
+
 class S3CommunityMediaStore:
     def __init__(
         self,
@@ -94,6 +124,11 @@ class S3CommunityMediaStore:
 
 
 def media_store_from_environment(local_directory: Path) -> CommunityMediaStore:
+    if os.getenv("BLOB_READ_WRITE_TOKEN", "").strip():
+        return VercelBlobCommunityMediaStore(
+            prefix=os.getenv("COMMUNITY_MEDIA_PREFIX", "community").strip("/"),
+        )
+
     values = {
         "endpoint_url": os.getenv("COMMUNITY_S3_ENDPOINT_URL", "").strip(),
         "access_key_id": os.getenv("COMMUNITY_S3_ACCESS_KEY_ID", "").strip(),

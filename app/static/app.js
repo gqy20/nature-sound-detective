@@ -694,8 +694,8 @@ function renderCreation(job) {
   if (hasMusic) {
     $("creation-audio").src = creation.music_url;
     $("download-music").href = creation.music_url;
-    $("music-provider").textContent = creation.music_provider === "minimax-music"
-      ? "MiniMax Music 3.0"
+    $("music-provider").textContent = ["ai-music", "minimax-music"].includes(creation.music_provider)
+      ? "AI 配乐"
       : "原声混音";
   } else {
     $("creation-audio").removeAttribute("src");
@@ -710,7 +710,7 @@ function renderCreation(job) {
     $("creation-video").src = creation.video_url;
     $("download-video").href = creation.video_url;
     $("video-provider").textContent = ({
-      "wan2.7-t2v": "Wan2.7 · 竖屏",
+      "wan2.7-t2v": "通义万相 Wan 2.7 · 竖屏",
       "reused-demo-video": "演示画面 · 竖屏",
       "local-mock-video": "开发占位 · 竖屏",
     })[creation.video_provider] || "竖屏";
@@ -722,12 +722,12 @@ function renderCreation(job) {
   } else if (status === "failed") {
     $("creation-status").textContent = creation.error || "创作没有完成，可以重新尝试。";
   } else if (status === "completed") {
-    const musicLabel = creation.music_provider === "minimax-music"
-      ? "音乐由 MiniMax Music 3.0 生成"
+    const musicLabel = ["ai-music", "minimax-music"].includes(creation.music_provider)
+      ? "配乐由 AI 生成"
       : "音乐使用本次自然原声制作";
-    const narrationLabel = hasNarration ? "旁白由 MiniMax Speech 生成" : "本次未生成旁白";
+    const narrationLabel = hasNarration ? "科普语音由 AI 生成" : "本次未生成科普语音";
     const videoLabel = creation.video_provider === "wan2.7-t2v"
-      ? "画面由 Wan2.7 生成"
+      ? "画面由通义万相 Wan 2.7 生成"
       : creation.video_provider === "reused-demo-video" ? "画面使用演示素材" : "画面为开发占位素材";
     $("creation-status").textContent = `${musicLabel}，${narrationLabel}；${videoLabel}。`;
   } else {

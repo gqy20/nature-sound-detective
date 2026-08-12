@@ -109,6 +109,20 @@ def test_reuse_video_mode_prefers_configured_asset(tmp_path, monkeypatch):
     assert destination.read_bytes() == b"sample"
 
 
+def test_live_video_mode_defaults_to_wan_2_7(tmp_path, monkeypatch):
+    destination = tmp_path / "wan.mp4"
+    monkeypatch.setenv("WAN_VIDEO_MODE", "live")
+    monkeypatch.delenv("WAN_VIDEO_MODEL", raising=False)
+    monkeypatch.setattr(
+        creation_module,
+        "generate_wan_video",
+        lambda *args, **kwargs: "wan-3-task",
+    )
+    provider, task_id = prepare_video("prompt", destination, 10)
+    assert provider == "wan2.7-t2v"
+    assert task_id == "wan-3-task"
+
+
 def test_retry_preserves_persisted_wan_task_id(tmp_path, monkeypatch):
     audio = tmp_path / "recording.wav"
     music = tmp_path / "music.mp3"

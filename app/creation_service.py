@@ -227,11 +227,11 @@ def generate_wan_video(
                 },
             )
             if response.is_error:
-                raise RuntimeError(f"Wan2.7 创建失败：{response.text[:800]}")
+                raise RuntimeError(f"Wan 视频创建失败：{response.text[:800]}")
             payload = response.json()
             task_id = str(payload.get("output", {}).get("task_id") or "")
             if not task_id:
-                raise RuntimeError(f"Wan2.7 没有返回任务ID：{json.dumps(payload, ensure_ascii=False)[:500]}")
+                raise RuntimeError(f"Wan 视频没有返回任务ID：{json.dumps(payload, ensure_ascii=False)[:500]}")
             if on_task_created:
                 on_task_created(task_id)
         deadline = time.monotonic() + 7 * 60
@@ -239,18 +239,18 @@ def generate_wan_video(
             time.sleep(10)
             query = client.get(f"{base}/tasks/{task_id}", headers={"Authorization": f"Bearer {api_key}"})
             if query.is_error:
-                raise RuntimeError(f"Wan2.7 查询失败：{query.text[:500]}")
+                raise RuntimeError(f"Wan 视频查询失败：{query.text[:500]}")
             output = query.json().get("output", {})
             status = output.get("task_status")
             if status == "SUCCEEDED":
                 url = output.get("video_url")
                 if not url:
-                    raise RuntimeError("Wan2.7 已完成但没有视频地址")
+                    raise RuntimeError("Wan 视频已完成但没有视频地址")
                 _download(client, url, destination)
                 return str(task_id)
             if status in {"FAILED", "CANCELED", "UNKNOWN"}:
-                raise RuntimeError(f"Wan2.7 任务失败：{output.get('message') or status}")
-        raise RuntimeError("Wan2.7 生成超过7分钟")
+                raise RuntimeError(f"Wan 视频任务失败：{output.get('message') or status}")
+        raise RuntimeError("Wan 视频生成超过7分钟")
 
 
 def prepare_video(
@@ -267,7 +267,7 @@ def prepare_video(
             prompt, destination, duration, existing_task_id=existing_task_id,
             on_task_created=on_task_created,
         )
-        return "wan2.7-t2v", task_id
+        return os.getenv("WAN_VIDEO_MODEL", "wan2.7-t2v"), task_id
     if mode == "reuse":
         configured = os.getenv("WAN_VIDEO_REUSE_PATH", "").strip()
         candidates = [Path(configured)] if configured else sorted(
@@ -341,7 +341,7 @@ class CreationService:
         narration_path = GENERATED_DIR / f"{job_id}_minimax_narration.mp3"
         raw_video_path = GENERATED_DIR / f"{job_id}_wan.mp4"
         video_path = GENERATED_DIR / f"{job_id}_postcard.mp4"
-        music_provider = "minimax-music"
+        music_provider = "ai-music"
         music_warning = ""
         progress("generating_music", "正在把自然声音变成音乐", {"plan": plan})
         if music_path.exists():
@@ -389,7 +389,7 @@ class CreationService:
             "music_warning": music_warning,
             "music_path": str(music_path),
             "music_url": f"/api/jobs/{job_id}/creation/music",
-            "narration_provider": "minimax-speech" if narration_path.exists() else "unavailable",
+            "narration_provider": "ai-speech" if narration_path.exists() else "unavailable",
             "narration_warning": narration_warning,
             "narration_text": plan["narration"],
             "narration_path": str(narration_path) if narration_path.exists() else "",
@@ -410,7 +410,10 @@ class CreationService:
         try:
             timed_prompt = f"生成一支{video_duration}秒短片。{plan['video_prompt']}"
             def persist_task(task_id: str) -> None:
-                creation.update({"wan_task_id": task_id, "video_provider": "wan2.7-t2v"})
+                creation.update({
+                    "wan_task_id": task_id,
+                    "video_provider": os.getenv("WAN_VIDEO_MODEL", "wan2.7-t2v"),
+                })
                 progress("generating_video", "视频任务已提交，正在等待结果", creation)
 
             provider, task_id = prepare_video(

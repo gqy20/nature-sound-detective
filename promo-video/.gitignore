@@ -1,0 +1,27 @@
+# Generated media and editor caches
+02-proxies/recordings-1080p/*
+02-proxies/audio-preview/*
+02-proxies/contact-sheets/*
+02-proxies/thumbnails/*
+03-selects/*/*.mp4
+03-selects/*/*.mov
+03-selects/*/*.wav
+04-design/fonts/open-fonts/*
+05-motion/**/*.png
+05-motion/**/*.wav
+05-motion/**/*.mp4
+06-audio/voiceover/temporary/*
+06-audio/voiceover/raw/*
+06-audio/voiceover/processed/*
+06-audio/mix/*
+07-edit/scene-renders/*
+07-edit/project-backups/*
+08-exports/**/*
+09-qc/frame-grabs/*
+
+!.gitkeep
+!README.md
+!*.json
+!*.csv
+!*.md
+!*.srt

@@ -1,0 +1,11 @@
+Use case: photorealistic-natural
+Asset type: opening anchor frame for a 16:9 cinematic product film
+Primary request: a restrained, photorealistic documentary image of a humid early morning in a Hangzhou city park, seen from a child's upward-looking point of view while searching for the source of a natural sound
+Scene/backdrop: dew-covered leaves in close foreground, layered tree canopy, soft lake haze and only a faint suggestion of Hangzhou urban park landscape far behind
+Subject: no visible person and no identifiable animal; one tiny ambiguous life silhouette may be partially hidden among distant leaves, never clear enough to identify species
+Style/medium: premium natural-history documentary photography, tactile real leaves, physically believable dew, subtle atmospheric depth, editorial restraint inspired by high-end interactive nature storytelling
+Composition/framing: wide 16:9 frame, low upward angle through foreground foliage, gentle diagonal depth, quiet negative space in the upper-right and lower-center for later motion typography, stable camera feeling
+Lighting/mood: cool misty dawn with a trace of warm natural light, curious and intimate, slight suspense, child-friendly, not ominous
+Color palette: deep forest green, mist blue-gray, warm off-white highlights, low saturation
+Constraints: no text, no logo, no UI, no watermark, no human face, no child body, no obvious landmark, no exact species reveal
+Avoid: fantasy glow, neon, visible sound waves, magical particles, cartoon or illustration, oversaturation, cinematic orange-teal grading, dramatic sun rays, animal close-up, malformed leaves, artificial depth of field

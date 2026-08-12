@@ -1,0 +1,29 @@
+{
+  "version": "0.13.0-map-fix",
+  "master": {
+    "width": 3840,
+    "height": 2160,
+    "fps": 30,
+    "duration": 110,
+    "audioSampleRate": 48000,
+    "background": "#F3F0E7"
+  },
+  "sourceRoot": "../artifacts",
+  "scenes": [
+    {"id":"S01","start":0,"end":7,"title":"是谁留下了声音线索","mode":"motion","source":"05-motion/4k-v012/opening-sound-mystery-v012-4k.mp4","sourceStart":0},
+    {"id":"S02","start":7,"end":11,"title":"揭示来源","mode":"motion","source":"02-proxies/demo-v005/xykw-demo-flow-verified-30fps.mp4","sourceStart":0,"editorialOverlay":"05-motion/4k-v012/overlays/S02-editorial-overlay-v012-4k.png"},
+    {"id":"S03","start":11,"end":18,"title":"不只是一种鸟鸣","mode":"motion","source":"05-motion/4k-v012/multi-sound-montage-v012-4k.mp4","sourceStart":0},
+    {"id":"S04","start":18,"end":24,"title":"每个孩子都能成为自然声探员","mode":"source","source":"xykw-part01-4k.mp4","sourceStart":0,"editorialOverlay":"05-motion/4k-v012/overlays/S04-editorial-overlay-v012-4k.png"},
+    {"id":"S05","start":24,"end":31,"title":"小探员记录声音证据","mode":"motion","source":"02-proxies/demo-v005/xykw-demo-flow-verified-30fps.mp4","sourceStart":4,"sourceCropHeight":0.65,"editorialOverlay":"05-motion/4k-v012/overlays/S05-editorial-overlay-v012-4k.png"},
+    {"id":"S06","start":31,"end":41,"title":"声学模型分析声音证据","mode":"motion","source":"05-motion/4k-v012/analysis-waveform-v012-4k.mp4","sourceStart":0},
+    {"id":"S07","start":41,"end":47,"title":"声学模型识别，AI理解","mode":"motion","source":"05-motion/4k-v012/technology-evidence-v012-4k.mp4","sourceStart":0},
+    {"id":"S08","start":47,"end":58,"title":"AI转译线索，孩子继续调查","mode":"source","source":"xykw-part02-4k.mp4","sourceStart":8,"editorialOverlay":"05-motion/4k-v012/overlays/S08-editorial-overlay-v012-4k.png"},
+    {"id":"S09","start":58,"end":66,"title":"小探员完成并保存调查","mode":"motion","source":"02-proxies/demo-v005/xykw-demo-save-verified-30fps.mp4","sourceStart":0.5,"editorialOverlay":"05-motion/4k-v012/overlays/S09-editorial-overlay-v012-4k.png"},
+    {"id":"S10","start":66,"end":72,"title":"从一部手机，进入整座杭州","mode":"motion","source":"05-motion/4k-v013/hangzhou-soundscape-map-v013-4k.mp4","sourceStart":0,"fullFrame":true},
+    {"id":"S11","start":72,"end":81,"title":"今日新声：杭州又被听见了","mode":"motion","source":"05-motion/4k-v013/hangzhou-soundscape-map-v013-4k.mp4","sourceStart":6,"fullFrame":true},
+    {"id":"S12","start":81,"end":91,"title":"等待协助：有些谜题需要更多耳朵","mode":"motion","source":"05-motion/4k-v013/hangzhou-soundscape-map-v013-4k.mp4","sourceStart":15,"fullFrame":true},
+    {"id":"S13","start":91,"end":98,"title":"小探员邀请AI共创自然明信片","mode":"source","source":"xykw-part03-4k.mp4","sourceStart":449,"editorialOverlay":"05-motion/4k-v012/overlays/S13-editorial-overlay-v012-4k.png"},
+    {"id":"S14","start":98,"end":106,"title":"真实原声与AI共同完成作品","mode":"motion","source":"05-motion/4k-v012/postcard-climax-v012-4k.mp4","sourceStart":0},
+    {"id":"S15","start":106,"end":110,"title":"每个孩子都是自然声探员","mode":"motion","source":"05-motion/4k-v012/brand-end-card-v012-4k.mp4","sourceStart":0}
+  ]
+}

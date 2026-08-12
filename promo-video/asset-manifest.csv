@@ -1,0 +1,6 @@
+﻿"file","path","duration_seconds","size_bytes","video_codec","width","height","frame_rate","audio_codec","sample_rate","channels","used_by","sha256"
+"xykw-part01-4k.mp4","artifacts/xykw-part01-4k.mp4","243.1","8697801","h264","2160","3840","30/1","none","","","S02;S04;S05;S06","b270abae66427cc5aa6037dbb8d4b3bbb79bde6bdd93f9ce501a8efcef989660"
+"xykw-part02-4k.mp4","artifacts/xykw-part02-4k.mp4","129.867","7275936","h264","2160","3840","30/1","none","","","S08","ea87e73e38835f09f460eb2fe5b749c5efcdf2d7af7ac04935036d376333a2a7"
+"xykw-part05-4k.mp4","artifacts/xykw-part05-4k.mp4","111.033","9948524","h264","2160","3840","30/1","none","","","S09;S10;S11;S12","694ca9f2fcf3de93ab23508ea0f55668fffbfe7192e6a6a89a0f8d167087ab54"
+"xykw-part03-4k.mp4","artifacts/xykw-part03-4k.mp4","543.567","17978459","h264","2160","3840","30/1","none","","","S13","053706260759528c584c3ca5c9632a45ebe8ad273d0918b8a308a720af53e588"
+"xykw-part06-generated-film-4k.mp4","artifacts/xykw-part06-generated-film-4k.mp4","12.733","55205296","h264","2160","3840","30/1","aac","44100","2","S14","d48579c9ee2ada49acb388a86539d27fb083ec278e70ef1e74b423bf58cd9f18"

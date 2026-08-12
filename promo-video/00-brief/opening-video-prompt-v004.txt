@@ -1,0 +1,7 @@
+Model: AI video generation source archived internally
+Mode: Image-to-video
+First frame: 01-source/generated/opening-hangzhou-dawn-v001.png
+
+Create a restrained 7-second cinematic natural-history documentary shot, continuing exactly from the supplied first frame in a humid Hangzhou city park at dawn. One continuous stable camera move. 0-2 seconds: dew-covered foreground leaves move very subtly after a clear distant natural call; physically believable leaf and droplet motion. 2-5 seconds: the camera slowly lifts and pushes through the foreground foliage as if a child is trying to locate the sound; gentle natural focus shift reveals layered trees, lake haze and a quiet urban park atmosphere. 5-7 seconds: after a second call, one tiny ambiguous living silhouette briefly crosses between distant branches and disappears before it can be identified; only leaves and mist remain. Photorealistic documentary texture, cool misty green palette, slight warm dawn light, curious and intimate, child-friendly, subtle suspense. No person, no face, no close animal, no identifiable species, no fantasy glow, no visible sound waves, no text, no logo, no UI, no watermark, no fast motion, no dramatic camera shake, no orange-teal grade.
+
+Post treatment: the provider returned 5.875 seconds at 1364×768/24 fps. The integration script uses a restrained 1.19149× time stretch, scales to the 1920×1080 review master, and adds the title treatment separately so typography remains deterministic.

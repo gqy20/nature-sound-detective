@@ -29,3 +29,21 @@ data/processed/*
 !data/processed/README.md
 
 .vercel
+
+# Promotional video source media and generated outputs
+# Keep briefs, scripts, configs, documentation, and license metadata in Git.
+promo-video/01-source/**
+!promo-video/01-source/licensed/
+!promo-video/01-source/licensed/*.license.json
+promo-video/02-proxies/
+promo-video/03-selects/
+promo-video/04-design/**/*.png
+promo-video/04-design/**/*.jpg
+promo-video/04-design/**/*.jpeg
+promo-video/04-design/**/*.webp
+promo-video/05-motion/
+promo-video/06-audio/
+promo-video/07-edit/
+promo-video/08-exports/
+promo-video/09-qc/**
+!promo-video/09-qc/*.md

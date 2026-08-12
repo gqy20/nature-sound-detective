@@ -162,3 +162,21 @@ uv run python scripts/run_stage2_birdnet.py --reuse-detections
 详细入口见 [项目文档索引](./docs/README.md)。
 
 日志事件、Logcat 命令、trace 关联和隐私边界见 [日志与诊断](./docs/logs.md)。
+
+## ModelScope 创空间
+
+魔搭在线体验：[自然声探员创空间](https://modelscope.cn/studios/gqy2025/nature-sound-detective)。创空间使用与 Android 端同源的 YAMNet、BirdNET 2.4 和本地非鸟 TFLite 模型，在 CPU 环境中提供最长 20 秒的自然声音候选分析。
+
+创空间的可维护源码位于 `deploy/modelscope/`，模型与标签不重复提交，而是在发布前从 `mobile/assets/` 组装到忽略的构建目录：
+
+```powershell
+# 生成并检查自包含部署目录
+.\scripts\build_modelscope_space.ps1
+.\scripts\test_modelscope_space.ps1
+
+# 在 .env 配置 MODELSCOPE_API_TOKEN 后更新创空间
+.\scripts\publish_modelscope_space.ps1 `
+  -RepositoryUrl "https://www.modelscope.cn/studios/gqy2025/nature-sound-detective.git"
+```
+
+发布脚本会拒绝包含 `.env`、ModelScope Token 或 API Key 特征的构建产物。模型输出仍是调查候选，不能替代现场观察和人工复核。

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "minimum_meaningful_dimensions": 2,
+  "dimensions": [
+    {
+      "id": "time",
+      "label": "什么时候发现的？",
+      "multiple": false,
+      "options": [
+        {"value": "early_morning", "label": "清晨"},
+        {"value": "daytime", "label": "白天"},
+        {"value": "evening", "label": "傍晚"},
+        {"value": "night", "label": "夜间"},
+        {"value": "unknown", "label": "无法判断"}
+      ]
+    },
+    {
+      "id": "habitat",
+      "label": "它在哪里活动？",
+      "multiple": false,
+      "options": [
+        {"value": "tree_canopy", "label": "高处树冠"},
+        {"value": "shrub", "label": "低处灌木"},
+        {"value": "grass", "label": "草丛"},
+        {"value": "ground", "label": "地面附近"},
+        {"value": "waterside", "label": "水边"},
+        {"value": "water_surface", "label": "水面"},
+        {"value": "building", "label": "建筑附近"},
+        {"value": "unknown", "label": "无法判断"}
+      ]
+    },
+    {
+      "id": "behavior",
+      "label": "它正在做什么？",
+      "multiple": true,
+      "options": [
+        {"value": "alone", "label": "独自活动"},
+        {"value": "group", "label": "几只一起活动"},
+        {"value": "moving", "label": "来回移动"},
+        {"value": "staying", "label": "停在原地"},
+        {"value": "possible_foraging", "label": "疑似寻找食物"},
+        {"value": "hidden", "label": "躲藏不动"},
+        {"value": "unknown", "label": "无法判断"}
+      ]
+    },
+    {
+      "id": "sound_pattern",
+      "label": "声音有什么特点？",
+      "multiple": true,
+      "options": [
+        {"value": "repeated", "label": "重复鸣叫"},
+        {"value": "continuous", "label": "连续鸣叫"},
+        {"value": "short_calls", "label": "短促叫声"},
+        {"value": "long_intervals", "label": "间隔较长"},
+        {"value": "single_direction", "label": "来自一个方向"},
+        {"value": "multiple_directions", "label": "来自多个方向"},
+        {"value": "unknown", "label": "无法判断"}
+      ]
+    },
+    {
+      "id": "appearance",
+      "label": "有没有看清外形？",
+      "multiple": true,
+      "options": [
+        {"value": "distinct_head", "label": "头部有明显特征"},
+        {"value": "distinct_body", "label": "身体颜色明显"},
+        {"value": "small_body", "label": "体型较小"},
+        {"value": "large_body", "label": "体型较大"},
+        {"value": "distinct_limbs", "label": "翅膀或腿部明显"},
+        {"value": "unknown", "label": "没有看清"}
+      ]
+    }
+  ],
+  "legacy_check_mapping": {
+    "time": ["time", "unknown"],
+    "location": ["habitat", "unknown"],
+    "appearance": ["appearance", "unknown"]
+  }
+}

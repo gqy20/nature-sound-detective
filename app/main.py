@@ -87,6 +87,11 @@ class StorySubmission(BaseModel):
     story_type: str = Field(default="animal_life", max_length=40)
 
 
+class StructuredObservationsSubmission(BaseModel):
+    candidate_id: str = Field(min_length=1, max_length=120)
+    selections: dict[str, list[str]]
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -158,6 +163,22 @@ def submit_investigation_observation(job_id: str, observation: ObservationSubmis
             question_id=observation.question_id,
             choice=observation.choice,
             note=observation.note,
+            source="api",
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if not job:
+        raise HTTPException(404, "没有找到这次声音调查")
+    return job
+
+
+@app.post("/api/jobs/{job_id}/investigation/structured-observations")
+def submit_structured_observations(job_id: str, submission: StructuredObservationsSubmission) -> dict:
+    try:
+        job = jobs.submit_structured_observations(
+            job_id,
+            candidate_id=submission.candidate_id,
+            selections=submission.selections,
             source="api",
         )
     except ValueError as exc:

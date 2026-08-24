@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from app.yamnet_service import YamNetAnalyzer
 from app.community.routes import build_community_router
 from app.observability import get_logger, install_observability, log_exception
-from app.investigation import apply_observation, build_investigation
+from app.investigation import apply_observation, apply_structured_observations, build_investigation
 from app.result_fusion import fuse_results
 from app.story_service import AnimalStoryService
 
@@ -58,6 +58,13 @@ class StatelessStorySubmission(BaseModel):
     candidate_id: str = Field(min_length=1, max_length=120)
     story_type: str = Field(default="animal_life", max_length=40)
     location: str = Field(default="杭州", max_length=80)
+    investigation: dict[str, Any]
+
+
+class StatelessStructuredObservationsSubmission(BaseModel):
+    investigation: dict[str, Any]
+    candidate_id: str = Field(min_length=1, max_length=120)
+    selections: dict[str, list[str]]
 
 
 @app.get("/")
@@ -137,6 +144,19 @@ def submit_stateless_observation(payload: StatelessObservationSubmission) -> dic
         raise HTTPException(409, str(exc)) from exc
 
 
+@app.post("/api/investigation/structured-observations")
+def submit_stateless_structured_observations(payload: StatelessStructuredObservationsSubmission) -> dict[str, Any]:
+    try:
+        return apply_structured_observations(
+            payload.investigation,
+            candidate_id=payload.candidate_id,
+            selections=payload.selections,
+            source="cloud-api",
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
 @app.post("/api/stories")
 def create_stateless_story(payload: StatelessStorySubmission) -> dict[str, Any]:
     try:
@@ -145,6 +165,10 @@ def create_stateless_story(payload: StatelessStorySubmission) -> dict[str, Any]:
             candidate_id=payload.candidate_id,
             location=payload.location,
             story_type=payload.story_type,
+            observations=[
+                item for item in payload.investigation.get("observations") or []
+                if item.get("candidate_id") == payload.candidate_id
+            ],
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc

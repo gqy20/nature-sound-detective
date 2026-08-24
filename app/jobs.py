@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -13,9 +14,9 @@ from uuid import uuid4
 
 from app.config import JOB_DIR
 from app.creation_service import CreationService
-from app.investigation import apply_observation, build_investigation
+from app.investigation import apply_observation, apply_structured_observations, build_investigation
 from app.pipeline import AnalysisPipeline
-from app.story_service import AnimalStoryService, story_candidates
+from app.story_service import AnimalStoryService, _observation_fingerprint, story_candidates
 from app.observability import current_trace_id, get_logger, log_event, log_exception, trace_context
 
 
@@ -256,6 +257,31 @@ class JobStore:
             self._write(job)
             return self.public(job)
 
+    def submit_structured_observations(
+        self,
+        job_id: str,
+        *,
+        candidate_id: str,
+        selections: dict[str, list[str]],
+        source: str = "user",
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return None
+            investigation = job.get("investigation")
+            if not isinstance(investigation, dict):
+                raise ValueError("这次声音分析还没有进入调查阶段")
+            job["investigation"] = apply_structured_observations(
+                investigation,
+                candidate_id=candidate_id,
+                selections=selections,
+                source=source,
+            )
+            job["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._write(job)
+            return self.public(job)
+
     def story_candidates(self, job_id: str) -> list[dict[str, Any]] | None:
         with self._lock:
             job = self._jobs.get(job_id)
@@ -271,13 +297,21 @@ class JobStore:
         candidate_id: str,
         story_type: str = "animal_life",
     ) -> dict[str, Any] | None:
-        cache_key = f"{candidate_id}|{story_type}"
         with self._lock:
             job = self._jobs.get(job_id)
             if not job:
                 return None
             if job.get("status") != "completed" or not isinstance(job.get("result"), dict):
                 raise ValueError("声音分析尚未完成")
+            investigation = job.get("investigation")
+            if not isinstance(investigation, dict) or investigation.get("status") != "completed":
+                raise ValueError("请先完成现场观察，再生成动物故事")
+            observations = [
+                item for item in investigation.get("observations") or []
+                if item.get("candidate_id") == candidate_id
+            ]
+            fingerprint = _observation_fingerprint(observations)
+            cache_key = f"{candidate_id}|{story_type}|{fingerprint}|{os.getenv('STORY_MODEL', 'qwen3.7-flash')}"
             cached = (job.get("stories") or {}).get(cache_key)
             if isinstance(cached, dict):
                 return json.loads(json.dumps({**cached, "cached": True}))
@@ -288,6 +322,7 @@ class JobStore:
             candidate_id=candidate_id,
             location=location,
             story_type=story_type,
+            observations=observations,
         )
         with self._lock:
             current = self._jobs.get(job_id)

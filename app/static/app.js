@@ -72,6 +72,7 @@ let analysisAbortController = null;
 let selectedAudioValid = false;
 let currentJob = null;
 let creationPollToken = 0;
+let fieldObservationSelections = {};
 
 function showPanel(id) {
   const captureFlow = id === "capture-panel" || id === "ready-panel";
@@ -713,6 +714,11 @@ function renderAnimalStories(job) {
   $("animal-story-block").hidden = candidates.length === 0;
   $("animal-story-content").hidden = true;
   $("animal-story-status").textContent = "";
+  if (job.investigation?.status !== "completed") {
+    $("animal-story-candidates").replaceChildren();
+    $("animal-story-status").textContent = "先完成时间、环境、活动或声音特点等现场观察，再生成动物故事。";
+    return;
+  }
   $("animal-story-candidates").replaceChildren(...candidates.map((candidate) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -723,11 +729,11 @@ function renderAnimalStories(job) {
     button.addEventListener("click", () => requestAnimalStory(candidate));
     return button;
   }));
-  const stories = job.stories || {};
+  const stories = Object.values(job.stories || {});
   for (const candidate of candidates) {
-    const cached = stories[`${candidate.id}|animal_life`];
+    const cached = stories.find((story) => story.candidate?.id === candidate.id && story.story_type === "animal_life");
     if (cached) {
-      showAnimalStory(cached);
+      showAnimalStory({ ...cached, cached: true });
       break;
     }
   }
@@ -758,6 +764,7 @@ async function requestAnimalStory(candidate) {
           candidate_id: candidate.id,
           story_type: "animal_life",
           location: currentJob.location || "杭州",
+          investigation: currentJob.investigation,
         }),
       });
     } else {
@@ -782,8 +789,7 @@ async function requestAnimalStory(candidate) {
 
 function renderInvestigation(job) {
   const investigation = job.investigation;
-  const fallbackQuestion = job.result?.card?.question || "安静听一听，你观察到了什么？";
-  $("observation-question").textContent = investigation?.question?.text || fallbackQuestion;
+  $("observation-question").textContent = "完成现场观察，故事会围绕你选择的环境和活动展开。";
   $("observation-actions").replaceChildren();
   $("observation-actions").hidden = !investigation || job.is_demo;
   $("observation-status").textContent = "";
@@ -795,31 +801,63 @@ function renderInvestigation(job) {
       : "现场观察已经记录，这次调查可以结案。";
     return;
   }
-  const options = investigation.question?.options || [];
-  $("observation-actions").replaceChildren(...options.map((option) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "observation-choice";
-    button.textContent = option.label;
-    button.addEventListener("click", () => submitObservation(option.value));
-    return button;
-  }));
+  fieldObservationSelections = {};
+  const schema = investigation.observation_form;
+  const candidate = animalStoryCandidates(job)[0];
+  if (!schema || !candidate) return;
+  const groups = schema.dimensions.map((dimension) => {
+    const group = document.createElement("fieldset");
+    group.className = "observation-dimension";
+    const legend = document.createElement("legend");
+    legend.textContent = dimension.label;
+    const choices = document.createElement("div");
+    choices.className = "observation-dimension-choices";
+    choices.append(...dimension.options.map((option) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "observation-choice";
+      button.textContent = option.label;
+      button.addEventListener("click", () => {
+        let selected = fieldObservationSelections[dimension.id] || [];
+        if (!dimension.multiple || option.value === "unknown") {
+          selected = selected.includes(option.value) ? [] : [option.value];
+        } else {
+          selected = selected.filter((value) => value !== "unknown");
+          selected = selected.includes(option.value)
+            ? selected.filter((value) => value !== option.value)
+            : [...selected, option.value];
+        }
+        fieldObservationSelections[dimension.id] = selected;
+        [...choices.children].forEach((item, index) => {
+          item.classList.toggle("selected", selected.includes(dimension.options[index].value));
+        });
+      });
+      return button;
+    }));
+    group.append(legend, choices);
+    return group;
+  });
+  const submit = document.createElement("button");
+  submit.type = "button";
+  submit.className = "primary-button observation-submit";
+  submit.textContent = "完成现场观察";
+  submit.addEventListener("click", () => submitStructuredObservations(candidate.id));
+  $("observation-actions").replaceChildren(...groups, submit);
 }
 
-async function submitObservation(choice) {
+async function submitStructuredObservations(candidateId) {
   if (!currentJob?.investigation) return;
   const buttons = [...document.querySelectorAll(".observation-choice")];
   buttons.forEach((button) => { button.disabled = true; });
   $("observation-status").textContent = "正在记录现场观察…";
   const body = {
-    question_id: currentJob.investigation.question.id,
-    choice,
-    note: "",
+    candidate_id: candidateId,
+    selections: fieldObservationSelections,
   };
   try {
     let response;
     if (currentJob.capabilities?.persistence === false) {
-      response = await tracedFetch(apiUrl("/api/investigation/observations"), {
+      response = await tracedFetch(apiUrl("/api/investigation/structured-observations"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...body, investigation: currentJob.investigation }),
@@ -827,7 +865,7 @@ async function submitObservation(choice) {
       if (!response.ok) throw new Error(await response.text());
       currentJob.investigation = await response.json();
     } else {
-      response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/investigation/observations`), {
+      response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/investigation/structured-observations`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -836,6 +874,7 @@ async function submitObservation(choice) {
       currentJob = await response.json();
     }
     renderInvestigation(currentJob);
+    renderAnimalStories(currentJob);
     renderCreation(currentJob);
     saveToCollection(currentJob);
   } catch (_) {

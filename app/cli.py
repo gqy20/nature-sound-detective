@@ -283,12 +283,17 @@ def _story(args: argparse.Namespace) -> int:
     if not candidates:
         raise ValueError("这次分析没有可生成动物故事的候选")
     candidate_id = args.candidate_id or candidates[0]["id"]
+    observations = [
+        item for item in package["investigation"].get("observations") or []
+        if item.get("candidate_id") == candidate_id
+    ]
     with trace_context(str(package["run"].get("trace_id") or package["run"].get("run_id"))):
         story = AnimalStoryService().create(
             result=package["result"],
             candidate_id=candidate_id,
             location=str(package["run"].get("location") or "杭州"),
             story_type=args.story_type,
+            observations=observations,
         )
     story_dir = run_dir / "stories"
     story_dir.mkdir(exist_ok=True)

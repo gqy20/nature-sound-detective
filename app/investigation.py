@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.field_observations import observation_schema, validate_observation_selections
+
 
 SCHEMA_VERSION = 1
 OBSERVATION_CHOICES = {"observed", "not_observed", "unknown"}
@@ -119,6 +121,7 @@ def build_investigation(
             "purpose": str(agent.get("question_purpose") or "补充AI无法从录音中获得的现场证据"),
             "source": str(agent.get("question_source") or "safe_template"),
         },
+        "observation_form": observation_schema(),
         "observations": [],
         "decision_history": [
             {
@@ -130,6 +133,48 @@ def build_investigation(
         ],
         "stop_reason": None,
     }
+
+
+def apply_structured_observations(
+    investigation: dict[str, Any],
+    *,
+    candidate_id: str,
+    selections: dict[str, list[str]],
+    source: str = "user",
+    observed_at: str | None = None,
+) -> dict[str, Any]:
+    if investigation.get("status") != "awaiting_observation":
+        raise ValueError("这次调查已经结案，不能继续提交观察")
+    candidate_ids = {str(item.get("id")) for item in investigation.get("evidence", {}).get("candidates", [])}
+    if candidate_id not in candidate_ids:
+        raise ValueError("现场观察候选与当前调查不一致")
+    normalized = validate_observation_selections(selections)
+    timestamp = observed_at or _now()
+    updated = deepcopy(investigation)
+    updated["round"] = int(updated.get("round", 0)) + 1
+    updated["updated_at"] = timestamp
+    updated["observations"] = [
+        {
+            **item,
+            "candidate_id": candidate_id,
+            "source": source,
+            "observed_at": timestamp,
+        }
+        for item in normalized
+    ]
+    updated["status"] = "completed"
+    updated["stop_reason"] = "structured_field_observation_recorded"
+    updated.setdefault("decision_history", []).append(
+        {
+            "at": timestamp,
+            "event": "structured_observations_applied",
+            "status": "completed",
+            "reason": "已完成多维现场观察，允许生成候选动物故事",
+            "candidate_id": candidate_id,
+            "observation_count": len(normalized),
+        }
+    )
+    return updated
 
 
 def apply_observation(

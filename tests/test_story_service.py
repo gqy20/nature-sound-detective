@@ -12,7 +12,7 @@ import app.main as main_module
 import app.story_service as story_module
 from app.jobs import JobStore
 from app.cli import main as cli_main
-from app.investigation import build_investigation
+from app.investigation import apply_structured_observations, build_investigation
 from app.run_artifacts import write_run_package
 from app.story_service import AnimalStoryService, _validate_story, story_candidates
 
@@ -31,6 +31,21 @@ RESULT = {
         }
     ],
 }
+OBSERVATIONS = [
+    {"dimension": "time", "value": "early_morning", "label": "清晨", "candidate_id": "Pycnonotus sinensis"},
+    {"dimension": "habitat", "value": "tree_canopy", "label": "高处树冠", "candidate_id": "Pycnonotus sinensis"},
+    {"dimension": "sound_pattern", "value": "repeated", "label": "重复鸣叫", "candidate_id": "Pycnonotus sinensis"},
+]
+
+
+def completed_investigation():
+    initial = build_investigation(RESULT, "杭州", investigation_id="story-investigation")
+    return apply_structured_observations(
+        initial,
+        candidate_id="Pycnonotus sinensis",
+        selections={"time": ["early_morning"], "habitat": ["tree_canopy"], "sound_pattern": ["repeated"]},
+        observed_at="2026-08-24T00:00:00+00:00",
+    )
 
 
 def test_story_candidates_are_limited_to_analysis_result():
@@ -53,6 +68,7 @@ def test_template_story_is_available_without_api_key(monkeypatch):
         result=RESULT,
         candidate_id="Pycnonotus sinensis",
         location="杭州",
+        observations=OBSERVATIONS,
     )
     assert story["status"] == "completed"
     assert story["provider"] == "reviewed-template"
@@ -72,11 +88,12 @@ def test_live_story_uses_structured_output_and_safety_validation(monkeypatch):
                         {
                             "title": "白头鹎的树梢时光",
                             "story": (
-                                "白头鹎喜欢在树木和灌木之间活动。清晨醒来后，它会用叫声与附近的伙伴保持联系，"
+                                "白头鹎喜欢在树木和灌木之间活动。清晨醒来后，它在高处树冠用重复鸣叫与附近的伙伴保持联系，"
                                 "也会在枝叶间寻找适合的食物。到了天气明亮的时候，它可能换到另一片树冠继续活动。"
                                 "声音能帮助我们认识白头鹎，但每次听见时仍要结合外形、位置和周围环境继续观察。"
                             ),
                             "observation_prompt": "下一次可以远远观察白头鹎候选声音是否来自树冠附近。",
+                            "observations_used": ["清晨", "高处树冠", "重复鸣叫"],
                         },
                         ensure_ascii=False,
                     )
@@ -104,6 +121,7 @@ def test_live_story_uses_structured_output_and_safety_validation(monkeypatch):
         result=RESULT,
         candidate_id="Pycnonotus sinensis",
         location="杭州",
+        observations=OBSERVATIONS,
     )
     assert story["provider"] == "qwen3.7-flash"
     assert story["usage"]["completion_tokens"] == 120
@@ -204,6 +222,7 @@ def test_job_store_caches_story_by_candidate_and_type(tmp_path, monkeypatch):
         "result": RESULT,
         "audio_path": str(tmp_path / "audio.wav"),
         "stories": {},
+        "investigation": completed_investigation(),
         "creation": {"status": "idle"},
     }
     try:
@@ -228,6 +247,7 @@ def test_local_and_cloud_story_endpoints(monkeypatch, tmp_path):
         "result": RESULT,
         "audio_path": str(tmp_path / "audio.wav"),
         "stories": {},
+        "investigation": completed_investigation(),
         "creation": {"status": "idle"},
     }
     monkeypatch.setattr(main_module, "jobs", store)
@@ -246,6 +266,7 @@ def test_local_and_cloud_story_endpoints(monkeypatch, tmp_path):
                 "candidate_id": "Pycnonotus sinensis",
                 "story_type": "animal_life",
                 "location": "杭州",
+                "investigation": completed_investigation(),
             },
         )
         assert cloud.status_code == 200
@@ -263,6 +284,7 @@ def test_web_contains_candidate_animal_story_contract():
     assert "animalStoryCandidates" in javascript
     assert "/stories" in javascript
     assert "candidate_notice" in javascript
+    assert "先完成时间、环境、活动或声音特点" in javascript
 
 
 def test_cli_generates_story_inside_run_package(tmp_path, monkeypatch):
@@ -278,7 +300,7 @@ def test_cli_generates_story_inside_run_package(tmp_path, monkeypatch):
             "mode": "test",
         },
         result=RESULT,
-        investigation=build_investigation(RESULT, "杭州", investigation_id="story-cli"),
+        investigation=completed_investigation(),
     )
     assert cli_main(["story", str(run_dir), "--json"]) == 0
     outputs = list((run_dir / "stories").glob("*.json"))

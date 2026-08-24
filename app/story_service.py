@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 import re
@@ -103,7 +104,11 @@ def _parse_json(text: str) -> dict[str, Any]:
     return value
 
 
-def _validate_story(raw: dict[str, Any], candidate: dict[str, Any]) -> dict[str, str]:
+def _validate_story(
+    raw: dict[str, Any],
+    candidate: dict[str, Any],
+    observations: list[dict[str, Any]] | None = None,
+) -> dict[str, str]:
     title = str(raw.get("title") or "").strip()
     story = str(raw.get("story") or "").strip()
     observation = str(raw.get("observation_prompt") or "").strip()
@@ -138,15 +143,26 @@ def _validate_story(raw: dict[str, Any], candidate: dict[str, Any]) -> dict[str,
         raise ValueError("无知识库模式不允许生成高风险或绝对物种断言")
     if candidate["name_zh"] not in combined:
         raise ValueError("动物故事没有围绕所选候选")
+    expected_observations = {
+        str(item.get("label")) for item in observations or [] if item.get("value") != "unknown"
+    }
+    claimed_observations = {
+        str(value) for value in raw.get("observations_used") or []
+    }
+    if expected_observations and claimed_observations != expected_observations:
+        raise ValueError("动物故事没有完整使用结构化现场观察")
     return {"title": title, "story": story, "observation_prompt": observation}
 
 
-def _template_story(candidate: dict[str, Any], story_type: str) -> dict[str, str]:
+def _template_story(candidate: dict[str, Any], story_type: str, observations: list[dict[str, Any]]) -> dict[str, str]:
     name = candidate["name_zh"]
     category = candidate["category"]
+    labels = [str(item.get("label")) for item in observations if item.get("value") != "unknown"]
+    observed = "、".join(labels)
     if story_type == "why_it_calls":
         story = (
             f"今天先来认识候选动物{name}。动物发出声音，常常与联系同伴、表达位置或适应周围环境有关。"
+            f"故事里的这只{name}当时留下了这些现场线索：{observed}。"
             f"{name}的真实叫声会受到时间、距离和环境噪声影响，所以一次录音只能提供{category}线索。"
             "把声音的节奏、方向和出现时间记下来，下一次再比较，才能逐渐接近答案。"
         )
@@ -155,6 +171,7 @@ def _template_story(candidate: dict[str, Any], story_type: str) -> dict[str, str
     else:
         story = (
             f"今天先来认识候选动物{name}。每种动物都有自己的活动时间、寻找食物的方法和与同伴联系的方式。"
+            f"故事里的这只{name}当时留下了这些现场线索：{observed}。"
             f"声音是认识{name}的一条线索，但真实生活还藏在它活动的高度、周围环境和声音节奏里。"
             "我们不急着宣布答案，而是把这些特点逐次记录，让下一次观察补上新的证据。"
         )
@@ -163,8 +180,17 @@ def _template_story(candidate: dict[str, Any], story_type: str) -> dict[str, str
     return {"title": title[:28], "story": story, "observation_prompt": observation}
 
 
-def _prompt(candidate: dict[str, Any], location: str, story_type: str) -> str:
+def _observation_fingerprint(observations: list[dict[str, Any]]) -> str:
+    stable = [
+        {"dimension": item.get("dimension"), "value": item.get("value"), "label": item.get("label")}
+        for item in observations
+    ]
+    return hashlib.sha256(json.dumps(stable, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+
+
+def _prompt(candidate: dict[str, Any], location: str, story_type: str, observations: list[dict[str, Any]]) -> str:
     angle = "它为什么发声" if story_type == "why_it_calls" else "这个动物怎样度过一天"
+    observation_text = "、".join(str(item.get("label")) for item in observations if item.get("value") != "unknown")
     return f"""请为6至12岁儿童创作一则关于候选动物的中文科普故事。
 候选动物：{candidate['name_zh']}
 学名：{candidate.get('scientific_name') or '未提供'}
@@ -172,11 +198,12 @@ def _prompt(candidate: dict[str, Any], location: str, story_type: str) -> str:
 声音大类：{candidate['category']}
 区域背景：{location or '杭州'}，仅表示项目服务区域，不得虚构西湖、植物园、公园、池塘、芦苇荡等具体采集地点
 故事主题：{angle}
+用户本次实际选择的现场观察：{observation_text}
 
-当前没有外部物种知识库。只使用广泛、稳妥的常识，不写精确寿命、数量、距离、保护等级、繁殖数字、生态健康指标、绝对习性或未经核验的独特结论。不要使用“从不”“绝不”“不挖洞”等绝对句式。故事主体必须是动物本身，而不是录音现场或孩子的调查过程。不得声称本次录音已经确认这个动物，不得鼓励追逐、捕捉、触摸、投喂、爬树或靠近巢穴。动物自身捕食昆虫等自然行为可以描述，但观察建议只能是远距离倾听和观看。
+当前没有外部物种知识库。故事必须自然使用每一项用户现场观察，把它们写成“故事里这只候选动物当时的活动”，不得扩写成这个物种永远如此。只使用广泛、稳妥的常识，不写精确寿命、数量、距离、保护等级、繁殖数字、生态健康指标、绝对习性或未经核验的独特结论。不要使用“从不”“绝不”“不挖洞”等绝对句式。故事主体必须是动物本身，而不是录音现场或孩子的调查过程。不得声称本次录音已经确认这个动物，不得鼓励追逐、捕捉、触摸、投喂、爬树或靠近巢穴。动物自身捕食昆虫等自然行为可以描述，但观察建议只能是远距离倾听和观看。
 
 返回JSON，不要Markdown：
-{{"title":"4至28字","story":"120至260字，介绍动物生活或发声，语言生动但不虚构精确事实","observation_prompt":"一句安全、远距离、可执行的观察建议"}}"""
+{{"title":"4至28字","story":"120至260字，介绍动物生活或发声，语言生动但不虚构精确事实","observations_used":["逐字复制全部用户现场观察标签"],"observation_prompt":"一句安全、远距离、可执行的观察建议"}}"""
 
 
 class AnimalStoryService:
@@ -197,15 +224,21 @@ class AnimalStoryService:
         candidate_id: str,
         location: str,
         story_type: str = "animal_life",
+        observations: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         if story_type not in STORY_TYPES:
             raise ValueError("暂不支持这种动物故事类型")
         candidate = find_story_candidate(result, candidate_id)
+        observations = observations or []
+        meaningful = [item for item in observations if item.get("value") != "unknown"]
+        if len({str(item.get("dimension")) for item in meaningful}) < 2:
+            raise ValueError("请先完成至少两个方面的现场观察，再生成故事")
+        fingerprint = _observation_fingerprint(observations)
         started = time.perf_counter()
         warning = ""
         provider = "reviewed-template"
         usage = None
-        story = _template_story(candidate, story_type)
+        story = _template_story(candidate, story_type, observations)
         if self.mode == "live":
             if not self.api_key:
                 warning = "故事模型未配置，已使用安全模板"
@@ -225,7 +258,7 @@ class AnimalStoryService:
                                         "role": "system",
                                         "content": "你是儿童自然教育故事编辑。事实边界、安全和候选状态高于故事性。",
                                     },
-                                    {"role": "user", "content": _prompt(candidate, location, story_type)},
+                                    {"role": "user", "content": _prompt(candidate, location, story_type, observations)},
                                 ],
                                 "temperature": 0.7,
                                 "enable_thinking": False,
@@ -236,7 +269,7 @@ class AnimalStoryService:
                         response.raise_for_status()
                         payload = response.json()
                         raw = _parse_json(payload["choices"][0]["message"]["content"])
-                        story = _validate_story(raw, candidate)
+                        story = _validate_story(raw, candidate, observations)
                         usage = payload.get("usage")
                         provider = self.model
                 except Exception as exc:
@@ -246,6 +279,8 @@ class AnimalStoryService:
             "status": "completed",
             "candidate": candidate,
             "story_type": story_type,
+            "observations_used": [item.get("label") for item in meaningful],
+            "observation_fingerprint": fingerprint,
             **story,
             "candidate_notice": f"这是关于候选动物{candidate['name_zh']}的AI故事，不代表本次录音已经确认物种。",
             "content_label": "AI基于候选信息创作" if provider != "reviewed-template" else "安全模板故事",

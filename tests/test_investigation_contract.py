@@ -191,6 +191,6 @@ def test_web_uses_server_investigation_contract_instead_of_local_state_rules():
     html = (ROOT / "app/static/index.html").read_text(encoding="utf-8")
     javascript = (ROOT / "app/static/app.js").read_text(encoding="utf-8")
     assert 'id="observation-actions"' in html
-    assert "investigation.question?.options" in javascript
-    assert "/investigation/observations" in javascript
+    assert "investigation.observation_form" in javascript
+    assert "/investigation/structured-observations" in javascript
     assert "currentJob.investigation = await response.json()" in javascript

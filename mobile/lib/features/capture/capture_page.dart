@@ -68,6 +68,7 @@ class _CapturePageState extends State<CapturePage> {
   bool _resultVisible = false;
   List<SoundDetection> _detections = const [];
   final Map<String, List<String>> _fieldChecks = <String, List<String>>{};
+  final Map<String, Map<String, List<String>>> _fieldObservations = {};
   String? _error;
   double _liveRms = 0;
   bool _signalHeard = false;
@@ -121,6 +122,7 @@ class _CapturePageState extends State<CapturePage> {
       _quality = null;
       _detections = const [];
       _fieldChecks.clear();
+      _fieldObservations.clear();
       _hasAnalyzed = false;
       _saved = false;
       _error = null;
@@ -288,6 +290,7 @@ class _CapturePageState extends State<CapturePage> {
       _quality = null;
       _detections = const [];
       _fieldChecks.clear();
+      _fieldObservations.clear();
       _hasAnalyzed = false;
       _saved = false;
       _error = null;
@@ -386,6 +389,7 @@ class _CapturePageState extends State<CapturePage> {
       _quality = null;
       _detections = const [];
       _fieldChecks.clear();
+      _fieldObservations.clear();
       _hasAnalyzed = false;
       _saved = false;
       _error = null;
@@ -497,6 +501,9 @@ class _CapturePageState extends State<CapturePage> {
         quality: quality,
         detections: _detections,
         fieldChecks: Map<String, List<String>>.unmodifiable(_fieldChecks),
+        fieldObservations: Map<String, Map<String, List<String>>>.unmodifiable(
+          _fieldObservations,
+        ),
         location: '杭州',
       );
       AppLog.info(
@@ -565,6 +572,42 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  void _updateFieldObservations(
+    SoundDetection detection,
+    Map<String, List<String>> observations,
+  ) {
+    final recording = _recording;
+    final key = _speciesKey(detection);
+    setState(() {
+      if (observations.isEmpty) {
+        _fieldObservations.remove(key);
+      } else {
+        _fieldObservations[key] = observations.map(
+          (dimension, values) => MapEntry(
+            dimension,
+            List<String>.unmodifiable(values),
+          ),
+        );
+      }
+    });
+    if (_saved && recording != null) {
+      unawaited(
+        _store
+            .setFieldObservations(recording.id, key, observations)
+            .catchError((error, stackTrace) {
+              AppLog.warning(
+                'storage',
+                'field_observations_save_failed',
+                traceId: recording.id,
+                fields: {'species_key': key},
+                error: error,
+                stackTrace: stackTrace,
+              );
+            }),
+      );
+    }
+  }
+
   void _openScienceCard() {
     final detection = _detections.firstOrNull;
     if (detection == null) return;
@@ -576,7 +619,11 @@ class _CapturePageState extends State<CapturePage> {
           audioPath: _recording?.path,
           playback: _playback,
           initialChecks: _fieldChecks[_speciesKey(detection)] ?? const [],
+          initialObservations:
+              _fieldObservations[_speciesKey(detection)] ?? const {},
           onChecksChanged: (checks) => _updateFieldChecks(detection, checks),
+          onObservationsChanged: (values) =>
+              _updateFieldObservations(detection, values),
         ),
       ),
     );
@@ -1248,8 +1295,13 @@ class _CapturePageState extends State<CapturePage> {
                                 initialChecks:
                                     _fieldChecks[_speciesKey(detection)] ??
                                     const [],
+                                initialObservations:
+                                    _fieldObservations[_speciesKey(detection)] ??
+                                    const {},
                                 onChecksChanged: (checks) =>
                                     _updateFieldChecks(detection, checks),
+                                onObservationsChanged: (values) =>
+                                    _updateFieldObservations(detection, values),
                               ),
                             ),
                           ),

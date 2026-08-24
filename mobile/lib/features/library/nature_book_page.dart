@@ -115,8 +115,12 @@ class _NatureBookPageState extends State<NatureBookPage> {
           audioPath: record.audioPath,
           playback: _playback,
           initialChecks: record.fieldChecks[key] ?? const [],
+          initialObservations: record.fieldObservations[key] ?? const {},
           onChecksChanged: (checks) {
             unawaited(_persistFieldChecks(record.id, key, checks));
+          },
+          onObservationsChanged: (values) {
+            unawaited(_persistFieldObservations(record.id, key, values));
           },
         ),
       ),
@@ -136,6 +140,22 @@ class _NatureBookPageState extends State<NatureBookPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('核对结果暂时没有保存')));
+    }
+  }
+
+  Future<void> _persistFieldObservations(
+    String recordId,
+    String speciesKey,
+    Map<String, List<String>> observations,
+  ) async {
+    try {
+      await _store.setFieldObservations(recordId, speciesKey, observations);
+      await _load();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('现场观察暂时没有保存')),
+      );
     }
   }
 

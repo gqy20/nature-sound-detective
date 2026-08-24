@@ -48,6 +48,14 @@ void main() {
       'time',
       'location',
     ]);
+    await store.setFieldObservations('rec_1', 'rana-test', const {
+      'time': ['early_morning'],
+      'habitat': ['waterside'],
+    });
+    expect((await store.list()).single.fieldObservations['rana-test'], {
+      'time': ['early_morning'],
+      'habitat': ['waterside'],
+    });
     await store.setConfirmed('rec_1', true);
     expect((await store.list()).single.confirmedByUser, isTrue);
     await store.setFeedback(

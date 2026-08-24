@@ -11,13 +11,13 @@ void main() {
     tester,
   ) async {
     final playback = _FakePlayback();
-    var changedChecks = <String>[];
+    var changedObservations = <String, List<String>>{};
     await tester.pumpWidget(
       MaterialApp(
         home: SpeciesDetailPage(
           audioPath: '/recordings/bird.wav',
           playback: playback,
-          onChecksChanged: (checks) => changedChecks = checks,
+          onObservationsChanged: (values) => changedObservations = values,
           detection: const SoundDetection(
             categoryId: 'bird',
             nameZh: '鸟类',
@@ -54,19 +54,19 @@ void main() {
 
     await tester.drag(find.byType(ListView), const Offset(0, -260));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('清晨'));
+    await tester.ensureVisible(find.text('什么时候发现的？'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('清晨'));
-    await tester.tap(find.text('树上'));
-    await tester.tap(find.text('白头'));
+    await tester.tap(find.text('高处树冠'));
+    await tester.tap(find.text('重复鸣叫'));
     await tester.pumpAndSettle();
-    expect(find.text('✓ 全部对上'), findsOneWidget);
-    expect(changedChecks, ['time', 'location', 'appearance']);
-
-    await tester.tap(find.text('白头'));
-    await tester.pumpAndSettle();
-    expect(find.text('✓ 全部对上'), findsNothing);
-    expect(changedChecks, ['time', 'location']);
+    expect(find.text('✓ 已满足故事生成条件'), findsOneWidget);
+    await tester.tap(find.text('完成现场观察'));
+    expect(changedObservations, {
+      'time': ['early_morning'],
+      'habitat': ['tree_canopy'],
+      'sound_pattern': ['repeated'],
+    });
 
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pumpAndSettle();

@@ -14,6 +14,7 @@ class ExplorationRecord {
     this.confirmedByUser = false,
     this.feedback,
     this.fieldChecks = const {},
+    this.fieldObservations = const {},
   });
 
   factory ExplorationRecord.fromJson(Map<String, Object?> json) {
@@ -57,6 +58,24 @@ class ExplorationRecord {
         ),
         _ => const {},
       },
+      fieldObservations: switch (json['field_observations']) {
+        Map<Object?, Object?> speciesValues => speciesValues.map(
+          (speciesKey, rawDimensions) => MapEntry(
+            speciesKey.toString(),
+            rawDimensions is Map<Object?, Object?>
+                ? rawDimensions.map(
+                    (dimension, rawValues) => MapEntry(
+                      dimension.toString(),
+                      rawValues is List<Object?>
+                          ? rawValues.whereType<String>().toList(growable: false)
+                          : const <String>[],
+                    ),
+                  )
+                : const <String, List<String>>{},
+          ),
+        ),
+        _ => const {},
+      },
     );
   }
 
@@ -70,12 +89,14 @@ class ExplorationRecord {
   final bool confirmedByUser;
   final ExplorationFeedback? feedback;
   final Map<String, List<String>> fieldChecks;
+  final Map<String, Map<String, List<String>>> fieldObservations;
 
   ExplorationRecord copyWith({
     List<SoundDetection>? detections,
     bool? confirmedByUser,
     ExplorationFeedback? feedback,
     Map<String, List<String>>? fieldChecks,
+    Map<String, Map<String, List<String>>>? fieldObservations,
   }) {
     return ExplorationRecord(
       id: id,
@@ -88,6 +109,7 @@ class ExplorationRecord {
       confirmedByUser: confirmedByUser ?? this.confirmedByUser,
       feedback: feedback ?? this.feedback,
       fieldChecks: fieldChecks ?? this.fieldChecks,
+      fieldObservations: fieldObservations ?? this.fieldObservations,
     );
   }
 
@@ -102,5 +124,7 @@ class ExplorationRecord {
     'confirmed_by_user': confirmedByUser,
     if (feedback != null) 'feedback': feedback!.toJson(),
     if (fieldChecks.isNotEmpty) 'field_checks': fieldChecks,
+    if (fieldObservations.isNotEmpty)
+      'field_observations': fieldObservations,
   };
 }

@@ -166,7 +166,8 @@ class HttpCommunityService implements CommunityService {
         .toSet()
         .take(3)
         .toList();
-    final observations = record.fieldChecks.values
+    final observations = record.fieldObservations.values
+        .expand((dimensions) => dimensions.values)
         .expand((items) => items)
         .toSet()
         .toList();

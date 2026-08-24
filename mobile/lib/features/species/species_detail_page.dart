@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/field_observation_schema.dart';
+import 'package:nature_sound_detective/core/network/animal_story_service.dart';
 import 'package:nature_sound_detective/core/models/species_media.dart';
 
 class SpeciesDetailPage extends StatefulWidget {
@@ -15,6 +17,8 @@ class SpeciesDetailPage extends StatefulWidget {
     this.playback,
     this.initialChecks = const [],
     this.onChecksChanged,
+    this.initialObservations = const {},
+    this.onObservationsChanged,
   });
 
   final SoundDetection detection;
@@ -23,27 +27,31 @@ class SpeciesDetailPage extends StatefulWidget {
   final AudioPlayback? playback;
   final List<String> initialChecks;
   final ValueChanged<List<String>>? onChecksChanged;
+  final Map<String, List<String>> initialObservations;
+  final ValueChanged<Map<String, List<String>>>? onObservationsChanged;
 
   @override
   State<SpeciesDetailPage> createState() => _SpeciesDetailPageState();
 }
 
 class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
-  final Set<_FieldCheck> _checkedItems = <_FieldCheck>{};
+  final Map<String, Set<String>> _selectedObservations = {};
+  late final Future<FieldObservationSchema> _schemaFuture;
   late final AudioPlayback _playback;
   late final bool _ownsPlayback;
   StreamSubscription<bool>? _playingSubscription;
   bool _playing = false;
   int _segmentIndex = 0;
+  bool _storyLoading = false;
+  AnimalStory? _story;
 
   @override
   void initState() {
     super.initState();
-    _checkedItems.addAll(
-      _FieldCheck.values.where(
-        (item) => widget.initialChecks.contains(item.name),
-      ),
-    );
+    _schemaFuture = FieldObservationSchema.load();
+    for (final entry in widget.initialObservations.entries) {
+      _selectedObservations[entry.key] = entry.value.toSet();
+    }
     _ownsPlayback = widget.playback == null;
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _playingSubscription = _playback.playing.listen((playing) {
@@ -118,50 +126,32 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
           _Section(
             icon: Icons.visibility_outlined,
             title: '现场核对',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    for (
-                      var index = 0;
-                      index < _FieldCheck.values.length;
-                      index++
-                    ) ...[
-                      if (index > 0) const SizedBox(width: 8),
-                      Expanded(
-                        child: _CheckChip(
-                          icon: _FieldCheck.values[index].icon,
-                          label: _checkLabel(_FieldCheck.values[index], media),
-                          selected: _checkedItems.contains(
-                            _FieldCheck.values[index],
-                          ),
-                          onTap: () => _toggleCheck(_FieldCheck.values[index]),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  child: _checkedItems.length == _FieldCheck.values.length
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            '✓ 全部对上',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
+            child: FutureBuilder<FieldObservationSchema>(
+              future: _schemaFuture,
+              builder: (context, snapshot) {
+                final schema = snapshot.data;
+                if (schema == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return _StructuredObservationForm(
+                  schema: schema,
+                  selections: _selectedObservations,
+                  hasLegacyChecks: widget.initialChecks.isNotEmpty &&
+                      widget.initialObservations.isEmpty,
+                  onToggle: _toggleObservation,
+                  onComplete: () => _completeObservations(schema),
+                  onStory: () => _generateStory(schema),
+                  storyLoading: _storyLoading,
+                );
+              },
             ),
           ),
+          if (_story case final story?)
+            _Section(
+              icon: Icons.auto_stories_rounded,
+              title: '听它的故事',
+              child: _AnimalStoryCard(story: story),
+            ),
           if (media?.observationTip case final tip?) _ObservationTip(text: tip),
         ],
       ),
@@ -170,17 +160,67 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
 
   bool get _hasAudio => widget.audioPath?.trim().isNotEmpty ?? false;
 
-  void _toggleCheck(_FieldCheck item) {
+  void _toggleObservation(
+    FieldObservationDimension dimension,
+    String value,
+  ) {
     HapticFeedback.selectionClick();
     setState(() {
-      if (!_checkedItems.add(item)) _checkedItems.remove(item);
+      final selected = {...?_selectedObservations[dimension.id]};
+      if (!dimension.multiple || value == 'unknown') {
+        if (selected.contains(value)) {
+          selected.clear();
+        } else {
+          selected
+            ..clear()
+            ..add(value);
+        }
+      } else {
+        selected.remove('unknown');
+        if (!selected.add(value)) selected.remove(value);
+      }
+      if (selected.isEmpty) {
+        _selectedObservations.remove(dimension.id);
+      } else {
+        _selectedObservations[dimension.id] = selected;
+      }
     });
-    widget.onChecksChanged?.call(
-      _FieldCheck.values
-          .where(_checkedItems.contains)
-          .map((item) => item.name)
-          .toList(growable: false),
+  }
+
+  void _completeObservations(FieldObservationSchema schema) {
+    final values = _selectedObservations.map(
+      (key, value) => MapEntry(key, value.toList(growable: false)),
     );
+    if (!schema.isComplete(values)) return;
+    widget.onObservationsChanged?.call(values);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('现场观察已完成，可以生成动物故事了')),
+    );
+  }
+
+  Future<void> _generateStory(FieldObservationSchema schema) async {
+    final values = _selectedObservations.map(
+      (key, value) => MapEntry(key, value.toList(growable: false)),
+    );
+    if (!schema.isComplete(values) || _storyLoading) return;
+    widget.onObservationsChanged?.call(values);
+    setState(() => _storyLoading = true);
+    try {
+      final story = await AnimalStoryService().create(
+        detection: widget.detection,
+        selections: values,
+        schema: schema,
+      );
+      if (mounted) setState(() => _story = story);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('动物故事暂时没有生成，请稍后再试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _storyLoading = false);
+    }
   }
 
   Future<void> _toggleSegment() async {
@@ -203,12 +243,6 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
       end: Duration(milliseconds: (interval.endSeconds * 1000).round()),
     );
   }
-
-  String _checkLabel(_FieldCheck item, SpeciesMedia? media) => switch (item) {
-    _FieldCheck.time => media?.timeHint ?? item.label,
-    _FieldCheck.location => media?.locationHint ?? item.label,
-    _FieldCheck.appearance => media?.appearanceHint ?? item.label,
-  };
 
   String _evidenceText() {
     final intervals = widget.detection.intervals;
@@ -445,88 +479,113 @@ class _ImageFallback extends StatelessWidget {
   );
 }
 
-enum _FieldCheck {
-  time(Icons.schedule_outlined, '时间'),
-  location(Icons.location_on_outlined, '位置'),
-  appearance(Icons.visibility_outlined, '外形');
-
-  const _FieldCheck(this.icon, this.label);
-
-  final IconData icon;
-  final String label;
-}
-
-class _CheckChip extends StatelessWidget {
-  const _CheckChip({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
+class _StructuredObservationForm extends StatelessWidget {
+  const _StructuredObservationForm({
+    required this.schema,
+    required this.selections,
+    required this.hasLegacyChecks,
+    required this.onToggle,
+    required this.onComplete,
+    required this.onStory,
+    required this.storyLoading,
   });
 
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
+  final FieldObservationSchema schema;
+  final Map<String, Set<String>> selections;
+  final bool hasLegacyChecks;
+  final void Function(FieldObservationDimension, String) onToggle;
+  final VoidCallback onComplete;
+  final VoidCallback onStory;
+  final bool storyLoading;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '$label核对',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected
-                  ? colors.primaryContainer
-                  : colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? colors.primary : Colors.transparent,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 160),
-                  child: Icon(
-                    selected ? Icons.check_rounded : icon,
-                    key: ValueKey(selected),
-                    size: 19,
-                    color: selected ? colors.primary : null,
-                  ),
+    final values = selections.map(
+      (key, value) => MapEntry(key, value.toList(growable: false)),
+    );
+    final complete = schema.isComplete(values);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasLegacyChecks) ...[
+          Text(
+            '这条记录使用旧版核对。为了生成动物故事，请重新选择具体观察内容。',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+        ],
+        for (final dimension in schema.dimensions) ...[
+          Text(dimension.label, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final option in dimension.options)
+                FilterChip(
+                  label: Text(option.label),
+                  selected: selections[dimension.id]?.contains(option.value) ?? false,
+                  onSelected: (_) => onToggle(dimension, option.value),
                 ),
-                const SizedBox(width: 5),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: selected ? colors.primary : null,
-                      fontWeight: selected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+        Text(
+          complete ? '✓ 已满足故事生成条件' : '至少完成两个方面的现场观察',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: complete ? Theme.of(context).colorScheme.primary : null,
+            fontWeight: complete ? FontWeight.w600 : null,
           ),
         ),
-      ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: complete ? onComplete : null,
+          icon: const Icon(Icons.check_circle_outline_rounded),
+          label: const Text('完成现场观察'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: complete && !storyLoading ? onStory : null,
+          icon: storyLoading
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.auto_stories_rounded),
+          label: Text(storyLoading ? '正在准备故事' : '听它的故事'),
+        ),
+      ],
     );
   }
+}
+
+class _AnimalStoryCard extends StatelessWidget {
+  const _AnimalStoryCard({required this.story});
+  final AnimalStory story;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFFEDF4EE),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(story.title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 10),
+        Text(story.story),
+        const SizedBox(height: 14),
+        Text('下次可以观察', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(height: 4),
+        Text(story.observationPrompt),
+        const SizedBox(height: 10),
+        Text(story.notice, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    ),
+  );
 }
 
 class _Section extends StatelessWidget {

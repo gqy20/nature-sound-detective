@@ -18,6 +18,7 @@ abstract interface class ExplorationStore {
     required List<SoundDetection> detections,
     required String location,
     Map<String, List<String>> fieldChecks = const {},
+    Map<String, Map<String, List<String>>> fieldObservations = const {},
   });
 
   Future<List<ExplorationRecord>> list();
@@ -30,6 +31,12 @@ abstract interface class ExplorationStore {
     String id,
     String speciesKey,
     List<String> checks,
+  );
+
+  Future<void> setFieldObservations(
+    String id,
+    String speciesKey,
+    Map<String, List<String>> observations,
   );
 
   Future<Directory> exportReviewPackage(Directory destination);
@@ -72,6 +79,7 @@ class FileExplorationStore implements ExplorationStore {
     required List<SoundDetection> detections,
     required String location,
     Map<String, List<String>> fieldChecks = const {},
+    Map<String, Map<String, List<String>>> fieldObservations = const {},
   }) async {
     _validateId(recording.id);
     final root = await _rootProvider();
@@ -100,6 +108,7 @@ class FileExplorationStore implements ExplorationStore {
       audioQuality: quality,
       detections: List.unmodifiable(detections),
       fieldChecks: fieldChecks,
+      fieldObservations: fieldObservations,
     );
     await _writeRecord(recordDirectory, record);
     AppLog.debug(
@@ -216,6 +225,31 @@ class FileExplorationStore implements ExplorationStore {
     };
     if (checks.isEmpty) updated.remove(speciesKey);
     await _writeRecord(directory, record.copyWith(fieldChecks: updated));
+  }
+
+  @override
+  Future<void> setFieldObservations(
+    String id,
+    String speciesKey,
+    Map<String, List<String>> observations,
+  ) async {
+    _validateId(id);
+    final root = await _rootProvider();
+    final directory = Directory('${root.path}${Platform.pathSeparator}records');
+    final file = File('${directory.path}${Platform.pathSeparator}$id.json');
+    if (!await file.exists()) throw StateError('声音记录不存在。');
+    final value = jsonDecode(await file.readAsString());
+    if (value is! Map<String, Object?>) throw const FormatException('声音记录已损坏。');
+    final record = ExplorationRecord.fromJson(value);
+    final updated = <String, Map<String, List<String>>>{
+      ...record.fieldObservations,
+      if (observations.isNotEmpty)
+        speciesKey: observations.map(
+          (key, values) => MapEntry(key, List<String>.unmodifiable(values)),
+        ),
+    };
+    if (observations.isEmpty) updated.remove(speciesKey);
+    await _writeRecord(directory, record.copyWith(fieldObservations: updated));
   }
 
   @override

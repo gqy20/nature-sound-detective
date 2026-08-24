@@ -71,6 +71,7 @@ class _MemoryStore implements ExplorationStore {
     required List<SoundDetection> detections,
     required String location,
     Map<String, List<String>> fieldChecks = const {},
+    Map<String, Map<String, List<String>>> fieldObservations = const {},
   }) => throw UnimplementedError();
   @override
   Future<void> setConfirmed(String id, bool confirmed) async {}
@@ -81,6 +82,12 @@ class _MemoryStore implements ExplorationStore {
     String id,
     String speciesKey,
     List<String> checks,
+  ) async {}
+  @override
+  Future<void> setFieldObservations(
+    String id,
+    String speciesKey,
+    Map<String, List<String>> observations,
   ) async {}
   @override
   Future<Directory> exportReviewPackage(Directory destination) async =>

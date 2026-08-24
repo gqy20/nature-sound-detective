@@ -115,6 +115,23 @@ h2 { margin: 0; font-size: clamp(30px, 4vw, 40px); font-weight: 700; line-height
 .observation-status { min-height: 20px; margin: 12px 0 0 !important; color: #cce2d2; font-size: 13px !important; line-height: 1.55 !important; }
 .safety-note { margin: 26px 0 0 !important; padding: 15px 16px; border-left: 3px solid #a9d7b5; background: rgba(255,255,255,.08); font-size: 14px !important; line-height: 1.65 !important; }
 
+.animal-story-block { margin: 30px 0 6px; padding: 28px; border: 1px solid #c8d8cc; border-radius: var(--radius-card); background: #fffdf7; }
+.animal-story-heading-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.animal-story-heading-row .eyebrow { margin-bottom: 6px; }.animal-story-heading-row h3 { margin: 0; color: var(--accent-dark); font-size: 24px; }
+.animal-story-heading-row > span { color: var(--muted); font-size: 12px; }
+.animal-story-intro { margin: 12px 0 0; color: var(--muted); }
+.animal-story-candidates { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+.animal-story-candidate { min-height: 44px; padding: 0 16px; color: var(--accent-dark); border: 1px solid #a9bbae; border-radius: 999px; background: white; font-weight: 600; cursor: pointer; }
+.animal-story-candidate:hover { border-color: var(--accent); background: #edf5ef; }
+.animal-story-status { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+.animal-story-content { margin-top: 16px; padding: 22px; border-radius: 15px; background: #edf4ee; }
+.animal-story-content h4 { margin: 0; color: var(--accent-dark); font-size: 23px; line-height: 1.4; }
+.animal-story-content > p { margin: 12px 0 0; color: #30483d; font-size: 16px; line-height: 1.85; }
+.animal-story-observation { margin-top: 18px; padding-top: 16px; border-top: 1px solid #c9d8cc; }
+.animal-story-observation span { display: block; margin-bottom: 5px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.animal-story-observation strong { color: var(--accent-dark); font-size: 16px; line-height: 1.6; }
+.animal-story-notice { color: var(--muted) !important; font-size: 12px !important; line-height: 1.6 !important; }
+
 .creation-block { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; align-items: center; margin: 30px 0 6px; padding: 26px; border: 1px solid #bdd2c3; border-radius: var(--radius-card); background: linear-gradient(135deg, #edf5ed, #f8faf6); }
 .creation-copy .eyebrow { margin-bottom: 7px; }.creation-copy h3 { margin: 0; color: var(--accent-dark); font-size: 23px; line-height: 1.35; }.creation-copy > p:last-child { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .creation-progress, .creation-media, .creation-status { grid-column: 1 / -1; }
@@ -196,6 +213,7 @@ footer { padding: 20px 0 42px; color: var(--muted); font-size: 14px; line-height
   .story-block { padding: 25px 20px; }.story-block > p { font-size: 17px; line-height: 1.85; }
   .question-block strong { font-size: 19px; }
   .observation-actions { grid-template-columns: 1fr; }
+  .animal-story-block { padding: 22px 18px; }.animal-story-heading-row { display: block; }.animal-story-heading-row > span { display: block; margin-top: 6px; }.animal-story-candidates { display: grid; }.animal-story-candidate { width: 100%; }.animal-story-content { padding: 19px 17px; }
   .card-actions { grid-template-columns: 1fr; }
   .parent-details { margin-top: 24px; }
   .creation-block { grid-template-columns: 1fr; padding: 22px 18px; }.creation-block > button { width: 100%; }.creation-media { grid-template-columns: 1fr; }.media-result video { max-height: 70vh; }

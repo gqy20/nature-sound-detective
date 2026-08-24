@@ -33,9 +33,13 @@ DEFAULT_RUN_ROOT = ROOT / "artifacts" / "cli-runs"
 
 def _route_application_logs_to_stderr() -> None:
     """Keep stdout machine-readable when CLI commands use --json."""
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return
     for handler in logging.getLogger("xykw").handlers:
-        if hasattr(handler, "setStream"):
-            handler.setStream(sys.stderr)
+        # Direct assignment avoids flushing a capture stream that a previous
+        # pytest phase has already closed.
+        if hasattr(handler, "stream"):
+            handler.stream = sys.stderr
 
 
 def _emit(payload: Any, *, as_json: bool) -> None:
@@ -57,6 +61,8 @@ def _doctor(_args: argparse.Namespace) -> int:
         "birdnet_mobile_model": (ROOT / "mobile/assets/models/birdnet.tflite").is_file(),
         "nonbird_mobile_model": (ROOT / "mobile/assets/models/nonbird.tflite").is_file(),
         "yamnet_server_model": (ROOT / "mobile/assets/models/yamnet.tflite").is_file(),
+        "story_live_enabled": os.getenv("STORY_MODE", "template").strip().lower() == "live",
+        "story_key_configured": bool(os.getenv("STORY_API_KEY") or os.getenv("DASHSCOPE_API_KEY")),
         "minimax_configured": bool(os.getenv("MINIMAX_API_KEY")),
         "wan_live_enabled": os.getenv("WAN_VIDEO_MODE", "mock").strip().lower() == "live",
     }
@@ -267,6 +273,32 @@ def _replay(args: argparse.Namespace) -> int:
     return 0 if payload["consistent"] else 2
 
 
+def _story(args: argparse.Namespace) -> int:
+    from app.story_service import AnimalStoryService, story_candidates
+
+    _route_application_logs_to_stderr()
+    run_dir = args.run_dir.resolve()
+    package = load_run_package(run_dir)
+    candidates = story_candidates(package["result"])
+    if not candidates:
+        raise ValueError("这次分析没有可生成动物故事的候选")
+    candidate_id = args.candidate_id or candidates[0]["id"]
+    with trace_context(str(package["run"].get("trace_id") or package["run"].get("run_id"))):
+        story = AnimalStoryService().create(
+            result=package["result"],
+            candidate_id=candidate_id,
+            location=str(package["run"].get("location") or "杭州"),
+            story_type=args.story_type,
+        )
+    story_dir = run_dir / "stories"
+    story_dir.mkdir(exist_ok=True)
+    safe_id = "".join(character if character.isalnum() or character in "-_" else "-" for character in candidate_id)
+    output = story_dir / f"{safe_id}-{args.story_type}.json"
+    output.write_text(json.dumps(story, ensure_ascii=False, indent=2), encoding="utf-8")
+    _emit({"output": str(output), "story": story}, as_json=args.json)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="nature-sound-cli", description="自然声探员调查链路调试工具")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -304,6 +336,13 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("run_dir", type=Path)
     json_flag(replay)
     replay.set_defaults(handler=_replay)
+
+    story = subparsers.add_parser("story", help="为运行包中的候选动物生成儿童故事")
+    story.add_argument("run_dir", type=Path)
+    story.add_argument("--candidate-id")
+    story.add_argument("--story-type", choices=("animal_life", "why_it_calls"), default="animal_life")
+    json_flag(story)
+    story.set_defaults(handler=_story)
     return parser
 
 

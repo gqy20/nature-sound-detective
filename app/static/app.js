@@ -655,6 +655,7 @@ async function renderResult(job, { persist = true } = {}) {
     row.append(name, confidence);
     return row;
   }));
+  renderAnimalStories(job);
   renderCreation(job);
 
   let peaks;
@@ -672,6 +673,111 @@ async function renderResult(job, { persist = true } = {}) {
   refreshHistoryButton();
   $("result-title").focus({ preventScroll: true });
   $("result-panel").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+}
+
+function animalStoryCandidates(job) {
+  const candidates = [];
+  const seen = new Set();
+  for (const detection of job.result?.detections || []) {
+    const species = detection.specific_species;
+    if (!species?.name_zh) continue;
+    const id = String(species.taxonomy_id || species.scientific_name || species.name_zh);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    candidates.push({
+      id,
+      name_zh: species.name_zh,
+      scientific_name: species.scientific_name || null,
+      category: detection.name_zh || job.result?.primary_sound_type,
+      candidate_status: "candidate",
+    });
+  }
+  if (candidates.length) return candidates.slice(0, 3);
+  const category = job.result?.primary_sound_type;
+  const groups = {
+    "鸟类鸣叫": { id: "category:bird", name_zh: "鸟类" },
+    "蛙类鸣叫": { id: "category:frog", name_zh: "蛙类" },
+    "昆虫鸣叫": { id: "category:insect", name_zh: "鸣虫" },
+  };
+  return groups[category]
+    ? [{ ...groups[category], scientific_name: null, category, candidate_status: "category_only" }]
+    : [];
+}
+
+function renderAnimalStories(job) {
+  if (job.is_demo) {
+    $("animal-story-block").hidden = true;
+    return;
+  }
+  const candidates = animalStoryCandidates(job);
+  $("animal-story-block").hidden = candidates.length === 0;
+  $("animal-story-content").hidden = true;
+  $("animal-story-status").textContent = "";
+  $("animal-story-candidates").replaceChildren(...candidates.map((candidate) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "animal-story-candidate";
+    button.textContent = candidate.candidate_status === "category_only"
+      ? `听${candidate.name_zh}的故事`
+      : `听${candidate.name_zh}的故事`;
+    button.addEventListener("click", () => requestAnimalStory(candidate));
+    return button;
+  }));
+  const stories = job.stories || {};
+  for (const candidate of candidates) {
+    const cached = stories[`${candidate.id}|animal_life`];
+    if (cached) {
+      showAnimalStory(cached);
+      break;
+    }
+  }
+}
+
+function showAnimalStory(story) {
+  $("animal-story-title").textContent = story.title;
+  $("animal-story-text").textContent = story.story;
+  $("animal-story-observation").textContent = story.observation_prompt;
+  $("animal-story-notice").textContent = `${story.candidate_notice} ${story.content_label || ""}`.trim();
+  $("animal-story-content").hidden = false;
+  $("animal-story-status").textContent = story.warning || (story.cached ? "已读取保存的故事。" : "故事已经准备好。");
+}
+
+async function requestAnimalStory(candidate) {
+  if (!currentJob) return;
+  const buttons = [...document.querySelectorAll(".animal-story-candidate")];
+  buttons.forEach((button) => { button.disabled = true; });
+  $("animal-story-status").textContent = `正在准备${candidate.name_zh}的故事…`;
+  try {
+    let response;
+    if (currentJob.capabilities?.persistence === false) {
+      response = await tracedFetch(apiUrl("/api/stories"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          result: currentJob.result,
+          candidate_id: candidate.id,
+          story_type: "animal_life",
+          location: currentJob.location || "杭州",
+        }),
+      });
+    } else {
+      response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/stories`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ candidate_id: candidate.id, story_type: "animal_life" }),
+      });
+    }
+    if (!response.ok) throw new Error(await response.text());
+    const story = await response.json();
+    currentJob.stories = currentJob.stories || {};
+    currentJob.stories[`${candidate.id}|animal_life`] = story;
+    showAnimalStory(story);
+    saveToCollection(currentJob);
+  } catch (_) {
+    $("animal-story-status").textContent = "故事暂时没有生成，请稍后再试。";
+  } finally {
+    buttons.forEach((button) => { button.disabled = false; });
+  }
 }
 
 function renderInvestigation(job) {

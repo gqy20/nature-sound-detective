@@ -82,6 +82,11 @@ class ObservationSubmission(BaseModel):
     note: str = Field(default="", max_length=300)
 
 
+class StorySubmission(BaseModel):
+    candidate_id: str = Field(min_length=1, max_length=120)
+    story_type: str = Field(default="animal_life", max_length=40)
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -160,6 +165,29 @@ def submit_investigation_observation(job_id: str, observation: ObservationSubmis
     if not job:
         raise HTTPException(404, "没有找到这次声音调查")
     return job
+
+
+@app.get("/api/jobs/{job_id}/story-candidates")
+def get_story_candidates(job_id: str) -> dict[str, Any]:
+    candidates = jobs.story_candidates(job_id)
+    if candidates is None:
+        raise HTTPException(404, "没有找到这次声音调查")
+    return {"candidates": candidates}
+
+
+@app.post("/api/jobs/{job_id}/stories")
+def create_animal_story(job_id: str, submission: StorySubmission) -> dict[str, Any]:
+    try:
+        story = jobs.create_story(
+            job_id,
+            candidate_id=submission.candidate_id,
+            story_type=submission.story_type,
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    if story is None:
+        raise HTTPException(404, "没有找到这次声音调查")
+    return story
 
 
 @app.get("/api/jobs/{job_id}/audio")

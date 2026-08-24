@@ -15,6 +15,7 @@ from app.config import JOB_DIR
 from app.creation_service import CreationService
 from app.investigation import apply_observation, build_investigation
 from app.pipeline import AnalysisPipeline
+from app.story_service import AnimalStoryService, story_candidates
 from app.observability import current_trace_id, get_logger, log_event, log_exception, trace_context
 
 
@@ -50,6 +51,7 @@ class JobStore:
                     job["error"] = "上一次识别没有完成"
                     self._write(job)
                 creation = job.get("creation") or {"status": "idle", "stage_message": ""}
+                job.setdefault("stories", {})
                 if job.get("status") == "completed" and isinstance(job.get("result"), dict) and not job.get("investigation"):
                     job["investigation"] = build_investigation(
                         job["result"],
@@ -123,6 +125,7 @@ class JobStore:
             },
             "error": None,
             "creation": {"status": "idle", "stage_message": ""},
+            "stories": {},
         }
         with self._lock:
             self._jobs[job_id] = job
@@ -252,6 +255,50 @@ class JobStore:
             job["updated_at"] = datetime.now(timezone.utc).isoformat()
             self._write(job)
             return self.public(job)
+
+    def story_candidates(self, job_id: str) -> list[dict[str, Any]] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return None
+            result = job.get("result")
+            return story_candidates(result) if isinstance(result, dict) else []
+
+    def create_story(
+        self,
+        job_id: str,
+        *,
+        candidate_id: str,
+        story_type: str = "animal_life",
+    ) -> dict[str, Any] | None:
+        cache_key = f"{candidate_id}|{story_type}"
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return None
+            if job.get("status") != "completed" or not isinstance(job.get("result"), dict):
+                raise ValueError("声音分析尚未完成")
+            cached = (job.get("stories") or {}).get(cache_key)
+            if isinstance(cached, dict):
+                return json.loads(json.dumps({**cached, "cached": True}))
+            result = json.loads(json.dumps(job["result"]))
+            location = str(job.get("location") or "杭州")
+        story = AnimalStoryService().create(
+            result=result,
+            candidate_id=candidate_id,
+            location=location,
+            story_type=story_type,
+        )
+        with self._lock:
+            current = self._jobs.get(job_id)
+            if not current:
+                return None
+            stories = dict(current.get("stories") or {})
+            stories[cache_key] = story
+            current["stories"] = stories
+            current["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._write(current)
+        return json.loads(json.dumps({**story, "cached": False}))
 
     @staticmethod
     def public(job: dict[str, Any]) -> dict[str, Any]:

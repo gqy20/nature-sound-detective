@@ -15,6 +15,7 @@ from app.community.routes import build_community_router
 from app.observability import get_logger, install_observability, log_exception
 from app.investigation import apply_observation, build_investigation
 from app.result_fusion import fuse_results
+from app.story_service import AnimalStoryService
 
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
@@ -50,6 +51,13 @@ class StatelessObservationSubmission(BaseModel):
     question_id: str = Field(min_length=1, max_length=80)
     choice: str = Field(min_length=1, max_length=40)
     note: str = Field(default="", max_length=300)
+
+
+class StatelessStorySubmission(BaseModel):
+    result: dict[str, Any]
+    candidate_id: str = Field(min_length=1, max_length=120)
+    story_type: str = Field(default="animal_life", max_length=40)
+    location: str = Field(default="杭州", max_length=80)
 
 
 @app.get("/")
@@ -124,6 +132,19 @@ def submit_stateless_observation(payload: StatelessObservationSubmission) -> dic
             choice=payload.choice,
             note=payload.note,
             source="cloud-api",
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+
+
+@app.post("/api/stories")
+def create_stateless_story(payload: StatelessStorySubmission) -> dict[str, Any]:
+    try:
+        return AnimalStoryService().create(
+            result=payload.result,
+            candidate_id=payload.candidate_id,
+            location=payload.location,
+            story_type=payload.story_type,
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc

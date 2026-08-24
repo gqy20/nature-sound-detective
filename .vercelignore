@@ -8,6 +8,15 @@ data
 docs
 ml
 models
+mobile/*
+!mobile/assets/
+mobile/assets/*
+!mobile/assets/models/
+mobile/assets/models/*
+!mobile/assets/models/yamnet.tflite
+!mobile/assets/labels/
+mobile/assets/labels/*
+!mobile/assets/labels/yamnet.csv
 outputs
 pyproject.toml
 scripts

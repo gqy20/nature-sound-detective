@@ -15,23 +15,20 @@ class _Preloadable:
         return {"status": "ready", "duration_ms": 1}
 
 
-class _Qwen:
-    def analyze(self, audio_path: Path, location: str):
-        return {"model": "fake", "sound_types": ["无法判断"]}
-
-
 def test_pipeline_preloads_local_models_without_constructing_cloud_client():
+    yamnet = _Preloadable("yamnet")
     birdnet = _Preloadable("birdnet")
     nonbird = _Preloadable("nonbird")
-    pipeline = AnalysisPipeline(birdnet=birdnet, nonbird=nonbird)
+    pipeline = AnalysisPipeline(general=yamnet, birdnet=birdnet, nonbird=nonbird)
 
     report = pipeline.preload()
 
     assert report["status"] == "ready"
+    assert report["components"]["yamnet"]["status"] == "ready"
     assert report["components"]["birdnet"]["status"] == "ready"
     assert birdnet.calls == 1
     assert nonbird.calls == 1
-    assert pipeline.qwen is None
+    assert yamnet.calls == 1
 
 
 class _PreloadedPipeline:

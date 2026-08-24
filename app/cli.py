@@ -56,20 +56,20 @@ def _doctor(_args: argparse.Namespace) -> int:
         "ffprobe": bool(shutil.which("ffprobe")),
         "birdnet_mobile_model": (ROOT / "mobile/assets/models/birdnet.tflite").is_file(),
         "nonbird_mobile_model": (ROOT / "mobile/assets/models/nonbird.tflite").is_file(),
-        "qwen_configured": bool(os.getenv("DASHSCOPE_API_KEY")),
+        "yamnet_server_model": (ROOT / "mobile/assets/models/yamnet.tflite").is_file(),
         "minimax_configured": bool(os.getenv("MINIMAX_API_KEY")),
         "wan_live_enabled": os.getenv("WAN_VIDEO_MODE", "mock").strip().lower() == "live",
     }
-    required = ("python_3_11", "ffmpeg", "ffprobe", "birdnet_mobile_model", "nonbird_mobile_model")
+    required = (
+        "python_3_11", "ffmpeg", "ffprobe", "yamnet_server_model",
+        "birdnet_mobile_model", "nonbird_mobile_model",
+    )
     payload = {
         "ok": all(checks[key] for key in required),
         "platform": platform.platform(),
         "python": platform.python_version(),
         "checks": checks,
-        "notes": [
-            "云端配置只显示是否存在，不输出密钥。",
-            "Wan实时生成默认关闭；CLI分析命令不会触发音乐或视频费用。",
-        ],
+        "notes": ["CLI分析全部使用本地声学模型，不触发大模型、音乐或视频费用。"],
     }
     _emit(payload, as_json=_args.json)
     return 0 if payload["ok"] else 1
@@ -137,27 +137,27 @@ def _run_analysis(
                         "sound_types": ["无法判断"],
                         "primary_sound_type": "无法判断",
                         "confidence_level": "low",
-                        "model": "cli-acoustic-only",
+                        "model": "cli-specialist-only",
                         "evidence": [],
-                        "uncertainty": "未调用通用多模态模型",
+                        "uncertainty": "未运行YAMNet通用声景模型",
                     },
                     birdnet,
                     nonbird,
                 )
                 progress("composing", "本地声学证据已经整理完成", None)
             else:
-                from app.qwen_service import QwenNatureAnalyzer
+                from app.yamnet_service import YamNetAnalyzer
 
                 _route_application_logs_to_stderr()
 
-                progress("analyzing", "正在运行Qwen声景理解", None)
-                qwen = QwenNatureAnalyzer().analyze(general, location)
+                progress("analyzing", "正在运行YAMNet通用声景分析", None)
+                yamnet = YamNetAnalyzer().analyze(general, location)
                 result = fuse_results(
-                    qwen,
+                    yamnet,
                     {"model": None, "scope": "未运行", "detections": []},
                     {"model": None, "scope": "未运行", "detections": [], "available": False},
                 )
-                progress("composing", "Qwen声景结果已经整理完成", None)
+                progress("composing", "YAMNet声景结果已经整理完成", None)
         return result, progress_events, duration_seconds(bioacoustic)
 
 
@@ -281,7 +281,7 @@ def build_parser() -> argparse.ArgumentParser:
     analyze = subparsers.add_parser("analyze", help="分析单条录音并生成可回放运行包")
     analyze.add_argument("audio", type=Path)
     analyze.add_argument("--location", default="杭州")
-    analyze.add_argument("--mode", choices=("full", "acoustic", "qwen"), default="acoustic")
+    analyze.add_argument("--mode", choices=("full", "acoustic", "yamnet"), default="full")
     analyze.add_argument("--output-dir", type=Path, default=DEFAULT_RUN_ROOT)
     json_flag(analyze)
     analyze.set_defaults(handler=_analyze)

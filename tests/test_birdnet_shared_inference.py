@@ -57,16 +57,16 @@ def test_pipeline_reuses_one_birdnet_forward_for_both_heads(tmp_path):
             assert windows is marker
             return {"model": "nonbird", "detections": [], "available": True}
 
-    class Qwen:
+    class General:
         def analyze(self, _path, _location):
             return {
-                "model": "qwen",
+                "model": "yamnet",
                 "sound_types": ["无法判断"],
                 "primary_sound_type": "无法判断",
             }
 
     bird = Bird()
-    pipeline = AnalysisPipeline(qwen=Qwen(), birdnet=bird, nonbird=NonBird())
+    pipeline = AnalysisPipeline(general=General(), birdnet=bird, nonbird=NonBird())
 
     updates = []
     pipeline.run(tmp_path / "unused.wav", "杭州", lambda *args: updates.append(args))

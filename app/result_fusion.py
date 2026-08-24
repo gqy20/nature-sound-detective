@@ -10,6 +10,9 @@ ALLOWED_SOUND_TYPES = {
 }
 
 CONFIDENCE_RANK = {"low": 0, "medium": 1, "high": 2}
+DANGEROUS_OBSERVATION_PATTERN = re.compile(
+    r"拨开|翻开|触摸|抓住|抓取|追逐|捕捉|投喂|靠近|伸手|下水|爬树"
+)
 
 SAFE_CARDS = {
     "鸟类鸣叫": (
@@ -87,15 +90,78 @@ def _safe_card(primary: str) -> dict[str, str]:
     }
 
 
+def _agent_output(
+    general: dict[str, Any],
+    birdnet: dict[str, Any],
+    nonbird: dict[str, Any],
+    fallback_question: str,
+) -> dict[str, Any]:
+    allowed_evidence_ids = {
+        *{f"bird:{index}" for index, _ in enumerate((birdnet.get("detections") or [])[:5])},
+        *{f"nonbird:{index}" for index, _ in enumerate((nonbird.get("detections") or [])[:5])},
+    }
+    allowed_candidate_ids = {
+        *{
+            f"bird:{item.get('label') or item.get('name_zh') or index}"
+            for index, item in enumerate((birdnet.get("detections") or [])[:5])
+        },
+        *{
+            f"nonbird:{item.get('taxon_id') or item.get('name_zh') or index}"
+            for index, item in enumerate((nonbird.get("detections") or [])[:5])
+        },
+    }
+    references = [
+        str(value)
+        for value in (general.get("evidence_references") or [])
+        if str(value) in allowed_evidence_ids
+    ]
+    assessments: list[dict[str, str]] = []
+    for raw in general.get("candidate_assessment") or []:
+        if not isinstance(raw, dict):
+            continue
+        candidate_id = str(raw.get("candidate_id") or "")
+        assessment = str(raw.get("assessment") or "")
+        reason = str(raw.get("reason") or "").strip()[:160]
+        if candidate_id not in allowed_candidate_ids or assessment not in {"support", "conflict", "uncertain"}:
+            continue
+        assessments.append(
+            {
+                "candidate_id": candidate_id,
+                "assessment": assessment,
+                "reason": reason,
+            }
+        )
+    proposed_question = str(general.get("observation_question") or "").strip()
+    question_valid = (
+        8 <= len(proposed_question) <= 80
+        and not DANGEROUS_OBSERVATION_PATTERN.search(proposed_question)
+    )
+    return {
+        "orchestration": general.get("orchestration", "local_models_parallel"),
+        "specialist_evidence_injected": bool(general.get("specialist_evidence_injected")),
+        "evidence_references": references,
+        "candidate_assessment": assessments,
+        "observation_question": proposed_question if question_valid else fallback_question,
+        "question_source": (
+            "model_evidence_reasoning"
+            if question_valid and general.get("specialist_evidence_injected")
+            else "model_audio_reasoning"
+            if question_valid
+            else "safe_template"
+        ),
+        "question_purpose": str(general.get("question_purpose") or "补充AI无法从录音中获得的现场证据")[:160],
+    }
+
+
 def fuse_results(
-    qwen: dict[str, Any],
+    general: dict[str, Any],
     birdnet: dict[str, Any],
     nonbird: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     nonbird = nonbird or {"model": None, "detections": [], "available": False}
-    sound_types = _sound_list(qwen.get("sound_types", []))
-    possible_sound_types = _sound_list(qwen.get("possible_sound_types", []))
-    requested_primary = str(qwen.get("primary_sound_type", "")).strip()
+    sound_types = _sound_list(general.get("sound_types", []))
+    possible_sound_types = _sound_list(general.get("possible_sound_types", []))
+    requested_primary = str(general.get("primary_sound_type", "")).strip()
     primary = requested_primary if requested_primary in sound_types else (sound_types[0] if sound_types else "无法判断")
     for item in sound_types:
         if item != primary and item not in possible_sound_types:
@@ -125,13 +191,12 @@ def fuse_results(
         item for item in possible_sound_types if item != primary and item != "无法判断"
     ]
     card = _safe_card(primary)
-    question = card["question"]
-    if re.search(r"拨开|翻开|触摸|抓住|抓取|追逐|靠近|伸手", question):
-        question = "你能站在原地安静听听，数一数这个声音重复了几次吗？"
-    evidence = qwen.get("evidence", [])
+    agent = _agent_output(general, birdnet, nonbird, card["question"])
+    question = agent["observation_question"]
+    evidence = general.get("evidence", [])
     if not isinstance(evidence, list):
         evidence = [str(evidence)]
-    confidence = _capped_confidence(qwen.get("confidence_level", "low"))
+    confidence = _capped_confidence(general.get("confidence_level", "low"))
     if primary == "无法判断":
         confidence = "low"
     elif primary == "鸟类鸣叫" and strong_birds:
@@ -177,6 +242,16 @@ def fuse_results(
         for item in strong_nonbirds
     ]
     normalized_detections.sort(key=lambda item: item["confidence"], reverse=True)
+    allowed_species_names = {
+        str(item.get("name_zh") or "").strip()
+        for item in [*strong_birds, *strong_nonbirds]
+        if str(item.get("name_zh") or "").strip()
+    }
+    possible_species = [
+        str(name).strip()
+        for name in (general.get("possible_species") or [])
+        if str(name).strip() in allowed_species_names
+    ]
     return {
         "sound_types": sound_types or ["无法判断"],
         "primary_sound_type": primary,
@@ -184,19 +259,21 @@ def fuse_results(
         "possible_sound_types": possible_sound_types,
         "dominant_sound": primary,
         "confidence_level": confidence,
-        "possible_species": qwen.get("possible_species", []) if isinstance(qwen.get("possible_species", []), list) else [],
+        "possible_species": possible_species,
         "bird_species": strong_birds,
         "nonbird_species": strong_nonbirds,
+        "general_detections": list(general.get("detections") or []),
         "detections": normalized_detections,
         "evidence": evidence,
-        "uncertainty": qwen.get("uncertainty", ""),
+        "uncertainty": general.get("uncertainty", ""),
         "card": {**card, "question": question},
+        "agent": agent,
         "models": {
-            "general_audio": qwen.get("model"),
+            "general_audio": general.get("model"),
             "bird_species": birdnet.get("model"),
             "bird_scope": birdnet.get("scope"),
             "nonbird_species": nonbird.get("model"),
             "nonbird_available": bool(nonbird.get("available")),
         },
-        "usage": qwen.get("usage"),
+        "usage": general.get("usage"),
     }

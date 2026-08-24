@@ -37,12 +37,26 @@ def _api_base() -> str:
     return compatible.replace("/compatible-mode/v1", "/api/v1").rstrip("/")
 
 
-def build_creation_plan(result: dict[str, Any], location: str) -> dict[str, str]:
+def build_creation_plan(
+    result: dict[str, Any],
+    location: str,
+    investigation: dict[str, Any] | None = None,
+) -> dict[str, str]:
     card = result.get("card", {})
     title = str(card.get("title") or "自然声音日记")
     primary = str(result.get("primary_sound_type") or "自然环境声")
     explanation = str(card.get("explanation") or "安静倾听自然的声音。")
     question = str(card.get("question") or "你还听到了什么？")
+    investigation = investigation or {}
+    status = str(investigation.get("status") or "not_started")
+    observations = investigation.get("observations") or []
+    last_choice = str(observations[-1].get("choice") or "") if observations else ""
+    observation_summary = {
+        "observed": "现场观察也记录到了相同声音线索",
+        "not_observed": "现场没有再次观察到相同线索，因此仍保留不确定性",
+        "unknown": "现场暂时无法判断，因此保留机器候选",
+    }.get(last_choice, "这次作品只依据录音中的机器候选")
+    uncertainty = str(result.get("uncertainty") or "具体物种仍待进一步观察")
     music_prompt = (
         f"纯音乐，无人声，以{primary}为灵感，自然、轻盈、好奇的儿童探索氛围，"
         "柔和木琴、钢琴、轻打击乐，简单原创旋律，舒缓中速，适合作为亲子自然观察短片背景音乐，"
@@ -51,10 +65,14 @@ def build_creation_plan(result: dict[str, Any], location: str) -> dict[str, str]
     short_fact = explanation.split("。", 1)[0].strip("。")
     if len(short_fact) > 48:
         short_fact = short_fact[:48].rstrip("，、")
-    narration = f"在{location}，我们听见了{primary}。{short_fact}。再安静听一听，它的节奏有什么变化？"
+    narration = (
+        f"在{location}，我们听见了{primary}。{short_fact}。"
+        f"{observation_summary}。这是一条调查线索，不是最终鉴定。"
+    )
     video_prompt = (
         f"生成一支9:16竖屏、无字幕、无文字、无人物特写的儿童自然科普短片。"
         f"地点氛围：中国杭州城市公园。主题：{title}，主要声音线索：{primary}。"
+        f"调查状态：{status}；现场观察摘要：{observation_summary}；不确定性：{uncertainty}。"
         f"画面表达：{explanation} 镜头缓慢、真实自然、柔和日光、纪录片质感，"
         "不捕捉、不触摸、不追逐动物；如无法确定具体物种，只表现环境线索，不出现具体动物近景。"
     )
@@ -62,6 +80,9 @@ def build_creation_plan(result: dict[str, Any], location: str) -> dict[str, str]
         "title": title,
         "story": explanation,
         "question": question,
+        "investigation_status": status,
+        "observation_summary": observation_summary,
+        "uncertainty": uncertainty,
         "music_prompt": music_prompt,
         "narration": narration,
         "video_prompt": video_prompt,
@@ -334,9 +355,10 @@ class CreationService:
         location: str,
         progress: CreationProgress,
         previous_creation: dict[str, Any] | None = None,
+        investigation: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
-        plan = build_creation_plan(result, location)
+        plan = build_creation_plan(result, location, investigation)
         music_path = GENERATED_DIR / f"{job_id}_minimax_music.mp3"
         narration_path = GENERATED_DIR / f"{job_id}_minimax_narration.mp3"
         raw_video_path = GENERATED_DIR / f"{job_id}_wan.mp4"

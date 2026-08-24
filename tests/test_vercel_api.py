@@ -10,7 +10,7 @@ class FakeAnalyzer:
             "primary_sound_type": "风和树叶",
             "confidence_level": "medium",
             "evidence": ["连续沙沙声"],
-            "model": "fake-qwen",
+            "model": "fake-yamnet",
         }
 
 
@@ -19,7 +19,7 @@ def test_cloud_health():
         "/api/health", headers={"X-Trace-ID": "rec_test_12345678"}
     )
     assert response.status_code == 200
-    assert response.json()["mode"] == "vercel-qwen-only"
+    assert response.json()["mode"] == "vercel-yamnet-only"
     assert response.headers["X-Trace-ID"] == "rec_test_12345678"
 
 

@@ -5,13 +5,13 @@
 | 项目 | 生产地址 | 功能 |
 |---|---|---|
 | `xykw-web` | <https://xykw-web.vercel.app> | 移动端静态页面、录音转 WAV、示例和声音卡展示 |
-| `xykw-api` | <https://xykw-api.vercel.app> | FastAPI、Qwen3.5-Omni 声音大类理解、安全卡片整理 |
+| `xykw-api` | <https://xykw-api.vercel.app> | FastAPI、轻量YAMNet声音大类候选、安全卡片整理 |
 
 两个项目均属于 Vercel 团队 `gqys-projects`，源码位于 GitHub 私有仓库 `gqy20/xykw`。
 
 ## 为什么云端是轻量版
 
-Vercel API 不安装 TensorFlow、BirdNET 或 FFmpeg，也不运行后台线程和本地任务数据库。浏览器先将录音转换为单声道 16 kHz WAV，再提交给云端 Qwen。API 在同一次请求中同步返回完成的声音卡片。
+Vercel API 不安装完整TensorFlow、BirdNET或FFmpeg，也不运行后台线程和本地任务数据库。浏览器先将录音转换为单声道16 kHz WAV，API使用`tflite-runtime`运行约4 MB的YAMNet模型，并在同一次请求中同步返回声音大类候选和调查状态。
 
 云端结果会返回能力声明：
 
@@ -28,10 +28,7 @@ Vercel API 不安装 TensorFlow、BirdNET 或 FFmpeg，也不运行后台线程�
 
 ## API 部署
 
-根目录通过 `.vercel/project.json` 关联 `xykw-api`。生产环境必须配置：
-
-- `DASHSCOPE_API_KEY`：Sensitive；
-- `DASHSCOPE_BASE_URL`：百炼兼容接口地址。
+根目录通过 `.vercel/project.json` 关联 `xykw-api`。YAMNet分析不需要模型API Key；社区数据库或对象存储仍按对应功能配置服务端环境变量。
 
 `.vercelignore` 排除数据、模型、TensorFlow 依赖和本地应用，只上传轻量入口。Vercel 使用 `requirements.txt`，不读取完整版 `pyproject.toml/uv.lock`。
 
@@ -44,7 +41,7 @@ vercel deploy --prod --yes --scope gqys-projects
 
 ```text
 GET https://xykw-api.vercel.app/api/health
-→ {"status":"ok","mode":"vercel-qwen-only"}
+→ {"status":"ok","mode":"vercel-yamnet-only"}
 ```
 
 ## Web 部署
@@ -61,8 +58,8 @@ vercel deploy --prod --yes --scope gqys-projects
 ## 已验证结果
 
 - API 根路径与健康检查均返回 200；
-- 一段 19.8 秒杭州录音在约 51 秒内完成云端识别；
-- 返回模型为 `qwen3.5-omni-plus`，主要声音为“风和树叶”；
+- Qwen历史版本的51秒耗时已不适用；YAMNet版本发布后需要重新记录冷启动与热运行耗时；
+- 返回模型为 `YAMNet tflite-1`，主要声音为“风和树叶”；
 - 生产前端成功跨域访问生产 API；
 - 390 px Chromium 页面宽度与滚动宽度均为 390；
 - 示例结果可正常打开；
@@ -70,7 +67,7 @@ vercel deploy --prod --yes --scope gqys-projects
 
 ## 已知边界
 
-- 同步识别接近 60 秒函数时限时可能超时，演示应使用清晰且不超过 20 秒的录音；
+- 冷启动需要加载约4 MB的YAMNet模型；发布后需验证Vercel函数内存、包体和P95耗时；
 - 云端不会返回 BirdNET 具体鸟种；
 - 云端不保存原始录音、任务或反馈；
 - 云端不生成音乐、旁白或视频；

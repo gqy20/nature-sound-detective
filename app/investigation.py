@@ -55,6 +55,22 @@ def build_evidence_bundle(result: dict[str, Any], location: str) -> dict[str, An
                 "status": "candidate",
             }
         )
+    for raw in result.get("general_detections") or []:
+        if not isinstance(raw, dict):
+            continue
+        evidence_id = f"scene:{raw.get('category_id') or raw.get('name_zh') or 'unknown'}"
+        for interval in raw.get("intervals") or []:
+            if not isinstance(interval, dict):
+                continue
+            start = float(interval.get("start", 0) or 0)
+            end = float(interval.get("end", start) or start)
+            segments.append(
+                {
+                    "start": start,
+                    "end": max(start, end),
+                    "candidate_id": evidence_id,
+                }
+            )
     candidates.sort(key=lambda item: item["confidence"], reverse=True)
     segments.sort(key=lambda item: (item["start"], item["end"], item["candidate_id"]))
     return {
@@ -82,6 +98,7 @@ def build_investigation(
     """Create the investigation state used by both real jobs and the CLI."""
     timestamp = created_at or _now()
     card = result.get("card") if isinstance(result.get("card"), dict) else {}
+    agent = result.get("agent") if isinstance(result.get("agent"), dict) else {}
     return {
         "schema_version": SCHEMA_VERSION,
         "id": investigation_id or uuid4().hex,
@@ -99,7 +116,8 @@ def build_investigation(
                 {"value": "not_observed", "label": "没有观察到"},
                 {"value": "unknown", "label": "无法判断"},
             ],
-            "purpose": "补充AI无法从录音中获得的现场证据",
+            "purpose": str(agent.get("question_purpose") or "补充AI无法从录音中获得的现场证据"),
+            "source": str(agent.get("question_source") or "safe_template"),
         },
         "observations": [],
         "decision_history": [

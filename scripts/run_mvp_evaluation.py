@@ -20,7 +20,7 @@ from app.audio import prepare_audio
 from app.birdnet_service import BirdNetAnalyzer
 from app.evaluation import score_case, summarize
 from app.pipeline import AnalysisPipeline
-from app.qwen_service import QwenNatureAnalyzer
+from app.yamnet_service import YamNetAnalyzer
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -40,7 +40,7 @@ def birdnet_result(raw: dict[str, Any]) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=Path("data/metadata/mvp_evaluation_manifest.csv"))
-    parser.add_argument("--mode", choices=("birdnet", "qwen", "full"), default="birdnet")
+    parser.add_argument("--mode", choices=("birdnet", "yamnet", "full"), default="birdnet")
     parser.add_argument("--task", choices=("auto", "sound", "species", "all"), default="auto")
     parser.add_argument("--limit", type=int, default=0, help="0 means all selected cases")
     parser.add_argument("--include-weak", action="store_true")
@@ -71,8 +71,8 @@ def main() -> int:
     cache_dir.mkdir(parents=True, exist_ok=True)
     if args.mode == "birdnet":
         analyzer: Any = BirdNetAnalyzer()
-    elif args.mode == "qwen":
-        analyzer = QwenNatureAnalyzer()
+    elif args.mode == "yamnet":
+        analyzer = YamNetAnalyzer()
     else:
         analyzer = AnalysisPipeline()
     results: list[dict[str, Any]] = []
@@ -92,13 +92,19 @@ def main() -> int:
                     cached = True
                 else:
                     prepared = Path(temp) / f"{case_id}.wav"
-                    prepare_audio(source, prepared)
+                    general = Path(temp) / f"{case_id}-16k.wav"
+                    prepare_audio(source, prepared, general)
                     if args.mode == "birdnet":
                         result = birdnet_result(analyzer.analyze(prepared))
-                    elif args.mode == "qwen":
-                        result = analyzer.analyze(prepared, case.get("location", "杭州"))
+                    elif args.mode == "yamnet":
+                        result = analyzer.analyze(general, case.get("location", "杭州"))
                     else:
-                        result = analyzer.run(prepared, case.get("location", "杭州"), lambda *_: None)
+                        result = analyzer.run(
+                            prepared,
+                            case.get("location", "杭州"),
+                            lambda *_: None,
+                            general_audio_path=general,
+                        )
                     cache_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
                     cached = False
                 row = {

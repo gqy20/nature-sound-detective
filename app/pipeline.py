@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -9,42 +8,33 @@ from typing import Any, Callable
 
 from app.birdnet_service import BirdNetAnalyzer
 from app.nonbird_service import NonBirdAnalyzer
-from app.qwen_service import QwenNatureAnalyzer
+from app.observability import current_trace_id, get_logger, log_event, log_exception, trace_context
 from app.result_fusion import fuse_results
-from app.observability import get_logger, log_event, log_exception
+from app.yamnet_service import YamNetAnalyzer
 
 
 logger = get_logger("pipeline")
-
-
 ProgressCallback = Callable[[str, str, dict[str, Any] | None], None]
 
 
 class AnalysisPipeline:
+    """Local-first analysis shared by API and CLI."""
+
     def __init__(
         self,
         *,
-        qwen: QwenNatureAnalyzer | None = None,
+        general: YamNetAnalyzer | None = None,
         birdnet: BirdNetAnalyzer | None = None,
         nonbird: NonBirdAnalyzer | None = None,
     ) -> None:
-        self.qwen = qwen
+        self.general = general or YamNetAnalyzer()
         self.birdnet = birdnet or BirdNetAnalyzer()
         self.nonbird = nonbird or NonBirdAnalyzer()
-        self._qwen_lock = threading.Lock()
-
-    def _qwen(self) -> QwenNatureAnalyzer:
-        if self.qwen is None:
-            with self._qwen_lock:
-                if self.qwen is None:
-                    self.qwen = QwenNatureAnalyzer()
-        return self.qwen
 
     def preload(self) -> dict[str, Any]:
         started = time.perf_counter()
-        # Load sequentially: both TensorFlow-backed models are memory-heavy during
-        # initialization, and parallel loading can transiently exhaust RAM.
         components = {
+            "yamnet": self.general.preload(),
             "birdnet": self.birdnet.preload(),
             "nonbird": self.nonbird.preload(),
         }
@@ -106,6 +96,37 @@ class AnalysisPipeline:
             "warning": str(exc),
         }
 
+    @staticmethod
+    def _general_fallback(exc: Exception) -> dict[str, Any]:
+        return {
+            "sound_types": ["无法判断"],
+            "primary_sound_type": "无法判断",
+            "possible_sound_types": [],
+            "confidence_level": "low",
+            "evidence": [],
+            "uncertainty": "通用声景模型暂时不可用，仍可查看专业候选。",
+            "model": "YAMNet unavailable",
+            "warning": str(exc),
+        }
+
+    @staticmethod
+    def _bioacoustic_fallback(exc: Exception) -> tuple[dict[str, Any], dict[str, Any]]:
+        return (
+            {
+                "model": "BirdNET acoustic 2.4",
+                "scope": "杭州全年地理先验候选鸟类（200种）",
+                "detections": [],
+                "warning": str(exc),
+            },
+            {
+                "model": "hangzhou-nonbird-unavailable",
+                "scope": "杭州本地蛙类与鸣虫",
+                "detections": [],
+                "available": False,
+                "warning": str(exc),
+            },
+        )
+
     def run(
         self,
         audio_path: Path,
@@ -114,7 +135,7 @@ class AnalysisPipeline:
         *,
         general_audio_path: Path | None = None,
     ) -> dict[str, Any]:
-        log_event(logger, logging.INFO, "analysis_pipeline_started")
+        log_event(logger, logging.INFO, "analysis_pipeline_started", orchestration="local_models_parallel")
         progress("analyzing", "正在寻找声音线索", None)
 
         def publish_partial(partial: dict[str, Any]) -> None:
@@ -132,40 +153,42 @@ class AnalysisPipeline:
                 },
             )
 
+        trace_id = current_trace_id()
+
+        def run_general() -> dict[str, Any]:
+            with trace_context(trace_id):
+                return self.general.analyze(general_audio_path or audio_path, location)
+
+        def run_specialists() -> tuple[dict[str, Any], dict[str, Any]]:
+            with trace_context(trace_id):
+                return self._analyze_bioacoustics(audio_path, publish_partial)
+
         with ThreadPoolExecutor(max_workers=2) as executor:
-            qwen_future = executor.submit(
-                self._qwen().analyze, general_audio_path or audio_path, location
-            )
-            bioacoustic_future = executor.submit(
-                self._analyze_bioacoustics, audio_path, publish_partial
-            )
-            qwen = qwen_future.result()
-            progress("enriching", "正在核对自然知识", None)
+            general_future = executor.submit(run_general)
+            specialist_future = executor.submit(run_specialists)
             try:
-                birdnet, nonbird = bioacoustic_future.result()
+                general = general_future.result()
+            except Exception as exc:
+                log_exception(logger, "yamnet_fallback_used")
+                general = self._general_fallback(exc)
+            progress("enriching", "正在核对通用声景与专业候选", None)
+            try:
+                birdnet, nonbird = specialist_future.result()
             except Exception as exc:
                 log_exception(logger, "bioacoustic_fallback_used")
-                birdnet = {
-                    "model": "BirdNET acoustic 2.4",
-                    "scope": "杭州全年地理先验候选鸟类（200种）",
-                    "detections": [],
-                    "warning": str(exc),
-                }
-                nonbird = {
-                    "model": "hangzhou-nonbird-unavailable",
-                    "scope": "杭州本地蛙类与鸣虫",
-                    "detections": [],
-                    "available": False,
-                    "warning": str(exc),
-                }
-        progress("composing", "正在生成声音卡", None)
-        result = fuse_results(qwen, birdnet, nonbird)
+                birdnet, nonbird = self._bioacoustic_fallback(exc)
+
+        progress("composing", "正在生成调查线索", None)
+        result = fuse_results(general, birdnet, nonbird)
+        result["orchestration"] = "local_models_parallel"
         log_event(
             logger,
             logging.INFO,
             "analysis_pipeline_completed",
+            general_detection_count=len(general.get("detections", [])),
             bird_detection_count=len(birdnet.get("detections", [])),
             nonbird_detection_count=len(nonbird.get("detections", [])),
             sound_type_count=len(result.get("sound_types", [])),
+            orchestration="local_models_parallel",
         )
         return result

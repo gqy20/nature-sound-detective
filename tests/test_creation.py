@@ -3,6 +3,7 @@ from pathlib import Path
 import app.creation_service as creation_module
 from app.creation_service import build_creation_plan, prepare_video
 import json
+import pytest
 
 import app.jobs as jobs_module
 from app.jobs import JobStore
@@ -17,13 +18,20 @@ def test_creation_plan_stays_within_identified_sound_type():
             "question": "风声是一阵一阵的吗？",
         },
     }
-    plan = build_creation_plan(result, "杭州植物园")
+    investigation = {
+        "status": "completed",
+        "observations": [{"choice": "observed"}],
+    }
+    plan = build_creation_plan(result, "杭州植物园", investigation)
     assert "风和树叶" in plan["music_prompt"]
     assert "杭州" in plan["video_prompt"]
     assert "无字幕" in plan["video_prompt"]
     assert "具体动物近景" in plan["video_prompt"]
     assert "杭州植物园" in plan["narration"]
     assert "风和树叶" in plan["narration"]
+    assert plan["investigation_status"] == "completed"
+    assert "现场观察" in plan["observation_summary"]
+    assert "不是最终鉴定" in plan["narration"]
 
 
 def test_public_job_never_exposes_server_media_paths():
@@ -146,7 +154,6 @@ def test_retry_preserves_persisted_wan_task_id(tmp_path, monkeypatch):
     try:
         assert store.get("resume-video")["creation"]["status"] == "partial"
         store._creation_executor.shutdown(wait=True)
-
         class NoopExecutor:
             @staticmethod
             def submit(*_args, **_kwargs):
@@ -160,6 +167,26 @@ def test_retry_preserves_persisted_wan_task_id(tmp_path, monkeypatch):
         queued = store.start_creation("resume-video")
         assert queued["creation"]["status"] == "queued"
         assert queued["creation"]["wan_task_id"] == "wan-existing-task"
+    finally:
+        store._executor.shutdown(wait=True)
+        store._creation_executor.shutdown(wait=True)
+
+
+def test_new_creation_requires_terminal_investigation(tmp_path, monkeypatch):
+    monkeypatch.setattr(jobs_module, "JOB_DIR", tmp_path)
+    store = JobStore()
+    store._jobs["awaiting"] = {
+        "id": "awaiting",
+        "status": "completed",
+        "audio_path": str(tmp_path / "audio.wav"),
+        "location": "杭州",
+        "result": {"primary_sound_type": "风和树叶"},
+        "investigation": {"status": "awaiting_observation"},
+        "creation": {"status": "idle"},
+    }
+    try:
+        with pytest.raises(ValueError, match="现场观察"):
+            store.start_creation("awaiting")
     finally:
         store._executor.shutdown(wait=True)
         store._creation_executor.shutdown(wait=True)

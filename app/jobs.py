@@ -271,6 +271,19 @@ class JobStore:
             if job.get("status") != "completed":
                 raise ValueError("声音识别尚未完成")
             status = (job.get("creation") or {}).get("status", "idle")
+            creation_state = job.get("creation") or {}
+            resuming_existing_creation = status in {"partial", "failed"} and bool(
+                creation_state.get("wan_task_id")
+                or creation_state.get("music_path")
+                or creation_state.get("music_url")
+            )
+            investigation = job.get("investigation")
+            if (
+                isinstance(investigation, dict)
+                and investigation.get("status") == "awaiting_observation"
+                and not resuming_existing_creation
+            ):
+                raise ValueError("请先完成一次现场观察，再开始创作")
             if status in {
                 "queued", "generating_music", "generating_narration",
                 "generating_video", "composing_video"
@@ -304,6 +317,7 @@ class JobStore:
             creation = service.create(
                 job_id, job["result"], Path(job["audio_path"]), job["location"], progress,
                 previous_creation=job.get("creation") or {},
+                investigation=job.get("investigation") if isinstance(job.get("investigation"), dict) else None,
             )
             if not self._update(job_id, creation=creation):
                 for key in ("music_path", "narration_path", "video_path"):

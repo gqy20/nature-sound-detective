@@ -10,7 +10,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.qwen_service import QwenNatureAnalyzer
+from app.yamnet_service import YamNetAnalyzer
 from app.community.routes import build_community_router
 from app.observability import get_logger, install_observability, log_exception
 from app.investigation import apply_observation, build_investigation
@@ -27,15 +27,15 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Trace-ID"],
 )
-_analyzer: QwenNatureAnalyzer | None = None
+_analyzer: YamNetAnalyzer | None = None
 logger = get_logger("api.analysis")
 app.include_router(build_community_router())
 
 
-def _get_analyzer() -> QwenNatureAnalyzer:
+def _get_analyzer() -> YamNetAnalyzer:
     global _analyzer
     if _analyzer is None:
-        _analyzer = QwenNatureAnalyzer()
+        _analyzer = YamNetAnalyzer()
     return _analyzer
 
 
@@ -54,12 +54,12 @@ class StatelessObservationSubmission(BaseModel):
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"service": "nature-sound-detective-cloud", "status": "ok", "mode": "qwen-only"}
+    return {"service": "nature-sound-detective-cloud", "status": "ok", "mode": "yamnet-only"}
 
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "mode": "vercel-qwen-only"}
+    return {"status": "ok", "mode": "vercel-yamnet-only"}
 
 
 @app.post("/api/analyze")
@@ -74,8 +74,8 @@ async def analyze(audio: UploadFile = File(...), location: str = Form("杭州"))
         with NamedTemporaryFile(prefix="nature-", suffix=".wav", dir="/tmp", delete=False) as handle:
             handle.write(payload)
             temp_path = Path(handle.name)
-        qwen = _get_analyzer().analyze(temp_path, location.strip()[:80] or "杭州")
-        result = fuse_results(qwen, {
+        general = _get_analyzer().analyze(temp_path, location.strip()[:80] or "杭州")
+        result = fuse_results(general, {
             "model": "云端轻量版未启用 BirdNET",
             "scope": "声音大类识别；鸟种候选请使用本地完整版",
             "detections": [],
@@ -83,7 +83,7 @@ async def analyze(audio: UploadFile = File(...), location: str = Form("杭州"))
     except HTTPException:
         raise
     except Exception as exc:
-        log_exception(logger, "cloud_analysis_failed", model="qwen3.5-omni-plus")
+        log_exception(logger, "cloud_analysis_failed", model="YAMNet tflite-1")
         raise HTTPException(502, "声音模型暂时无法完成分析") from exc
     finally:
         if temp_path:
@@ -111,7 +111,7 @@ async def analyze(audio: UploadFile = File(...), location: str = Form("杭州"))
             "persistence": False,
             "investigation": True,
         },
-        "deployment": "vercel-qwen-only",
+        "deployment": "vercel-yamnet-only",
     }
 
 

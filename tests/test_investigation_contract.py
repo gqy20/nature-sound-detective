@@ -21,7 +21,7 @@ RESULT = {
     "confidence_level": "medium",
     "evidence": ["第4至7秒出现重复短鸣"],
     "uncertainty": "具体物种仍待现场观察",
-    "models": {"general_audio": "qwen-test", "bird_species": "birdnet-test"},
+    "models": {"general_audio": "yamnet-test", "bird_species": "birdnet-test"},
     "detections": [
         {
             "category_id": "bird",

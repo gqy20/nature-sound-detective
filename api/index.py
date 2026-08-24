@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from app.qwen_service import QwenNatureAnalyzer
 from app.community.routes import build_community_router
 from app.observability import get_logger, install_observability, log_exception
+from app.investigation import apply_observation, build_investigation
 from app.result_fusion import fuse_results
 
 
@@ -42,6 +43,13 @@ class FeedbackSubmission(BaseModel):
     job_id: str = Field(max_length=80)
     is_correct: bool
     corrected_type: str | None = Field(default=None, max_length=40)
+
+
+class StatelessObservationSubmission(BaseModel):
+    investigation: dict[str, Any]
+    question_id: str = Field(min_length=1, max_length=80)
+    choice: str = Field(min_length=1, max_length=40)
+    note: str = Field(default="", max_length=300)
 
 
 @app.get("/")
@@ -80,18 +88,45 @@ async def analyze(audio: UploadFile = File(...), location: str = Form("杭州"))
     finally:
         if temp_path:
             temp_path.unlink(missing_ok=True)
+    job_id = uuid4().hex
+    investigation = build_investigation(
+        result,
+        location.strip()[:80] or "杭州",
+        investigation_id=f"cloud-{job_id}",
+    )
     return {
-        "id": uuid4().hex,
+        "id": job_id,
         "status": "completed",
         "stage_message": "声音卡片制作完成",
         "location": location.strip()[:80] or "杭州",
         "audio_url": "",
         "result": result,
+        "investigation": investigation,
         "error": None,
         "creation": {"status": "unavailable", "stage_message": "云端展示版暂不生成媒体"},
-        "capabilities": {"birdnet": False, "creation": False, "feedback": False, "persistence": False},
+        "capabilities": {
+            "birdnet": False,
+            "creation": False,
+            "feedback": False,
+            "persistence": False,
+            "investigation": True,
+        },
         "deployment": "vercel-qwen-only",
     }
+
+
+@app.post("/api/investigation/observations")
+def submit_stateless_observation(payload: StatelessObservationSubmission) -> dict[str, Any]:
+    try:
+        return apply_observation(
+            payload.investigation,
+            question_id=payload.question_id,
+            choice=payload.choice,
+            note=payload.note,
+            source="cloud-api",
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
 
 
 @app.post("/api/feedback", status_code=202)

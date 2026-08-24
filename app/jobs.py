@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from app.config import JOB_DIR
 from app.creation_service import CreationService
+from app.investigation import apply_observation, build_investigation
 from app.pipeline import AnalysisPipeline
 from app.observability import current_trace_id, get_logger, log_event, log_exception, trace_context
 
@@ -49,6 +50,14 @@ class JobStore:
                     job["error"] = "上一次识别没有完成"
                     self._write(job)
                 creation = job.get("creation") or {"status": "idle", "stage_message": ""}
+                if job.get("status") == "completed" and isinstance(job.get("result"), dict) and not job.get("investigation"):
+                    job["investigation"] = build_investigation(
+                        job["result"],
+                        str(job.get("location") or "杭州"),
+                        investigation_id=f"job-{job['id']}",
+                        created_at=str(job.get("updated_at") or job.get("created_at") or datetime.now(timezone.utc).isoformat()),
+                    )
+                    self._write(job)
                 if creation.get("status") in {
                     "queued", "generating_music", "generating_narration",
                     "generating_video", "composing_video"
@@ -106,6 +115,7 @@ class JobStore:
             "audio_path": str(audio_path),
             "general_audio_path": str(general_audio_path or audio_path),
             "result": None,
+            "investigation": None,
             "partial_result": None,
             "analysis_progress": {
                 "processed_windows": 0,
@@ -159,6 +169,11 @@ class JobStore:
                 status="completed",
                 stage_message="声音卡片制作完成",
                 result=result,
+                investigation=build_investigation(
+                    result,
+                    str(job.get("location") or "杭州"),
+                    investigation_id=f"job-{job_id}",
+                ),
             )
             log_event(logger, logging.INFO, "analysis_job_completed", job_id=job_id)
         except Exception as exc:
@@ -209,6 +224,34 @@ class JobStore:
         with self._lock:
             job = self._jobs.get(job_id)
             return self.public(job) if job else None
+
+    def submit_observation(
+        self,
+        job_id: str,
+        *,
+        question_id: str,
+        choice: str,
+        note: str = "",
+        source: str = "user",
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return None
+            investigation = job.get("investigation")
+            if not isinstance(investigation, dict):
+                raise ValueError("这次声音分析还没有进入调查阶段")
+            updated = apply_observation(
+                investigation,
+                question_id=question_id,
+                choice=choice,
+                note=note,
+                source=source,
+            )
+            job["investigation"] = updated
+            job["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._write(job)
+            return self.public(job)
 
     @staticmethod
     def public(job: dict[str, Any]) -> dict[str, Any]:

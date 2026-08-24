@@ -37,6 +37,31 @@ def test_cloud_analysis_returns_completed_job(monkeypatch):
     assert payload["result"]["primary_sound_type"] == "风和树叶"
     assert payload["capabilities"]["birdnet"] is False
     assert payload["capabilities"]["creation"] is False
+    assert payload["capabilities"]["investigation"] is True
+    assert payload["investigation"]["status"] == "awaiting_observation"
+
+
+def test_cloud_stateless_observation_uses_shared_transition(monkeypatch):
+    monkeypatch.setattr(cloud_api, "_get_analyzer", lambda: FakeAnalyzer())
+    wav_header = b"RIFF" + (b"\x00" * 4) + b"WAVE" + (b"\x00" * 40)
+    analyzed = TestClient(cloud_api.app).post(
+        "/api/analyze",
+        files={"audio": ("recording.wav", wav_header, "audio/wav")},
+        data={"location": "杭州"},
+    ).json()
+    investigation = analyzed["investigation"]
+    response = TestClient(cloud_api.app).post(
+        "/api/investigation/observations",
+        json={
+            "investigation": investigation,
+            "question_id": investigation["question"]["id"],
+            "choice": "observed",
+            "note": "观察到了重复节奏",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "completed"
+    assert response.json()["stop_reason"] == "human_observation_recorded"
 
 
 def test_cloud_rejects_non_wav_upload():

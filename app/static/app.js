@@ -627,7 +627,7 @@ async function renderResult(job, { persist = true } = {}) {
   if (job.audio_url) $("result-audio").src = job.audio_url;
   else $("result-audio").removeAttribute("src");
   $("child-explanation").textContent = result.card.explanation;
-  $("observation-question").textContent = result.card.question;
+  renderInvestigation(job);
   $("safety-note").textContent = result.card.safety_note;
   $("uncertainty").textContent = result.uncertainty ? `还不能确认：${result.uncertainty}` : "";
   const possibleSounds = result.possible_sound_types || [];
@@ -674,11 +674,76 @@ async function renderResult(job, { persist = true } = {}) {
   $("result-panel").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
 }
 
+function renderInvestigation(job) {
+  const investigation = job.investigation;
+  const fallbackQuestion = job.result?.card?.question || "安静听一听，你观察到了什么？";
+  $("observation-question").textContent = investigation?.question?.text || fallbackQuestion;
+  $("observation-actions").replaceChildren();
+  $("observation-actions").hidden = !investigation || job.is_demo;
+  $("observation-status").textContent = "";
+  if (!investigation || job.is_demo) return;
+  if (investigation.status !== "awaiting_observation") {
+    $("observation-actions").hidden = true;
+    $("observation-status").textContent = investigation.status === "unresolved"
+      ? "暂时无法判断，机器候选和不确定性已经保留。"
+      : "现场观察已经记录，这次调查可以结案。";
+    return;
+  }
+  const options = investigation.question?.options || [];
+  $("observation-actions").replaceChildren(...options.map((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "observation-choice";
+    button.textContent = option.label;
+    button.addEventListener("click", () => submitObservation(option.value));
+    return button;
+  }));
+}
+
+async function submitObservation(choice) {
+  if (!currentJob?.investigation) return;
+  const buttons = [...document.querySelectorAll(".observation-choice")];
+  buttons.forEach((button) => { button.disabled = true; });
+  $("observation-status").textContent = "正在记录现场观察…";
+  const body = {
+    question_id: currentJob.investigation.question.id,
+    choice,
+    note: "",
+  };
+  try {
+    let response;
+    if (currentJob.capabilities?.persistence === false) {
+      response = await tracedFetch(apiUrl("/api/investigation/observations"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...body, investigation: currentJob.investigation }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      currentJob.investigation = await response.json();
+    } else {
+      response = await tracedFetch(apiUrl(`/api/jobs/${encodeURIComponent(currentJob.id)}/investigation/observations`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      currentJob = await response.json();
+    }
+    renderInvestigation(currentJob);
+    renderCreation(currentJob);
+    saveToCollection(currentJob);
+  } catch (_) {
+    $("observation-status").textContent = "观察暂时没有同步，请检查网络后再试。";
+    buttons.forEach((button) => { button.disabled = false; });
+  }
+}
+
 function renderCreation(job) {
   const creation = job.creation || { status: "idle" };
   const status = creation.status || "idle";
   const busy = ["queued", "generating_music", "generating_narration", "generating_video", "composing_video"].includes(status);
-  $("creation-block").hidden = Boolean(job.is_demo || job.capabilities?.creation === false);
+  const awaitingObservation = job.investigation?.status === "awaiting_observation";
+  $("creation-block").hidden = Boolean(job.is_demo || job.capabilities?.creation === false || awaitingObservation);
   $("create-postcard-button").hidden = busy || status === "completed";
   $("create-postcard-button").textContent = status === "partial" || status === "failed" ? "重新尝试" : "开始创作";
   $("creation-progress").hidden = !busy;

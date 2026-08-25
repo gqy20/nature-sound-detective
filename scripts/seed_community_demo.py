@@ -34,10 +34,18 @@ class DemoPost:
     candidates: tuple[str, ...]
     observations: tuple[str, ...]
     responses: tuple[str, ...] = ()
+    park_id: str | None = None
+    zone_id: str | None = None
 
     @property
     def id(self) -> str:
         return f"{DEMO_PREFIX}{self.slug}"
+
+    @property
+    def site_id(self) -> str | None:
+        if self.park_id is None or self.zone_id is None:
+            return None
+        return f"{self.park_id}:{self.zone_id}"
 
 
 CC0_AUDIO = {
@@ -241,13 +249,157 @@ DEMO_POSTS = (
         ("体验数据，不代表杭州实地记录", "傍晚低频背景声较明显"),
         (),
     ),
+    DemoPost(
+        "botanical-lingfeng-morning",
+        "灵峰体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 灵峰入口晨鸣",
+        "鸟鸣",
+        3,
+        _audio("morning_birds"),
+        12_000,
+        ("乌鸫", "白头鹎", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "灵峰入口附近，声音来自林缘高处"),
+        ("更像清晨树冠鸟鸣",),
+        "hangzhou-botanical-garden",
+        "lingfeng-entrance",
+    ),
+    DemoPost(
+        "botanical-understory",
+        "林下体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 林下短促叫声",
+        "鸟鸣",
+        21,
+        _audio("crows"),
+        9_000,
+        ("喜鹊", "鸦科鸟类", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "林下步道，树冠与灌木方向都有声音"),
+        (),
+        "hangzhou-botanical-garden",
+        "understory-trail",
+    ),
+    DemoPost(
+        "botanical-aquatic-edge",
+        "水生区体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 水生植物区水声",
+        "水声",
+        46,
+        _audio("water"),
+        10_000,
+        ("流水", "水滴", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "只在外围步道倾听，背景有远处鸟鸣"),
+        ("水滴", "流水"),
+        "hangzhou-botanical-garden",
+        "aquatic-edge",
+    ),
+    DemoPost(
+        "xixi-boardwalk",
+        "湿地步道体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 湿地步道远声",
+        "混合声景",
+        7,
+        _audio("morning_birds"),
+        14_000,
+        ("水鸟", "林鸟", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "湿地步道，水面和树木方向声音重叠"),
+        ("更像水面方向",),
+        "xixi-wetland",
+        "wetland-boardwalk",
+    ),
+    DemoPost(
+        "xixi-reed-edge",
+        "芦苇体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 芦苇外围虫声",
+        "虫鸣",
+        31,
+        _audio("crickets"),
+        15_000,
+        ("蟋蟀", "螽斯", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "芦苇外围，连续鸣叫，不进入芦苇区域"),
+        (),
+        "xixi-wetland",
+        "reed-edge",
+    ),
+    DemoPost(
+        "xixi-woodland-island",
+        "林岛体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 林地岛鸟声",
+        "鸟鸣",
+        55,
+        _audio("crows"),
+        11_000,
+        ("鸦科鸟类", "喜鹊", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "林地岛外围，叫声间隔较长"),
+        ("喜鹊", "鸦科鸟类"),
+        "xixi-wetland",
+        "woodland-island",
+    ),
+    DemoPost(
+        "taiziwan-main-lawn",
+        "草地体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 中心草地合鸣",
+        "虫鸣",
+        10,
+        _audio("crickets"),
+        13_000,
+        ("鸣虫", "远处鸟鸣", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "中心草地区，多种节奏从草地边缘传来"),
+        (),
+        "taiziwan-park",
+        "main-lawn",
+    ),
+    DemoPost(
+        "taiziwan-stream-trail",
+        "溪流体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 溪流步道水声",
+        "水声",
+        34,
+        _audio("water"),
+        9_000,
+        ("流水", "水滴", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "溪流步道，留在护栏内比较水声与动物声音"),
+        ("流水",),
+        "taiziwan-park",
+        "stream-trail",
+    ),
+    DemoPost(
+        "taiziwan-woodland-slope",
+        "林缘体验员",
+        "xihu",
+        "西湖区",
+        "公园体验线索 · 林缘缓坡晨鸟",
+        "鸟鸣",
+        58,
+        _audio("morning_birds"),
+        12_000,
+        ("白头鹎", "乌鸫", "暂时无法判断"),
+        ("体验数据，不代表杭州实地记录", "林缘缓坡，短促声音来自灌木与树冠"),
+        ("白头鹎", "乌鸫"),
+        "taiziwan-park",
+        "woodland-slope",
+    ),
 )
 
 
 def validate_demo_posts() -> None:
     ids = [post.id for post in DEMO_POSTS]
     assert len(ids) == len(set(ids))
-    assert len(DEMO_POSTS) == 12
+    assert len(DEMO_POSTS) == 21
     assert {post.area_id for post in DEMO_POSTS} == {
         "xihu",
         "shangcheng",
@@ -258,6 +410,23 @@ def validate_demo_posts() -> None:
     }
     assert all("体验" in post.alias for post in DEMO_POSTS)
     assert all(500 <= post.duration_ms <= 20_000 for post in DEMO_POSTS)
+    park_posts = [post for post in DEMO_POSTS if post.park_id is not None]
+    assert len(park_posts) == 9
+    assert all(post.area_id == "xihu" for post in park_posts)
+    assert all(post.site_id is not None for post in park_posts)
+    assert {
+        (post.park_id, post.zone_id) for post in park_posts
+    } == {
+        ("hangzhou-botanical-garden", "lingfeng-entrance"),
+        ("hangzhou-botanical-garden", "understory-trail"),
+        ("hangzhou-botanical-garden", "aquatic-edge"),
+        ("xixi-wetland", "wetland-boardwalk"),
+        ("xixi-wetland", "reed-edge"),
+        ("xixi-wetland", "woodland-island"),
+        ("taiziwan-park", "main-lawn"),
+        ("taiziwan-park", "stream-trail"),
+        ("taiziwan-park", "woodland-slope"),
+    }
 
 
 def seed(database_url: str, *, apply: bool) -> None:
@@ -272,7 +441,11 @@ def seed(database_url: str, *, apply: bool) -> None:
         )
         current = dict(cursor.fetchall())
         print("Current public rows:", current or "none")
-        print(f"Demo plan: {len(DEMO_POSTS)} posts across 6 districts")
+        park_count = sum(post.park_id is not None for post in DEMO_POSTS)
+        print(
+            f"Demo plan: {len(DEMO_POSTS)} posts across 6 districts "
+            f"({park_count} park-zone posts)"
+        )
         if not apply:
             print("Preview only. Re-run with --apply to write demo rows.")
             return
@@ -293,8 +466,9 @@ def seed(database_url: str, *, apply: bool) -> None:
                    (id, owner_hash, alias, area_id, area_name, subject, sound_type,
                     observed_at, created_at, audio_url, duration_ms, candidate_names,
                     field_observations, model_snapshot, status, review_status,
-                    sampling_mode, sampling_effort, audio_quality, ecology_eligible)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s,%s,%s::jsonb,%s::jsonb,%s)
+                    park_id, zone_id, site_id, sampling_mode, sampling_effort,
+                    audio_quality, ecology_eligible)
+                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s)
                    ON CONFLICT (id) DO UPDATE SET
                      alias=EXCLUDED.alias, area_id=EXCLUDED.area_id,
                      area_name=EXCLUDED.area_name, subject=EXCLUDED.subject,
@@ -305,7 +479,8 @@ def seed(database_url: str, *, apply: bool) -> None:
                      field_observations=EXCLUDED.field_observations,
                      model_snapshot=EXCLUDED.model_snapshot, status=EXCLUDED.status,
                      review_status=EXCLUDED.review_status,
-                     park_id=NULL, zone_id=NULL, site_id=NULL,
+                     park_id=EXCLUDED.park_id, zone_id=EXCLUDED.zone_id,
+                     site_id=EXCLUDED.site_id,
                      sampling_mode=EXCLUDED.sampling_mode,
                      sampling_effort=EXCLUDED.sampling_effort,
                      audio_quality=EXCLUDED.audio_quality,
@@ -330,8 +505,16 @@ def seed(database_url: str, *, apply: bool) -> None:
                     json.dumps(model_snapshot, ensure_ascii=False),
                     status,
                     "not_requested",
-                    "opportunistic",
-                    json.dumps({"source": "competition_demo"}),
+                    post.park_id,
+                    post.zone_id,
+                    post.site_id,
+                    "guided_task" if post.park_id else "opportunistic",
+                    json.dumps(
+                        {
+                            "source": "competition_demo",
+                            "virtual": True,
+                        }
+                    ),
                     json.dumps(
                         {"usable": False, "reason": "competition_demo"},
                         ensure_ascii=False,

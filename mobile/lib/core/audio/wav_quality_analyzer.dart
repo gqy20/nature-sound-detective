@@ -12,6 +12,10 @@ abstract interface class AudioQualityAnalyzer {
 class WavQualityAnalyzer implements AudioQualityAnalyzer {
   const WavQualityAnalyzer();
 
+  static const _clearWindowRms = 0.003;
+  static const _weakWindowRms = 0.0015;
+  static const _weakPeak = 0.02;
+
   @override
   Future<AudioQuality> analyze(String path) =>
       Isolate.run(() => _analyze(path));
@@ -53,6 +57,7 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
     final hopSamples = math.max(windowSamples ~/ 2, 1);
     var bestWindowRms = 0.0;
     var activeWindowCount = 0;
+    var weakWindowCount = 0;
     var totalWindowCount = 0;
     for (var start = 0; start < sampleCount; start += hopSamples) {
       final end = math.min(start + windowSamples, sampleCount);
@@ -65,20 +70,27 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
       final count = end - start;
       final windowRms = math.sqrt(windowSquares / count);
       bestWindowRms = math.max(bestWindowRms, windowRms);
-      if (windowRms >= 0.003) {
+      if (windowRms >= _clearWindowRms) {
         activeWindowCount++;
       }
+      if (windowRms >= _weakWindowRms) weakWindowCount++;
       totalWindowCount++;
       if (end == sampleCount) break;
     }
-    final usable = durationSeconds >= 1 && activeWindowCount > 0;
+    final hasClearSignal = activeWindowCount > 0;
+    final hasWeakDynamicSignal =
+        !hasClearSignal && weakWindowCount > 0 && peak >= _weakPeak;
+    final usable =
+        durationSeconds >= 1 && (hasClearSignal || hasWeakDynamicSignal);
     final warnings = <String>[];
     if (durationSeconds < 1) {
       warnings.add('录音不足 1 秒，请多录几次完整叫声。');
     } else if (durationSeconds < 3) {
       warnings.add('录音少于 3 秒，多录几次叫声会更容易识别。');
     }
-    if (bestWindowRms < 0.012) {
+    if (hasWeakDynamicSignal) {
+      warnings.add('声音较远，但存在可分析的动态线索；请结合现场观察谨慎判断。');
+    } else if (bestWindowRms < 0.012) {
       warnings.add(usable ? '声音有些远，但仍可以尝试识别。' : '没有检测到清晰声音，请检查麦克风后再试。');
     } else if (activeWindowCount < math.max(2, totalWindowCount ~/ 4)) {
       warnings.add('声音只在少数片段出现，识别会重点分析这些片段。');
@@ -99,6 +111,7 @@ class WavQualityAnalyzer implements AudioQualityAnalyzer {
       bestWindowRms: bestWindowRms,
       activeWindowCount: activeWindowCount,
       totalWindowCount: totalWindowCount,
+      weakSignal: hasWeakDynamicSignal,
     );
   }
 }

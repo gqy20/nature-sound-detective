@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/field_observation_schema.dart';
+import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/network/animal_story_service.dart';
 import 'package:nature_sound_detective/core/models/species_media.dart';
 
@@ -19,6 +20,7 @@ class SpeciesDetailPage extends StatefulWidget {
     this.onChecksChanged,
     this.initialObservations = const {},
     this.onObservationsChanged,
+    this.mode = ExplorationMode.child,
   });
 
   final SoundDetection detection;
@@ -29,6 +31,7 @@ class SpeciesDetailPage extends StatefulWidget {
   final ValueChanged<List<String>>? onChecksChanged;
   final Map<String, List<String>> initialObservations;
   final ValueChanged<Map<String, List<String>>>? onObservationsChanged;
+  final ExplorationMode mode;
 
   @override
   State<SpeciesDetailPage> createState() => _SpeciesDetailPageState();
@@ -135,8 +138,10 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
                 }
                 return _StructuredObservationForm(
                   schema: schema,
+                  mode: widget.mode,
                   selections: _selectedObservations,
-                  hasLegacyChecks: widget.initialChecks.isNotEmpty &&
+                  hasLegacyChecks:
+                      widget.initialChecks.isNotEmpty &&
                       widget.initialObservations.isEmpty,
                   onToggle: _toggleObservation,
                   onComplete: () => _completeObservations(schema),
@@ -160,10 +165,7 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
 
   bool get _hasAudio => widget.audioPath?.trim().isNotEmpty ?? false;
 
-  void _toggleObservation(
-    FieldObservationDimension dimension,
-    String value,
-  ) {
+  void _toggleObservation(FieldObservationDimension dimension, String value) {
     HapticFeedback.selectionClick();
     setState(() {
       final selected = {...?_selectedObservations[dimension.id]};
@@ -193,9 +195,9 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
     );
     if (!schema.isComplete(values)) return;
     widget.onObservationsChanged?.call(values);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('现场观察已完成，可以生成动物故事了')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('现场观察已完成，可以生成动物故事了')));
   }
 
   Future<void> _generateStory(FieldObservationSchema schema) async {
@@ -214,9 +216,9 @@ class _SpeciesDetailPageState extends State<SpeciesDetailPage> {
       if (mounted) setState(() => _story = story);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('动物故事暂时没有生成，请稍后再试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('动物故事暂时没有生成，请稍后再试')));
       }
     } finally {
       if (mounted) setState(() => _storyLoading = false);
@@ -482,6 +484,7 @@ class _ImageFallback extends StatelessWidget {
 class _StructuredObservationForm extends StatelessWidget {
   const _StructuredObservationForm({
     required this.schema,
+    required this.mode,
     required this.selections,
     required this.hasLegacyChecks,
     required this.onToggle,
@@ -491,6 +494,7 @@ class _StructuredObservationForm extends StatelessWidget {
   });
 
   final FieldObservationSchema schema;
+  final ExplorationMode mode;
   final Map<String, Set<String>> selections;
   final bool hasLegacyChecks;
   final void Function(FieldObservationDimension, String) onToggle;
@@ -514,7 +518,11 @@ class _StructuredObservationForm extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        for (final dimension in schema.dimensions) ...[
+        for (final dimension in schema.dimensions.where(
+          (item) =>
+              mode == ExplorationMode.parent ||
+              const {'time', 'habitat', 'sound_pattern'}.contains(item.id),
+        )) ...[
           Text(dimension.label, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           Wrap(
@@ -524,7 +532,8 @@ class _StructuredObservationForm extends StatelessWidget {
               for (final option in dimension.options)
                 FilterChip(
                   label: Text(option.label),
-                  selected: selections[dimension.id]?.contains(option.value) ?? false,
+                  selected:
+                      selections[dimension.id]?.contains(option.value) ?? false,
                   onSelected: (_) => onToggle(dimension, option.value),
                 ),
             ],

@@ -9,6 +9,7 @@ class AudioQuality {
     this.bestWindowRms,
     this.activeWindowCount,
     this.totalWindowCount,
+    this.weakSignal = false,
   });
 
   factory AudioQuality.fromJson(Map<String, Object?> json) {
@@ -22,6 +23,7 @@ class AudioQuality {
       bestWindowRms: _number(json['best_window_rms']),
       activeWindowCount: (json['active_window_count'] as num?)?.round(),
       totalWindowCount: (json['total_window_count'] as num?)?.round(),
+      weakSignal: json['weak_signal'] as bool? ?? false,
     );
   }
 
@@ -34,6 +36,9 @@ class AudioQuality {
   final double? bestWindowRms;
   final int? activeWindowCount;
   final int? totalWindowCount;
+  final bool weakSignal;
+
+  bool get ecologyUsable => usable && !weakSignal;
 
   Map<String, Object?> toJson() => {
     'usable': usable,
@@ -45,6 +50,8 @@ class AudioQuality {
     if (bestWindowRms != null) 'best_window_rms': bestWindowRms,
     if (activeWindowCount != null) 'active_window_count': activeWindowCount,
     if (totalWindowCount != null) 'total_window_count': totalWindowCount,
+    if (weakSignal) 'weak_signal': true,
+    'ecology_usable': ecologyUsable,
   };
 }
 

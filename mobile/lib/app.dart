@@ -1,11 +1,42 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
+import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
+import 'package:nature_sound_detective/core/mode/exploration_mode_store.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
 
-class NatureSoundApp extends StatelessWidget {
-  const NatureSoundApp({super.key, this.analyzer});
+class NatureSoundApp extends StatefulWidget {
+  const NatureSoundApp({super.key, this.analyzer, this.modeStore});
 
   final RecordingAnalyzer? analyzer;
+  final ExplorationModeStore? modeStore;
+
+  @override
+  State<NatureSoundApp> createState() => _NatureSoundAppState();
+}
+
+class _NatureSoundAppState extends State<NatureSoundApp> {
+  late final ExplorationModeStore _modeStore;
+  ExplorationMode _mode = ExplorationMode.child;
+
+  @override
+  void initState() {
+    super.initState();
+    _modeStore = widget.modeStore ?? ExplorationModeStore();
+    _loadMode();
+  }
+
+  Future<void> _loadMode() async {
+    final value = await _modeStore.load();
+    if (mounted) setState(() => _mode = value);
+  }
+
+  void _setMode(ExplorationMode value) {
+    if (_mode == value) return;
+    setState(() => _mode = value);
+    unawaited(_modeStore.save(value).catchError((_) {}));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +113,11 @@ class NatureSoundApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: CapturePage(analyzer: analyzer),
+      home: CapturePage(
+        analyzer: widget.analyzer,
+        mode: _mode,
+        onModeChanged: _setMode,
+      ),
     );
   }
 }

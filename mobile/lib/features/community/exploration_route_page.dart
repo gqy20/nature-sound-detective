@@ -7,10 +7,14 @@ class ExplorationRoutePage extends StatefulWidget {
     super.key,
     required this.route,
     required this.store,
+    this.sites = const [],
+    this.onStartListening,
   });
 
   final ExplorationRoute route;
   final RouteProgressStore store;
+  final List<CommunitySite> sites;
+  final VoidCallback? onStartListening;
 
   @override
   State<ExplorationRoutePage> createState() => _ExplorationRoutePageState();
@@ -58,6 +62,26 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
     }
   }
 
+  CommunitySite? _site(String id) {
+    for (final site in widget.sites) {
+      if (site.id == id) return site;
+    }
+    return null;
+  }
+
+  String _parentDirection(ExplorationRouteStop stop) {
+    final mission = stop.mission;
+    if (mission.contains('方向') ||
+        mission.contains('高处') ||
+        mission.contains('低处')) {
+      return '家长引导：请孩子先闭眼指出方向，再分别观察高处和低处；不要直接替孩子指出声源。';
+    }
+    if (mission.contains('比较')) {
+      return '家长引导：请孩子各说出一条相同和不同，不评价对错，最后允许保留“不知道”。';
+    }
+    return '家长引导：先一起安静一分钟，再问“你最先注意到了什么变化？”';
+  }
+
   @override
   Widget build(BuildContext context) {
     final progress = _progress;
@@ -88,15 +112,47 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
                 const SizedBox(height: 18),
                 for (final (index, stop) in widget.route.stops.indexed)
                   Card(
-                    child: CheckboxListTile(
-                      key: Key('route-stop-${stop.siteId}'),
-                      value: progress.completedSiteIds.contains(stop.siteId),
-                      onChanged: _saving
-                          ? null
-                          : (value) => _toggle(stop, value ?? false),
-                      title: Text('第 ${index + 1} 站 · 约 ${stop.minutes} 分钟'),
-                      subtitle: Text(stop.mission),
-                      controlAffinity: ListTileControlAffinity.leading,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 4, 12, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          CheckboxListTile(
+                            key: Key('route-stop-${stop.siteId}'),
+                            value: progress.completedSiteIds.contains(
+                              stop.siteId,
+                            ),
+                            onChanged: _saving
+                                ? null
+                                : (value) => _toggle(stop, value ?? false),
+                            title: Text(
+                              '第 ${index + 1} 站 · ${_site(stop.siteId)?.zoneName ?? '倾听点'}',
+                            ),
+                            subtitle: Text('儿童任务：${stop.mission}'),
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              _parentDirection(stop),
+                              style: const TextStyle(
+                                color: Color(0xFF315D4A),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          if (widget.onStartListening != null) ...[
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              key: Key('route-listen-${stop.siteId}'),
+                              onPressed: widget.onStartListening,
+                              icon: const Icon(Icons.mic_none_rounded),
+                              label: const Text('到这里开始聆听'),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 if (progress.completedAt != null) ...[
@@ -111,9 +167,7 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
                       children: [
                         Icon(Icons.verified_rounded),
                         SizedBox(width: 10),
-                        Expanded(
-                          child: Text('路线探索完成！可以回到社区发布这次听见的声音。'),
-                        ),
+                        Expanded(child: Text('路线探索完成！可以回到社区发布这次听见的声音。')),
                       ],
                     ),
                   ),

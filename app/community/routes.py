@@ -202,6 +202,8 @@ def build_community_router(
                     "site_id": expected_site_id,
                     "ecology_eligible": (
                         bool(parsed.audio_quality.get("usable", False))
+                        and not bool(parsed.audio_quality.get("weak_signal", False))
+                        and bool(parsed.audio_quality.get("ecology_usable", True))
                         and not is_demo
                     ),
                 }

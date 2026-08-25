@@ -61,10 +61,58 @@ void main() {
     expect(quality.usable, isTrue);
     expect(quality.warnings, contains('声音有些远，但仍可以尝试识别。'));
   });
+
+  test(
+    'keeps a weak dynamic call instead of blocking model analysis',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('xykw_wav_test_');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}weak-call.wav',
+      );
+      await file.writeAsBytes(_weakDynamicCallWav());
+
+      final quality = await const WavQualityAnalyzer().analyze(file.path);
+
+      expect(quality.bestWindowRms, lessThan(0.003));
+      expect(quality.peak, greaterThan(0.02));
+      expect(quality.activeWindowCount, 0);
+      expect(quality.usable, isTrue);
+      expect(quality.weakSignal, isTrue);
+      expect(quality.ecologyUsable, isFalse);
+      expect(quality.toJson()['weak_signal'], isTrue);
+      expect(quality.toJson()['ecology_usable'], isFalse);
+      expect(quality.warnings, contains('声音较远，但存在可分析的动态线索；请结合现场观察谨慎判断。'));
+    },
+  );
+
+  test(
+    'accepts a 96 kHz weak dynamic import like the field reference',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('xykw_wav_test_');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}weak-96k.wav',
+      );
+      await file.writeAsBytes(_weakDynamicCallWav(sampleRate: 96000));
+
+      final quality = await const WavQualityAnalyzer().analyze(file.path);
+
+      expect(quality.bestWindowRms, lessThan(0.003));
+      expect(quality.peak, greaterThan(0.02));
+      expect(quality.usable, isTrue);
+      expect(quality.weakSignal, isTrue);
+      expect(quality.ecologyUsable, isFalse);
+      expect(quality.warnings, contains('声音较远，但存在可分析的动态线索；请结合现场观察谨慎判断。'));
+    },
+  );
 }
 
-Uint8List _sineWav({required int seconds, required double amplitude}) {
-  const sampleRate = 16000;
+Uint8List _sineWav({
+  required int seconds,
+  required double amplitude,
+  int sampleRate = 16000,
+}) {
   final samples = sampleRate * seconds;
   final dataBytes = samples * 2;
   final bytes = Uint8List(44 + dataBytes);
@@ -101,6 +149,17 @@ Uint8List _sparseSineWav({
   final end = (callStart + callSeconds) * sampleRate;
   for (var index = start; index < end; index++) {
     final sample = math.sin(2 * math.pi * 440 * index / sampleRate) * 0.2;
+    data.setInt16(44 + index * 2, (sample * 32767).round(), Endian.little);
+  }
+  return bytes;
+}
+
+Uint8List _weakDynamicCallWav({int sampleRate = 16000}) {
+  final bytes = _sineWav(seconds: 3, amplitude: 0, sampleRate: sampleRate);
+  final data = ByteData.sublistView(bytes);
+  final callSamples = sampleRate ~/ 100;
+  for (var index = 0; index < callSamples; index++) {
+    final sample = math.sin(2 * math.pi * 440 * index / sampleRate) * 0.05;
     data.setInt16(44 + index * 2, (sample * 32767).round(), Endian.little);
   }
   return bytes;

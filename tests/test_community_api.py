@@ -215,6 +215,34 @@ def test_park_publication_is_validated_and_ecology_eligible(tmp_path, monkeypatc
     assert len(snapshot["zone_summaries"]) == 3
 
 
+def test_weak_audio_can_be_published_but_does_not_count_as_ecology(
+    tmp_path, monkeypatch
+):
+    client = _client(tmp_path, monkeypatch)
+    metadata = _metadata(
+        park_id="hangzhou-botanical-garden",
+        zone_id="understory-trail",
+        audio_quality={
+            "usable": True,
+            "weak_signal": True,
+            "ecology_usable": False,
+        },
+    )
+    created = client.post(
+        "/api/community/posts",
+        headers=_headers(client, "device_owner_weak_audio_123456"),
+        data={"metadata": json.dumps(metadata, ensure_ascii=False)},
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+
+    assert created.status_code == 201
+    assert created.json()["post"]["ecology_eligible"] is False
+    snapshot = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/ecology-snapshot"
+    ).json()
+    assert snapshot["valid_post_count"] == 0
+
+
 def test_invalid_park_zone_combination_is_rejected(tmp_path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     response = client.post(

@@ -124,6 +124,8 @@ class CommunityRepository(Protocol):
     def park_sites(self, park_id: str | None = None) -> list[ParkSite]: ...
     def ecology_snapshot(self, park_id: str, period_days: int = 7) -> EcologySnapshot: ...
     def add_media_asset(self, post_id: str, owner_id: str, asset: CommunityMediaAsset) -> bool: ...
+    def reserve_parent_guidance(self, identity: str, limit: int) -> tuple[bool, int]: ...
+    def refund_parent_guidance(self, identity: str) -> int: ...
 
 
 class MemoryCommunityRepository:
@@ -133,6 +135,7 @@ class MemoryCommunityRepository:
         self._posts: dict[str, dict[str, Any]] = {}
         self._responses: dict[str, dict[str, AssistSubmission]] = {}
         self._media: dict[str, list[CommunityMediaAsset]] = {}
+        self._parent_guidance_usage: dict[str, int] = {}
         self._lock = RLock()
 
     def list_posts(self, *, area_id: str | None = None, requester_id: str | None = None) -> list[CommunityPost]:
@@ -242,6 +245,21 @@ class MemoryCommunityRepository:
                 return False
             self._media.setdefault(post_id, []).append(asset)
             return True
+
+    def reserve_parent_guidance(self, identity: str, limit: int) -> tuple[bool, int]:
+        with self._lock:
+            used = self._parent_guidance_usage.get(identity, 0)
+            if used >= limit:
+                return False, used
+            used += 1
+            self._parent_guidance_usage[identity] = used
+            return True, used
+
+    def refund_parent_guidance(self, identity: str) -> int:
+        with self._lock:
+            used = max(0, self._parent_guidance_usage.get(identity, 0) - 1)
+            self._parent_guidance_usage[identity] = used
+            return used
 
     def park_summaries(self) -> list[ParkSummary]:
         return [
@@ -483,6 +501,39 @@ class NeonCommunityRepository:
                 ),
             )
             return True
+
+    def reserve_parent_guidance(self, identity: str, limit: int) -> tuple[bool, int]:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """INSERT INTO community_parent_guidance_quotas
+                   (identity_hash, used_count) VALUES (%s, 1)
+                   ON CONFLICT (identity_hash) DO UPDATE SET
+                     used_count=community_parent_guidance_quotas.used_count + 1,
+                     updated_at=now()
+                   WHERE community_parent_guidance_quotas.used_count < %s
+                   RETURNING used_count""",
+                (identity, limit),
+            )
+            row = cursor.fetchone()
+            if row is not None:
+                return True, int(row["used_count"])
+            cursor.execute(
+                "SELECT used_count FROM community_parent_guidance_quotas WHERE identity_hash=%s",
+                (identity,),
+            )
+            existing = cursor.fetchone()
+            return False, int(existing["used_count"] if existing else limit)
+
+    def refund_parent_guidance(self, identity: str) -> int:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE community_parent_guidance_quotas SET
+                     used_count=greatest(used_count - 1, 0), updated_at=now()
+                   WHERE identity_hash=%s RETURNING used_count""",
+                (identity,),
+            )
+            row = cursor.fetchone()
+            return int(row["used_count"] if row else 0)
 
     def park_summaries(self) -> list[ParkSummary]:
         return MemoryCommunityRepository().park_summaries()

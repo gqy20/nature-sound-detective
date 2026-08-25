@@ -12,14 +12,22 @@ from app.community.repository import MemoryCommunityRepository
 from app.community.storage import LocalCommunityMediaStore
 
 
-def _client(tmp_path, monkeypatch) -> TestClient:
+def _client(
+    tmp_path,
+    monkeypatch,
+    *,
+    repository=None,
+    parent_guidance_service=None,
+) -> TestClient:
     monkeypatch.setattr(community_routes, "COMMUNITY_MEDIA_DIR", tmp_path)
+    monkeypatch.setenv("PARENT_GUIDANCE_MODE", "template")
     app = FastAPI()
     app.include_router(
         community_routes.build_community_router(
-            MemoryCommunityRepository(),
+            repository or MemoryCommunityRepository(),
             media_store=LocalCommunityMediaStore(tmp_path),
             auth=CommunityAuth("test-community-secret-with-32-characters"),
+            parent_guidance_service=parent_guidance_service,
         )
     )
     return TestClient(app)
@@ -182,6 +190,80 @@ def test_pilot_parks_sites_and_ecology_snapshot(tmp_path, monkeypatch):
     assert routes.json()[0]["name"] == "清晨树冠声音路线"
     assert len(routes.json()[0]["stops"]) == 3
     assert "不保证一定遇见动物" in routes.json()[0]["disclaimer"]
+
+
+def test_parent_guidance_requires_identity_and_returns_safe_fallback(
+    tmp_path, monkeypatch
+):
+    client = _client(tmp_path, monkeypatch)
+    payload = {
+        "candidate_name": "珠颈斑鸠",
+        "category": "鸟类鸣叫",
+        "confidence": 0.8,
+        "weak_signal": False,
+        "observations": ["habitat:tree_canopy"],
+        "behaviors": ["recordedSound", "replayedAudio"],
+    }
+    unauthorized = client.post("/api/community/parent-guidance", json=payload)
+    assert unauthorized.status_code == 401
+
+    response = client.post(
+        "/api/community/parent-guidance",
+        headers=_headers(client, "device_parent_guidance_123456"),
+        json=payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["ai_generated"] is False
+    assert len(response.json()["guides"]) == 3
+    assert len(response.json()["praises"]) == 3
+    assert response.json()["quota"]["remaining"] == 20
+
+
+def test_parent_guidance_allows_twenty_successful_ai_generations(
+    tmp_path, monkeypatch
+):
+    class SuccessfulGuidance:
+        def create(self, _payload):
+            return {
+                "provider": "test-ai",
+                "ai_generated": True,
+                "warning": "",
+                "guides": [{"goal": "目标", "say": "测试", "action": "测试", "avoid": "测试"}] * 2,
+                "praises": [
+                    {
+                        "evidence_behavior": "recordedSound",
+                        "ability": "记录",
+                        "text": "测试生成",
+                    }
+                ] * 3,
+            }
+
+    monkeypatch.setenv("PARENT_GUIDANCE_FREE_LIMIT", "20")
+    client = _client(
+        tmp_path,
+        monkeypatch,
+        parent_guidance_service=SuccessfulGuidance(),
+    )
+    headers = _headers(client, "device_parent_quota_123456")
+    payload = {"behaviors": ["recordedSound"]}
+
+    for expected_remaining in range(19, -1, -1):
+        response = client.post(
+            "/api/community/parent-guidance",
+            headers=headers,
+            json=payload,
+        )
+        assert response.status_code == 200
+        assert response.json()["quota"]["remaining"] == expected_remaining
+
+    exhausted = client.post(
+        "/api/community/parent-guidance",
+        headers=headers,
+        json=payload,
+    )
+    assert exhausted.status_code == 429
+    assert exhausted.json()["detail"]["code"] == "free_ai_quota_exhausted"
+    assert exhausted.json()["detail"]["remaining"] == 0
 
 
 def test_park_publication_is_validated_and_ecology_eligible(tmp_path, monkeypatch):

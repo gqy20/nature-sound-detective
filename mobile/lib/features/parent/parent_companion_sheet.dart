@@ -1,28 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
-import 'package:nature_sound_detective/core/guidance/parent_guidance_engine.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 
-class ParentCompanionSheet extends StatelessWidget {
+class ParentCompanionSheet extends StatefulWidget {
   const ParentCompanionSheet({
     super.key,
     required this.detection,
     required this.observations,
     required this.behaviors,
+    required this.weakSignal,
+    this.service,
   });
 
   final SoundDetection? detection;
   final Map<String, List<String>> observations;
   final Set<ExplorationBehavior> behaviors;
+  final bool weakSignal;
+  final ParentGuidanceNetworkService? service;
+
+  @override
+  State<ParentCompanionSheet> createState() => _ParentCompanionSheetState();
+}
+
+class _ParentCompanionSheetState extends State<ParentCompanionSheet> {
+  late final Future<GuidanceBundle> _bundleFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bundleFuture = (widget.service ?? ParentGuidanceNetworkService()).create(
+      detection: widget.detection,
+      observations: widget.observations,
+      behaviors: widget.behaviors,
+      weakSignal: widget.weakSignal,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bundle = const ParentGuidanceEngine().build(
-      detection: detection,
-      observations: observations,
-      behaviors: behaviors,
-    );
-    final candidate = detection;
+    final candidate = widget.detection;
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: .88,
@@ -42,22 +59,86 @@ class ParentCompanionSheet extends StatelessWidget {
               _EvidenceCard(detection: candidate),
             ],
             const SizedBox(height: 22),
-            Text('可以这样引导', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            for (final (index, guide) in bundle.guides.indexed)
-              _GuideCard(index: index + 1, guide: guide),
-            const SizedBox(height: 18),
-            Text('可以这样回应孩子', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            const Text('下面的话只根据本次已经发生的探索行为提供。'),
-            const SizedBox(height: 10),
-            for (final praise in bundle.praiseSuggestions)
-              _PraiseCard(suggestion: praise),
+            FutureBuilder<GuidanceBundle>(
+              future: _bundleFuture,
+              builder: (context, snapshot) {
+                final bundle = snapshot.data;
+                if (bundle == null) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 12),
+                        Text('AI正在结合这次真实探索，准备家长引导…'),
+                      ],
+                    ),
+                  );
+                }
+                return _GuidanceContent(bundle: bundle);
+              },
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+class _GuidanceContent extends StatelessWidget {
+  const _GuidanceContent({required this.bundle});
+  final GuidanceBundle bundle;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Row(
+        children: [
+          Icon(
+            bundle.aiGenerated
+                ? Icons.auto_awesome_rounded
+                : Icons.shield_outlined,
+            size: 18,
+            color: const Color(0xFF315D4A),
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              bundle.aiGenerated ? 'AI根据本次探索直接生成' : '本地审核模板',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+      if (bundle.warning.isNotEmpty) ...[
+        const SizedBox(height: 5),
+        Text(bundle.warning, style: Theme.of(context).textTheme.bodySmall),
+      ],
+      if (bundle.quotaRemaining case final remaining?) ...[
+        const SizedBox(height: 5),
+        Text(
+          '本设备剩余 $remaining / ${bundle.quotaLimit ?? 20} 次免费AI生成',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: remaining <= 3 ? const Color(0xFF9A4F32) : null,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+      const SizedBox(height: 20),
+      Text('可以这样引导', style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 10),
+      for (final (index, guide) in bundle.guides.indexed)
+        _GuideCard(index: index + 1, guide: guide),
+      const SizedBox(height: 18),
+      Text('可以这样回应孩子', style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 4),
+      const Text('AI只使用本次已经记录的探索行为作为夸奖依据。'),
+      const SizedBox(height: 10),
+      for (final praise in bundle.praiseSuggestions)
+        _PraiseCard(suggestion: praise),
+    ],
+  );
 }
 
 class _EvidenceCard extends StatelessWidget {

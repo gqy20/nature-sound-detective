@@ -222,6 +222,7 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
+        _behaviors.add(ExplorationBehavior.recordedSound);
         _startedAt = null;
         _elapsed = recording.duration;
         _resultVisible = true;
@@ -330,6 +331,7 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
+        _behaviors.add(ExplorationBehavior.recordedSound);
         _elapsed = recording.duration;
         _resultVisible = true;
       });
@@ -424,6 +426,7 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
+        _behaviors.add(ExplorationBehavior.recordedSound);
         _elapsed = recording.duration;
         _resultVisible = true;
       });
@@ -758,7 +761,8 @@ class _CapturePageState extends State<CapturePage> {
       builder: (_) => ParentCompanionSheet(
         detection: primary,
         observations: observations,
-        behaviors: {..._behaviors, ExplorationBehavior.observedSafely},
+        behaviors: {..._behaviors},
+        weakSignal: _quality?.weakSignal ?? false,
       ),
     );
   }

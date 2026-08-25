@@ -68,6 +68,25 @@ class DeviceSessionResponse(BaseModel):
     expires_at: int
 
 
+class ParentGuidanceRequest(BaseModel):
+    candidate_name: str = Field(default="", max_length=60)
+    category: str = Field(default="", max_length=40)
+    confidence: float = Field(default=0, ge=0, le=1)
+    weak_signal: bool = False
+    observations: list[str] = Field(default_factory=list, max_length=12)
+    behaviors: list[
+        Literal[
+            "recordedSound",
+            "replayedAudio",
+            "completedObservation",
+            "comparedEvidence",
+            "acceptedUncertainty",
+            "retriedRecording",
+            "observedSafely",
+        ]
+    ] = Field(min_length=1, max_length=8)
+
+
 class CommunityPost(BaseModel):
     id: str
     alias: str

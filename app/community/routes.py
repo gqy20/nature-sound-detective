@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from pydantic import ValidationError
 
@@ -17,10 +19,12 @@ from app.community.models import (
     AssistSubmission,
     DeviceSessionRequest,
     DeviceSessionResponse,
+    ParentGuidanceRequest,
     PublicationMetadata,
     PublicationResult,
     CommunityMediaAsset,
 )
+from app.parent_guidance_service import ParentGuidanceService
 from app.community.repository import CommunityRepository, repository_from_environment
 from app.community.storage import (
     CommunityMediaStore,
@@ -34,17 +38,27 @@ MAX_COMMUNITY_AUDIO_BYTES = 4 * 1024 * 1024
 MAX_COMMUNITY_DISPLAY_MEDIA_BYTES = 25 * 1024 * 1024
 
 
+def _parent_guidance_free_limit() -> int:
+    try:
+        return max(0, min(1000, int(os.getenv("PARENT_GUIDANCE_FREE_LIMIT", "20"))))
+    except ValueError:
+        return 20
+
+
 def build_community_router(
     repository: CommunityRepository | None = None,
     *,
     media_store: CommunityMediaStore | None = None,
     auth: CommunityAuth | None = None,
     rate_limiter: InMemoryRateLimiter | None = None,
+    parent_guidance_service: ParentGuidanceService | None = None,
 ) -> APIRouter:
     repo = repository or repository_from_environment()
     store = media_store or media_store_from_environment(COMMUNITY_MEDIA_DIR)
     community_auth = auth or CommunityAuth.from_environment()
     limiter = rate_limiter or InMemoryRateLimiter()
+    guidance_service = parent_guidance_service or ParentGuidanceService()
+    parent_guidance_limit = _parent_guidance_free_limit()
     router = APIRouter(prefix="/api/community", tags=["community"])
 
     def client_key(request: Request) -> str:
@@ -102,6 +116,56 @@ def build_community_router(
     @router.get("/areas")
     def areas():
         return [item.model_dump(mode="json") for item in repo.area_summaries()]
+
+    @router.post("/parent-guidance")
+    async def parent_guidance(
+        payload: ParentGuidanceRequest,
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
+        identity = identity_from(authorization)
+        enforce_limit(
+            request,
+            "parent_guidance",
+            identity,
+            limit=30,
+            window_seconds=3600,
+        )
+        allowed, used = await run_in_threadpool(
+            repo.reserve_parent_guidance,
+            identity,
+            parent_guidance_limit,
+        )
+        if not allowed:
+            raise HTTPException(
+                429,
+                {
+                    "code": "free_ai_quota_exhausted",
+                    "message": f"本设备的{parent_guidance_limit}次免费AI亲子陪伴已用完",
+                    "limit": parent_guidance_limit,
+                    "used": used,
+                    "remaining": 0,
+                },
+            )
+        try:
+            result = await run_in_threadpool(
+                guidance_service.create,
+                payload.model_dump(mode="json"),
+            )
+        except Exception:
+            await run_in_threadpool(repo.refund_parent_guidance, identity)
+            raise
+        if not result.get("ai_generated", False):
+            used = await run_in_threadpool(
+                repo.refund_parent_guidance,
+                identity,
+            )
+        result["quota"] = {
+            "limit": parent_guidance_limit,
+            "used": used,
+            "remaining": max(0, parent_guidance_limit - used),
+        }
+        return result
 
     @router.get("/parks")
     def parks():

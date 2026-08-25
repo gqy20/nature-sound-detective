@@ -56,15 +56,36 @@ class ParentGuidanceEngine {
     if (praise.isEmpty) {
       praise.add(
         const PraiseSuggestion(
-          behavior: ExplorationBehavior.observedSafely,
+          behavior: ExplorationBehavior.recordedSound,
           ability: '主动发现',
           text: '刚才这个声音是你先注意到的，谢谢你邀请我一起听。',
+        ),
+      );
+    }
+    final available = behaviors.isEmpty
+        ? const [ExplorationBehavior.recordedSound]
+        : behaviors.toList(growable: false);
+    while (praise.length < 3) {
+      final behavior = available[praise.length % available.length];
+      final description = _behaviorDescriptions[behavior] ?? '完成了这次声音记录';
+      final occurrence = praise
+          .where((item) => item.behavior == behavior)
+          .length;
+      praise.add(
+        PraiseSuggestion(
+          behavior: behavior,
+          ability: occurrence <= 1 ? '继续探索' : '留下证据',
+          text: occurrence <= 1
+              ? '我注意到你$description，这让我们知道下一步还可以继续寻找什么。'
+              : '刚才你$description，这是这次调查中一条属于你自己的真实证据。',
         ),
       );
     }
     return GuidanceBundle(
       guides: guides.take(3).toList(growable: false),
       praiseSuggestions: praise.take(5).toList(growable: false),
+      provider: 'reviewed-template',
+      aiGenerated: false,
     );
   }
 
@@ -72,6 +93,11 @@ class ParentGuidanceEngine {
       values != null && values.any((value) => value != 'unknown');
 
   static const _praise = <ExplorationBehavior, PraiseSuggestion>{
+    ExplorationBehavior.recordedSound: PraiseSuggestion(
+      behavior: ExplorationBehavior.recordedSound,
+      ability: '主动发现',
+      text: '你把听到的声音认真记录下来，让这次好奇有了可以继续寻找的线索。',
+    ),
     ExplorationBehavior.replayedAudio: PraiseSuggestion(
       behavior: ExplorationBehavior.replayedAudio,
       ability: '认真求证',
@@ -102,5 +128,15 @@ class ParentGuidanceEngine {
       ability: '尊重自然',
       text: '你留在步道上安静观察，没有追过去，这是尊重自然的方式。',
     ),
+  };
+
+  static const _behaviorDescriptions = <ExplorationBehavior, String>{
+    ExplorationBehavior.recordedSound: '完成了一次声音记录',
+    ExplorationBehavior.replayedAudio: '主动回听了原声',
+    ExplorationBehavior.completedObservation: '完成了现场观察',
+    ExplorationBehavior.comparedEvidence: '比较了不同证据',
+    ExplorationBehavior.acceptedUncertainty: '愿意保留不确定',
+    ExplorationBehavior.retriedRecording: '失败后重新尝试录音',
+    ExplorationBehavior.observedSafely: '完成了明确记录的安全观察任务',
   };
 }

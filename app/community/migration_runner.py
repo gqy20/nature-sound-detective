@@ -129,6 +129,8 @@ def migration_detected(version: int, snapshot: SchemaSnapshot) -> bool:
             }.issubset(snapshot.public_view_columns)
             and snapshot.community_site_count >= 9
         )
+    if version == 3:
+        return "community_parent_guidance_quotas" in snapshot.relations
     return False
 
 

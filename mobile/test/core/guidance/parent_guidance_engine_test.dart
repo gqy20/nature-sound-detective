@@ -42,4 +42,27 @@ void main() {
     expect(bundle.praiseSuggestions.first.text, contains('重新听'));
     expect(bundle.praiseSuggestions.last.text, contains('暂时不知道'));
   });
+
+  test(
+    'single recorded behavior still gets three distinct fallback options',
+    () {
+      final bundle = const ParentGuidanceEngine().build(
+        detection: detection,
+        observations: const {},
+        behaviors: const {ExplorationBehavior.recordedSound},
+      );
+
+      expect(bundle.praiseSuggestions, hasLength(3));
+      expect(
+        bundle.praiseSuggestions.map((item) => item.text).toSet(),
+        hasLength(3),
+      );
+      expect(
+        bundle.praiseSuggestions.every(
+          (item) => item.behavior == ExplorationBehavior.recordedSound,
+        ),
+        isTrue,
+      );
+    },
+  );
 }

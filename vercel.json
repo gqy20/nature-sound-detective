@@ -3,7 +3,7 @@
   "framework": "fastapi",
   "functions": {
     "api/index.py": {
-      "includeFiles": "{mobile/assets/models/yamnet.tflite,mobile/assets/labels/yamnet.csv,mobile/assets/config/field_observations.json}"
+      "includeFiles": "{app/cloud_yamnet.bin,mobile/assets/labels/yamnet.csv,mobile/assets/config/field_observations.json}"
     }
   },
   "regions": ["sin1"]

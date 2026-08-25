@@ -16,7 +16,9 @@ from app.observability import get_logger, log_event
 
 logger = get_logger("yamnet")
 
-MODEL_PATH = ROOT / "mobile" / "assets" / "models" / "yamnet.tflite"
+MOBILE_MODEL_PATH = ROOT / "mobile" / "assets" / "models" / "yamnet.tflite"
+CLOUD_MODEL_PATH = ROOT / "app" / "cloud_yamnet.bin"
+MODEL_PATH = MOBILE_MODEL_PATH if MOBILE_MODEL_PATH.is_file() else CLOUD_MODEL_PATH
 LABEL_PATH = ROOT / "mobile" / "assets" / "labels" / "yamnet.csv"
 WINDOW_SAMPLES = 15_600
 HOP_SAMPLES = 7_800

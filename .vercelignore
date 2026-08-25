@@ -2,7 +2,6 @@
 .venv
 .pytest_cache
 .playwright-cli
-.python-version
 artifacts
 data
 docs

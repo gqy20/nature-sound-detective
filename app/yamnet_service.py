@@ -76,9 +76,14 @@ def _interpreter_class():
 
         return Interpreter
     except ImportError:
-        import tensorflow as tf
+        try:
+            from ai_edge_litert.interpreter import Interpreter
 
-        return tf.lite.Interpreter
+            return Interpreter
+        except ImportError:
+            import tensorflow as tf
+
+            return tf.lite.Interpreter
 
 
 def _read_pcm16_mono(path: Path) -> np.ndarray:

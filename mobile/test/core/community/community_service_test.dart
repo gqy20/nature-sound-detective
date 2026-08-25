@@ -84,7 +84,8 @@ void main() {
               'candidate_names': ['乌鸫'],
               'field_observations': [],
               'status': 'published_unverified',
-              'review_status': 'not_requested',
+                'review_status': 'not_requested',
+                'is_demo': true,
               'media_assets': [
                 {
                   'id': 'asset-1',
@@ -115,5 +116,6 @@ void main() {
       posts.single.mediaAssets.single.url,
       'https://api.example.test/api/community/media/story.mp4',
     );
+    expect(posts.single.isDemo, isTrue);
   });
 }

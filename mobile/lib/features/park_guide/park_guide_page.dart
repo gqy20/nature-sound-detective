@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/community/route_progress_store.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation_engine.dart';
 import 'package:nature_sound_detective/features/community/exploration_route_page.dart';
 
 class ParkGuidePage extends StatefulWidget {
-  const ParkGuidePage({super.key, this.service, this.routeProgressStore});
+  const ParkGuidePage({
+    super.key,
+    this.service,
+    this.routeProgressStore,
+    this.listeningContextStore,
+  });
 
   final CommunityService? service;
   final RouteProgressStore? routeProgressStore;
+  final RouteListeningContextStore? listeningContextStore;
 
   @override
   State<ParkGuidePage> createState() => _ParkGuidePageState();
@@ -19,6 +26,7 @@ class ParkGuidePage extends StatefulWidget {
 class _ParkGuidePageState extends State<ParkGuidePage> {
   late final CommunityService _service;
   late final RouteProgressStore _routeProgressStore;
+  late final RouteListeningContextStore _listeningContextStore;
   ParkGuidePreferences _preferences = const ParkGuidePreferences();
   List<ParkGuideData> _parks = const [];
   bool _loading = true;
@@ -29,6 +37,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
     super.initState();
     _service = widget.service ?? HttpCommunityService();
     _routeProgressStore = widget.routeProgressStore ?? FileRouteProgressStore();
+    _listeningContextStore =
+        widget.listeningContextStore ?? RouteListeningContextStore();
     _load();
   }
 
@@ -49,19 +59,58 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   }
 
   Future<ParkGuideData> _loadPark(CommunityPark park) async {
-    final values = await Future.wait([
-      _service.listSites(parkId: park.id),
-      _service.listRoutes(park.id),
-      _service.ecologySnapshot(park.id),
-      _service.dailyBrief(park.id),
+    final values = await Future.wait<Object?>([
+      _optional(_service.listSites(parkId: park.id)),
+      _optional(_service.listRoutes(park.id)),
+      _optional(_service.ecologySnapshot(park.id)),
+      _optional(_service.dailyBrief(park.id)),
     ]);
+    final sites = values[0] as List<CommunitySite>?;
+    final routes = values[1] as List<ExplorationRoute>?;
+    final snapshot = values[2] as EcologySnapshot?;
+    final brief = values[3] as DailyNatureBrief?;
+    final warnings = <String>[
+      if (sites == null) '公园分区暂时不可用',
+      if (routes == null) '探索路线暂时不可用',
+      if (snapshot == null || brief == null) '近期社区数据暂时不可用',
+    ];
     return ParkGuideData(
       park: park,
-      sites: values[0] as List<CommunitySite>,
-      routes: values[1] as List<ExplorationRoute>,
-      snapshot: values[2] as EcologySnapshot,
-      brief: values[3] as DailyNatureBrief,
+      sites: sites ?? const [],
+      routes: routes ?? const [],
+      snapshot:
+          snapshot ??
+          EcologySnapshot(
+            parkId: park.id,
+            validPostCount: 0,
+            independentObserverCount: 0,
+            soundTypeCounts: const {},
+            dataSufficiency: 'low',
+            disclaimer: '近期社区数据暂时不可用，不参与本次推荐。',
+          ),
+      brief:
+          brief ??
+          DailyNatureBrief(
+            parkId: park.id,
+            parkName: park.name,
+            headline: '${park.name}近期数据暂不可用',
+            summary: '仍可根据适龄、时长和生境查看基础游园建议。',
+            facts: const [],
+            possibleExplanations: const [],
+            mission: '选择公开步道，先完成一分钟安静倾听。',
+            dataSufficiency: 'low',
+            disclaimer: '当前没有使用社区活动趋势。',
+          ),
+      loadWarnings: warnings,
     );
+  }
+
+  Future<T?> _optional<T>(Future<T> future) async {
+    try {
+      return await future;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -115,6 +164,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
         builder: (_) => ParkGuideDetailPage(
           recommendation: recommendation,
           routeProgressStore: _routeProgressStore,
+          listeningContextStore: _listeningContextStore,
         ),
       ),
     );
@@ -247,6 +297,16 @@ class _ParkRecommendationCard extends StatelessWidget {
                 recommendation.communityEvidenceNote,
                 style: const TextStyle(color: Color(0xFF6C7B74), fontSize: 13),
               ),
+              if (recommendation.data.loadWarnings.isNotEmpty) ...[
+                const SizedBox(height: 5),
+                Text(
+                  recommendation.data.loadWarnings.join(' · '),
+                  style: const TextStyle(
+                    color: Color(0xFF9A4F32),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               Text(
                 recommendation.bestTime,
@@ -265,9 +325,11 @@ class ParkGuideDetailPage extends StatelessWidget {
     super.key,
     required this.recommendation,
     required this.routeProgressStore,
+    required this.listeningContextStore,
   });
   final ParkRecommendation recommendation;
   final RouteProgressStore routeProgressStore;
+  final RouteListeningContextStore listeningContextStore;
 
   @override
   Widget build(BuildContext context) {
@@ -285,6 +347,13 @@ class ParkGuideDetailPage extends StatelessWidget {
             recommendation.communityEvidenceNote,
             style: const TextStyle(color: Color(0xFF52615A)),
           ),
+          if (data.loadWarnings.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              data.loadWarnings.join(' · '),
+              style: const TextStyle(color: Color(0xFF9A4F32)),
+            ),
+          ],
           const SizedBox(height: 16),
           _InfoTile(
             icon: Icons.schedule_rounded,
@@ -329,9 +398,32 @@ class ParkGuideDetailPage extends StatelessWidget {
                         route: route,
                         store: routeProgressStore,
                         sites: data.sites,
-                        onStartListening: () => Navigator.of(
-                          context,
-                        ).popUntil((item) => item.isFirst),
+                        onStartListening:
+                            (stop, index, safeObservationConfirmed) async {
+                              final site = data.sites
+                                  .where((item) => item.id == stop.siteId)
+                                  .firstOrNull;
+                              if (site == null) return;
+                              await listeningContextStore.save(
+                                RouteListeningContext(
+                                  parkId: data.park.id,
+                                  parkName: data.park.name,
+                                  zoneId: site.zoneId,
+                                  zoneName: site.zoneName,
+                                  siteId: site.id,
+                                  routeId: route.id,
+                                  routeName: route.name,
+                                  stopIndex: index,
+                                  safeObservationConfirmed:
+                                      safeObservationConfirmed,
+                                ),
+                              );
+                              if (context.mounted) {
+                                Navigator.of(
+                                  context,
+                                ).popUntil((item) => item.isFirst);
+                              }
+                            },
                       ),
                     ),
                   ),

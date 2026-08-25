@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/audio/audio_waveform.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/diagnostics/debug_export_service.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
@@ -17,6 +19,7 @@ import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
+import 'package:nature_sound_detective/features/capture/sound_waveform.dart';
 import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/parent/parent_companion_sheet.dart';
@@ -25,6 +28,7 @@ import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dar
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
+import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class CapturePage extends StatefulWidget {
@@ -35,6 +39,8 @@ class CapturePage extends StatefulWidget {
     this.playback,
     this.analyzer,
     this.store,
+    this.routeContextStore,
+    this.parentGuidanceService,
     this.mode = ExplorationMode.child,
     this.onModeChanged,
   });
@@ -44,6 +50,8 @@ class CapturePage extends StatefulWidget {
   final AudioPlayback? playback;
   final RecordingAnalyzer? analyzer;
   final ExplorationStore? store;
+  final RouteListeningContextStore? routeContextStore;
+  final ParentGuidanceNetworkService? parentGuidanceService;
   final ExplorationMode mode;
   final ValueChanged<ExplorationMode>? onModeChanged;
 
@@ -59,7 +67,10 @@ class _CapturePageState extends State<CapturePage> {
   late final AudioPlayback _playback;
   late final RecordingAnalyzer _analyzer;
   late final ExplorationStore _store;
+  late final RouteListeningContextStore _routeContextStore;
+  late final ParentGuidanceNetworkService _parentGuidanceService;
   StreamSubscription<bool>? _playbackSubscription;
+  StreamSubscription<Duration>? _playbackPositionSubscription;
   Timer? _timer;
   DateTime? _startedAt;
   Duration _elapsed = Duration.zero;
@@ -79,11 +90,17 @@ class _CapturePageState extends State<CapturePage> {
   final Map<String, Map<String, List<String>>> _fieldObservations = {};
   String? _error;
   double _liveRms = 0;
+  double _livePeak = 0;
+  List<double> _liveLevels = const [];
+  List<double> _waveformSamples = const [];
+  double _playbackProgress = 0;
   bool _signalHeard = false;
   bool _levelPolling = false;
   String? _audioSource;
   bool _exportingDiagnostics = false;
   final Set<ExplorationBehavior> _behaviors = {};
+  RouteListeningContext? _routeContext;
+  ParentGuidanceQuota? _parentGuidanceQuota;
 
   bool get _isRecording => _startedAt != null;
   bool get _canImport => _recorder is AudioImporter;
@@ -96,16 +113,44 @@ class _CapturePageState extends State<CapturePage> {
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _analyzer = widget.analyzer ?? LocalRecordingAnalyzer();
     _store = widget.store ?? FileExplorationStore();
+    _routeContextStore =
+        widget.routeContextStore ?? RouteListeningContextStore();
+    _parentGuidanceService =
+        widget.parentGuidanceService ?? ParentGuidanceNetworkService();
+    unawaited(_restoreRouteContext());
+    if (widget.mode == ExplorationMode.parent) unawaited(_loadParentQuota());
     _playbackSubscription = _playback.playing.listen((playing) {
-      if (mounted) setState(() => _isPlaying = playing);
+      if (!mounted) return;
+      setState(() => _isPlaying = playing);
+      if (!playing && _playbackProgress != 0) {
+        setState(() => _playbackProgress = 0);
+      }
+    });
+    _playbackPositionSubscription = _playback.position.listen((position) {
+      final duration = _recording?.duration ?? Duration.zero;
+      if (!mounted || duration <= Duration.zero) return;
+      setState(() {
+        _playbackProgress = (position.inMilliseconds / duration.inMilliseconds)
+            .clamp(0.0, 1.0);
+      });
     });
     AppLog.info('capture', 'page_ready');
+  }
+
+  @override
+  void didUpdateWidget(covariant CapturePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mode != ExplorationMode.parent &&
+        widget.mode == ExplorationMode.parent) {
+      unawaited(_loadParentQuota());
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     unawaited(_playbackSubscription?.cancel());
+    unawaited(_playbackPositionSubscription?.cancel());
     unawaited(_playback.dispose());
     unawaited(_analyzer.dispose());
     if (_isRecording) {
@@ -124,6 +169,7 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Future<void> _startRecording() async {
+    final routeContext = _routeContextStore.cached ?? _routeContext;
     setState(() {
       _busy = true;
       _resultVisible = false;
@@ -136,9 +182,17 @@ class _CapturePageState extends State<CapturePage> {
       _saved = false;
       _error = null;
       _liveRms = 0;
+      _livePeak = 0;
+      _liveLevels = const [];
+      _waveformSamples = const [];
+      _playbackProgress = 0;
       _signalHeard = false;
       _audioSource = null;
       _behaviors.clear();
+      if (routeContext?.safeObservationConfirmed == true) {
+        _behaviors.add(ExplorationBehavior.observedSafely);
+      }
+      _routeContext = routeContext;
     });
     try {
       final permitted =
@@ -161,8 +215,9 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _startedAt = session.startedAt;
         _elapsed = Duration.zero;
+        _busy = false;
       });
-      _timer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
         if (!mounted || _startedAt == null) return;
         final elapsed = DateTime.now().difference(_startedAt!);
         setState(
@@ -189,6 +244,18 @@ class _CapturePageState extends State<CapturePage> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _restoreRouteContext() async {
+    final context = await _routeContextStore.load();
+    if (mounted && context != null) setState(() => _routeContext = context);
+  }
+
+  Future<void> _loadParentQuota() async {
+    final quota = await _parentGuidanceService.loadQuota();
+    if (mounted && quota != null) {
+      setState(() => _parentGuidanceQuota = quota);
     }
   }
 
@@ -222,12 +289,15 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.recordedSound);
+        _behaviors.add(ExplorationBehavior.capturedSound);
         _startedAt = null;
         _elapsed = recording.duration;
         _resultVisible = true;
         _liveRms = 0;
+        _livePeak = 0;
+        _waveformSamples = const [];
       });
+      unawaited(_loadRecordingWaveform(recording));
       if (quality.usable) {
         await _analyzeRecording();
       }
@@ -276,7 +346,12 @@ class _CapturePageState extends State<CapturePage> {
           .getRecordingLevel();
       if (!mounted || !_isRecording) return;
       setState(() {
-        _liveRms = level.rms;
+        _liveRms = _liveRms * 0.42 + level.rms * 0.58;
+        _livePeak = _livePeak * 0.3 + level.peak * 0.7;
+        _liveLevels = List<double>.unmodifiable([
+          ...(_liveLevels.length >= 36 ? _liveLevels.skip(1) : _liveLevels),
+          _liveRms,
+        ]);
         _audioSource = level.source;
         _signalHeard = _signalHeard || level.rms >= 0.003;
       });
@@ -294,6 +369,7 @@ class _CapturePageState extends State<CapturePage> {
   Future<void> _importAudio() async {
     final importer = _recorder;
     if (importer is! AudioImporter || _busy || _isRecording) return;
+    await _routeContextStore.clear();
     setState(() {
       _busy = true;
       _resultVisible = false;
@@ -305,6 +381,9 @@ class _CapturePageState extends State<CapturePage> {
       _hasAnalyzed = false;
       _saved = false;
       _error = null;
+      _routeContext = null;
+      _waveformSamples = const [];
+      _playbackProgress = 0;
     });
     try {
       final recording = await (importer as AudioImporter).pickAudio();
@@ -331,10 +410,12 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.recordedSound);
+        _behaviors.add(ExplorationBehavior.importedSound);
         _elapsed = recording.duration;
+        _waveformSamples = const [];
         _resultVisible = true;
       });
+      unawaited(_loadRecordingWaveform(recording));
       if (quality.usable) {
         await _analyzeRecording();
       }
@@ -392,10 +473,31 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  Future<List<double>> _extractWaveform(String path) async {
+    try {
+      return await AudioWaveformExtractor.extract(path);
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'audio',
+        'waveform_extract_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
+  }
+
+  Future<void> _loadRecordingWaveform(RecordedAudio recording) async {
+    final samples = await _extractWaveform(recording.path);
+    if (!mounted || _recording?.id != recording.id) return;
+    setState(() => _waveformSamples = samples);
+  }
+
   Future<void> _loadDebugDemo() async {
     if (_busy || !kDebugMode || _recorder is! MethodChannelAudioRecorder) {
       return;
     }
+    await _routeContextStore.clear();
     setState(() {
       _busy = true;
       _recording = null;
@@ -406,6 +508,9 @@ class _CapturePageState extends State<CapturePage> {
       _hasAnalyzed = false;
       _saved = false;
       _error = null;
+      _routeContext = null;
+      _waveformSamples = const [];
+      _playbackProgress = 0;
     });
     try {
       final recording = await _recorder.loadDebugDemo();
@@ -426,10 +531,12 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.recordedSound);
+        _behaviors.add(ExplorationBehavior.importedSound);
         _elapsed = recording.duration;
+        _waveformSamples = const [];
         _resultVisible = true;
       });
+      unawaited(_loadRecordingWaveform(recording));
       if (quality.usable) {
         await _analyzeRecording();
       }
@@ -518,8 +625,10 @@ class _CapturePageState extends State<CapturePage> {
         fieldObservations: Map<String, Map<String, List<String>>>.unmodifiable(
           _fieldObservations,
         ),
-        location: '杭州',
+        location: _routeContext?.parkName ?? '杭州',
+        routeContext: _routeContext,
       );
+      await _routeContextStore.clear();
       AppLog.info(
         'storage',
         'exploration_saved',
@@ -527,7 +636,10 @@ class _CapturePageState extends State<CapturePage> {
         fields: {'detection_count': _detections.length},
       );
       if (mounted) {
-        setState(() => _saved = true);
+        setState(() {
+          _saved = true;
+          _routeContext = null;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('已保存到自然册'),
@@ -763,8 +875,10 @@ class _CapturePageState extends State<CapturePage> {
         observations: observations,
         behaviors: {..._behaviors},
         weakSignal: _quality?.weakSignal ?? false,
+        service: _parentGuidanceService,
       ),
     );
+    await _loadParentQuota();
   }
 
   Future<void> _showDebugActions() async {
@@ -879,6 +993,27 @@ class _CapturePageState extends State<CapturePage> {
                 child: Column(
                   children: [
                     Spacer(flex: compact ? 2 : 3),
+                    if (_routeContext case final route?) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xE6FFF2CE),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Text(
+                          '${route.parkName} · 第${route.stopIndex + 1}站 · ${route.zoneName}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                     Text(
                       _isRecording
                           ? '正在倾听'
@@ -907,6 +1042,17 @@ class _CapturePageState extends State<CapturePage> {
                         icon: const Icon(Icons.map_outlined),
                         label: const Text('先看看今天适合去哪听'),
                       ),
+                    if (!_isRecording && widget.mode == ExplorationMode.parent)
+                      if (_parentGuidanceQuota case final quota?)
+                        Text(
+                          '本设备剩余 ${quota.remaining} / ${quota.limit} 次免费AI陪伴',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: quota.remaining <= 3
+                                ? const Color(0xFF9A4F32)
+                                : null,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                     Spacer(flex: compact ? 2 : 3),
                     _buildRecordControl(controlDimension),
                     Spacer(flex: compact ? 2 : 4),
@@ -936,94 +1082,103 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onLongPress: diagnosticsEnabled ? _showDebugActions : null,
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/logo_mark.png',
-                  width: 28,
-                  height: 28,
-                  filterQuality: FilterQuality.medium,
-                  excludeFromSemantics: true,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.maxWidth < 430 ||
+            MediaQuery.textScalerOf(context).scale(1) > 1.4;
+        return Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onLongPress: diagnosticsEnabled ? _showDebugActions : null,
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/logo_mark.png',
+                      width: 28,
+                      height: 28,
+                      filterQuality: FilterQuality.medium,
+                      excludeFromSemantics: true,
+                    ),
+                    if (!compact) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '自然声探员',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontSize: 16,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '自然声探员',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontSize: 16,
-                    letterSpacing: 0.2,
-                  ),
+              ),
+            ),
+            _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
+            const SizedBox(width: 4),
+            if (widget.mode == ExplorationMode.child && !compact) ...[
+              const Icon(
+                Icons.location_on_outlined,
+                size: 17,
+                color: Color(0xFF52615A),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '杭州',
+                style: TextStyle(
+                  color: Color(0xFF52615A),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
+              ),
+              const SizedBox(width: 6),
+            ],
+            if (diagnosticsEnabled)
+              IconButton(
+                key: const Key('debug-export-button'),
+                tooltip: '导出诊断包',
+                visualDensity: VisualDensity.compact,
+                onPressed: _exportingDiagnostics ? null : _exportDiagnostics,
+                icon: _exportingDiagnostics
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.bug_report_outlined, size: 20),
+              ),
+            if (widget.mode == ExplorationMode.parent)
+              IconButton(
+                key: const Key('park-guide-button'),
+                tooltip: '游园指南',
+                visualDensity: VisualDensity.compact,
+                onPressed: _openParkGuide,
+                icon: const Icon(Icons.map_outlined, size: 20),
+              ),
+            IconButton(
+              key: const Key('soundscape-button'),
+              tooltip: '共听杭州',
+              visualDensity: VisualDensity.compact,
+              onPressed: _openSoundscape,
+              icon: const Icon(Icons.radar_rounded, size: 20),
             ),
-          ),
-        ),
-        _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
-        const SizedBox(width: 4),
-        if (widget.mode == ExplorationMode.child) ...[
-          const Icon(
-            Icons.location_on_outlined,
-            size: 17,
-            color: Color(0xFF52615A),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            '杭州',
-            style: TextStyle(
-              color: Color(0xFF52615A),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+            IconButton(
+              key: const Key('works-button'),
+              tooltip: '自然册',
+              visualDensity: VisualDensity.compact,
+              onPressed: _openNatureBook,
+              icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
             ),
-          ),
-          const SizedBox(width: 6),
-        ],
-        if (diagnosticsEnabled)
-          IconButton(
-            key: const Key('debug-export-button'),
-            tooltip: '导出诊断包',
-            visualDensity: VisualDensity.compact,
-            onPressed: _exportingDiagnostics ? null : _exportDiagnostics,
-            icon: _exportingDiagnostics
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.bug_report_outlined, size: 20),
-          ),
-        if (widget.mode == ExplorationMode.parent)
-          IconButton(
-            key: const Key('park-guide-button'),
-            tooltip: '游园指南',
-            visualDensity: VisualDensity.compact,
-            onPressed: _openParkGuide,
-            icon: const Icon(Icons.map_outlined, size: 20),
-          ),
-        IconButton(
-          key: const Key('soundscape-button'),
-          tooltip: '共听杭州',
-          visualDensity: VisualDensity.compact,
-          onPressed: _openSoundscape,
-          icon: const Icon(Icons.radar_rounded, size: 20),
-        ),
-        IconButton(
-          key: const Key('works-button'),
-          tooltip: '自然册',
-          visualDensity: VisualDensity.compact,
-          onPressed: _openNatureBook,
-          icon: const Icon(Icons.collections_bookmark_outlined, size: 20),
-        ),
-        IconButton(
-          key: const Key('creation-settings-button'),
-          tooltip: 'AI 创作设置',
-          visualDensity: VisualDensity.compact,
-          onPressed: _openCreationSettings,
-          icon: const Icon(Icons.tune_rounded, size: 20),
-        ),
-      ],
+            IconButton(
+              key: const Key('creation-settings-button'),
+              tooltip: 'AI 创作设置',
+              visualDensity: VisualDensity.compact,
+              onPressed: _openCreationSettings,
+              icon: const Icon(Icons.tune_rounded, size: 20),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1034,26 +1189,19 @@ class _CapturePageState extends State<CapturePage> {
         .clamp(0.0, 1.0);
     final progressDimension = dimension * 0.846;
     final buttonDimension = dimension * 0.726;
-    final levelStrength = (_liveRms / 0.04).clamp(0.0, 1.0);
 
     return SizedBox.square(
       dimension: dimension,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 350),
-            width: _isRecording
-                ? dimension * (0.94 + 0.055 * levelStrength)
-                : dimension * 0.94,
-            height: _isRecording
-                ? dimension * (0.94 + 0.055 * levelStrength)
-                : dimension * 0.94,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: forest.withValues(alpha: _isRecording ? 0.18 : 0.09),
-              ),
+          SizedBox.square(
+            dimension: dimension,
+            child: ListeningWaveRing(
+              levels: _liveLevels,
+              rms: _liveRms,
+              peak: _livePeak,
+              active: _isRecording,
             ),
           ),
           Container(
@@ -1116,6 +1264,34 @@ class _CapturePageState extends State<CapturePage> {
                     color: Color(0xFF52615A),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          if (_isRecording)
+            Positioned(
+              bottom: 0,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Container(
+                  key: ValueKey(_signalHeard),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFDF7),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFBFCFC5)),
+                  ),
+                  child: Text(
+                    _signalHeard ? '听到了，声纹在跳动' : '轻轻等一等，听听周围',
+                    key: const Key('live-wave-hint'),
+                    style: const TextStyle(
+                      color: forest,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -1193,7 +1369,7 @@ class _CapturePageState extends State<CapturePage> {
   Widget _buildResultOverlay(BuildContext context) {
     final expanded = _detections.isNotEmpty;
     final usable = _quality?.usable == true;
-    final heightFactor = expanded ? 0.74 : (usable ? 0.60 : 0.50);
+    final heightFactor = expanded ? 0.78 : (usable ? 0.68 : 0.64);
 
     return Stack(
       key: const ValueKey('result-visible'),
@@ -1218,6 +1394,7 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Widget _buildResultPanel(BuildContext context) {
+    const forest = Color(0xFF174936);
     final theme = Theme.of(context);
     final quality = _quality;
     final recording = _recording;
@@ -1294,6 +1471,61 @@ class _CapturePageState extends State<CapturePage> {
                           _QualityIndicator(quality: quality),
                       ],
                     ),
+                  if (recording != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      key: const Key('audio-waveform-card'),
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F5EF),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFDCE6DE)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                _analyzing
+                                    ? Icons.travel_explore_rounded
+                                    : (_isPlaying
+                                          ? Icons.graphic_eq_rounded
+                                          : Icons.waves_rounded),
+                                size: 18,
+                                color: forest,
+                              ),
+                              const SizedBox(width: 7),
+                              Expanded(
+                                child: Text(
+                                  _analyzing
+                                      ? '正在沿着声纹寻找线索'
+                                      : (_isPlaying ? '正在回放这段声音' : '这段声音的声纹'),
+                                  style: const TextStyle(
+                                    color: forest,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          AudioWaveformView(
+                            samples: _waveformSamples,
+                            active: _analyzing || _isPlaying,
+                            progress: _isPlaying
+                                ? _playbackProgress
+                                : (_analyzing && _analysisTotalWindows > 0
+                                      ? _analysisProcessedWindows /
+                                            _analysisTotalWindows
+                                      : null),
+                            label: _analyzing
+                                ? '模型正在读取录音声纹'
+                                : (_isPlaying ? '正在回放录音声纹' : '录音声纹'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   if (quality != null) ...[
                     if (quality.warnings.isNotEmpty) ...[
                       const SizedBox(height: 10),
@@ -1357,6 +1589,20 @@ class _CapturePageState extends State<CapturePage> {
                   ],
                   if (_detections.isNotEmpty) ...[
                     const SizedBox(height: 24),
+                    if (quality?.weakSignal == true) ...[
+                      Container(
+                        key: const Key('weak-evidence-notice'),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF0D2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          '模型找到了声音候选，但这段录音证据较弱。分数只表示模型线索，请结合声音方向、节奏和现场环境继续确认。',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     DetectionResults(
                       detections: _detections,
                       onDetectionTap: (detection, rank) =>

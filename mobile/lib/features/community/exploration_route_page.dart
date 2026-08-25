@@ -14,7 +14,12 @@ class ExplorationRoutePage extends StatefulWidget {
   final ExplorationRoute route;
   final RouteProgressStore store;
   final List<CommunitySite> sites;
-  final VoidCallback? onStartListening;
+  final Future<void> Function(
+    ExplorationRouteStop stop,
+    int index,
+    bool safeObservationConfirmed,
+  )?
+  onStartListening;
 
   @override
   State<ExplorationRoutePage> createState() => _ExplorationRoutePageState();
@@ -146,7 +151,15 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
                             const SizedBox(height: 10),
                             OutlinedButton.icon(
                               key: Key('route-listen-${stop.siteId}'),
-                              onPressed: widget.onStartListening,
+                              onPressed: () async {
+                                await widget.onStartListening!(
+                                  stop,
+                                  index,
+                                  progress.completedSiteIds.contains(
+                                    stop.siteId,
+                                  ),
+                                );
+                              },
                               icon: const Icon(Icons.mic_none_rounded),
                               label: const Text('到这里开始聆听'),
                             ),

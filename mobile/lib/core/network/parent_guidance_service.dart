@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,24 @@ import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 import 'package:nature_sound_detective/core/guidance/parent_guidance_engine.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+
+class ParentGuidanceQuota {
+  const ParentGuidanceQuota({
+    required this.limit,
+    required this.used,
+    required this.remaining,
+  });
+  final int limit;
+  final int used;
+  final int remaining;
+
+  factory ParentGuidanceQuota.fromJson(Map<String, Object?> json) =>
+      ParentGuidanceQuota(
+        limit: (json['limit'] as num?)?.toInt() ?? 20,
+        used: (json['used'] as num?)?.toInt() ?? 0,
+        remaining: (json['remaining'] as num?)?.toInt() ?? 20,
+      );
+}
 
 class ParentGuidanceNetworkService {
   ParentGuidanceNetworkService({
@@ -27,10 +46,73 @@ class ParentGuidanceNetworkService {
   final Uri baseUri;
   final http.Client _client;
   final CommunityIdentityStore _identityStore;
+  String? _cachedToken;
+  DateTime? _tokenExpiresAt;
+  Future<String>? _tokenRequest;
 
   Uri _uri(String path) => baseUri.replace(
     path: '${baseUri.path.replaceFirst(RegExp(r'/$'), '')}$path',
   );
+
+  Future<String> _token() async {
+    final token = _cachedToken;
+    final expiresAt = _tokenExpiresAt;
+    if (token != null &&
+        expiresAt != null &&
+        expiresAt.isAfter(DateTime.now().add(const Duration(minutes: 1)))) {
+      return token;
+    }
+    final pending = _tokenRequest;
+    if (pending != null) return pending;
+    final created = _createToken();
+    _tokenRequest = created;
+    try {
+      return await created;
+    } finally {
+      if (identical(_tokenRequest, created)) _tokenRequest = null;
+    }
+  }
+
+  Future<String> _createToken() async {
+    final response = await _client
+        .post(
+          _uri('/api/community/session'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'device_id': await _identityStore.load()}),
+        )
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode >= 400) throw const FormatException();
+    final session = jsonDecode(response.body) as Map<String, Object?>;
+    final token = session['token'] as String?;
+    final expiresAt = session['expires_at'] as num?;
+    if (token == null || token.isEmpty || expiresAt == null) {
+      throw const FormatException();
+    }
+    _cachedToken = token;
+    _tokenExpiresAt = DateTime.fromMillisecondsSinceEpoch(
+      expiresAt.toInt() * 1000,
+      isUtc: true,
+    );
+    return token;
+  }
+
+  Future<ParentGuidanceQuota?> loadQuota() async {
+    try {
+      final response = await _client
+          .get(
+            _uri('/api/community/parent-guidance/quota'),
+            headers: {'Authorization': 'Bearer ${await _token()}'},
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode >= 400) return null;
+      return ParentGuidanceQuota.fromJson(
+        (jsonDecode(response.body) as Map<Object?, Object?>)
+            .cast<String, Object?>(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<GuidanceBundle> create({
     required SoundDetection? detection,
@@ -47,35 +129,29 @@ class ParentGuidanceNetworkService {
       behaviors: safeBehaviors,
     );
     try {
-      final sessionResponse = await _client.post(
-        _uri('/api/community/session'),
-        headers: const {'Content-Type': 'application/json'},
-        body: jsonEncode({'device_id': await _identityStore.load()}),
-      );
-      if (sessionResponse.statusCode >= 400) throw const FormatException();
-      final session = jsonDecode(sessionResponse.body) as Map<String, Object?>;
-      final token = session['token'] as String?;
-      if (token == null || token.isEmpty) throw const FormatException();
-      final response = await _client.post(
-        _uri('/api/community/parent-guidance'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'candidate_name':
-              detection?.specificSpecies?.nameZh ?? detection?.nameZh ?? '',
-          'category': detection?.nameZh ?? '',
-          'confidence': detection?.confidence ?? 0,
-          'weak_signal': weakSignal,
-          'observations': [
-            for (final entry in observations.entries)
-              for (final value in entry.value)
-                if (value != 'unknown') '${entry.key}:$value',
-          ],
-          'behaviors': safeBehaviors.map((item) => item.name).toList(),
-        }),
-      );
+      final token = await _token();
+      final response = await _client
+          .post(
+            _uri('/api/community/parent-guidance'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'candidate_name':
+                  detection?.specificSpecies?.nameZh ?? detection?.nameZh ?? '',
+              'category': detection?.nameZh ?? '',
+              'confidence': detection?.confidence ?? 0,
+              'weak_signal': weakSignal,
+              'observations': [
+                for (final entry in observations.entries)
+                  for (final value in entry.value)
+                    if (value != 'unknown') '${entry.key}:$value',
+              ],
+              'behaviors': safeBehaviors.map((item) => item.name).toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
       if (response.statusCode == 429) {
         final payload = jsonDecode(response.body) as Map<String, Object?>;
         final detail = switch (payload['detail']) {

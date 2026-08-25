@@ -13,13 +13,21 @@ void main() {
   test('parses directly generated AI guidance', () async {
     final directory = await Directory.systemTemp.createTemp('parent-ai-');
     addTearDown(() => directory.delete(recursive: true));
+    var sessionRequests = 0;
     final client = MockClient((request) async {
       if (request.url.path.endsWith('/session')) {
+        sessionRequests++;
         return http.Response(
           jsonEncode({
             'token': 'v1.payload.signature',
             'expires_at': 9999999999,
           }),
+          200,
+        );
+      }
+      if (request.url.path.endsWith('/quota')) {
+        return http.Response(
+          jsonEncode({'limit': 20, 'used': 1, 'remaining': 19}),
           200,
         );
       }
@@ -29,6 +37,7 @@ void main() {
         jsonEncode({
           'provider': 'qwen3.7-flash',
           'ai_generated': true,
+          'cached': true,
           'warning': '',
           'quota': {'limit': 20, 'used': 1, 'remaining': 19},
           'guides': [
@@ -84,6 +93,10 @@ void main() {
     expect(result.guides, hasLength(2));
     expect(result.praiseSuggestions, hasLength(3));
     expect(result.quotaRemaining, 19);
+    expect(result.cached, isTrue);
+    final quota = await service.loadQuota();
+    expect(quota?.remaining, 19);
+    expect(sessionRequests, 1);
   });
 
   test('falls back locally when AI endpoint is unavailable', () async {

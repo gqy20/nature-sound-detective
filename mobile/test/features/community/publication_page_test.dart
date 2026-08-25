@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
@@ -39,6 +40,16 @@ void main() {
           specificSpecies: SpeciesCandidate(nameZh: '乌鸫'),
         ),
       ],
+      routeContext: const RouteListeningContext(
+        parkId: 'hangzhou-botanical-garden',
+        parkName: '杭州植物园',
+        zoneId: 'understory-trail',
+        zoneName: '林下步道',
+        siteId: 'hangzhou-botanical-garden:understory-trail',
+        routeId: 'botanical-morning-canopy',
+        routeName: '清晨树冠声音路线',
+        stopIndex: 1,
+      ),
     );
     final work = CreationRecord(
       id: 'work-1',
@@ -96,6 +107,11 @@ void main() {
     expect(service.mediaCalls, 1);
     expect(service.lastSourceType, 'composed');
     expect(service.lastFilePath, video.path);
+    expect(service.lastRequest?.consent.parkId, 'hangzhou-botanical-garden');
+    expect(
+      service.lastRequest?.consent.siteId,
+      'hangzhou-botanical-garden:understory-trail',
+    );
     expect(result?.id, 'post-1');
   });
 }
@@ -105,6 +121,7 @@ class _PublicationService implements CommunityService {
   int mediaCalls = 0;
   String? lastSourceType;
   String? lastFilePath;
+  PublicationRequest? lastRequest;
 
   final post = CommunityPost(
     id: 'post-1',
@@ -129,6 +146,7 @@ class _PublicationService implements CommunityService {
   @override
   Future<CommunityPost> publish(PublicationRequest request) async {
     publishCalls += 1;
+    lastRequest = request;
     return post;
   }
 

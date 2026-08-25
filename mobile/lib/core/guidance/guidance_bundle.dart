@@ -1,4 +1,6 @@
 enum ExplorationBehavior {
+  capturedSound,
+  importedSound,
   recordedSound,
   replayedAudio,
   completedObservation,
@@ -60,6 +62,7 @@ class GuidanceBundle {
     this.warning = '',
     this.quotaLimit,
     this.quotaRemaining,
+    this.cached = false,
   });
 
   final List<ParentGuide> guides;
@@ -69,6 +72,7 @@ class GuidanceBundle {
   final String warning;
   final int? quotaLimit;
   final int? quotaRemaining;
+  final bool cached;
 
   factory GuidanceBundle.fromJson(Map<String, Object?> json) {
     final quota = switch (json['quota']) {
@@ -91,6 +95,7 @@ class GuidanceBundle {
       warning: json['warning'] as String? ?? '',
       quotaLimit: (quota['limit'] as num?)?.toInt(),
       quotaRemaining: (quota['remaining'] as num?)?.toInt(),
+      cached: json['cached'] as bool? ?? false,
     );
   }
 }

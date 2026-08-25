@@ -77,6 +77,8 @@ class ParentGuidanceRequest(BaseModel):
     behaviors: list[
         Literal[
             "recordedSound",
+            "capturedSound",
+            "importedSound",
             "replayedAudio",
             "completedObservation",
             "comparedEvidence",
@@ -112,6 +114,7 @@ class CommunityPost(BaseModel):
     sampling_effort: dict[str, Any] = Field(default_factory=dict)
     audio_quality: dict[str, Any] = Field(default_factory=dict)
     ecology_eligible: bool = True
+    is_demo: bool = False
     media_assets: list["CommunityMediaAsset"] = Field(default_factory=list)
 
 

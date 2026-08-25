@@ -93,6 +93,16 @@ class ParentGuidanceEngine {
       values != null && values.any((value) => value != 'unknown');
 
   static const _praise = <ExplorationBehavior, PraiseSuggestion>{
+    ExplorationBehavior.capturedSound: PraiseSuggestion(
+      behavior: ExplorationBehavior.capturedSound,
+      ability: '现场记录',
+      text: '你把刚才听见的声音录了下来，让现场发现有了可以回听的证据。',
+    ),
+    ExplorationBehavior.importedSound: PraiseSuggestion(
+      behavior: ExplorationBehavior.importedSound,
+      ability: '整理线索',
+      text: '你选择了一段已有声音继续调查，让过去的发现也能重新被认真倾听。',
+    ),
     ExplorationBehavior.recordedSound: PraiseSuggestion(
       behavior: ExplorationBehavior.recordedSound,
       ability: '主动发现',
@@ -131,6 +141,8 @@ class ParentGuidanceEngine {
   };
 
   static const _behaviorDescriptions = <ExplorationBehavior, String>{
+    ExplorationBehavior.capturedSound: '使用麦克风完成了一次现场录音',
+    ExplorationBehavior.importedSound: '导入了一段已有声音用于调查',
     ExplorationBehavior.recordedSound: '完成了一次声音记录',
     ExplorationBehavior.replayedAudio: '主动回听了原声',
     ExplorationBehavior.completedObservation: '完成了现场观察',

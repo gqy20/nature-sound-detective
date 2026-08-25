@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
@@ -29,6 +30,7 @@ void main() {
     expect(find.text('声音记录'), findsOneWidget);
     expect(find.text('作品'), findsOneWidget);
     expect(find.text('乌鸫'), findsOneWidget);
+    expect(find.textContaining('清晨树冠声音路线 · 第2站 · 林下步道'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('play-sound-1')));
     await tester.pump();
@@ -54,6 +56,16 @@ class _MemoryStore implements ExplorationStore {
           specificSpecies: SpeciesCandidate(nameZh: '乌鸫'),
         ),
       ],
+      routeContext: const RouteListeningContext(
+        parkId: 'hangzhou-botanical-garden',
+        parkName: '杭州植物园',
+        zoneId: 'understory-trail',
+        zoneName: '林下步道',
+        siteId: 'hangzhou-botanical-garden:understory-trail',
+        routeId: 'botanical-morning-canopy',
+        routeName: '清晨树冠声音路线',
+        stopIndex: 1,
+      ),
     ),
   ];
 
@@ -72,6 +84,7 @@ class _MemoryStore implements ExplorationStore {
     required String location,
     Map<String, List<String>> fieldChecks = const {},
     Map<String, Map<String, List<String>>> fieldObservations = const {},
+    RouteListeningContext? routeContext,
   }) => throw UnimplementedError();
   @override
   Future<void> setConfirmed(String id, bool confirmed) async {}
@@ -99,6 +112,8 @@ class _FakePlayback implements AudioPlayback {
   String? lastPath;
   @override
   Stream<bool> get playing => controller.stream;
+  @override
+  Stream<Duration> get position => const Stream.empty();
   @override
   Future<void> play(String path) async {
     lastPath = path;

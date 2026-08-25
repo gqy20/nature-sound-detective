@@ -5,6 +5,8 @@ import 'package:audioplayers/audioplayers.dart';
 abstract interface class AudioPlayback {
   Stream<bool> get playing;
 
+  Stream<Duration> get position;
+
   Future<void> play(String path);
 
   Future<void> playSegment(
@@ -30,6 +32,9 @@ class DeviceFileAudioPlayback implements AudioPlayback {
   Stream<bool> get playing => _player.onPlayerStateChanged
       .map((state) => state == PlayerState.playing)
       .distinct();
+
+  @override
+  Stream<Duration> get position => _player.onPositionChanged;
 
   @override
   Future<void> play(String path) => _player.play(DeviceFileSource(path));

@@ -56,7 +56,10 @@ class _ParentCompanionSheetState extends State<ParentCompanionSheet> {
             const Text('专业信息帮助你提问和守住边界，不是让家长替孩子判断。'),
             if (candidate != null) ...[
               const SizedBox(height: 18),
-              _EvidenceCard(detection: candidate),
+              _EvidenceCard(
+                detection: candidate,
+                weakSignal: widget.weakSignal,
+              ),
             ],
             const SizedBox(height: 22),
             FutureBuilder<GuidanceBundle>(
@@ -111,6 +114,13 @@ class _GuidanceContent extends StatelessWidget {
           ),
         ],
       ),
+      if (bundle.cached) ...[
+        const SizedBox(height: 5),
+        Text(
+          '已读取本次调查的AI缓存，不重复扣除次数',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
       if (bundle.warning.isNotEmpty) ...[
         const SizedBox(height: 5),
         Text(bundle.warning, style: Theme.of(context).textTheme.bodySmall),
@@ -142,8 +152,9 @@ class _GuidanceContent extends StatelessWidget {
 }
 
 class _EvidenceCard extends StatelessWidget {
-  const _EvidenceCard({required this.detection});
+  const _EvidenceCard({required this.detection, required this.weakSignal});
   final SoundDetection detection;
+  final bool weakSignal;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +175,9 @@ class _EvidenceCard extends StatelessWidget {
         children: [
           const Text('本次候选依据', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          Text('$name · $strength'),
+          Text(
+            weakSignal ? '$name · 模型$strength，但录音证据较弱' : '$name · $strength',
+          ),
           Text('模型：${detection.evidenceModels.join('、')}'),
           if (detection.intervals.isNotEmpty)
             Text(
@@ -175,6 +188,13 @@ class _EvidenceCard extends StatelessWidget {
             '这是机器候选，不是物种确认。请把声音、环境和孩子的观察分开看待。',
             style: TextStyle(fontSize: 12, color: Color(0xFF52615A)),
           ),
+          if (weakSignal) ...[
+            const SizedBox(height: 5),
+            const Text(
+              '声音距离较远，模型分数不能抵消录音质量不足；建议继续核对方向和节奏。',
+              style: TextStyle(fontSize: 12, color: Color(0xFF9A4F32)),
+            ),
+          ],
         ],
       ),
     );

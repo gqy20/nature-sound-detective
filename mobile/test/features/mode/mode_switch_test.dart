@@ -6,19 +6,27 @@ import 'package:nature_sound_detective/app.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode_store.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
+import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 
 void main() {
   testWidgets('parent view exposes the guide without replacing capture', (
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(home: CapturePage(mode: ExplorationMode.parent)),
+      MaterialApp(
+        home: CapturePage(
+          mode: ExplorationMode.parent,
+          parentGuidanceService: _FakeParentGuidanceService(),
+        ),
+      ),
     );
+    await tester.pump();
 
     expect(find.text('和孩子一起听听'), findsOneWidget);
     expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
     expect(find.byKey(const Key('parent-park-guide-cta')), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
+    expect(find.textContaining('剩余 12 / 20 次'), findsOneWidget);
   });
 
   testWidgets('app switch persists the selected mode', (tester) async {
@@ -34,6 +42,31 @@ void main() {
     expect(store.value, ExplorationMode.parent);
     expect(find.text('和孩子一起听听'), findsOneWidget);
   });
+
+  testWidgets('small screen with 200 percent text keeps capture usable', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(2)),
+          child: child!,
+        ),
+        home: const CapturePage(),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('record-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _MemoryModeStore extends ExplorationModeStore {
@@ -47,4 +80,13 @@ class _MemoryModeStore extends ExplorationModeStore {
 
   @override
   Future<void> save(ExplorationMode mode) async => value = mode;
+}
+
+class _FakeParentGuidanceService extends ParentGuidanceNetworkService {
+  _FakeParentGuidanceService()
+    : super(baseUri: Uri.parse('https://api.example.test'));
+
+  @override
+  Future<ParentGuidanceQuota?> loadQuota() async =>
+      const ParentGuidanceQuota(limit: 20, used: 8, remaining: 12);
 }

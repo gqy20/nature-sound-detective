@@ -102,15 +102,22 @@ class _PublicationPageState extends State<PublicationPage> {
     try {
       final parks = await widget.service.listParks();
       if (!mounted || parks.isEmpty) return;
-      final parkId = parks.first.id;
+      final preferredParkId = widget.record.routeContext?.parkId;
+      final park = parks
+          .where((item) => item.id == preferredParkId)
+          .firstOrNull ?? parks.first;
+      final parkId = park.id;
       final sites = await widget.service.listSites(parkId: parkId);
       if (!mounted) return;
       setState(() {
         _parks = parks;
         _parkId = parkId;
-        _areaId = parks.first.areaId;
+        _areaId = park.areaId;
         _sites = sites;
-        _siteId = sites.firstOrNull?.id;
+        _siteId = sites
+            .where((item) => item.id == widget.record.routeContext?.siteId)
+            .firstOrNull
+            ?.id ?? sites.firstOrNull?.id;
       });
     } catch (_) {
       // District-only publishing remains available as a compatibility fallback.

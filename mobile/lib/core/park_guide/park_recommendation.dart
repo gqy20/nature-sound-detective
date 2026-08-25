@@ -52,6 +52,7 @@ class ParkGuideData {
     required this.routes,
     required this.snapshot,
     required this.brief,
+    this.loadWarnings = const [],
   });
 
   final CommunityPark park;
@@ -59,6 +60,7 @@ class ParkGuideData {
   final List<ExplorationRoute> routes;
   final EcologySnapshot snapshot;
   final DailyNatureBrief brief;
+  final List<String> loadWarnings;
 }
 
 class ParkRecommendation {

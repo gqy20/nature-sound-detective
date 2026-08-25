@@ -3,15 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/community/route_progress_store.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart';
 
 void main() {
   testWidgets('filters parks and opens a parent-guided route', (tester) async {
+    final listeningStore = _MemoryListeningContextStore();
     await tester.pumpWidget(
       MaterialApp(
         home: ParkGuidePage(
           service: _FakeCommunityService(),
           routeProgressStore: _MemoryRouteProgressStore(),
+          listeningContextStore: listeningStore,
         ),
       ),
     );
@@ -42,6 +45,32 @@ void main() {
       find.byKey(const Key('route-listen-taiziwan-park:main-lawn')),
       findsOneWidget,
     );
+    await tester.tap(
+      find.byKey(const Key('route-stop-taiziwan-park:main-lawn')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('route-listen-taiziwan-park:main-lawn')),
+    );
+    await tester.pumpAndSettle();
+    final context = await listeningStore.load();
+    expect(context?.parkId, 'taiziwan-park');
+    expect(context?.zoneId, 'main-lawn');
+    expect(context?.routeId, 'family-short');
+    expect(context?.safeObservationConfirmed, isTrue);
+  });
+
+  testWidgets('keeps available park guidance when one endpoint fails', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ParkGuidePage(service: _PartialCommunityService())),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('太子湾公园'), findsOneWidget);
+    expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
+    expect(find.text('游园信息暂时没有连上，请稍后重试。'), findsNothing);
   });
 }
 
@@ -118,6 +147,29 @@ class _FakeCommunityService implements CommunityService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _PartialCommunityService extends _FakeCommunityService {
+  @override
+  Future<List<ExplorationRoute>> listRoutes(String parkId) async {
+    throw const CommunityException('route unavailable');
+  }
+}
+
+class _MemoryListeningContextStore extends RouteListeningContextStore {
+  _MemoryListeningContextStore()
+    : super(directoryProvider: () => throw UnimplementedError());
+
+  RouteListeningContext? value;
+
+  @override
+  Future<RouteListeningContext?> load() async => value;
+
+  @override
+  Future<void> save(RouteListeningContext context) async => value = context;
+
+  @override
+  Future<void> clear() async => value = null;
 }
 
 class _MemoryRouteProgressStore implements RouteProgressStore {

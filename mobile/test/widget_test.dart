@@ -54,6 +54,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('结束'), findsOneWidget);
+    expect(find.byKey(const Key('live-audio-wave-ring')), findsOneWidget);
+    expect(find.byKey(const Key('live-wave-hint')), findsOneWidget);
   });
 
   testWidgets('shows an unusable recording in a fixed result sheet', (
@@ -77,6 +79,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('recording-result-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('audio-waveform-card')), findsOneWidget);
+    expect(find.byKey(const Key('recording-waveform')), findsOneWidget);
     expect(find.text('没有录到有效声音'), findsOneWidget);
     expect(find.byKey(const Key('retry-recording-button')), findsOneWidget);
   });
@@ -226,6 +230,32 @@ void main() {
     expect(find.text('听更多'), findsNothing);
     expect(find.textContaining('基础科普和现场核对都在本机完成'), findsNothing);
   });
+
+  testWidgets('separates strong model clues from weak recording evidence', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: _FakeRecorder(),
+          qualityAnalyzer: const _FakeQualityAnalyzer(
+            usable: true,
+            weakSignal: true,
+          ),
+          playback: const _FakePlayback(),
+          analyzer: const _ImmediateAnalyzer(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('weak-evidence-notice')), findsOneWidget);
+    expect(find.textContaining('录音证据较弱'), findsOneWidget);
+  });
 }
 
 class _FakeRecorder implements AudioRecorder {
@@ -257,13 +287,15 @@ class _FakeRecorder implements AudioRecorder {
 }
 
 class _FakeQualityAnalyzer implements AudioQualityAnalyzer {
-  const _FakeQualityAnalyzer({required this.usable});
+  const _FakeQualityAnalyzer({required this.usable, this.weakSignal = false});
 
   final bool usable;
+  final bool weakSignal;
 
   @override
   Future<AudioQuality> analyze(String path) async => AudioQuality(
     usable: usable,
+    weakSignal: weakSignal,
     warnings: usable ? const [] : const ['声音偏小，请靠近目标声音再录一次。'],
   );
 }
@@ -273,6 +305,9 @@ class _FakePlayback implements AudioPlayback {
 
   @override
   Stream<bool> get playing => const Stream.empty();
+
+  @override
+  Stream<Duration> get position => const Stream.empty();
 
   @override
   Future<void> dispose() async {}

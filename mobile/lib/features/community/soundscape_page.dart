@@ -12,6 +12,7 @@ import 'package:nature_sound_detective/features/community/exploration_route_page
 import 'package:nature_sound_detective/features/community/publication_page.dart';
 
 enum _SoundscapeView { recent, waiting, mission }
+enum _DemoFilter { all, real, demo }
 
 class SoundscapePage extends StatefulWidget {
   const SoundscapePage({
@@ -52,6 +53,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
   bool _loading = true;
   bool _acting = false;
   _SoundscapeView _view = _SoundscapeView.recent;
+  _DemoFilter _demoFilter = _DemoFilter.all;
   StreamSubscription<PlayerState>? _playerSubscription;
   Timer? _highlightTimer;
 
@@ -148,6 +150,11 @@ class _SoundscapePageState extends State<SoundscapePage> {
 
   List<CommunityPost> get _visiblePosts {
     var values = _posts;
+    values = switch (_demoFilter) {
+      _DemoFilter.all => values,
+      _DemoFilter.real => values.where((post) => !post.isDemo).toList(),
+      _DemoFilter.demo => values.where((post) => post.isDemo).toList(),
+    };
     if (_selectedAreaId != null) {
       values = values.where((post) => post.areaId == _selectedAreaId).toList();
     }
@@ -393,8 +400,10 @@ class _SoundscapePageState extends State<SoundscapePage> {
   @override
   Widget build(BuildContext context) {
     final visible = _visiblePosts;
-    final total = _areas.fold<int>(0, (sum, area) => sum + area.postCount);
-    final waiting = _areas.fold<int>(0, (sum, area) => sum + area.waitingCount);
+    final realCount = _posts.where((post) => !post.isDemo).length;
+    final demoCount = _posts.where((post) => post.isDemo).length;
+    final total = realCount + demoCount;
+    final waiting = _posts.where((post) => post.responseCount == 0).length;
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5EC),
       appBar: AppBar(
@@ -440,7 +449,24 @@ class _SoundscapePageState extends State<SoundscapePage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text('$total 条公开线索 · $waiting 条等待探员协助'),
+            Text('$realCount 条真实观察 · $demoCount 条体验示例 · $waiting 条等待协助'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final value in _DemoFilter.values)
+                  ChoiceChip(
+                    key: Key('demo-filter-${value.name}'),
+                    label: Text(switch (value) {
+                      _DemoFilter.all => '全部',
+                      _DemoFilter.real => '真实观察',
+                      _DemoFilter.demo => '体验示例',
+                    }),
+                    selected: _demoFilter == value,
+                    onSelected: (_) => setState(() => _demoFilter = value),
+                  ),
+              ],
+            ),
             const SizedBox(height: 16),
             if (_parks.isNotEmpty) ...[
               Text('试点公园', style: Theme.of(context).textTheme.titleMedium),
@@ -636,6 +662,14 @@ class _ParkZoneSoundMap extends StatelessWidget {
   final String? selectedZoneId;
   final ValueChanged<String> onSelected;
 
+  String _zoneCountLabel(String zoneId) {
+    final values = posts.where((post) => post.zoneId == zoneId).toList();
+    final real = values.where((post) => !post.isDemo).length;
+    final demo = values.where((post) => post.isDemo).length;
+    if (real > 0) return '$real 条真实${demo > 0 ? ' · $demo 条体验' : ''}';
+    return '$demo 条体验';
+  }
+
   @override
   Widget build(BuildContext context) {
     const alignments = [
@@ -720,7 +754,7 @@ class _ParkZoneSoundMap extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${posts.where((post) => post.zoneId == site.zoneId).length} 条发现',
+                              _zoneCountLabel(site.zoneId),
                               style: const TextStyle(fontSize: 10),
                             ),
                           ],
@@ -1239,7 +1273,7 @@ class _CommunitySoundCard extends StatelessWidget {
     final choices = candidates.isEmpty
         ? <String>[post.subject, '暂时无法判断']
         : <String>[...candidates, '暂时无法判断'];
-    final isDemo = post.subject.startsWith('体验线索') || post.alias.contains('体验');
+    final isDemo = post.isDemo;
     return Card(
       key: Key('community-post-${post.id}'),
       child: Padding(

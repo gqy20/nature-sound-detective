@@ -153,9 +153,9 @@ class _NatureBookPageState extends State<NatureBookPage> {
       await _load();
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('现场观察暂时没有保存')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('现场观察暂时没有保存')));
     }
   }
 
@@ -297,6 +297,13 @@ class _SoundRecordCard extends StatelessWidget {
                     Text(
                       '$dateText · ${record.duration.inSeconds}s · ${record.location}',
                     ),
+                    if (record.routeContext case final route?) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        '${route.routeName} · 第${route.stopIndex + 1}站 · ${route.zoneName}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ],
                 ),
               ),

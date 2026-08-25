@@ -223,7 +223,11 @@ def test_parent_guidance_allows_twenty_successful_ai_generations(
     tmp_path, monkeypatch
 ):
     class SuccessfulGuidance:
+        def __init__(self):
+            self.calls = 0
+
         def create(self, _payload):
+            self.calls += 1
             return {
                 "provider": "test-ai",
                 "ai_generated": True,
@@ -239,19 +243,21 @@ def test_parent_guidance_allows_twenty_successful_ai_generations(
             }
 
     monkeypatch.setenv("PARENT_GUIDANCE_FREE_LIMIT", "20")
+    guidance = SuccessfulGuidance()
     client = _client(
         tmp_path,
         monkeypatch,
-        parent_guidance_service=SuccessfulGuidance(),
+        parent_guidance_service=guidance,
     )
     headers = _headers(client, "device_parent_quota_123456")
-    payload = {"behaviors": ["recordedSound"]}
-
-    for expected_remaining in range(19, -1, -1):
+    for index, expected_remaining in enumerate(range(19, -1, -1)):
         response = client.post(
             "/api/community/parent-guidance",
             headers=headers,
-            json=payload,
+            json={
+                "behaviors": ["recordedSound"],
+                "observations": [f"attempt:{index}"],
+            },
         )
         assert response.status_code == 200
         assert response.json()["quota"]["remaining"] == expected_remaining
@@ -259,11 +265,65 @@ def test_parent_guidance_allows_twenty_successful_ai_generations(
     exhausted = client.post(
         "/api/community/parent-guidance",
         headers=headers,
-        json=payload,
+        json={
+            "behaviors": ["recordedSound"],
+            "observations": ["attempt:exhausted"],
+        },
     )
     assert exhausted.status_code == 429
     assert exhausted.json()["detail"]["code"] == "free_ai_quota_exhausted"
     assert exhausted.json()["detail"]["remaining"] == 0
+    assert guidance.calls == 20
+
+
+def test_same_parent_guidance_evidence_is_cached_without_second_charge(
+    tmp_path, monkeypatch
+):
+    class SuccessfulGuidance:
+        calls = 0
+
+        def create(self, _payload):
+            self.calls += 1
+            return {
+                "provider": "test-ai",
+                "ai_generated": True,
+                "warning": "",
+                "guides": [{"goal": "目标", "say": "测试", "action": "测试", "avoid": "测试"}] * 2,
+                "praises": [
+                    {
+                        "evidence_behavior": "capturedSound",
+                        "ability": "记录",
+                        "text": "测试生成",
+                    }
+                ] * 3,
+            }
+
+    guidance = SuccessfulGuidance()
+    client = _client(
+        tmp_path,
+        monkeypatch,
+        parent_guidance_service=guidance,
+    )
+    headers = _headers(client, "device_parent_cache_123456")
+    payload = {
+        "candidate_name": "珠颈斑鸠",
+        "observations": ["habitat:tree_canopy"],
+        "behaviors": ["capturedSound", "replayedAudio"],
+    }
+
+    first = client.post(
+        "/api/community/parent-guidance", headers=headers, json=payload
+    )
+    second = client.post(
+        "/api/community/parent-guidance", headers=headers, json=payload
+    )
+
+    assert first.status_code == second.status_code == 200
+    assert first.json()["cached"] is False
+    assert second.json()["cached"] is True
+    assert first.json()["quota"]["remaining"] == 19
+    assert second.json()["quota"]["remaining"] == 19
+    assert guidance.calls == 1
 
 
 def test_park_publication_is_validated_and_ecology_eligible(tmp_path, monkeypatch):
@@ -412,6 +472,7 @@ def test_demo_post_can_show_on_park_map_but_never_counts_as_ecology(tmp_path, mo
     )
     assert response.status_code == 201
     assert response.json()["post"]["ecology_eligible"] is False
+    assert response.json()["post"]["is_demo"] is True
     snapshot = client.get(
         "/api/community/parks/hangzhou-botanical-garden/ecology-snapshot"
     )

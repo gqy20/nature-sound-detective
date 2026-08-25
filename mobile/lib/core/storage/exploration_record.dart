@@ -1,6 +1,7 @@
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 
 class ExplorationRecord {
   const ExplorationRecord({
@@ -15,6 +16,7 @@ class ExplorationRecord {
     this.feedback,
     this.fieldChecks = const {},
     this.fieldObservations = const {},
+    this.routeContext,
   });
 
   factory ExplorationRecord.fromJson(Map<String, Object?> json) {
@@ -67,7 +69,9 @@ class ExplorationRecord {
                     (dimension, rawValues) => MapEntry(
                       dimension.toString(),
                       rawValues is List<Object?>
-                          ? rawValues.whereType<String>().toList(growable: false)
+                          ? rawValues.whereType<String>().toList(
+                              growable: false,
+                            )
                           : const <String>[],
                     ),
                   )
@@ -75,6 +79,12 @@ class ExplorationRecord {
           ),
         ),
         _ => const {},
+      },
+      routeContext: switch (json['route_context']) {
+        Map<Object?, Object?> value => RouteListeningContext.fromJson(
+          value.cast<String, Object?>(),
+        ),
+        _ => null,
       },
     );
   }
@@ -90,6 +100,7 @@ class ExplorationRecord {
   final ExplorationFeedback? feedback;
   final Map<String, List<String>> fieldChecks;
   final Map<String, Map<String, List<String>>> fieldObservations;
+  final RouteListeningContext? routeContext;
 
   ExplorationRecord copyWith({
     List<SoundDetection>? detections,
@@ -97,6 +108,7 @@ class ExplorationRecord {
     ExplorationFeedback? feedback,
     Map<String, List<String>>? fieldChecks,
     Map<String, Map<String, List<String>>>? fieldObservations,
+    RouteListeningContext? routeContext,
   }) {
     return ExplorationRecord(
       id: id,
@@ -110,6 +122,7 @@ class ExplorationRecord {
       feedback: feedback ?? this.feedback,
       fieldChecks: fieldChecks ?? this.fieldChecks,
       fieldObservations: fieldObservations ?? this.fieldObservations,
+      routeContext: routeContext ?? this.routeContext,
     );
   }
 
@@ -124,7 +137,7 @@ class ExplorationRecord {
     'confirmed_by_user': confirmedByUser,
     if (feedback != null) 'feedback': feedback!.toJson(),
     if (fieldChecks.isNotEmpty) 'field_checks': fieldChecks,
-    if (fieldObservations.isNotEmpty)
-      'field_observations': fieldObservations,
+    if (fieldObservations.isNotEmpty) 'field_observations': fieldObservations,
+    if (routeContext != null) 'route_context': routeContext!.toJson(),
   };
 }

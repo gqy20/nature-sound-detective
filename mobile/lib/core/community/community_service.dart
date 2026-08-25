@@ -252,8 +252,16 @@ class HttpCommunityService implements CommunityService {
       if (request.consent.parkId != null) 'park_id': request.consent.parkId,
       if (request.consent.zoneId != null) 'zone_id': request.consent.zoneId,
       if (request.consent.siteId != null) 'site_id': request.consent.siteId,
-      'sampling_mode': 'opportunistic',
-      'sampling_effort': {'duration_seconds': record.duration.inSeconds},
+      'sampling_mode': record.routeContext == null
+          ? 'opportunistic'
+          : 'guided_task',
+      'sampling_effort': {
+        'duration_seconds': record.duration.inSeconds,
+        if (record.routeContext case final route?) ...{
+          'route_id': route.routeId,
+          'route_stop_index': route.stopIndex,
+        },
+      },
       'audio_quality': record.audioQuality.toJson(),
     };
     final multipart =

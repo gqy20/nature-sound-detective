@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 from pathlib import Path
@@ -24,7 +25,10 @@ from app.community.models import (
     PublicationResult,
     CommunityMediaAsset,
 )
-from app.parent_guidance_service import ParentGuidanceService
+from app.parent_guidance_service import (
+    ParentGuidanceService,
+    parent_guidance_fingerprint,
+)
 from app.community.repository import CommunityRepository, repository_from_environment
 from app.community.storage import (
     CommunityMediaStore,
@@ -131,12 +135,59 @@ def build_community_router(
             limit=30,
             window_seconds=3600,
         )
+        guidance_payload = payload.model_dump(mode="json")
+        fingerprint = parent_guidance_fingerprint(guidance_payload)
+        cached = await run_in_threadpool(
+            repo.get_parent_guidance_cache,
+            identity,
+            fingerprint,
+        )
+        if cached is not None:
+            used = await run_in_threadpool(repo.parent_guidance_usage, identity)
+            cached["cached"] = True
+            cached["quota"] = {
+                "limit": parent_guidance_limit,
+                "used": used,
+                "remaining": max(0, parent_guidance_limit - used),
+            }
+            return cached
+        claimed = await run_in_threadpool(
+            repo.claim_parent_guidance_cache,
+            identity,
+            fingerprint,
+        )
+        if not claimed:
+            for _ in range(12):
+                await asyncio.sleep(0.25)
+                cached = await run_in_threadpool(
+                    repo.get_parent_guidance_cache,
+                    identity,
+                    fingerprint,
+                )
+                if cached is not None:
+                    used = await run_in_threadpool(
+                        repo.parent_guidance_usage,
+                        identity,
+                    )
+                    cached["cached"] = True
+                    cached["quota"] = {
+                        "limit": parent_guidance_limit,
+                        "used": used,
+                        "remaining": max(0, parent_guidance_limit - used),
+                    }
+                    return cached
+            raise HTTPException(409, "同一份AI陪伴内容正在生成，请稍后重试")
         allowed, used = await run_in_threadpool(
             repo.reserve_parent_guidance,
             identity,
             parent_guidance_limit,
         )
         if not allowed:
+            await run_in_threadpool(
+                repo.release_parent_guidance_cache,
+                identity,
+                fingerprint,
+            )
             raise HTTPException(
                 429,
                 {
@@ -150,22 +201,61 @@ def build_community_router(
         try:
             result = await run_in_threadpool(
                 guidance_service.create,
-                payload.model_dump(mode="json"),
+                guidance_payload,
             )
         except Exception:
             await run_in_threadpool(repo.refund_parent_guidance, identity)
+            await run_in_threadpool(
+                repo.release_parent_guidance_cache,
+                identity,
+                fingerprint,
+            )
             raise
         if not result.get("ai_generated", False):
             used = await run_in_threadpool(
                 repo.refund_parent_guidance,
                 identity,
             )
+            await run_in_threadpool(
+                repo.release_parent_guidance_cache,
+                identity,
+                fingerprint,
+            )
+        else:
+            try:
+                await run_in_threadpool(
+                    repo.complete_parent_guidance_cache,
+                    identity,
+                    fingerprint,
+                    result,
+                )
+            except Exception:
+                await run_in_threadpool(repo.refund_parent_guidance, identity)
+                await run_in_threadpool(
+                    repo.release_parent_guidance_cache,
+                    identity,
+                    fingerprint,
+                )
+                raise
+        result["cached"] = False
         result["quota"] = {
             "limit": parent_guidance_limit,
             "used": used,
             "remaining": max(0, parent_guidance_limit - used),
         }
         return result
+
+    @router.get("/parent-guidance/quota")
+    async def parent_guidance_quota(
+        authorization: str | None = Header(default=None),
+    ):
+        identity = identity_from(authorization)
+        used = await run_in_threadpool(repo.parent_guidance_usage, identity)
+        return {
+            "limit": parent_guidance_limit,
+            "used": used,
+            "remaining": max(0, parent_guidance_limit - used),
+        }
 
     @router.get("/parks")
     def parks():

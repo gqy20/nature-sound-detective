@@ -126,6 +126,11 @@ class CommunityRepository(Protocol):
     def add_media_asset(self, post_id: str, owner_id: str, asset: CommunityMediaAsset) -> bool: ...
     def reserve_parent_guidance(self, identity: str, limit: int) -> tuple[bool, int]: ...
     def refund_parent_guidance(self, identity: str) -> int: ...
+    def parent_guidance_usage(self, identity: str) -> int: ...
+    def get_parent_guidance_cache(self, identity: str, fingerprint: str) -> dict[str, Any] | None: ...
+    def claim_parent_guidance_cache(self, identity: str, fingerprint: str) -> bool: ...
+    def complete_parent_guidance_cache(self, identity: str, fingerprint: str, payload: dict[str, Any]) -> None: ...
+    def release_parent_guidance_cache(self, identity: str, fingerprint: str) -> None: ...
 
 
 class MemoryCommunityRepository:
@@ -136,6 +141,7 @@ class MemoryCommunityRepository:
         self._responses: dict[str, dict[str, AssistSubmission]] = {}
         self._media: dict[str, list[CommunityMediaAsset]] = {}
         self._parent_guidance_usage: dict[str, int] = {}
+        self._parent_guidance_cache: dict[tuple[str, str], dict[str, Any] | None] = {}
         self._lock = RLock()
 
     def list_posts(self, *, area_id: str | None = None, requester_id: str | None = None) -> list[CommunityPost]:
@@ -187,6 +193,7 @@ class MemoryCommunityRepository:
             "duration_ms": metadata.duration_ms,
             "candidate_names": list(metadata.candidate_names),
             "field_observations": list(metadata.field_observations),
+            "model_snapshot": dict(metadata.model_snapshot),
             "status": "published_unverified",
             "review_status": "queued" if metadata.review_consent else "not_requested",
             "park_id": metadata.park_id,
@@ -235,6 +242,7 @@ class MemoryCommunityRepository:
             sampling_effort=dict(row.get("sampling_effort") or {}),
             audio_quality=dict(row.get("audio_quality") or {}),
             ecology_eligible=bool(row.get("ecology_eligible", True)),
+            is_demo=bool((row.get("model_snapshot") or {}).get("demo", False)),
             media_assets=list(self._media.get(row["id"], [])),
         )
 
@@ -260,6 +268,42 @@ class MemoryCommunityRepository:
             used = max(0, self._parent_guidance_usage.get(identity, 0) - 1)
             self._parent_guidance_usage[identity] = used
             return used
+
+    def parent_guidance_usage(self, identity: str) -> int:
+        with self._lock:
+            return self._parent_guidance_usage.get(identity, 0)
+
+    def get_parent_guidance_cache(
+        self, identity: str, fingerprint: str
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            value = self._parent_guidance_cache.get((identity, fingerprint))
+            return json.loads(json.dumps(value)) if value is not None else None
+
+    def claim_parent_guidance_cache(self, identity: str, fingerprint: str) -> bool:
+        with self._lock:
+            key = (identity, fingerprint)
+            if key in self._parent_guidance_cache:
+                return False
+            self._parent_guidance_cache[key] = None
+            return True
+
+    def complete_parent_guidance_cache(
+        self,
+        identity: str,
+        fingerprint: str,
+        payload: dict[str, Any],
+    ) -> None:
+        with self._lock:
+            self._parent_guidance_cache[(identity, fingerprint)] = json.loads(
+                json.dumps(payload)
+            )
+
+    def release_parent_guidance_cache(self, identity: str, fingerprint: str) -> None:
+        with self._lock:
+            key = (identity, fingerprint)
+            if self._parent_guidance_cache.get(key) is None:
+                self._parent_guidance_cache.pop(key, None)
 
     def park_summaries(self) -> list[ParkSummary]:
         return [
@@ -479,6 +523,7 @@ class NeonCommunityRepository:
             sampling_effort=dict(row.get("sampling_effort") or {}),
             audio_quality=dict(row.get("audio_quality") or {}),
             ecology_eligible=bool(row.get("ecology_eligible", True)),
+            is_demo=bool((row.get("model_snapshot") or {}).get("demo", False)),
             media_assets=media_assets,
         )
 
@@ -534,6 +579,66 @@ class NeonCommunityRepository:
             )
             row = cursor.fetchone()
             return int(row["used_count"] if row else 0)
+
+    def parent_guidance_usage(self, identity: str) -> int:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT used_count FROM community_parent_guidance_quotas WHERE identity_hash=%s",
+                (identity,),
+            )
+            row = cursor.fetchone()
+            return int(row["used_count"] if row else 0)
+
+    def get_parent_guidance_cache(
+        self, identity: str, fingerprint: str
+    ) -> dict[str, Any] | None:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """SELECT response_payload FROM community_parent_guidance_cache
+                   WHERE identity_hash=%s AND request_fingerprint=%s
+                     AND status='completed'""",
+                (identity, fingerprint),
+            )
+            row = cursor.fetchone()
+            return dict(row["response_payload"]) if row else None
+
+    def claim_parent_guidance_cache(self, identity: str, fingerprint: str) -> bool:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """INSERT INTO community_parent_guidance_cache
+                   (identity_hash, request_fingerprint, status)
+                   VALUES (%s, %s, 'pending')
+                   ON CONFLICT (identity_hash, request_fingerprint) DO UPDATE SET
+                     status='pending', response_payload=NULL, updated_at=now()
+                   WHERE community_parent_guidance_cache.status='pending'
+                     AND community_parent_guidance_cache.updated_at < now() - interval '2 minutes'
+                   RETURNING request_fingerprint""",
+                (identity, fingerprint),
+            )
+            return cursor.fetchone() is not None
+
+    def complete_parent_guidance_cache(
+        self,
+        identity: str,
+        fingerprint: str,
+        payload: dict[str, Any],
+    ) -> None:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """UPDATE community_parent_guidance_cache SET
+                     status='completed', response_payload=%s::jsonb, updated_at=now()
+                   WHERE identity_hash=%s AND request_fingerprint=%s""",
+                (json.dumps(payload, ensure_ascii=False), identity, fingerprint),
+            )
+
+    def release_parent_guidance_cache(self, identity: str, fingerprint: str) -> None:
+        with self._connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                """DELETE FROM community_parent_guidance_cache
+                   WHERE identity_hash=%s AND request_fingerprint=%s
+                     AND status='pending'""",
+                (identity, fingerprint),
+            )
 
     def park_summaries(self) -> list[ParkSummary]:
         return MemoryCommunityRepository().park_summaries()

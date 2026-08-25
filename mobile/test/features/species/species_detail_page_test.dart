@@ -69,7 +69,6 @@ void main() {
       'habitat': ['tree_canopy'],
       'sound_pattern': ['repeated'],
     });
-
   });
 
   testWidgets('multiple intervals show a clear position', (tester) async {
@@ -129,6 +128,9 @@ class _FakePlayback implements AudioPlayback {
 
   @override
   Stream<bool> get playing => _controller.stream;
+
+  @override
+  Stream<Duration> get position => const Stream.empty();
 
   @override
   Future<void> play(String path) async {

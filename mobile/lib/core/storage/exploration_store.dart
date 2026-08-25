@@ -9,6 +9,7 @@ import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:path_provider/path_provider.dart';
 
 abstract interface class ExplorationStore {
@@ -19,6 +20,7 @@ abstract interface class ExplorationStore {
     required String location,
     Map<String, List<String>> fieldChecks = const {},
     Map<String, Map<String, List<String>>> fieldObservations = const {},
+    RouteListeningContext? routeContext,
   });
 
   Future<List<ExplorationRecord>> list();
@@ -80,6 +82,7 @@ class FileExplorationStore implements ExplorationStore {
     required String location,
     Map<String, List<String>> fieldChecks = const {},
     Map<String, Map<String, List<String>>> fieldObservations = const {},
+    RouteListeningContext? routeContext,
   }) async {
     _validateId(recording.id);
     final root = await _rootProvider();
@@ -109,6 +112,7 @@ class FileExplorationStore implements ExplorationStore {
       detections: List.unmodifiable(detections),
       fieldChecks: fieldChecks,
       fieldObservations: fieldObservations,
+      routeContext: routeContext,
     );
     await _writeRecord(recordDirectory, record);
     AppLog.debug(

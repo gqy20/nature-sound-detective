@@ -51,6 +51,7 @@ class CommunityPost {
     this.siteId,
     this.samplingMode = 'opportunistic',
     this.ecologyEligible = false,
+    this.isDemo = false,
     this.mediaAssets = const [],
   });
 
@@ -92,6 +93,7 @@ class CommunityPost {
     siteId: json['site_id'] as String?,
     samplingMode: json['sampling_mode'] as String? ?? 'opportunistic',
     ecologyEligible: json['ecology_eligible'] as bool? ?? false,
+    isDemo: json['is_demo'] as bool? ?? false,
     mediaAssets: switch (json['media_assets']) {
       final List<Object?> values => values
           .whereType<Map<Object?, Object?>>()
@@ -123,6 +125,7 @@ class CommunityPost {
   final String? siteId;
   final String samplingMode;
   final bool ecologyEligible;
+  final bool isDemo;
   final List<CommunityMediaAsset> mediaAssets;
 }
 

@@ -6,6 +6,7 @@ import pytest
 import app.parent_guidance_service as guidance_module
 from app.parent_guidance_service import (
     ParentGuidanceService,
+    parent_guidance_fingerprint,
     validate_parent_guidance,
 )
 
@@ -142,3 +143,45 @@ def test_live_ai_retries_once_after_behavior_validation_failure(monkeypatch):
     assert calls == 2
     assert result["ai_generated"] is True
     assert result["generation_attempts"] == 2
+
+
+def test_fingerprint_is_stable_for_reordered_evidence():
+    left = parent_guidance_fingerprint(
+        {
+            "candidate_name": "珠颈斑鸠",
+            "observations": ["树冠", "重复鸣叫"],
+            "behaviors": ["capturedSound", "replayedAudio"],
+        }
+    )
+    right = parent_guidance_fingerprint(
+        {
+            "candidate_name": "珠颈斑鸠",
+            "observations": ["重复鸣叫", "树冠"],
+            "behaviors": ["replayedAudio", "capturedSound"],
+        }
+    )
+    assert left == right
+
+
+def test_validation_rejects_duplicate_praise_text():
+    payload = _ai_payload()
+    payload["praises"][1]["text"] = payload["praises"][0]["text"]
+    with pytest.raises(ValueError, match="重复的夸奖"):
+        validate_parent_guidance(
+            payload,
+            behaviors=["recordedSound", "replayedAudio"],
+        )
+
+
+def test_imported_sound_cannot_be_praised_as_pressing_record():
+    payload = _ai_payload()
+    payload["praises"][0] = {
+        "evidence_behavior": "importedSound",
+        "ability": "现场录音",
+        "text": "你成功按下了录音键，把刚才的声音完整录了下来。",
+    }
+    with pytest.raises(ValueError, match="虚构成了现场录音"):
+        validate_parent_guidance(
+            payload,
+            behaviors=["importedSound", "replayedAudio"],
+        )

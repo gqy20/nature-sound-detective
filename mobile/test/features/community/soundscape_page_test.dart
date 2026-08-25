@@ -22,6 +22,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('共听杭州'), findsOneWidget);
+    expect(find.textContaining('1 条真实观察 · 1 条体验示例'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('demo-filter-demo')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const Key('demo-filter-demo')))
+          .selected,
+      isTrue,
+    );
+    await tester.tap(find.byKey(const Key('demo-filter-all')));
+    await tester.pumpAndSettle();
     expect(find.text('杭州植物园'), findsOneWidget);
     expect(find.text('今日自然声讯'), findsOneWidget);
     expect(find.textContaining('等待更多声音'), findsOneWidget);
@@ -147,6 +158,30 @@ class _FakeCommunityService implements CommunityService {
     ],
   );
 
+  final demoPost = CommunityPost(
+    id: 'demo-1',
+    alias: '林下体验员',
+    areaId: 'xihu',
+    areaName: '西湖区',
+    subject: '公园体验线索 · 林下鸟鸣',
+    soundType: '鸟鸣',
+    observedAt: DateTime.utc(2026, 8, 9, 7),
+    createdAt: DateTime.utc(2026, 8, 9, 7),
+    audioUrl: '',
+    duration: const Duration(seconds: 9),
+    candidateNames: const ['鸟类'],
+    fieldObservations: const ['体验数据，不代表杭州实地记录'],
+    status: 'published_unverified',
+    reviewStatus: 'not_requested',
+    responseCount: 1,
+    responseSummary: const {'鸟类': 1},
+    ownedByRequester: false,
+    parkId: 'hangzhou-botanical-garden',
+    zoneId: 'understory-trail',
+    ecologyEligible: false,
+    isDemo: true,
+  );
+
   @override
   Future<List<SoundscapeArea>> listAreas() async => const [
     SoundscapeArea(
@@ -227,7 +262,10 @@ class _FakeCommunityService implements CommunityService {
   ];
 
   @override
-  Future<List<CommunityPost>> listPosts({String? areaId}) async => [post];
+  Future<List<CommunityPost>> listPosts({String? areaId}) async => [
+    post,
+    demoPost,
+  ];
 
   @override
   Future<CommunityPost> assist(

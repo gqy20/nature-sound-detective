@@ -131,6 +131,8 @@ def migration_detected(version: int, snapshot: SchemaSnapshot) -> bool:
         )
     if version == 3:
         return "community_parent_guidance_quotas" in snapshot.relations
+    if version == 4:
+        return "community_parent_guidance_cache" in snapshot.relations
     return False
 
 

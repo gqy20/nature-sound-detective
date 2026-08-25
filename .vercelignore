@@ -17,6 +17,9 @@ mobile/assets/models/*
 !mobile/assets/labels/
 mobile/assets/labels/*
 !mobile/assets/labels/yamnet.csv
+!mobile/assets/config/
+mobile/assets/config/*
+!mobile/assets/config/field_observations.json
 outputs
 pyproject.toml
 scripts

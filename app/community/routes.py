@@ -10,12 +10,16 @@ from fastapi.responses import FileResponse
 from pydantic import ValidationError
 
 from app.community.auth import CommunityAuth, InMemoryRateLimiter, InvalidCommunityToken
+from app.community.catalog import PILOT_ROUTES, park_by_id, zone_by_id
+from app.community.models import ExplorationRoute
+from app.community.insights import build_daily_brief
 from app.community.models import (
     AssistSubmission,
     DeviceSessionRequest,
     DeviceSessionResponse,
     PublicationMetadata,
     PublicationResult,
+    CommunityMediaAsset,
 )
 from app.community.repository import CommunityRepository, repository_from_environment
 from app.community.storage import (
@@ -27,6 +31,7 @@ from app.config import COMMUNITY_MEDIA_DIR
 
 
 MAX_COMMUNITY_AUDIO_BYTES = 4 * 1024 * 1024
+MAX_COMMUNITY_DISPLAY_MEDIA_BYTES = 25 * 1024 * 1024
 
 
 def build_community_router(
@@ -98,6 +103,46 @@ def build_community_router(
     def areas():
         return [item.model_dump(mode="json") for item in repo.area_summaries()]
 
+    @router.get("/parks")
+    def parks():
+        return [item.model_dump(mode="json") for item in repo.park_summaries()]
+
+    @router.get("/sites")
+    def sites(park_id: str | None = None):
+        if park_id and park_by_id(park_id) is None:
+            raise HTTPException(404, "没有找到这个试点公园")
+        return [item.model_dump(mode="json") for item in repo.park_sites(park_id)]
+
+    @router.get("/parks/{park_id}/ecology-snapshot")
+    def ecology_snapshot(park_id: str, days: int = 7):
+        if not 1 <= days <= 90:
+            raise HTTPException(422, "趋势周期必须在1至90天之间")
+        try:
+            return repo.ecology_snapshot(park_id, days).model_dump(mode="json")
+        except KeyError as exc:
+            raise HTTPException(404, "没有找到这个试点公园") from exc
+
+    @router.get("/parks/{park_id}/daily-brief")
+    def daily_brief(park_id: str, days: int = 7):
+        if not 1 <= days <= 90:
+            raise HTTPException(422, "资讯周期必须在1至90天之间")
+        try:
+            return build_daily_brief(
+                repo.ecology_snapshot(park_id, days)
+            ).model_dump(mode="json")
+        except KeyError as exc:
+            raise HTTPException(404, "没有找到这个试点公园") from exc
+
+    @router.get("/parks/{park_id}/routes")
+    def exploration_routes(park_id: str):
+        if park_by_id(park_id) is None:
+            raise HTTPException(404, "没有找到这个试点公园")
+        return [
+            ExplorationRoute.model_validate(item).model_dump(mode="json")
+            for item in PILOT_ROUTES
+            if item["park_id"] == park_id
+        ]
+
     @router.get("/posts")
     def list_posts(
         area_id: str | None = None,
@@ -141,6 +186,24 @@ def build_community_router(
             parsed = PublicationMetadata.model_validate_json(metadata)
         except ValidationError as exc:
             raise HTTPException(422, "发布信息不完整或无效") from exc
+        if parsed.park_id:
+            park = park_by_id(parsed.park_id)
+            zone = zone_by_id(parsed.park_id, parsed.zone_id)
+            if park is None or zone is None:
+                raise HTTPException(422, "公园或分区不在当前试点范围")
+            if park["area_id"] != parsed.area_id:
+                raise HTTPException(422, "公园与行政区域不一致")
+            expected_site_id = f"{parsed.park_id}:{parsed.zone_id}"
+            if parsed.site_id and parsed.site_id != expected_site_id:
+                raise HTTPException(422, "观察点与公园分区不一致")
+            parsed = parsed.model_copy(
+                update={
+                    "site_id": expected_site_id,
+                    "ecology_eligible": bool(parsed.audio_quality.get("usable", False)),
+                }
+            )
+        else:
+            parsed = parsed.model_copy(update={"ecology_eligible": False})
         suffix = Path(audio.filename or "clip.wav").suffix.lower()
         if suffix not in {".wav", ".mp3", ".m4a", ".ogg", ".aac"}:
             raise HTTPException(415, "公开声音仅支持常见音频格式")
@@ -173,12 +236,66 @@ def build_community_router(
 
     @router.get("/media/{media_name}")
     def media(media_name: str):
-        if not re.fullmatch(r"[a-f0-9]{32}\.(wav|mp3|m4a|ogg|aac)", media_name):
+        if not re.fullmatch(r"[a-f0-9]{32}\.(wav|mp3|m4a|ogg|aac|jpg|jpeg|png|webp|mp4)", media_name):
             raise HTTPException(404, "声音片段不存在")
         path = store.local_path(media_name)
         if path is None:
             raise HTTPException(404, "声音片段不存在")
         return FileResponse(path)
+
+    @router.post("/posts/{post_id}/media", status_code=201)
+    async def add_post_media(
+        post_id: str,
+        request: Request,
+        file: UploadFile = File(...),
+        media_type: str = Form(...),
+        source_type: str = Form(...),
+        provider: str | None = Form(default=None),
+        model: str | None = Form(default=None),
+        authorization: str | None = Header(default=None),
+    ):
+        identity = identity_from(authorization)
+        enforce_limit(request, "publish-media", identity, limit=16, window_seconds=3600)
+        post = repo.get_post(post_id, requester_id=identity)
+        if post is None or not post.owned_by_requester:
+            raise HTTPException(404, "没有找到可添加媒体的社区记录")
+        suffix = Path(file.filename or "asset").suffix.lower()
+        allowed = {
+            "image": {".jpg", ".jpeg", ".png", ".webp"},
+            "video": {".mp4"},
+            "thumbnail": {".jpg", ".jpeg", ".png", ".webp"},
+        }
+        if media_type not in allowed or suffix not in allowed[media_type]:
+            raise HTTPException(415, "展示媒体格式不受支持")
+        if source_type not in {"original", "ai_generated", "composed"}:
+            raise HTTPException(422, "媒体来源类型无效")
+        payload = await file.read(MAX_COMMUNITY_DISPLAY_MEDIA_BYTES + 1)
+        if len(payload) > MAX_COMMUNITY_DISPLAY_MEDIA_BYTES:
+            raise HTTPException(413, "图片或视频不能超过25MB")
+        if not payload:
+            raise HTTPException(422, "展示媒体为空")
+        media_name = f"{uuid4().hex}{suffix}"
+        try:
+            url = store.save(
+                media_name,
+                payload,
+                file.content_type or "application/octet-stream",
+            )
+            asset = CommunityMediaAsset(
+                id=uuid4().hex,
+                media_type=media_type,
+                source_type=source_type,
+                url=url,
+                provider=provider,
+                model=model,
+                moderation_status="approved",
+            )
+            if not repo.add_media_asset(post_id, identity, asset):
+                store.delete(media_name)
+                raise HTTPException(404, "没有找到可添加媒体的社区记录")
+            return asset.model_dump(mode="json")
+        except CommunityMediaUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
 
     @router.post("/posts/{post_id}/responses")
     def add_response(
@@ -221,5 +338,9 @@ def build_community_router(
         media_name = Path(urlparse(post.audio_url).path).name
         if re.fullmatch(r"[a-f0-9]{32}\.(wav|mp3|m4a|ogg|aac)", media_name):
             store.delete(media_name)
+        for asset in post.media_assets:
+            asset_name = Path(urlparse(asset.url).path).name
+            if re.fullmatch(r"[a-f0-9]{32}\.(jpg|jpeg|png|webp|mp4)", asset_name):
+                store.delete(asset_name)
 
     return router

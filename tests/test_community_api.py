@@ -70,8 +70,22 @@ def test_publish_assist_and_withdraw(tmp_path, monkeypatch):
     assert post["owned_by_requester"] is True
     assert post["status"] == "published_unverified"
 
+    media = client.post(
+        f"/api/community/posts/{post['id']}/media",
+        headers=owner_headers,
+        data={
+            "media_type": "image",
+            "source_type": "ai_generated",
+            "provider": "story-card",
+        },
+        files={"file": ("postcard.png", b"\x89PNG" + b"1" * 64, "image/png")},
+    )
+    assert media.status_code == 201
+    assert media.json()["source_type"] == "ai_generated"
+
     listed = client.get("/api/community/posts", headers=owner_headers)
     assert listed.json()[0]["owned_by_requester"] is True
+    assert listed.json()[0]["media_assets"][0]["media_type"] == "image"
 
     assisted = client.post(
         f"/api/community/posts/{post['id']}/responses",
@@ -135,3 +149,134 @@ def test_area_summary_keeps_empty_hangzhou_regions(tmp_path, monkeypatch):
     assert areas.status_code == 200
     assert len(areas.json()) == 6
     assert {item["area_id"] for item in areas.json()} >= {"xihu", "binjiang"}
+
+
+def test_pilot_parks_sites_and_ecology_snapshot(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    parks = client.get("/api/community/parks")
+    assert parks.status_code == 200
+    assert {item["park_id"] for item in parks.json()} == {
+        "hangzhou-botanical-garden", "xixi-wetland", "taiziwan-park"
+    }
+    sites = client.get(
+        "/api/community/sites", params={"park_id": "hangzhou-botanical-garden"}
+    )
+    assert sites.status_code == 200
+    assert len(sites.json()) == 3
+    snapshot = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/ecology-snapshot"
+    )
+    assert snapshot.status_code == 200
+    assert snapshot.json()["data_sufficiency"] == "low"
+    assert "不替代专业生态监测" in snapshot.json()["disclaimer"]
+    brief = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/daily-brief"
+    )
+    assert brief.status_code == 200
+    assert "等待更多声音" in brief.json()["headline"]
+    assert brief.json()["data_sufficiency"] == "low"
+    routes = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/routes"
+    )
+    assert routes.status_code == 200
+    assert routes.json()[0]["name"] == "清晨树冠声音路线"
+    assert len(routes.json()[0]["stops"]) == 3
+    assert "不保证一定遇见动物" in routes.json()[0]["disclaimer"]
+
+
+def test_park_publication_is_validated_and_ecology_eligible(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    headers = _headers(client, "device_owner_park_123456")
+    metadata = _metadata(
+        park_id="hangzhou-botanical-garden",
+        zone_id="understory-trail",
+        audio_quality={"usable": True, "rms": 0.08},
+        sampling_mode="guided_task",
+        sampling_effort={"duration_seconds": 8},
+    )
+    created = client.post(
+        "/api/community/posts",
+        headers=headers,
+        data={"metadata": json.dumps(metadata, ensure_ascii=False)},
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+    assert created.status_code == 201
+    post = created.json()["post"]
+    assert post["park_id"] == "hangzhou-botanical-garden"
+    assert post["site_id"] == "hangzhou-botanical-garden:understory-trail"
+    assert post["ecology_eligible"] is True
+    snapshot = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/ecology-snapshot"
+    ).json()
+    assert snapshot["valid_post_count"] == 1
+    assert snapshot["independent_observer_count"] == 1
+    assert snapshot["observation_day_count"] == 1
+    assert snapshot["activity_trend"] == "insufficient"
+    assert len(snapshot["zone_summaries"]) == 3
+
+
+def test_invalid_park_zone_combination_is_rejected(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    response = client.post(
+        "/api/community/posts",
+        headers=_headers(client, "device_owner_invalid_123456"),
+        data={
+            "metadata": json.dumps(
+                _metadata(
+                    park_id="hangzhou-botanical-garden",
+                    zone_id="not-a-zone",
+                    audio_quality={"usable": True},
+                ),
+                ensure_ascii=False,
+            )
+        },
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+    assert response.status_code == 422
+
+
+def test_explicit_catalog_site_id_is_accepted(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    response = client.post(
+        "/api/community/posts",
+        headers=_headers(client, "device_owner_site_id_123456"),
+        data={
+            "metadata": json.dumps(
+                _metadata(
+                    park_id="hangzhou-botanical-garden",
+                    zone_id="understory-trail",
+                    site_id="hangzhou-botanical-garden:understory-trail",
+                    audio_quality={"usable": True},
+                ),
+                ensure_ascii=False,
+            )
+        },
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+    assert response.status_code == 201
+    assert (
+        response.json()["post"]["site_id"]
+        == "hangzhou-botanical-garden:understory-trail"
+    )
+
+
+def test_mismatched_site_id_is_rejected(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    response = client.post(
+        "/api/community/posts",
+        headers=_headers(client, "device_owner_wrong_site_123456"),
+        data={
+            "metadata": json.dumps(
+                _metadata(
+                    park_id="hangzhou-botanical-garden",
+                    zone_id="understory-trail",
+                    site_id="xixi-wetland:reed-edge",
+                    audio_quality={"usable": True},
+                ),
+                ensure_ascii=False,
+            )
+        },
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "观察点与公园分区不一致"

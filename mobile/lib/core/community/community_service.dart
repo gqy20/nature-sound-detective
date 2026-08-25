@@ -10,8 +10,21 @@ import 'package:path_provider/path_provider.dart';
 
 abstract interface class CommunityService {
   Future<List<SoundscapeArea>> listAreas();
+  Future<List<CommunityPark>> listParks();
+  Future<List<CommunitySite>> listSites({String? parkId});
+  Future<EcologySnapshot> ecologySnapshot(String parkId);
+  Future<DailyNatureBrief> dailyBrief(String parkId);
+  Future<List<ExplorationRoute>> listRoutes(String parkId);
   Future<List<CommunityPost>> listPosts({String? areaId});
   Future<CommunityPost> publish(PublicationRequest request);
+  Future<CommunityMediaAsset> addMedia(
+    String postId, {
+    required String filePath,
+    required String mediaType,
+    required String sourceType,
+    String? provider,
+    String? model,
+  });
   Future<CommunityPost> assist(
     String postId, {
     required String choice,
@@ -146,6 +159,53 @@ class HttpCommunityService implements CommunityService {
   }
 
   @override
+  Future<List<CommunityPark>> listParks() async {
+    final response = await _client.get(
+      _uri('/api/community/parks'),
+      headers: await _headers(),
+    );
+    return _decodeList(response).map(CommunityPark.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<List<CommunitySite>> listSites({String? parkId}) async {
+    final response = await _client.get(
+      _uri('/api/community/sites', parkId == null ? null : {'park_id': parkId}),
+      headers: await _headers(),
+    );
+    return _decodeList(response).map(CommunitySite.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<EcologySnapshot> ecologySnapshot(String parkId) async {
+    final response = await _client.get(
+      _uri('/api/community/parks/$parkId/ecology-snapshot'),
+      headers: await _headers(),
+    );
+    return EcologySnapshot.fromJson(_decodeObject(response));
+  }
+
+  @override
+  Future<DailyNatureBrief> dailyBrief(String parkId) async {
+    final response = await _client.get(
+      _uri('/api/community/parks/$parkId/daily-brief'),
+      headers: await _headers(),
+    );
+    return DailyNatureBrief.fromJson(_decodeObject(response));
+  }
+
+  @override
+  Future<List<ExplorationRoute>> listRoutes(String parkId) async {
+    final response = await _client.get(
+      _uri('/api/community/parks/$parkId/routes'),
+      headers: await _headers(),
+    );
+    return _decodeList(response)
+        .map(ExplorationRoute.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
   Future<List<CommunityPost>> listPosts({String? areaId}) async {
     final response = await _client.get(
       _uri('/api/community/posts', areaId == null ? null : {'area_id': areaId}),
@@ -189,6 +249,12 @@ class HttpCommunityService implements CommunityService {
       'adult_confirmed': request.consent.adultConfirmed,
       'public_consent': request.consent.publicConsent,
       'review_consent': request.consent.reviewConsent,
+      if (request.consent.parkId != null) 'park_id': request.consent.parkId,
+      if (request.consent.zoneId != null) 'zone_id': request.consent.zoneId,
+      if (request.consent.siteId != null) 'site_id': request.consent.siteId,
+      'sampling_mode': 'opportunistic',
+      'sampling_effort': {'duration_seconds': record.duration.inSeconds},
+      'audio_quality': record.audioQuality.toJson(),
     };
     final multipart =
         http.MultipartRequest('POST', _uri('/api/community/posts'))
@@ -205,6 +271,33 @@ class HttpCommunityService implements CommunityService {
       throw const CommunityException('服务器没有返回发布结果。');
     }
     return _postFromJson(post.cast<String, Object?>());
+  }
+
+  @override
+  Future<CommunityMediaAsset> addMedia(
+    String postId, {
+    required String filePath,
+    required String mediaType,
+    required String sourceType,
+    String? provider,
+    String? model,
+  }) async {
+    final multipart =
+        http.MultipartRequest(
+            'POST',
+            _uri('/api/community/posts/$postId/media'),
+          )
+          ..headers.addAll(await _headers())
+          ..fields['media_type'] = mediaType
+          ..fields['source_type'] = sourceType
+          ..fields.addAll({
+            if (provider != null && provider.isNotEmpty) 'provider': provider,
+            if (model != null && model.isNotEmpty) 'model': model,
+          })
+          ..files.add(await http.MultipartFile.fromPath('file', filePath));
+    final streamed = await multipart.send();
+    final response = await http.Response.fromStream(streamed);
+    return _mediaFromJson(_decodeObject(response));
   }
 
   @override
@@ -263,11 +356,39 @@ class HttpCommunityService implements CommunityService {
 
   CommunityPost _postFromJson(Map<String, Object?> json) {
     final audioUrl = json['audio_url'] as String? ?? '';
+    final mediaAssets = switch (json['media_assets']) {
+      final List<Object?> values => values
+          .whereType<Map<Object?, Object?>>()
+          .map(
+            (item) => _mediaJsonWithAbsoluteUrls(
+              item.cast<String, Object?>(),
+            ),
+          )
+          .toList(growable: false),
+      _ => const <Map<String, Object?>>[],
+    };
     return CommunityPost.fromJson({
       ...json,
       if (audioUrl.startsWith('/'))
         'audio_url': baseUri.resolve(audioUrl).toString(),
+      'media_assets': mediaAssets,
     });
+  }
+
+  CommunityMediaAsset _mediaFromJson(Map<String, Object?> json) =>
+      CommunityMediaAsset.fromJson(_mediaJsonWithAbsoluteUrls(json));
+
+  Map<String, Object?> _mediaJsonWithAbsoluteUrls(
+    Map<String, Object?> json,
+  ) {
+    final url = json['url'] as String? ?? '';
+    final thumbnailUrl = json['thumbnail_url'] as String?;
+    return {
+      ...json,
+      if (url.startsWith('/')) 'url': baseUri.resolve(url).toString(),
+      if (thumbnailUrl?.startsWith('/') ?? false)
+        'thumbnail_url': baseUri.resolve(thumbnailUrl!).toString(),
+    };
   }
 
   Never _throwResponse(http.Response response) {

@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/models/field_observation_schema.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('loads the shared field observation schema', () async {
     final schema = await FieldObservationSchema.load();
 

@@ -4,8 +4,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
+import 'package:nature_sound_detective/core/community/route_progress_store.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
+import 'package:nature_sound_detective/features/community/community_video_page.dart';
+import 'package:nature_sound_detective/features/community/exploration_route_page.dart';
 import 'package:nature_sound_detective/features/community/publication_page.dart';
 
 enum _SoundscapeView { recent, waiting, mission }
@@ -16,11 +19,13 @@ class SoundscapePage extends StatefulWidget {
     this.service,
     this.explorationStore,
     this.recordsLoader,
+    this.routeProgressStore,
   });
 
   final CommunityService? service;
   final ExplorationStore? explorationStore;
   final Future<List<ExplorationRecord>> Function()? recordsLoader;
+  final RouteProgressStore? routeProgressStore;
 
   @override
   State<SoundscapePage> createState() => _SoundscapePageState();
@@ -29,9 +34,17 @@ class SoundscapePage extends StatefulWidget {
 class _SoundscapePageState extends State<SoundscapePage> {
   late final CommunityService _service;
   late final Future<List<ExplorationRecord>> Function() _recordsLoader;
+  late final RouteProgressStore _routeProgressStore;
   final AudioPlayer _player = AudioPlayer();
   List<SoundscapeArea> _areas = const [];
   List<CommunityPost> _posts = const [];
+  List<CommunityPark> _parks = const [];
+  List<CommunitySite> _parkSites = const [];
+  String? _selectedParkId;
+  String? _selectedParkZoneId;
+  DailyNatureBrief? _dailyBrief;
+  EcologySnapshot? _ecologySnapshot;
+  List<ExplorationRoute> _routes = const [];
   String? _selectedAreaId;
   String? _playingPostId;
   String? _recentAreaId;
@@ -48,6 +61,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
     _service = widget.service ?? HttpCommunityService();
     final store = widget.explorationStore ?? FileExplorationStore();
     _recordsLoader = widget.recordsLoader ?? store.list;
+    _routeProgressStore = widget.routeProgressStore ?? FileRouteProgressStore();
     _playerSubscription = _player.onPlayerStateChanged.listen((state) {
       if (mounted && state != PlayerState.playing) {
         setState(() => _playingPostId = null);
@@ -75,12 +89,16 @@ class _SoundscapePageState extends State<SoundscapePage> {
       final values = await Future.wait([
         _service.listAreas(),
         _service.listPosts(),
+        _service.listParks(),
       ]);
       if (!mounted) return;
       setState(() {
         _areas = values[0] as List<SoundscapeArea>;
         _posts = values[1] as List<CommunityPost>;
+        _parks = values[2] as List<CommunityPark>;
+        _selectedParkId ??= _parks.firstOrNull?.id;
       });
+      if (_selectedParkId != null) await _loadParkInsight(_selectedParkId!);
     } on CommunityException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } catch (_) {
@@ -90,10 +108,57 @@ class _SoundscapePageState extends State<SoundscapePage> {
     }
   }
 
+  Future<void> _loadParkInsight(String parkId) async {
+    try {
+      final values = await Future.wait([
+        _service.dailyBrief(parkId),
+        _service.ecologySnapshot(parkId),
+        _service.listRoutes(parkId),
+        _service.listSites(parkId: parkId),
+      ]);
+      if (!mounted || _selectedParkId != parkId) return;
+      setState(() {
+        _dailyBrief = values[0] as DailyNatureBrief;
+        _ecologySnapshot = values[1] as EcologySnapshot;
+        _routes = values[2] as List<ExplorationRoute>;
+        _parkSites = values[3] as List<CommunitySite>;
+      });
+    } catch (_) {
+      if (mounted && _selectedParkId == parkId) {
+        setState(() {
+          _dailyBrief = null;
+          _ecologySnapshot = null;
+          _routes = const [];
+          _parkSites = const [];
+        });
+      }
+    }
+  }
+
+  Future<void> _openRoute(ExplorationRoute route) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ExplorationRoutePage(
+          route: route,
+          store: _routeProgressStore,
+        ),
+      ),
+    );
+  }
+
   List<CommunityPost> get _visiblePosts {
     var values = _posts;
     if (_selectedAreaId != null) {
       values = values.where((post) => post.areaId == _selectedAreaId).toList();
+    }
+    if (_selectedParkZoneId != null) {
+      values = values
+          .where(
+            (post) =>
+                post.parkId == _selectedParkId &&
+                post.zoneId == _selectedParkZoneId,
+          )
+          .toList();
     }
     return switch (_view) {
       _SoundscapeView.recent => values,
@@ -377,12 +442,73 @@ class _SoundscapePageState extends State<SoundscapePage> {
             const SizedBox(height: 6),
             Text('$total 条公开线索 · $waiting 条等待探员协助'),
             const SizedBox(height: 16),
+            if (_parks.isNotEmpty) ...[
+              Text('试点公园', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final park in _parks) ...[
+                      ChoiceChip(
+                        key: Key('community-park-${park.id}'),
+                        label: Text(park.name),
+                        selected: _selectedParkId == park.id,
+                        onSelected: (_) {
+                          setState(() {
+                            _selectedParkId = park.id;
+                            _dailyBrief = null;
+                            _ecologySnapshot = null;
+                            _routes = const [];
+                            _parkSites = const [];
+                            _selectedParkZoneId = null;
+                          });
+                          unawaited(_loadParkInsight(park.id));
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (_dailyBrief case final brief?)
+                _DailyNatureBriefCard(
+                  brief: brief,
+                  snapshot: _ecologySnapshot,
+                ),
+              if (_parkSites.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _ParkZoneSoundMap(
+                  sites: _parkSites,
+                  posts: _posts
+                      .where((post) => post.parkId == _selectedParkId)
+                      .toList(growable: false),
+                  selectedZoneId: _selectedParkZoneId,
+                  onSelected: (zoneId) => setState(() {
+                    _selectedAreaId = null;
+                    _selectedParkZoneId = _selectedParkZoneId == zoneId
+                        ? null
+                        : zoneId;
+                  }),
+                ),
+              ],
+              if (_routes case [final route, ...]) ...[
+                const SizedBox(height: 12),
+                _ExplorationRouteCard(
+                  route: route,
+                  onOpen: () => _openRoute(route),
+                ),
+              ],
+              const SizedBox(height: 18),
+            ],
             _SoundscapeMap(
               areas: _areas,
               loading: _loading,
               selectedAreaId: _selectedAreaId,
               recentAreaId: _recentAreaId,
               onSelected: (areaId) => setState(() {
+                _selectedParkZoneId = null;
                 _selectedAreaId = _selectedAreaId == areaId ? null : areaId;
               }),
             ),
@@ -495,6 +621,248 @@ class _MapSelectionSummary extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ParkZoneSoundMap extends StatelessWidget {
+  const _ParkZoneSoundMap({
+    required this.sites,
+    required this.posts,
+    required this.selectedZoneId,
+    required this.onSelected,
+  });
+
+  final List<CommunitySite> sites;
+  final List<CommunityPost> posts;
+  final String? selectedZoneId;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    const alignments = [
+      Alignment(-.82, .55),
+      Alignment(0, -.7),
+      Alignment(.82, .45),
+    ];
+    return Container(
+      key: const Key('park-zone-sound-map'),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF244E3D),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.park_outlined, color: Color(0xFFF5F1E5)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  '公园分区声景',
+                  style: TextStyle(
+                    color: Color(0xFFF5F1E5),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                selectedZoneId == null ? '点选查看' : '已筛选',
+                style: const TextStyle(color: Color(0xFFCFE0D5)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 148,
+            child: Stack(
+              children: [
+                const Positioned.fill(
+                  child: Center(
+                    child: Icon(
+                      Icons.eco_outlined,
+                      size: 116,
+                      color: Color(0x1828A274),
+                    ),
+                  ),
+                ),
+                for (final (index, site) in sites.take(3).indexed)
+                  Align(
+                    alignment: alignments[index],
+                    child: InkWell(
+                      key: Key('park-zone-${site.zoneId}'),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => onSelected(site.zoneId),
+                      child: Container(
+                        width: 104,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selectedZoneId == site.zoneId
+                              ? const Color(0xFFFFE5A8)
+                              : const Color(0xFFF6F2E8),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.hearing_rounded, size: 18),
+                            const SizedBox(height: 3),
+                            Text(
+                              site.zoneName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              '${posts.where((post) => post.zoneId == site.zoneId).length} 条发现',
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const Text(
+            '仅显示公开分区，不代表录音的精确位置。',
+            style: TextStyle(color: Color(0xFFCFE0D5), fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyNatureBriefCard extends StatelessWidget {
+  const _DailyNatureBriefCard({required this.brief, this.snapshot});
+  final DailyNatureBrief brief;
+  final EcologySnapshot? snapshot;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    color: const Color(0xFFE8F0E8),
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.wb_sunny_outlined, size: 19),
+              const SizedBox(width: 8),
+              const Text('今日自然声讯'),
+              const Spacer(),
+              _PostBadge(
+                label: '数据${_sufficiencyLabel(brief.dataSufficiency)}',
+                color: const Color(0xFFFFF7DC),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(brief.headline, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(brief.summary),
+          if (brief.facts.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            for (final fact in brief.facts) Text('· $fact'),
+          ],
+          if (brief.possibleExplanations.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              '为什么可能这样',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 4),
+            for (final explanation in brief.possibleExplanations)
+              Text('· $explanation'),
+          ],
+          const SizedBox(height: 12),
+          Text('今日小任务', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 4),
+          Text(brief.mission),
+          const SizedBox(height: 10),
+          Text(brief.disclaimer, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    ),
+  );
+
+  static String _sufficiencyLabel(String value) => switch (value) {
+    'high' => '充分',
+    'medium' => '中等',
+    _ => '不足',
+  };
+}
+
+class _ExplorationRouteCard extends StatelessWidget {
+  const _ExplorationRouteCard({required this.route, required this.onOpen});
+
+  final ExplorationRoute route;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: Key('exploration-route-${route.id}'),
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF2D8),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.route_outlined, size: 20),
+            const SizedBox(width: 8),
+            const Text('亲子自然探索'),
+            const Spacer(),
+            Text('${route.durationMinutes}分钟 · ${route.distanceKm}公里'),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(route.name, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _PostBadge(
+              label: '${route.ageMin}岁以上',
+              color: const Color(0xFFFFFDF5),
+            ),
+            for (final tag in route.tags)
+              _PostBadge(label: tag, color: const Color(0xFFFFFDF5)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        for (final (index, stop) in route.stops.indexed) ...[
+          Text(
+            '${index + 1}. ${stop.mission}（约${stop.minutes}分钟）',
+            style: const TextStyle(height: 1.4),
+          ),
+          if (index < route.stops.length - 1) const SizedBox(height: 6),
+        ],
+        const SizedBox(height: 10),
+        Text(route.disclaimer, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          key: Key('open-exploration-route-${route.id}'),
+          onPressed: onOpen,
+          icon: const Icon(Icons.directions_walk_rounded),
+          label: const Text('开始探索'),
+        ),
+      ],
+    ),
+  );
 }
 
 class _SoundscapeMap extends StatefulWidget {
@@ -925,6 +1293,10 @@ class _CommunitySoundCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
+            if (post.mediaAssets.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _PostMediaPreview(asset: post.mediaAssets.first),
+            ],
             const SizedBox(height: 10),
             Row(
               children: [
@@ -1013,6 +1385,72 @@ class _PostBadge extends StatelessWidget {
     ),
     child: Text(label, style: TextStyle(fontSize: 12, color: foreground)),
   );
+}
+
+class _PostMediaPreview extends StatelessWidget {
+  const _PostMediaPreview({required this.asset});
+  final CommunityMediaAsset asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (asset.sourceType) {
+      'original' => '真实素材',
+      'composed' => 'AI合成作品',
+      _ => 'AI生成内容',
+    };
+    if (asset.mediaType == 'image' || asset.mediaType == 'thumbnail') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Stack(
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.network(
+                asset.url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const ColoredBox(
+                  color: Color(0xFFE8EFE8),
+                  child: Center(child: Icon(Icons.image_not_supported_outlined)),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 8,
+              top: 8,
+              child: _PostBadge(label: label, color: const Color(0xEFFFFDF5)),
+            ),
+          ],
+        ),
+      );
+    }
+    return InkWell(
+      key: Key('open-community-video-${asset.id}'),
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => CommunityVideoPage(
+            url: asset.url,
+            sourceLabel: label,
+          ),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8EFE8),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.play_circle_outline_rounded),
+            const SizedBox(width: 9),
+            Expanded(child: Text('自然明信片视频 · $label')),
+            const Icon(Icons.chevron_right_rounded),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Waveform extends StatelessWidget {

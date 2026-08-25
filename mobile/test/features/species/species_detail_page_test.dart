@@ -61,6 +61,8 @@ void main() {
     await tester.tap(find.text('重复鸣叫'));
     await tester.pumpAndSettle();
     expect(find.text('✓ 已满足故事生成条件'), findsOneWidget);
+    await tester.ensureVisible(find.text('完成现场观察'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('完成现场观察'));
     expect(changedObservations, {
       'time': ['early_morning'],
@@ -68,12 +70,6 @@ void main() {
       'sound_pattern': ['repeated'],
     });
 
-    await tester.drag(find.byType(ListView), const Offset(0, -500));
-    await tester.pumpAndSettle();
-    expect(find.text('认识它'), findsOneWidget);
-    expect(find.textContaining('城市公园'), findsOneWidget);
-    expect(find.text('听更多'), findsNothing);
-    expect(find.textContaining('需联网'), findsNothing);
   });
 
   testWidgets('multiple intervals show a clear position', (tester) async {

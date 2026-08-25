@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
+import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/storage/creation_store.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 
 class PublicationPage extends StatefulWidget {
@@ -8,10 +12,14 @@ class PublicationPage extends StatefulWidget {
     super.key,
     required this.record,
     required this.service,
+    this.creationRecordsLoader,
+    this.availableWorks,
   });
 
   final ExplorationRecord record;
   final CommunityService service;
+  final Future<List<CreationRecord>> Function()? creationRecordsLoader;
+  final List<CreationRecord>? availableWorks;
 
   @override
   State<PublicationPage> createState() => _PublicationPageState();
@@ -28,11 +36,104 @@ class _PublicationPageState extends State<PublicationPage> {
   };
 
   String _areaId = 'xihu';
+  List<CommunityPark> _parks = const [];
+  List<CommunitySite> _sites = const [];
+  String? _parkId;
+  String? _siteId;
+  List<CreationRecord> _works = const [];
+  String? _selectedWorkId;
+  bool _includeWork = false;
   bool _adultConfirmed = false;
   bool _publicConsent = false;
   bool _reviewConsent = false;
   bool _publishing = false;
   String? _error;
+  CommunityPost? _publishedPost;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSites();
+    final availableWorks = widget.availableWorks;
+    if (availableWorks == null) {
+      _loadWorks();
+    } else {
+      _works = availableWorks;
+      _selectedWorkId = availableWorks.firstOrNull?.id;
+    }
+  }
+
+  String get _subject {
+    final primary = widget.record.detections.firstOrNull;
+    return primary?.specificSpecies?.nameZh ??
+        primary?.nameZh ??
+        '待确认的自然声音';
+  }
+
+  String _workPath(CreationRecord record) => record.finalVideoPath.isNotEmpty
+      ? record.finalVideoPath
+      : record.videoPath;
+
+  Future<void> _loadWorks() async {
+    try {
+      final loader = widget.creationRecordsLoader ?? CreationStore().list;
+      final records = await loader();
+      final matches = <CreationRecord>[];
+      for (final record in records) {
+        final path = _workPath(record);
+        if (record.subject == _subject &&
+            path.isNotEmpty &&
+            await File(path).exists() &&
+            await File(path).length() <= 25 * 1024 * 1024) {
+          matches.add(record);
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _works = matches;
+        _selectedWorkId = matches.firstOrNull?.id;
+      });
+    } catch (_) {
+      // A missing works library must never block publishing the real recording.
+    }
+  }
+
+  Future<void> _loadSites() async {
+    try {
+      final parks = await widget.service.listParks();
+      if (!mounted || parks.isEmpty) return;
+      final parkId = parks.first.id;
+      final sites = await widget.service.listSites(parkId: parkId);
+      if (!mounted) return;
+      setState(() {
+        _parks = parks;
+        _parkId = parkId;
+        _areaId = parks.first.areaId;
+        _sites = sites;
+        _siteId = sites.firstOrNull?.id;
+      });
+    } catch (_) {
+      // District-only publishing remains available as a compatibility fallback.
+    }
+  }
+
+  Future<void> _selectPark(CommunityPark park) async {
+    setState(() {
+      _parkId = park.id;
+      _areaId = park.areaId;
+      _sites = const [];
+      _siteId = null;
+    });
+    try {
+      final sites = await widget.service.listSites(parkId: park.id);
+      if (mounted && _parkId == park.id) {
+        setState(() {
+          _sites = sites;
+          _siteId = sites.firstOrNull?.id;
+        });
+      }
+    } catch (_) {}
+  }
 
   Future<void> _publish() async {
     if (!_adultConfirmed || !_publicConsent || _publishing) return;
@@ -41,23 +142,55 @@ class _PublicationPageState extends State<PublicationPage> {
       _error = null;
     });
     try {
-      final post = await widget.service.publish(
-        PublicationRequest(
-          record: widget.record,
-          consent: PublicationConsent(
-            areaId: _areaId,
-            areaName: _areas[_areaId]!,
-            adultConfirmed: _adultConfirmed,
-            publicConsent: _publicConsent,
-            reviewConsent: _reviewConsent,
-          ),
-        ),
-      );
+      final post = _publishedPost ??
+          await widget.service.publish(
+            PublicationRequest(
+              record: widget.record,
+              consent: PublicationConsent(
+                areaId: _areaId,
+                areaName: _areas[_areaId]!,
+                adultConfirmed: _adultConfirmed,
+                publicConsent: _publicConsent,
+                reviewConsent: _reviewConsent,
+                parkId: _parkId,
+                zoneId: _sites
+                    .where((item) => item.id == _siteId)
+                    .firstOrNull
+                    ?.zoneId,
+                siteId: _siteId,
+              ),
+            ),
+          );
+      _publishedPost = post;
+      if (_includeWork && _selectedWorkId != null) {
+        final work = _works
+            .where((item) => item.id == _selectedWorkId)
+            .firstOrNull;
+        if (work != null) {
+          await widget.service.addMedia(
+            post.id,
+            filePath: _workPath(work),
+            mediaType: 'video',
+            sourceType: work.finalVideoPath.isNotEmpty
+                ? 'composed'
+                : 'ai_generated',
+            provider: 'nature-story-pipeline',
+          );
+        }
+      }
       if (mounted) Navigator.of(context).pop(post);
     } on CommunityException catch (error) {
-      if (mounted) setState(() => _error = error.message);
+      if (mounted) {
+        setState(() => _error = _publishedPost == null
+            ? error.message
+            : '声音已经加入社区，但作品上传失败。可以重试作品上传，不会重复发布声音。');
+      }
     } catch (_) {
-      if (mounted) setState(() => _error = '发布暂时失败，声音仍安全保存在自然册。');
+      if (mounted) {
+        setState(() => _error = _publishedPost == null
+            ? '发布暂时失败，声音仍安全保存在自然册。'
+            : '声音已经加入社区，但作品上传失败。可以重试作品上传，不会重复发布声音。');
+      }
     } finally {
       if (mounted) setState(() => _publishing = false);
     }
@@ -65,9 +198,6 @@ class _PublicationPageState extends State<PublicationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = widget.record.detections.firstOrNull;
-    final subject =
-        primary?.specificSpecies?.nameZh ?? primary?.nameZh ?? '待确认的自然声音';
     return Scaffold(
       appBar: AppBar(title: const Text('加入共听杭州')),
       body: ListView(
@@ -84,7 +214,7 @@ class _PublicationPageState extends State<PublicationPage> {
               children: [
                 const Text('准备公开的声音线索'),
                 const SizedBox(height: 8),
-                Text(subject, style: Theme.of(context).textTheme.titleLarge),
+                Text(_subject, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Text('${widget.record.duration.inSeconds} 秒 · 仅使用这次录音和调查结果'),
                 if (widget.record.fieldChecks.isNotEmpty) ...[
@@ -95,11 +225,23 @@ class _PublicationPageState extends State<PublicationPage> {
             ),
           ),
           const SizedBox(height: 26),
-          Text('展示到哪个区域？', style: Theme.of(context).textTheme.titleLarge),
+          Text('展示到哪个公园？', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 6),
           const Text('只公开区域级位置，不上传精确坐标。'),
           const SizedBox(height: 12),
-          Wrap(
+          if (_parks.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _parks.map((park) => ChoiceChip(
+                key: Key('publish-park-${park.id}'),
+                label: Text(park.name),
+                selected: _parkId == park.id,
+                onSelected: (_) => _selectPark(park),
+              )).toList(),
+            )
+          else
+            Wrap(
             spacing: 8,
             runSpacing: 8,
             children: _areas.entries
@@ -112,7 +254,59 @@ class _PublicationPageState extends State<PublicationPage> {
                   ),
                 )
                 .toList(),
-          ),
+            ),
+          if (_sites.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text('选择公开分区', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _sites.map((site) => ChoiceChip(
+                key: Key('publish-site-${site.id}'),
+                label: Text(site.zoneName),
+                selected: _siteId == site.id,
+                onSelected: (_) => setState(() => _siteId = site.id),
+              )).toList(),
+            ),
+          ],
+          if (_works.isNotEmpty) ...[
+            const SizedBox(height: 28),
+            Text('同时发布自然作品', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 6),
+            const Text('作品用于讲述和分享；生态趋势仍只依据真实录音与现场观察。'),
+            const SizedBox(height: 8),
+            CheckboxListTile(
+              key: const Key('include-community-work'),
+              contentPadding: EdgeInsets.zero,
+              value: _includeWork,
+              onChanged: (value) =>
+                  setState(() => _includeWork = value ?? false),
+              title: const Text('附上这个动物的自然故事视频'),
+              subtitle: Text(
+                _works.length == 1 ? '已找到 1 件作品' : '已找到 ${_works.length} 件作品',
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+            if (_includeWork && _works.length > 1)
+              RadioGroup<String>(
+                groupValue: _selectedWorkId,
+                onChanged: (value) => setState(() => _selectedWorkId = value),
+                child: Column(
+                  children: _works
+                      .map(
+                        (work) => RadioListTile<String>(
+                          value: work.id,
+                          title: Text(work.subject),
+                          subtitle: Text(
+                            '${work.createdAt.month}月${work.createdAt.day}日生成',
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
+          ],
           const SizedBox(height: 28),
           Text('公开授权', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
@@ -162,7 +356,11 @@ class _PublicationPageState extends State<PublicationPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.radar_rounded),
-            label: Text(_publishing ? '正在加入城市声景…' : '加入共听杭州'),
+            label: Text(
+              _publishing
+                  ? (_publishedPost == null ? '正在加入城市声景…' : '正在重试作品上传…')
+                  : (_publishedPost == null ? '加入共听杭州' : '重试作品上传'),
+            ),
           ),
           const SizedBox(height: 12),
           const Text(

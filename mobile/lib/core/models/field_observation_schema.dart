@@ -28,6 +28,10 @@ class FieldObservationSchema {
     required this.dimensions,
   });
 
+  final int version;
+  final int minimumMeaningfulDimensions;
+  final List<FieldObservationDimension> dimensions;
+
   factory FieldObservationSchema.fromJson(Map<String, Object?> json) {
     final rawDimensions = json['dimensions'];
     if (rawDimensions is! List<Object?>) {
@@ -45,7 +49,8 @@ class FieldObservationSchema {
           label: value['label'] as String,
           multiple: value['multiple'] as bool? ?? false,
           options: options.map((rawOption) {
-            final option = (rawOption as Map<Object?, Object?>).cast<String, Object?>();
+            final option = (rawOption as Map<Object?, Object?>)
+                .cast<String, Object?>();
             return FieldObservationOption(
               value: option['value'] as String,
               label: option['label'] as String,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -31,6 +31,17 @@ class PublicationMetadata(BaseModel):
     adult_confirmed: bool
     public_consent: bool
     review_consent: bool = False
+    park_id: str | None = Field(default=None, pattern=r"^[a-z][a-z0-9-]{2,60}$")
+    zone_id: str | None = Field(default=None, pattern=r"^[a-z][a-z0-9-]{2,60}$")
+    site_id: str | None = Field(
+        default=None,
+        max_length=100,
+        pattern=r"^[a-z][a-z0-9-]{2,60}:[a-z][a-z0-9-]{2,60}$",
+    )
+    sampling_mode: Literal["opportunistic", "guided_task", "fixed_monitoring"] = "opportunistic"
+    sampling_effort: dict[str, Any] = Field(default_factory=dict)
+    audio_quality: dict[str, Any] = Field(default_factory=dict)
+    ecology_eligible: bool = True
 
     @field_validator("area_name")
     @classmethod
@@ -75,6 +86,108 @@ class CommunityPost(BaseModel):
     response_count: int = 0
     response_summary: dict[str, int] = Field(default_factory=dict)
     owned_by_requester: bool = False
+    park_id: str | None = None
+    zone_id: str | None = None
+    site_id: str | None = None
+    sampling_mode: str = "opportunistic"
+    sampling_effort: dict[str, Any] = Field(default_factory=dict)
+    audio_quality: dict[str, Any] = Field(default_factory=dict)
+    ecology_eligible: bool = True
+    media_assets: list["CommunityMediaAsset"] = Field(default_factory=list)
+
+
+class CommunityMediaAsset(BaseModel):
+    id: str
+    media_type: Literal["audio", "image", "video", "thumbnail"]
+    source_type: Literal["original", "ai_generated", "composed"]
+    url: str
+    thumbnail_url: str | None = None
+    provider: str | None = None
+    model: str | None = None
+    moderation_status: Literal["pending", "approved", "rejected"] = "approved"
+
+
+class ParkSite(BaseModel):
+    id: str
+    park_id: str
+    park_name: str
+    zone_id: str
+    zone_name: str
+    area_id: str
+    area_name: str
+    public_centroid: dict[str, float]
+    habitat_tags: list[str]
+
+
+class ParkSummary(BaseModel):
+    park_id: str
+    park_name: str
+    area_id: str
+    area_name: str
+    public_centroid: dict[str, float]
+    habitat_tags: list[str]
+    zone_count: int
+
+
+class ZoneSoundscapeSummary(BaseModel):
+    zone_id: str
+    zone_name: str
+    valid_post_count: int
+    independent_observer_count: int
+    sound_type_counts: dict[str, int]
+    data_sufficiency: Literal["low", "medium", "high"]
+
+
+class EcologySnapshot(BaseModel):
+    park_id: str
+    period_days: int
+    valid_post_count: int
+    independent_observer_count: int
+    sound_type_counts: dict[str, int]
+    reviewed_post_count: int
+    data_sufficiency: Literal["low", "medium", "high"]
+    observation_day_count: int = 0
+    sampling_mode_counts: dict[str, int] = Field(default_factory=dict)
+    previous_valid_post_count: int = 0
+    activity_trend: Literal["insufficient", "higher", "similar", "lower"] = (
+        "insufficient"
+    )
+    zone_summaries: list[ZoneSoundscapeSummary] = Field(default_factory=list)
+    ecology_label: str = "社区声景观察趋势"
+    disclaimer: str = "这是公众观察趋势，不替代专业生态监测。"
+
+
+class DailyNatureBrief(BaseModel):
+    park_id: str
+    park_name: str
+    headline: str
+    summary: str
+    facts: list[str]
+    possible_explanations: list[str]
+    mission: str
+    data_sufficiency: Literal["low", "medium", "high"]
+    disclaimer: str = "这是社区观察趋势，不代表动物数量或专业生态评估。"
+
+
+class ExplorationRouteStop(BaseModel):
+    site_id: str
+    minutes: int
+    mission: str
+
+
+class ExplorationRoute(BaseModel):
+    id: str
+    park_id: str
+    name: str
+    duration_minutes: int
+    distance_km: float
+    age_min: int
+    tags: list[str]
+    stops: list[ExplorationRouteStop]
+    disclaimer: str = "近期社区记录不保证一定遇见动物，请始终留在公开步道。"
+
+
+CommunityPost.model_rebuild()
 
 
 class AreaSummary(BaseModel):

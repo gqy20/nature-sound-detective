@@ -292,8 +292,9 @@ def seed(database_url: str, *, apply: bool) -> None:
                 """INSERT INTO community_posts
                    (id, owner_hash, alias, area_id, area_name, subject, sound_type,
                     observed_at, created_at, audio_url, duration_ms, candidate_names,
-                    field_observations, model_snapshot, status, review_status)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s)
+                    field_observations, model_snapshot, status, review_status,
+                    sampling_mode, sampling_effort, audio_quality, ecology_eligible)
+                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s,%s,%s::jsonb,%s::jsonb,%s)
                    ON CONFLICT (id) DO UPDATE SET
                      alias=EXCLUDED.alias, area_id=EXCLUDED.area_id,
                      area_name=EXCLUDED.area_name, subject=EXCLUDED.subject,
@@ -303,7 +304,12 @@ def seed(database_url: str, *, apply: bool) -> None:
                      candidate_names=EXCLUDED.candidate_names,
                      field_observations=EXCLUDED.field_observations,
                      model_snapshot=EXCLUDED.model_snapshot, status=EXCLUDED.status,
-                     review_status=EXCLUDED.review_status, withdrawn_at=NULL""",
+                     review_status=EXCLUDED.review_status,
+                     park_id=NULL, zone_id=NULL, site_id=NULL,
+                     sampling_mode=EXCLUDED.sampling_mode,
+                     sampling_effort=EXCLUDED.sampling_effort,
+                     audio_quality=EXCLUDED.audio_quality,
+                     ecology_eligible=false, withdrawn_at=NULL""",
                 (
                     post.id,
                     DEMO_OWNER_HASH,
@@ -324,6 +330,13 @@ def seed(database_url: str, *, apply: bool) -> None:
                     json.dumps(model_snapshot, ensure_ascii=False),
                     status,
                     "not_requested",
+                    "opportunistic",
+                    json.dumps({"source": "competition_demo"}),
+                    json.dumps(
+                        {"usable": False, "reason": "competition_demo"},
+                        ensure_ascii=False,
+                    ),
+                    False,
                 ),
             )
             cursor.execute(

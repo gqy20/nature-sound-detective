@@ -196,10 +196,14 @@ def build_community_router(
             expected_site_id = f"{parsed.park_id}:{parsed.zone_id}"
             if parsed.site_id and parsed.site_id != expected_site_id:
                 raise HTTPException(422, "观察点与公园分区不一致")
+            is_demo = parsed.model_snapshot.get("demo") is True
             parsed = parsed.model_copy(
                 update={
                     "site_id": expected_site_id,
-                    "ecology_eligible": bool(parsed.audio_quality.get("usable", False)),
+                    "ecology_eligible": (
+                        bool(parsed.audio_quality.get("usable", False))
+                        and not is_demo
+                    ),
                 }
             )
         else:

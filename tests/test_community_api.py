@@ -280,3 +280,29 @@ def test_mismatched_site_id_is_rejected(tmp_path, monkeypatch):
     )
     assert response.status_code == 422
     assert response.json()["detail"] == "观察点与公园分区不一致"
+
+
+def test_demo_post_can_show_on_park_map_but_never_counts_as_ecology(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    response = client.post(
+        "/api/community/posts",
+        headers=_headers(client, "device_demo_park_123456"),
+        data={
+            "metadata": json.dumps(
+                _metadata(
+                    park_id="hangzhou-botanical-garden",
+                    zone_id="understory-trail",
+                    model_snapshot={"demo": True},
+                    audio_quality={"usable": True},
+                ),
+                ensure_ascii=False,
+            )
+        },
+        files={"audio": ("clip.wav", b"RIFF" + b"0" * 64, "audio/wav")},
+    )
+    assert response.status_code == 201
+    assert response.json()["post"]["ecology_eligible"] is False
+    snapshot = client.get(
+        "/api/community/parks/hangzhou-botanical-garden/ecology-snapshot"
+    )
+    assert snapshot.json()["valid_post_count"] == 0

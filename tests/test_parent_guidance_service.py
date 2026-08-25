@@ -104,3 +104,41 @@ def test_validation_rejects_praise_for_behavior_that_did_not_happen():
             payload,
             behaviors=["recordedSound", "replayedAudio"],
         )
+
+
+def test_live_ai_retries_once_after_behavior_validation_failure(monkeypatch):
+    monkeypatch.setenv("PARENT_GUIDANCE_MODE", "live")
+    monkeypatch.setenv("PARENT_GUIDANCE_API_KEY", "test-key")
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        payload = _ai_payload()
+        if calls == 1:
+            payload["praises"][0]["evidence_behavior"] = "observedSafely"
+        else:
+            body = json.loads(request.content)
+            assert "上一次输出已被拒绝" in body["messages"][1]["content"]
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {"message": {"content": json.dumps(payload, ensure_ascii=False)}}
+                ]
+            },
+        )
+
+    real_client = httpx.Client
+    monkeypatch.setattr(
+        guidance_module.httpx,
+        "Client",
+        lambda **_kwargs: real_client(transport=httpx.MockTransport(handler)),
+    )
+    result = ParentGuidanceService().create(
+        {"behaviors": ["recordedSound", "replayedAudio"]}
+    )
+
+    assert calls == 2
+    assert result["ai_generated"] is True
+    assert result["generation_attempts"] == 2

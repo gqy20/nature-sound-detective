@@ -187,6 +187,8 @@ def _prompt(
 
 你必须直接创作自然、具体、不重复的中文表达。每句夸奖必须严格依据上面的真实行为，并在evidence_behavior中逐字返回对应ID。不得虚构孩子看见动物、留在步道、认真比较、重新录音等没有列出的行为。不得把候选写成确定答案。引导只能鼓励远距离倾听和观看，不得鼓励追逐、捕捉、触摸、投喂、拨开灌木、爬树、下水或靠近巢穴。避免“你真棒、太聪明、小天才”等空泛评价。
 
+如果真实行为中没有observedSafely，夸奖文本和能力标签不得提及安全、步道、追逐、捕捉、触摸、投喂或“没有靠近”等安全表现；这些词只允许出现在guide的avoid字段中。
+
 返回JSON，不要Markdown：
 {{"guides":[{{"goal":"目标","say":"家长可以直接说的话","action":"一起做的动作","avoid":"需要避免的做法"}}],"praises":[{{"evidence_behavior":"真实行为ID","ability":"能力标签","text":"家长可以直接说的具体夸奖"}}]}}
 guides必须2至3条，praises必须3至5条。"""
@@ -231,46 +233,66 @@ class ParentGuidanceService:
             }
         try:
             with httpx.Client(timeout=httpx.Timeout(35, connect=12)) as client:
-                response = client.post(
-                    f"{self.api_base}/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": self.model,
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": "你是亲子自然教育陪伴编辑。真实行为证据、安全和儿童自主性高于文采。",
-                            },
-                            {
-                                "role": "user",
-                                "content": _prompt(
-                                    candidate_name=str(payload.get("candidate_name") or ""),
-                                    category=str(payload.get("category") or ""),
-                                    confidence=float(payload.get("confidence") or 0),
-                                    weak_signal=bool(payload.get("weak_signal", False)),
-                                    observations=[str(item) for item in payload.get("observations") or []],
-                                    behaviors=behaviors,
-                                ),
-                            },
-                        ],
-                        "temperature": 0.85,
-                        "enable_thinking": False,
-                        "max_completion_tokens": 900,
-                        "response_format": {"type": "json_object"},
-                    },
+                prompt = _prompt(
+                    candidate_name=str(payload.get("candidate_name") or ""),
+                    category=str(payload.get("category") or ""),
+                    confidence=float(payload.get("confidence") or 0),
+                    weak_signal=bool(payload.get("weak_signal", False)),
+                    observations=[
+                        str(item) for item in payload.get("observations") or []
+                    ],
+                    behaviors=behaviors,
                 )
-                response.raise_for_status()
-                raw = _parse_json(response.json()["choices"][0]["message"]["content"])
-                result = validate_parent_guidance(raw, behaviors=behaviors)
-                return {
-                    **result,
-                    "provider": self.model,
-                    "ai_generated": True,
-                    "warning": "",
-                }
+                validation_error = ""
+                for attempt in range(2):
+                    correction = (
+                        ""
+                        if not validation_error
+                        else (
+                            "\n\n上一次输出已被拒绝，原因："
+                            f"{validation_error}。请完全重写JSON，删除没有真实行为依据的内容。"
+                        )
+                    )
+                    response = client.post(
+                        f"{self.api_base}/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {self.api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "model": self.model,
+                            "messages": [
+                                {
+                                    "role": "system",
+                                    "content": "你是亲子自然教育陪伴编辑。真实行为证据、安全和儿童自主性高于文采。",
+                                },
+                                {"role": "user", "content": prompt + correction},
+                            ],
+                            "temperature": 0.75 if attempt else 0.85,
+                            "enable_thinking": False,
+                            "max_completion_tokens": 900,
+                            "response_format": {"type": "json_object"},
+                        },
+                    )
+                    response.raise_for_status()
+                    raw = _parse_json(
+                        response.json()["choices"][0]["message"]["content"]
+                    )
+                    try:
+                        result = validate_parent_guidance(raw, behaviors=behaviors)
+                    except ValueError as exc:
+                        validation_error = str(exc)[:120]
+                        if attempt == 0:
+                            continue
+                        raise
+                    return {
+                        **result,
+                        "provider": self.model,
+                        "ai_generated": True,
+                        "warning": "",
+                        "generation_attempts": attempt + 1,
+                    }
+                raise ValueError(validation_error or "AI生成没有通过校验")
         except Exception as exc:
             log_exception(
                 logger,

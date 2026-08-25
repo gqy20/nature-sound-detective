@@ -284,4 +284,5 @@ class ParentGuidanceService:
                 "ai_generated": False,
                 "warning": "AI生成未通过事实或安全校验，已使用审核模板",
                 "diagnostic_code": type(exc).__name__,
+                "diagnostic_detail": str(exc)[:160],
             }

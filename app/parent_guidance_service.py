@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
@@ -9,6 +10,10 @@ import httpx
 from dotenv import load_dotenv
 
 from app.config import ROOT
+from app.observability import get_logger, log_exception
+
+
+logger = get_logger("parent_guidance")
 
 
 ALLOWED_BEHAVIORS = {
@@ -265,7 +270,13 @@ class ParentGuidanceService:
                     "ai_generated": True,
                     "warning": "",
                 }
-        except Exception:
+        except Exception as exc:
+            log_exception(
+                logger,
+                "parent_guidance_fallback_used",
+                provider=self.model,
+                error_type=type(exc).__name__,
+            )
             return {
                 **fallback,
                 "provider": "reviewed-template",

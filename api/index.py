@@ -10,8 +10,9 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.yamnet_service import YamNetAnalyzer
+from app.yamnet_service import LABEL_PATH, MODEL_PATH, YamNetAnalyzer
 from app.community.routes import build_community_router
+from app.field_observations import SCHEMA_PATH
 from app.observability import get_logger, install_observability, log_exception
 from app.investigation import apply_observation, apply_structured_observations, build_investigation
 from app.result_fusion import fuse_results
@@ -73,8 +74,17 @@ def root() -> dict[str, str]:
 
 
 @app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "mode": "vercel-yamnet-only"}
+def health() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "mode": "vercel-yamnet-only",
+        "revision": os.getenv("VERCEL_GIT_COMMIT_SHA", "")[:7],
+        "assets": {
+            "yamnet_model": MODEL_PATH.is_file(),
+            "yamnet_labels": LABEL_PATH.is_file(),
+            "field_observations": SCHEMA_PATH.is_file(),
+        },
+    }
 
 
 @app.post("/api/analyze")

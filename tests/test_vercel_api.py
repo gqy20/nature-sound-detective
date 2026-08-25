@@ -20,6 +20,11 @@ def test_cloud_health():
     )
     assert response.status_code == 200
     assert response.json()["mode"] == "vercel-yamnet-only"
+    assert response.json()["assets"] == {
+        "yamnet_model": True,
+        "yamnet_labels": True,
+        "field_observations": True,
+    }
     assert response.headers["X-Trace-ID"] == "rec_test_12345678"
 
 

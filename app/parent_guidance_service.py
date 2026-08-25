@@ -227,6 +227,7 @@ class ParentGuidanceService:
                 "provider": "reviewed-template",
                 "ai_generated": False,
                 "warning": "AI陪伴模型未启用，已使用审核模板",
+                "diagnostic_code": "not_configured",
             }
         try:
             with httpx.Client(timeout=httpx.Timeout(35, connect=12)) as client:
@@ -282,4 +283,5 @@ class ParentGuidanceService:
                 "provider": "reviewed-template",
                 "ai_generated": False,
                 "warning": "AI生成未通过事实或安全校验，已使用审核模板",
+                "diagnostic_code": type(exc).__name__,
             }

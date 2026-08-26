@@ -62,7 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="审计三个试点公园的真实声景数据覆盖")
     parser.add_argument(
         "--base-url",
-        default="https://xykw-api.vercel.app",
+        default="https://listen-api.gqy20.top",
         help="社区API根地址",
     )
     parser.add_argument("--days", type=int, default=7)

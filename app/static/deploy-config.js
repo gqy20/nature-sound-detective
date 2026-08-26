@@ -1,5 +1,5 @@
 window.NATURE_API_BASE = window.NATURE_API_BASE || (
   window.location.protocol === "https:"
-    ? "https://xykw-api.vercel.app"
+    ? "https://listen-api.gqy20.top"
     : ""
 );

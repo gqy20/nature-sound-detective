@@ -87,7 +87,7 @@ uv run python -c "from pathlib import Path; from dotenv import load_dotenv; impo
 ```
 
 Android 模拟器默认访问 `http://10.0.2.2:8770`。Release 包默认访问
-`https://xykw-api.vercel.app`，也可以通过编译参数覆盖：
+`https://listen-api.gqy20.top`，也可以通过编译参数覆盖：
 
 ```powershell
 flutter run --dart-define=COMMUNITY_API_URL=http://192.168.1.10:8770

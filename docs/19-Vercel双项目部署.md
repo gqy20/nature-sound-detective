@@ -5,7 +5,7 @@
 | 项目 | 生产地址 | 功能 |
 |---|---|---|
 | `xykw-web` | <https://xykw-web.vercel.app> | 移动端静态页面、录音转 WAV、示例和声音卡展示 |
-| `xykw-api` | <https://xykw-api.vercel.app> | FastAPI、轻量YAMNet声音大类候选、安全卡片整理 |
+| `xykw-api` | <https://listen-api.gqy20.top>（Vercel项目域名：<https://xykw-api.vercel.app>） | FastAPI、轻量YAMNet声音大类候选、安全卡片整理 |
 
 两个项目均属于 Vercel 团队 `gqys-projects`，源码位于 GitHub 私有仓库 `gqy20/xykw`。
 
@@ -40,7 +40,7 @@ vercel deploy --prod --yes --scope gqys-projects
 健康检查：
 
 ```text
-GET https://xykw-api.vercel.app/api/health
+GET https://listen-api.gqy20.top/api/health
 → {"status":"ok","mode":"vercel-yamnet-only"}
 ```
 
@@ -53,7 +53,7 @@ vercel link --yes --project xykw-web --scope gqys-projects
 vercel deploy --prod --yes --scope gqys-projects
 ```
 
-`deploy-config.js` 在 HTTPS 部署环境使用 `https://xykw-api.vercel.app`，在本地 HTTP 开发环境使用同源 `/api`，因此同一套页面同时支持云端轻量版和本地完整版。
+`deploy-config.js` 在 HTTPS 部署环境使用 `https://listen-api.gqy20.top`，在本地 HTTP 开发环境使用同源 `/api`，因此同一套页面同时支持云端轻量版和本地完整版。
 
 ## 已验证结果
 

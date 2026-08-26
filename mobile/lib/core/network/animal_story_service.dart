@@ -27,7 +27,7 @@ class AnimalStoryService {
   static String get _defaultBaseUrl => _configuredBaseUrl.isNotEmpty
       ? _configuredBaseUrl
       : kReleaseMode
-          ? 'https://xykw-api.vercel.app'
+          ? 'https://listen-api.gqy20.top'
           : 'http://10.0.2.2:8770';
 
   final Uri baseUri;

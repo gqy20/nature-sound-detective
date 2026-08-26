@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
@@ -71,6 +73,64 @@ void main() {
     expect(find.text('太子湾公园'), findsOneWidget);
     expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
     expect(find.text('游园信息暂时没有连上，请稍后重试。'), findsNothing);
+  });
+
+  testWidgets('stops loading and offers retry when park list hangs', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ParkGuidePage(
+          service: _HangingParkListService(),
+          parkListTimeout: const Duration(milliseconds: 20),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('park-guide-loading')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump();
+
+    expect(find.byKey(const Key('park-guide-loading')), findsNothing);
+    expect(find.textContaining('请检查网络后重试'), findsOneWidget);
+    expect(find.text('重新加载'), findsOneWidget);
+  });
+
+  testWidgets('degrades a hanging park detail without blocking the page', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ParkGuidePage(
+          service: _HangingRouteService(),
+          parkDetailTimeout: const Duration(milliseconds: 20),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('park-guide-loading')), findsNothing);
+    expect(find.text('太子湾公园'), findsOneWidget);
+    expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
+  });
+
+  testWidgets('retry recovers after a bounded park list failure', (
+    tester,
+  ) async {
+    final service = _RecoveringParkListService();
+    await tester.pumpWidget(MaterialApp(home: ParkGuidePage(service: service)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('重新加载'), findsOneWidget);
+    await tester.ensureVisible(find.text('重新加载'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('重新加载'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('重新加载'), findsNothing);
+    expect(find.text('太子湾公园'), findsOneWidget);
+    expect(service.calls, 3);
   });
 }
 
@@ -153,6 +213,29 @@ class _PartialCommunityService extends _FakeCommunityService {
   @override
   Future<List<ExplorationRoute>> listRoutes(String parkId) async {
     throw const CommunityException('route unavailable');
+  }
+}
+
+class _HangingParkListService extends _FakeCommunityService {
+  @override
+  Future<List<CommunityPark>> listParks() =>
+      Completer<List<CommunityPark>>().future;
+}
+
+class _HangingRouteService extends _FakeCommunityService {
+  @override
+  Future<List<ExplorationRoute>> listRoutes(String parkId) =>
+      Completer<List<ExplorationRoute>>().future;
+}
+
+class _RecoveringParkListService extends _FakeCommunityService {
+  int calls = 0;
+
+  @override
+  Future<List<CommunityPark>> listParks() async {
+    calls++;
+    if (calls <= 2) throw const CommunityException('temporary failure');
+    return super.listParks();
   }
 }
 

@@ -39,7 +39,7 @@ class ParentGuidanceNetworkService {
   static String get _defaultBaseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
     return kReleaseMode
-        ? 'https://xykw-api.vercel.app'
+        ? 'https://listen-api.gqy20.top'
         : 'http://10.0.2.2:8770';
   }
 

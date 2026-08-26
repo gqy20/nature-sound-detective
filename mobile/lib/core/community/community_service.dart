@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -47,9 +48,22 @@ class CommunityIdentityStore {
 
   final Future<Directory> Function() _directoryProvider;
   String? _cached;
+  Future<String>? _loadRequest;
 
   Future<String> load() async {
     if (_cached case final String value) return value;
+    final pending = _loadRequest;
+    if (pending != null) return pending;
+    final request = _load();
+    _loadRequest = request;
+    try {
+      return await request;
+    } finally {
+      if (identical(_loadRequest, request)) _loadRequest = null;
+    }
+  }
+
+  Future<String> _load() async {
     final directory = await _directoryProvider();
     final config = Directory(p.join(directory.path, 'config'));
     await config.create(recursive: true);
@@ -80,22 +94,28 @@ class HttpCommunityService implements CommunityService {
     Uri? baseUri,
     http.Client? client,
     CommunityIdentityStore? identityStore,
+    this.requestTimeout = const Duration(seconds: 12),
+    this.uploadTimeout = const Duration(seconds: 60),
   }) : baseUri = baseUri ?? Uri.parse(_defaultBaseUrl),
        _client = client ?? http.Client(),
-       _identityStore = identityStore ?? CommunityIdentityStore();
+       _identityStore = identityStore ?? CommunityIdentityStore(),
+       _ownsClient = client == null;
 
   static const _configuredBaseUrl = String.fromEnvironment('COMMUNITY_API_URL');
 
   static String get _defaultBaseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
     return kReleaseMode
-        ? 'https://xykw-api.vercel.app'
+        ? 'https://listen-api.gqy20.top'
         : 'http://10.0.2.2:8770';
   }
 
   final Uri baseUri;
   final http.Client _client;
   final CommunityIdentityStore _identityStore;
+  final bool _ownsClient;
+  final Duration requestTimeout;
+  final Duration uploadTimeout;
   String? _cachedToken;
   DateTime? _tokenExpiresAt;
   Future<String>? _tokenRequest;
@@ -129,10 +149,12 @@ class HttpCommunityService implements CommunityService {
   }
 
   Future<String> _createSession() async {
-    final response = await _client.post(
-      _uri('/api/community/session'),
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({'device_id': await _identityStore.load()}),
+    final response = await _request(
+      _client.post(
+        _uri('/api/community/session'),
+        headers: const {'Content-Type': 'application/json'},
+        body: jsonEncode({'device_id': await _identityStore.load()}),
+      ),
     );
     final payload = _decodeObject(response);
     final token = payload['token'];
@@ -150,9 +172,8 @@ class HttpCommunityService implements CommunityService {
 
   @override
   Future<List<SoundscapeArea>> listAreas() async {
-    final response = await _client.get(
-      _uri('/api/community/areas'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(_uri('/api/community/areas'), headers: await _headers()),
     );
     final values = _decodeList(response);
     return values.map(SoundscapeArea.fromJson).toList(growable: false);
@@ -160,56 +181,75 @@ class HttpCommunityService implements CommunityService {
 
   @override
   Future<List<CommunityPark>> listParks() async {
-    final response = await _client.get(
-      _uri('/api/community/parks'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(_uri('/api/community/parks'), headers: await _headers()),
     );
-    return _decodeList(response).map(CommunityPark.fromJson).toList(growable: false);
+    return _decodeList(
+      response,
+    ).map(CommunityPark.fromJson).toList(growable: false);
   }
 
   @override
   Future<List<CommunitySite>> listSites({String? parkId}) async {
-    final response = await _client.get(
-      _uri('/api/community/sites', parkId == null ? null : {'park_id': parkId}),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(
+        _uri(
+          '/api/community/sites',
+          parkId == null ? null : {'park_id': parkId},
+        ),
+        headers: await _headers(),
+      ),
     );
-    return _decodeList(response).map(CommunitySite.fromJson).toList(growable: false);
+    return _decodeList(
+      response,
+    ).map(CommunitySite.fromJson).toList(growable: false);
   }
 
   @override
   Future<EcologySnapshot> ecologySnapshot(String parkId) async {
-    final response = await _client.get(
-      _uri('/api/community/parks/$parkId/ecology-snapshot'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(
+        _uri('/api/community/parks/$parkId/ecology-snapshot'),
+        headers: await _headers(),
+      ),
     );
     return EcologySnapshot.fromJson(_decodeObject(response));
   }
 
   @override
   Future<DailyNatureBrief> dailyBrief(String parkId) async {
-    final response = await _client.get(
-      _uri('/api/community/parks/$parkId/daily-brief'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(
+        _uri('/api/community/parks/$parkId/daily-brief'),
+        headers: await _headers(),
+      ),
     );
     return DailyNatureBrief.fromJson(_decodeObject(response));
   }
 
   @override
   Future<List<ExplorationRoute>> listRoutes(String parkId) async {
-    final response = await _client.get(
-      _uri('/api/community/parks/$parkId/routes'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(
+        _uri('/api/community/parks/$parkId/routes'),
+        headers: await _headers(),
+      ),
     );
-    return _decodeList(response)
-        .map(ExplorationRoute.fromJson)
-        .toList(growable: false);
+    return _decodeList(
+      response,
+    ).map(ExplorationRoute.fromJson).toList(growable: false);
   }
 
   @override
   Future<List<CommunityPost>> listPosts({String? areaId}) async {
-    final response = await _client.get(
-      _uri('/api/community/posts', areaId == null ? null : {'area_id': areaId}),
-      headers: await _headers(),
+    final response = await _request(
+      _client.get(
+        _uri(
+          '/api/community/posts',
+          areaId == null ? null : {'area_id': areaId},
+        ),
+        headers: await _headers(),
+      ),
     );
     final values = _decodeList(response);
     return values.map(_postFromJson).toList(growable: false);
@@ -271,8 +311,7 @@ class HttpCommunityService implements CommunityService {
           ..files.add(
             await http.MultipartFile.fromPath('audio', record.audioPath),
           );
-    final streamed = await multipart.send();
-    final response = await http.Response.fromStream(streamed);
+    final response = await _send(multipart, timeout: uploadTimeout);
     final payload = _decodeObject(response);
     final post = payload['post'];
     if (post is! Map<Object?, Object?>) {
@@ -303,8 +342,7 @@ class HttpCommunityService implements CommunityService {
             if (model != null && model.isNotEmpty) 'model': model,
           })
           ..files.add(await http.MultipartFile.fromPath('file', filePath));
-    final streamed = await multipart.send();
-    final response = await http.Response.fromStream(streamed);
+    final response = await _send(multipart, timeout: uploadTimeout);
     return _mediaFromJson(_decodeObject(response));
   }
 
@@ -315,26 +353,66 @@ class HttpCommunityService implements CommunityService {
     bool alsoHeard = false,
     int? keySecond,
   }) async {
-    final response = await _client.post(
-      _uri('/api/community/posts/$postId/responses'),
-      headers: {...await _headers(), 'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'responder_id': await _identityStore.load(),
-        'choice': choice,
-        'also_heard': alsoHeard,
-        'key_second': ?keySecond,
-      }),
+    final response = await _request(
+      _client.post(
+        _uri('/api/community/posts/$postId/responses'),
+        headers: {...await _headers(), 'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'responder_id': await _identityStore.load(),
+          'choice': choice,
+          'also_heard': alsoHeard,
+          'key_second': ?keySecond,
+        }),
+      ),
     );
     return _postFromJson(_decodeObject(response));
   }
 
   @override
   Future<void> withdraw(String postId) async {
-    final response = await _client.delete(
-      _uri('/api/community/posts/$postId'),
-      headers: await _headers(),
+    final response = await _request(
+      _client.delete(
+        _uri('/api/community/posts/$postId'),
+        headers: await _headers(),
+      ),
     );
     if (response.statusCode != 204) _throwResponse(response);
+  }
+
+  Future<T> _request<T>(Future<T> request) async {
+    return _networkOperation(request, timeout: requestTimeout);
+  }
+
+  Future<http.Response> _send(
+    http.BaseRequest request, {
+    required Duration timeout,
+  }) {
+    return _networkOperation(
+      (() async {
+        final streamed = await _client.send(request);
+        return http.Response.fromStream(streamed);
+      })(),
+      timeout: timeout,
+    );
+  }
+
+  Future<T> _networkOperation<T>(
+    Future<T> operation, {
+    required Duration timeout,
+  }) async {
+    try {
+      return await operation.timeout(timeout);
+    } on TimeoutException {
+      throw const CommunityException('连接服务器超时，请检查网络后重试。');
+    } on SocketException {
+      throw const CommunityException('网络连接不可用，请检查网络后重试。');
+    } on http.ClientException {
+      throw const CommunityException('网络请求失败，请稍后重试。');
+    }
+  }
+
+  void close() {
+    if (_ownsClient) _client.close();
   }
 
   List<Map<String, Object?>> _decodeList(http.Response response) {
@@ -365,14 +443,14 @@ class HttpCommunityService implements CommunityService {
   CommunityPost _postFromJson(Map<String, Object?> json) {
     final audioUrl = json['audio_url'] as String? ?? '';
     final mediaAssets = switch (json['media_assets']) {
-      final List<Object?> values => values
-          .whereType<Map<Object?, Object?>>()
-          .map(
-            (item) => _mediaJsonWithAbsoluteUrls(
-              item.cast<String, Object?>(),
-            ),
-          )
-          .toList(growable: false),
+      final List<Object?> values =>
+        values
+            .whereType<Map<Object?, Object?>>()
+            .map(
+              (item) =>
+                  _mediaJsonWithAbsoluteUrls(item.cast<String, Object?>()),
+            )
+            .toList(growable: false),
       _ => const <Map<String, Object?>>[],
     };
     return CommunityPost.fromJson({
@@ -386,9 +464,7 @@ class HttpCommunityService implements CommunityService {
   CommunityMediaAsset _mediaFromJson(Map<String, Object?> json) =>
       CommunityMediaAsset.fromJson(_mediaJsonWithAbsoluteUrls(json));
 
-  Map<String, Object?> _mediaJsonWithAbsoluteUrls(
-    Map<String, Object?> json,
-  ) {
+  Map<String, Object?> _mediaJsonWithAbsoluteUrls(Map<String, Object?> json) {
     final url = json['url'] as String? ?? '';
     final thumbnailUrl = json['thumbnail_url'] as String?;
     return {

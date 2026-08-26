@@ -13,11 +13,15 @@ class ParkGuidePage extends StatefulWidget {
     this.service,
     this.routeProgressStore,
     this.listeningContextStore,
+    this.parkListTimeout = const Duration(seconds: 12),
+    this.parkDetailTimeout = const Duration(seconds: 10),
   });
 
   final CommunityService? service;
   final RouteProgressStore? routeProgressStore;
   final RouteListeningContextStore? listeningContextStore;
+  final Duration parkListTimeout;
+  final Duration parkDetailTimeout;
 
   @override
   State<ParkGuidePage> createState() => _ParkGuidePageState();
@@ -25,16 +29,19 @@ class ParkGuidePage extends StatefulWidget {
 
 class _ParkGuidePageState extends State<ParkGuidePage> {
   late final CommunityService _service;
+  late final bool _ownsService;
   late final RouteProgressStore _routeProgressStore;
   late final RouteListeningContextStore _listeningContextStore;
   ParkGuidePreferences _preferences = const ParkGuidePreferences();
   List<ParkGuideData> _parks = const [];
   bool _loading = true;
   String? _error;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _ownsService = widget.service == null;
     _service = widget.service ?? HttpCommunityService();
     _routeProgressStore = widget.routeProgressStore ?? FileRouteProgressStore();
     _listeningContextStore =
@@ -43,27 +50,48 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final parks = await _service.listParks();
-      final values = await Future.wait(parks.map(_loadPark));
-      if (mounted) setState(() => _parks = values);
+      final parks = await _retryOnce(
+        _service.listParks,
+        timeout: widget.parkListTimeout,
+      );
+      if (!mounted || generation != _loadGeneration) return;
+      final values = <ParkGuideData>[];
+      if (parks.isEmpty) setState(() => _parks = const []);
+      await Future.wait(
+        parks.map((park) async {
+          final value = await _loadPark(park);
+          if (!mounted || generation != _loadGeneration) return;
+          values.add(value);
+          setState(() => _parks = List.unmodifiable(values));
+        }),
+      );
     } catch (_) {
-      if (mounted) setState(() => _error = '游园信息暂时没有连上，请稍后重试。');
+      if (mounted && generation == _loadGeneration) {
+        setState(() {
+          _error = _parks.isEmpty
+              ? '游园信息暂时没有连上，请检查网络后重试。'
+              : '刷新暂时没有完成，继续显示上次加载的游园信息。';
+        });
+      }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && generation == _loadGeneration) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   Future<ParkGuideData> _loadPark(CommunityPark park) async {
     final values = await Future.wait<Object?>([
-      _optional(_service.listSites(parkId: park.id)),
-      _optional(_service.listRoutes(park.id)),
-      _optional(_service.ecologySnapshot(park.id)),
-      _optional(_service.dailyBrief(park.id)),
+      _optional(() => _service.listSites(parkId: park.id)),
+      _optional(() => _service.listRoutes(park.id)),
+      _optional(() => _service.ecologySnapshot(park.id)),
+      _optional(() => _service.dailyBrief(park.id)),
     ]);
     final sites = values[0] as List<CommunitySite>?;
     final routes = values[1] as List<ExplorationRoute>?;
@@ -105,12 +133,35 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
     );
   }
 
-  Future<T?> _optional<T>(Future<T> future) async {
+  Future<T?> _optional<T>(Future<T> Function() request) async {
     try {
-      return await future;
+      return await _retryOnce(request, timeout: widget.parkDetailTimeout);
     } catch (_) {
       return null;
     }
+  }
+
+  Future<T> _retryOnce<T>(
+    Future<T> Function() request, {
+    required Duration timeout,
+  }) {
+    return (() async {
+      try {
+        return await request();
+      } catch (_) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        return request();
+      }
+    })().timeout(timeout);
+  }
+
+  @override
+  void dispose() {
+    _loadGeneration++;
+    if (_ownsService && _service is HttpCommunityService) {
+      _service.close();
+    }
+    super.dispose();
   }
 
   @override
@@ -137,10 +188,15 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               onChanged: (value) => setState(() => _preferences = value),
             ),
             const SizedBox(height: 20),
-            if (_loading) const Center(child: CircularProgressIndicator()),
+            if (_loading) ...[
+              const LinearProgressIndicator(key: Key('park-guide-loading')),
+              const SizedBox(height: 12),
+            ],
             if (_error case final error?)
               _ErrorCard(message: error, onRetry: _load),
-            if (!_loading && _error == null) ...[
+            if (_error != null && recommendations.isNotEmpty)
+              const SizedBox(height: 12),
+            if (recommendations.isNotEmpty) ...[
               Text('为你推荐', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 10),
               for (final (index, item) in recommendations.indexed) ...[
@@ -152,6 +208,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                 const SizedBox(height: 12),
               ],
             ],
+            if (!_loading && _error == null && recommendations.isEmpty)
+              const Text('暂时没有可推荐的试点公园，请稍后再试。'),
           ],
         ),
       ),

@@ -185,3 +185,53 @@ def test_imported_sound_cannot_be_praised_as_pressing_record():
             payload,
             behaviors=["importedSound", "replayedAudio"],
         )
+
+
+def test_validation_accepts_explicitly_negated_safety_reminders():
+    payload = _ai_payload()
+    payload["guides"][0].update(
+        {
+            "say": "我们不需要靠近巢穴，也能从声音方向继续寻找线索。",
+            "action": "留在原地安静倾听，不追逐、不捕捉发出声音的动物。",
+            "avoid": "追逐、捕捉、触摸或投喂野生动物。",
+        }
+    )
+
+    result = validate_parent_guidance(
+        payload,
+        behaviors=["recordedSound", "replayedAudio"],
+    )
+
+    assert result["guides"][0]["say"].startswith("我们不需要")
+    assert result["guides"][0]["avoid"].startswith("追逐")
+
+
+@pytest.mark.parametrize(
+    "unsafe_text",
+    [
+        "我们可以靠近巢穴看看里面有没有小鸟。",
+        "带孩子一起去捕捉发出声音的小动物。",
+        "不要追逐，但可以触摸停在树上的动物。",
+        "不停地追逐声音，就更容易找到它。",
+    ],
+)
+def test_validation_still_rejects_unsafe_encouragement(unsafe_text):
+    payload = _ai_payload()
+    payload["guides"][0]["say"] = unsafe_text
+
+    with pytest.raises(ValueError, match="家长说法包含不安全行为"):
+        validate_parent_guidance(
+            payload,
+            behaviors=["recordedSound", "replayedAudio"],
+        )
+
+
+def test_avoid_field_rejects_permission_to_do_unsafe_action():
+    payload = _ai_payload()
+    payload["guides"][0]["avoid"] = "可以带孩子靠近巢穴看得更清楚。"
+
+    with pytest.raises(ValueError, match="避免事项包含不安全行为"):
+        validate_parent_guidance(
+            payload,
+            behaviors=["recordedSound", "replayedAudio"],
+        )

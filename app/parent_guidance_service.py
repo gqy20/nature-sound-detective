@@ -16,7 +16,7 @@ from app.observability import get_logger, log_event, log_exception
 
 
 logger = get_logger("parent_guidance")
-PROMPT_VERSION = "parent-guidance-v3"
+PROMPT_VERSION = "parent-guidance-v4"
 
 
 ALLOWED_BEHAVIORS = {
@@ -31,6 +31,15 @@ ALLOWED_BEHAVIORS = {
     "observedSafely": "完成了明确记录的安全观察任务",
 }
 UNSAFE_PATTERN = re.compile(r"追逐|捕捉|抓住|触摸|投喂|拨开|翻开|爬树|下水|靠近巢穴")
+SAFETY_NEGATION_PATTERN = re.compile(
+    r"不要|别|避免|请勿|不能|不可|不应|不必|不用|无需|不需要|"
+    r"不建议|不允许|不再|不去|不会去|禁止|拒绝"
+)
+UNSAFE_PERMISSION_PATTERN = re.compile(
+    r"(?:可以|鼓励|建议|尝试|试着|允许|带孩子|让孩子|一起去).{0,10}"
+    r"(?:追逐|捕捉|抓住|触摸|投喂|拨开|翻开|爬树|下水|靠近巢穴)"
+)
+CLAUSE_SEPARATOR_PATTERN = re.compile(r"[，,。；;！？!?、]")
 FALSE_CONFIRMATION_PATTERN = re.compile(r"一定是|已经确认|确定就是|百分之百")
 EMPTY_PRAISE_PATTERN = re.compile(r"你真棒|太聪明|小天才|最厉害")
 
@@ -66,11 +75,35 @@ def _parse_json(text: str) -> dict[str, Any]:
     return value
 
 
-def _text(value: Any, *, minimum: int, maximum: int, field: str) -> str:
+def _contains_unsafe_encouragement(text: str) -> bool:
+    for match in UNSAFE_PATTERN.finditer(text):
+        clause_start = 0
+        for separator in CLAUSE_SEPARATOR_PATTERN.finditer(text, 0, match.start()):
+            clause_start = separator.end()
+        prefix = text[clause_start : match.start()]
+        if SAFETY_NEGATION_PATTERN.search(prefix):
+            continue
+        if re.search(r"不\s*$", prefix):
+            continue
+        return True
+    return False
+
+
+def _text(
+    value: Any,
+    *,
+    minimum: int,
+    maximum: int,
+    field: str,
+    safety_warning: bool = False,
+) -> str:
     result = str(value or "").strip()
     if not minimum <= len(result) <= maximum:
         raise ValueError(f"{field}长度无效")
-    if UNSAFE_PATTERN.search(result) and not re.search(r"不要|避免|请勿|不能", result):
+    if safety_warning:
+        if UNSAFE_PERMISSION_PATTERN.search(result):
+            raise ValueError(f"{field}包含不安全行为")
+    elif _contains_unsafe_encouragement(result):
         raise ValueError(f"{field}包含不安全行为")
     if FALSE_CONFIRMATION_PATTERN.search(result):
         raise ValueError(f"{field}把候选写成了确认结果")
@@ -98,7 +131,13 @@ def validate_parent_guidance(
                 "goal": _text(item.get("goal"), minimum=2, maximum=24, field="引导目标"),
                 "say": _text(item.get("say"), minimum=6, maximum=90, field="家长说法"),
                 "action": _text(item.get("action"), minimum=6, maximum=110, field="共同动作"),
-                "avoid": _text(item.get("avoid"), minimum=4, maximum=90, field="避免事项"),
+                "avoid": _text(
+                    item.get("avoid"),
+                    minimum=4,
+                    maximum=90,
+                    field="避免事项",
+                    safety_warning=True,
+                ),
             }
         )
     praises = []
@@ -221,7 +260,7 @@ def _prompt(
 本次真实发生的行为：
 {chr(10).join(behavior_lines)}
 
-你必须直接创作自然、具体、不重复的中文表达。每句夸奖必须严格依据上面的真实行为，并在evidence_behavior中逐字返回对应ID。不得虚构孩子看见动物、留在步道、认真比较、重新录音等没有列出的行为。不得把候选写成确定答案。引导只能鼓励远距离倾听和观看，不得鼓励追逐、捕捉、触摸、投喂、拨开灌木、爬树、下水或靠近巢穴。避免“你真棒、太聪明、小天才”等空泛评价。
+你必须直接创作自然、具体、不重复的中文表达。每句夸奖必须严格依据上面的真实行为，并在evidence_behavior中逐字返回对应ID。不得虚构孩子看见动物、留在步道、认真比较、重新录音等没有列出的行为。不得把候选写成确定答案。引导只能鼓励远距离倾听和观看，不得鼓励追逐、捕捉、触摸、投喂、拨开灌木、爬树、下水或靠近巢穴。安全提醒应写在avoid字段；如果say或action必须提及危险动作，必须使用“不要、避免、无需、不能”等明确否定表达。避免“你真棒、太聪明、小天才”等空泛评价。
 
 如果真实行为中没有observedSafely，夸奖文本和能力标签不得提及安全、步道、追逐、捕捉、触摸、投喂或“没有靠近”等安全表现；这些词只允许出现在guide的avoid字段中。只有evidence_behavior为capturedSound时才能说孩子按下录音键、现场录下声音；importedSound只能表述为选择或导入了已有声音；旧版recordedSound不得自行判断是哪一种。
 

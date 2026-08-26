@@ -11,28 +11,48 @@ class ParkRecommendationEngine {
   ) {
     final results = values
         .map((value) => _score(value, preferences))
+        .whereType<ParkRecommendation>()
         .toList(growable: false);
     return [...results]
       ..sort((left, right) => right.score.compareTo(left.score));
   }
 
-  ParkRecommendation _score(
+  ParkRecommendation? _score(
     ParkGuideData data,
     ParkGuidePreferences preferences,
   ) {
-    final route = data.routes.firstOrNull;
+    final accessible = _accessibleParkIds.contains(data.park.id);
+    if (preferences.requiresAccessibleRoute && !accessible) return null;
+    final eligibleRoutes = data.routes
+        .where(
+          (route) =>
+              preferences.childAge >= route.ageMin &&
+              route.durationMinutes <= preferences.durationMinutes,
+        )
+        .toList(growable: false);
+    if (data.routes.isNotEmpty && eligibleRoutes.isEmpty) return null;
+    final route = eligibleRoutes.isEmpty
+        ? null
+        : (eligibleRoutes.toList()..sort(
+                (left, right) =>
+                    (preferences.durationMinutes - left.durationMinutes).abs() -
+                    (preferences.durationMinutes - right.durationMinutes).abs(),
+              ))
+              .first;
     var score = 30;
     final reasons = <String>[];
     if (route != null) {
-      if (preferences.childAge >= route.ageMin) {
-        score += 20;
-        reasons.add('适合${route.ageMin}岁以上儿童');
-      }
+      score += 20;
+      reasons.add('适合${preferences.ageBand.label}儿童');
       final difference = (route.durationMinutes - preferences.durationMinutes)
           .abs();
       final durationScore = max(0, 20 - (difference / 3).round());
       score += durationScore;
-      if (difference <= 10) reasons.add('路线约${route.durationMinutes}分钟，符合本次时间');
+      reasons.add('路线约${route.durationMinutes}分钟，符合本次时间');
+    }
+    if (preferences.requiresAccessibleRoute && accessible) {
+      score += 5;
+      reasons.add('现有试点信息标记为无障碍友好');
     }
     final allTags = {
       ...data.park.habitatTags,
@@ -76,9 +96,6 @@ class ParkRecommendationEngine {
         (route?.distanceKm ?? 9) <= 1.6) {
       score += 5;
     }
-    if (preferences.walkPreference == WalkPreference.accessible) {
-      score += data.park.id == 'taiziwan-park' ? 5 : 1;
-    }
     final profile = _profiles[data.park.id] ?? _fallbackProfile;
     return ParkRecommendation(
       data: data,
@@ -91,6 +108,8 @@ class ParkRecommendationEngine {
       hasReliableCommunityEvidence: hasReliableCommunityEvidence,
     );
   }
+
+  static const _accessibleParkIds = {'taiziwan-park'};
 
   static const _fallbackProfile = _ParkProfile(
     bestTime: '建议选择较安静的清晨或傍晚',

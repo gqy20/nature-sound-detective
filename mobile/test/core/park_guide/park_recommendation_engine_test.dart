@@ -23,8 +23,8 @@ void main() {
     final result = const ParkRecommendationEngine().rank(
       [long, short],
       const ParkGuidePreferences(
-        childAge: 6,
-        durationMinutes: 20,
+        ageBand: ChildAgeBand.sixToSeven,
+        visitDuration: VisitDuration.fortyMinutes,
         interest: ParkInterest.frogsAndInsects,
       ),
     );
@@ -46,13 +46,70 @@ void main() {
       validPostCount: 0,
     );
 
-    final result = const ParkRecommendationEngine().rank([
-      park,
-    ], const ParkGuidePreferences(childAge: 6, durationMinutes: 20)).single;
+    final result = const ParkRecommendationEngine().rank(
+      [park],
+      const ParkGuidePreferences(
+        ageBand: ChildAgeBand.sixToSeven,
+        visitDuration: VisitDuration.fortyMinutes,
+      ),
+    ).single;
 
     expect(result.hasReliableCommunityEvidence, isFalse);
     expect(result.displayScore, isNot(contains('分')));
     expect(result.communityEvidenceNote, contains('未使用动物活动趋势'));
+  });
+
+  test('excludes routes outside the selected age band or time budget', () {
+    final park = _data(
+      id: 'xixi-wetland',
+      name: '西溪湿地',
+      tags: const ['湿地'],
+      duration: 60,
+      age: 8,
+    );
+
+    final tooYoung = const ParkRecommendationEngine().rank(
+      [park],
+      const ParkGuidePreferences(
+        ageBand: ChildAgeBand.sixToSeven,
+        visitDuration: VisitDuration.overAnHour,
+      ),
+    );
+    final tooShort = const ParkRecommendationEngine().rank(
+      [park],
+      const ParkGuidePreferences(
+        ageBand: ChildAgeBand.eightToNine,
+        visitDuration: VisitDuration.fortyMinutes,
+      ),
+    );
+
+    expect(tooYoung, isEmpty);
+    expect(tooShort, isEmpty);
+  });
+
+  test('treats accessibility as a required condition', () {
+    final inaccessible = _data(
+      id: 'xixi-wetland',
+      name: '西溪湿地',
+      tags: const ['湿地'],
+      duration: 45,
+      age: 8,
+    );
+    final accessible = _data(
+      id: 'taiziwan-park',
+      name: '太子湾公园',
+      tags: const ['草地'],
+      duration: 25,
+      age: 6,
+    );
+
+    final result = const ParkRecommendationEngine().rank([
+      inaccessible,
+      accessible,
+    ], const ParkGuidePreferences(requiresAccessibleRoute: true));
+
+    expect(result.single.data.park.id, 'taiziwan-park');
+    expect(result.single.reasons, contains('现有试点信息标记为无障碍友好'));
   });
 }
 

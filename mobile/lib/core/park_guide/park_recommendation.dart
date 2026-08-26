@@ -10,10 +10,33 @@ enum ParkInterest {
   final String label;
 }
 
+enum ChildAgeBand {
+  fiveAndUnder('5岁及以下', 0, 5),
+  sixToSeven('6–7岁', 6, 7),
+  eightToNine('8–9岁', 8, 9),
+  tenToEleven('10–11岁', 10, 11),
+  twelveAndUp('12岁及以上', 12, null);
+
+  const ChildAgeBand(this.label, this.minAge, this.maxAge);
+  final String label;
+  final int minAge;
+  final int? maxAge;
+}
+
+enum VisitDuration {
+  twentyMinutes('20分钟内', 20),
+  fortyMinutes('20–40分钟', 40),
+  sixtyMinutes('40–60分钟', 60),
+  overAnHour('1小时以上', 120);
+
+  const VisitDuration(this.label, this.maxMinutes);
+  final String label;
+  final int maxMinutes;
+}
+
 enum WalkPreference {
   relaxed('轻松步行'),
-  fullRoute('完整路线'),
-  accessible('无障碍优先');
+  fullRoute('完整路线');
 
   const WalkPreference(this.label);
   final String label;
@@ -21,27 +44,35 @@ enum WalkPreference {
 
 class ParkGuidePreferences {
   const ParkGuidePreferences({
-    this.childAge = 8,
-    this.durationMinutes = 40,
+    this.ageBand = ChildAgeBand.eightToNine,
+    this.visitDuration = VisitDuration.fortyMinutes,
     this.interest = ParkInterest.all,
     this.walkPreference = WalkPreference.relaxed,
+    this.requiresAccessibleRoute = false,
   });
 
-  final int childAge;
-  final int durationMinutes;
+  final ChildAgeBand ageBand;
+  final VisitDuration visitDuration;
   final ParkInterest interest;
   final WalkPreference walkPreference;
+  final bool requiresAccessibleRoute;
+
+  int get childAge => ageBand.minAge;
+  int get durationMinutes => visitDuration.maxMinutes;
 
   ParkGuidePreferences copyWith({
-    int? childAge,
-    int? durationMinutes,
+    ChildAgeBand? ageBand,
+    VisitDuration? visitDuration,
     ParkInterest? interest,
     WalkPreference? walkPreference,
+    bool? requiresAccessibleRoute,
   }) => ParkGuidePreferences(
-    childAge: childAge ?? this.childAge,
-    durationMinutes: durationMinutes ?? this.durationMinutes,
+    ageBand: ageBand ?? this.ageBand,
+    visitDuration: visitDuration ?? this.visitDuration,
     interest: interest ?? this.interest,
     walkPreference: walkPreference ?? this.walkPreference,
+    requiresAccessibleRoute:
+        requiresAccessibleRoute ?? this.requiresAccessibleRoute,
   );
 }
 

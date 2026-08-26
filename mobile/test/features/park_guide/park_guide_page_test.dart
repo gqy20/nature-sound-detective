@@ -26,7 +26,7 @@ void main() {
     expect(find.text('太子湾公园'), findsOneWidget);
     expect(find.textContaining('不代表动物数量'), findsOneWidget);
 
-    await tester.tap(find.text('20分钟'));
+    await tester.tap(find.text('6–7岁'));
     await tester.pumpAndSettle();
     final recommendation = find.byKey(
       const Key('park-recommendation-taiziwan-park'),
@@ -73,6 +73,31 @@ void main() {
     expect(find.text('太子湾公园'), findsOneWidget);
     expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
     expect(find.text('游园信息暂时没有连上，请稍后重试。'), findsNothing);
+  });
+
+  testWidgets('uses age ranges and treats accessibility as a requirement', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ParkGuidePage(service: _FakeCommunityService())),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('5岁及以下'), findsOneWidget);
+    expect(find.text('6–7岁'), findsOneWidget);
+    expect(find.text('8–9岁'), findsOneWidget);
+    expect(find.text('10–11岁'), findsOneWidget);
+    expect(find.text('12岁及以上'), findsOneWidget);
+    expect(find.text('需要无障碍路线'), findsOneWidget);
+    expect(find.byType(Switch), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('park-age-fiveAndUnder')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('没有同时符合年龄和时间条件'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('park-age-sixToSeven')));
+    await tester.pumpAndSettle();
+    expect(find.text('太子湾公园'), findsOneWidget);
   });
 
   testWidgets('stops loading and offers retry when park list hangs', (

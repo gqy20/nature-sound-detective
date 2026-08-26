@@ -11,6 +11,8 @@ import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/diagnostics/debug_export_service.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
+import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
@@ -25,6 +27,7 @@ import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/parent/parent_companion_sheet.dart';
 import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart';
 import 'package:nature_sound_detective/features/diagnostics/diagnostics_page.dart';
+import 'package:nature_sound_detective/features/family/family_link_page.dart';
 import 'package:nature_sound_detective/features/result/detection_results.dart';
 import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
@@ -43,6 +46,7 @@ class CapturePage extends StatefulWidget {
     this.parentGuidanceService,
     this.mode = ExplorationMode.child,
     this.onModeChanged,
+    this.familySessionCoordinator,
   });
 
   final AudioRecorder? recorder;
@@ -54,6 +58,7 @@ class CapturePage extends StatefulWidget {
   final ParentGuidanceNetworkService? parentGuidanceService;
   final ExplorationMode mode;
   final ValueChanged<ExplorationMode>? onModeChanged;
+  final FamilySessionCoordinator? familySessionCoordinator;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -99,6 +104,7 @@ class _CapturePageState extends State<CapturePage> {
   String? _audioSource;
   bool _exportingDiagnostics = false;
   final Set<ExplorationBehavior> _behaviors = {};
+  int _familyEventStartIndex = 0;
   RouteListeningContext? _routeContext;
   ParentGuidanceQuota? _parentGuidanceQuota;
 
@@ -170,6 +176,8 @@ class _CapturePageState extends State<CapturePage> {
 
   Future<void> _startRecording() async {
     final routeContext = _routeContextStore.cached ?? _routeContext;
+    _familyEventStartIndex =
+        widget.familySessionCoordinator?.events.length ?? 0;
     setState(() {
       _busy = true;
       _resultVisible = false;
@@ -190,7 +198,7 @@ class _CapturePageState extends State<CapturePage> {
       _audioSource = null;
       _behaviors.clear();
       if (routeContext?.safeObservationConfirmed == true) {
-        _behaviors.add(ExplorationBehavior.observedSafely);
+        _recordBehavior(ExplorationBehavior.observedSafely);
       }
       _routeContext = routeContext;
     });
@@ -259,6 +267,19 @@ class _CapturePageState extends State<CapturePage> {
     }
   }
 
+  void _recordBehavior(
+    ExplorationBehavior behavior, {
+    Map<String, Object?> payload = const {},
+    bool allowRepeat = false,
+  }) {
+    final added = _behaviors.add(behavior);
+    if (!added && !allowRepeat) return;
+    final coordinator = widget.familySessionCoordinator;
+    if (coordinator != null) {
+      unawaited(coordinator.recordBehavior(behavior, payload: payload));
+    }
+  }
+
   Future<void> _stopRecording() async {
     if (_busy || !_isRecording) return;
     setState(() => _busy = true);
@@ -289,7 +310,13 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.capturedSound);
+        _recordBehavior(
+          ExplorationBehavior.capturedSound,
+          payload: {
+            'duration_seconds': recording.duration.inSeconds,
+            'weak_signal': quality.weakSignal,
+          },
+        );
         _startedAt = null;
         _elapsed = recording.duration;
         _resultVisible = true;
@@ -410,7 +437,7 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.importedSound);
+        _recordBehavior(ExplorationBehavior.importedSound);
         _elapsed = recording.duration;
         _waveformSamples = const [];
         _resultVisible = true;
@@ -458,7 +485,12 @@ class _CapturePageState extends State<CapturePage> {
       if (_isPlaying) {
         await _playback.stop();
       } else {
-        setState(() => _behaviors.add(ExplorationBehavior.replayedAudio));
+        setState(
+          () => _recordBehavior(
+            ExplorationBehavior.replayedAudio,
+            allowRepeat: true,
+          ),
+        );
         await _playback.play(recording.path);
       }
     } catch (error, stackTrace) {
@@ -531,7 +563,7 @@ class _CapturePageState extends State<CapturePage> {
       setState(() {
         _recording = recording;
         _quality = quality;
-        _behaviors.add(ExplorationBehavior.importedSound);
+        _recordBehavior(ExplorationBehavior.importedSound);
         _elapsed = recording.duration;
         _waveformSamples = const [];
         _resultVisible = true;
@@ -627,6 +659,11 @@ class _CapturePageState extends State<CapturePage> {
         ),
         location: _routeContext?.parkName ?? '杭州',
         routeContext: _routeContext,
+        familyEvents:
+            widget.familySessionCoordinator?.events
+                .skip(_familyEventStartIndex)
+                .toList(growable: false) ??
+            const [],
       );
       await _routeContextStore.clear();
       AppLog.info(
@@ -713,14 +750,20 @@ class _CapturePageState extends State<CapturePage> {
               MapEntry(dimension, List<String>.unmodifiable(values)),
         );
       }
-      if (observations.values.any((values) => values.isNotEmpty)) {
-        _behaviors.add(ExplorationBehavior.completedObservation);
+      final meaningfulDimensions = observations.values
+          .where(
+            (values) =>
+                values.any((value) => value.isNotEmpty && value != 'unknown'),
+          )
+          .length;
+      if (meaningfulDimensions > 0) {
+        _recordBehavior(ExplorationBehavior.completedObservation);
       }
-      if (observations.length >= 2) {
-        _behaviors.add(ExplorationBehavior.comparedEvidence);
+      if (meaningfulDimensions >= 2) {
+        _recordBehavior(ExplorationBehavior.comparedEvidence);
       }
       if (observations.values.any((values) => values.contains('unknown'))) {
-        _behaviors.add(ExplorationBehavior.acceptedUncertainty);
+        _recordBehavior(ExplorationBehavior.acceptedUncertainty);
       }
     });
     if (_saved && recording != null) {
@@ -860,6 +903,16 @@ class _CapturePageState extends State<CapturePage> {
     ).push(MaterialPageRoute<void>(builder: (_) => const ParkGuidePage()));
   }
 
+  void _openFamilyLink() {
+    final coordinator = widget.familySessionCoordinator;
+    if (coordinator == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => FamilyLinkPage(coordinator: coordinator),
+      ),
+    );
+  }
+
   Future<void> _openParentCompanion() async {
     final primary = _detections.firstOrNull;
     final observations = primary == null
@@ -876,6 +929,7 @@ class _CapturePageState extends State<CapturePage> {
         behaviors: {..._behaviors},
         weakSignal: _quality?.weakSignal ?? false,
         service: _parentGuidanceService,
+        quota: _parentGuidanceQuota,
       ),
     );
     await _loadParentQuota();
@@ -930,7 +984,12 @@ class _CapturePageState extends State<CapturePage> {
     _dismissResult();
     await _startRecording();
     if (mounted) {
-      setState(() => _behaviors.add(ExplorationBehavior.retriedRecording));
+      setState(
+        () => _recordBehavior(
+          ExplorationBehavior.retriedRecording,
+          allowRepeat: true,
+        ),
+      );
     }
   }
 
@@ -1042,17 +1101,6 @@ class _CapturePageState extends State<CapturePage> {
                         icon: const Icon(Icons.map_outlined),
                         label: const Text('先看看今天适合去哪听'),
                       ),
-                    if (!_isRecording && widget.mode == ExplorationMode.parent)
-                      if (_parentGuidanceQuota case final quota?)
-                        Text(
-                          '本设备剩余 ${quota.remaining} / ${quota.limit} 次免费AI陪伴',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: quota.remaining <= 3
-                                ? const Color(0xFF9A4F32)
-                                : null,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                     Spacer(flex: compact ? 2 : 3),
                     _buildRecordControl(controlDimension),
                     Spacer(flex: compact ? 2 : 4),
@@ -1115,8 +1163,41 @@ class _CapturePageState extends State<CapturePage> {
                 ),
               ),
             ),
-            _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
+            if (widget.familySessionCoordinator case final coordinator?)
+              ListenableBuilder(
+                listenable: coordinator,
+                builder: (context, _) => coordinator.connection?.active == true
+                    ? _LinkedFamilyRoleChip(role: coordinator.connection!.role)
+                    : _ModeMenu(
+                        mode: widget.mode,
+                        onChanged: widget.onModeChanged,
+                      ),
+              )
+            else
+              _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
             const SizedBox(width: 4),
+            if (widget.familySessionCoordinator case final coordinator?)
+              ListenableBuilder(
+                listenable: coordinator,
+                builder: (context, _) => Badge(
+                  isLabelVisible: coordinator.hasUnseenCue,
+                  smallSize: 8,
+                  child: IconButton(
+                    key: const Key('family-link-button'),
+                    tooltip: coordinator.connection?.active == true
+                        ? '家庭设备已连接'
+                        : '连接家庭设备',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _openFamilyLink,
+                    icon: Icon(
+                      coordinator.connection?.active == true
+                          ? Icons.devices_rounded
+                          : Icons.devices_other_outlined,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
             if (widget.mode == ExplorationMode.child && !compact) ...[
               const Icon(
                 Icons.location_on_outlined,
@@ -1742,6 +1823,44 @@ class _CapturePageState extends State<CapturePage> {
     if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
     return '录音完成';
   }
+}
+
+class _LinkedFamilyRoleChip extends StatelessWidget {
+  const _LinkedFamilyRoleChip({required this.role});
+  final FamilyDeviceRole role;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: role == FamilyDeviceRole.parent ? '家长陪伴设备已连接' : '儿童探索设备已连接',
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE4F0E7),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            role == FamilyDeviceRole.parent
+                ? Icons.family_restroom_rounded
+                : Icons.explore_outlined,
+            size: 15,
+            color: const Color(0xFF174936),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            role == FamilyDeviceRole.parent ? '家长端' : '儿童端',
+            style: const TextStyle(
+              color: Color(0xFF174936),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ModeMenu extends StatelessWidget {

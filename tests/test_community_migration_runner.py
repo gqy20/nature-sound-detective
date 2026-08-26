@@ -37,7 +37,7 @@ def _v1_snapshot(*, recorded=None) -> SchemaSnapshot:
 
 def test_discovers_ordered_migrations_and_strips_nested_transactions():
     migrations = discover_migrations(ROOT / "migrations")
-    assert [item.version for item in migrations] == [1, 2, 3, 4]
+    assert [item.version for item in migrations] == [1, 2, 3, 4, 5]
     assert all(len(item.checksum) == 64 for item in migrations)
     body = migration_body(migrations[1].path)
     assert not body.lower().startswith("begin;")
@@ -50,6 +50,7 @@ def test_classifies_existing_mvp_as_baseline_and_v2_as_pending():
     statuses = classify_migrations(migrations, _v1_snapshot())
     assert [item.state for item in statuses] == [
         "baseline_required",
+        "pending",
         "pending",
         "pending",
         "pending",

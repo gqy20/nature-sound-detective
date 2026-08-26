@@ -1,16 +1,24 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode_store.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
 
 class NatureSoundApp extends StatefulWidget {
-  const NatureSoundApp({super.key, this.analyzer, this.modeStore});
+  const NatureSoundApp({
+    super.key,
+    this.analyzer,
+    this.modeStore,
+    this.familySessionCoordinator,
+  });
 
   final RecordingAnalyzer? analyzer;
   final ExplorationModeStore? modeStore;
+  final FamilySessionCoordinator? familySessionCoordinator;
 
   @override
   State<NatureSoundApp> createState() => _NatureSoundAppState();
@@ -18,21 +26,60 @@ class NatureSoundApp extends StatefulWidget {
 
 class _NatureSoundAppState extends State<NatureSoundApp> {
   late final ExplorationModeStore _modeStore;
+  late final FamilySessionCoordinator _familySessionCoordinator;
+  late final bool _ownsFamilySessionCoordinator;
   ExplorationMode _mode = ExplorationMode.child;
 
   @override
   void initState() {
     super.initState();
     _modeStore = widget.modeStore ?? ExplorationModeStore();
+    _ownsFamilySessionCoordinator = widget.familySessionCoordinator == null;
+    _familySessionCoordinator =
+        widget.familySessionCoordinator ?? FamilySessionCoordinator();
+    _familySessionCoordinator.addListener(_syncModeToFamilyRole);
+    unawaited(
+      _familySessionCoordinator.initialize().then(
+        (_) => _syncModeToFamilyRole(),
+      ),
+    );
     _loadMode();
+  }
+
+  @override
+  void dispose() {
+    _familySessionCoordinator.removeListener(_syncModeToFamilyRole);
+    if (_ownsFamilySessionCoordinator) _familySessionCoordinator.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMode() async {
     final value = await _modeStore.load();
-    if (mounted) setState(() => _mode = value);
+    if (mounted) {
+      setState(() => _mode = value);
+      _syncModeToFamilyRole();
+    }
   }
 
   void _setMode(ExplorationMode value) {
+    final family = _familySessionCoordinator.connection;
+    if (family?.active == true) {
+      final requiredMode = family!.role == FamilyDeviceRole.parent
+          ? ExplorationMode.parent
+          : ExplorationMode.child;
+      if (value != requiredMode) return;
+    }
+    if (_mode == value) return;
+    setState(() => _mode = value);
+    unawaited(_modeStore.save(value).catchError((_) {}));
+  }
+
+  void _syncModeToFamilyRole() {
+    final connection = _familySessionCoordinator.connection;
+    if (!mounted || connection?.active != true) return;
+    final value = connection!.role == FamilyDeviceRole.parent
+        ? ExplorationMode.parent
+        : ExplorationMode.child;
     if (_mode == value) return;
     setState(() => _mode = value);
     unawaited(_modeStore.save(value).catchError((_) {}));
@@ -117,6 +164,7 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
         analyzer: widget.analyzer,
         mode: _mode,
         onModeChanged: _setMode,
+        familySessionCoordinator: _familySessionCoordinator,
       ),
     );
   }

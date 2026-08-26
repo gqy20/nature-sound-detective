@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
+import 'package:nature_sound_detective/core/guidance/parent_guidance_engine.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 
@@ -11,6 +12,7 @@ class ParentCompanionSheet extends StatefulWidget {
     required this.behaviors,
     required this.weakSignal,
     this.service,
+    this.quota,
   });
 
   final SoundDetection? detection;
@@ -18,23 +20,44 @@ class ParentCompanionSheet extends StatefulWidget {
   final Set<ExplorationBehavior> behaviors;
   final bool weakSignal;
   final ParentGuidanceNetworkService? service;
+  final ParentGuidanceQuota? quota;
 
   @override
   State<ParentCompanionSheet> createState() => _ParentCompanionSheetState();
 }
 
 class _ParentCompanionSheetState extends State<ParentCompanionSheet> {
-  late final Future<GuidanceBundle> _bundleFuture;
+  late GuidanceBundle _bundle;
+  bool _generating = false;
 
   @override
   void initState() {
     super.initState();
-    _bundleFuture = (widget.service ?? ParentGuidanceNetworkService()).create(
+    _bundle = const ParentGuidanceEngine().build(
       detection: widget.detection,
       observations: widget.observations,
-      behaviors: widget.behaviors,
-      weakSignal: widget.weakSignal,
+      behaviors: widget.behaviors.isEmpty
+          ? const {ExplorationBehavior.recordedSound}
+          : widget.behaviors,
     );
+  }
+
+  Future<void> _generatePersonalized() async {
+    if (_generating || widget.quota?.remaining == 0) return;
+    setState(() => _generating = true);
+    final bundle = await (widget.service ?? ParentGuidanceNetworkService())
+        .create(
+          detection: widget.detection,
+          observations: widget.observations,
+          behaviors: widget.behaviors,
+          weakSignal: widget.weakSignal,
+        );
+    if (mounted) {
+      setState(() {
+        _bundle = bundle;
+        _generating = false;
+      });
+    }
   }
 
   @override
@@ -54,33 +77,28 @@ class _ParentCompanionSheetState extends State<ParentCompanionSheet> {
             Text('家长陪伴', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 6),
             const Text('专业信息帮助你提问和守住边界，不是让家长替孩子判断。'),
+            const SizedBox(height: 20),
+            _GuidanceContent(bundle: _bundle),
+            const SizedBox(height: 20),
+            _AiGenerationAction(
+              quota: widget.quota,
+              generating: _generating,
+              aiGenerated: _bundle.aiGenerated,
+              onGenerate: _generatePersonalized,
+            ),
             if (candidate != null) ...[
-              const SizedBox(height: 18),
-              _EvidenceCard(
-                detection: candidate,
-                weakSignal: widget.weakSignal,
+              const SizedBox(height: 22),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('查看候选与模型依据'),
+                children: [
+                  _EvidenceCard(
+                    detection: candidate,
+                    weakSignal: widget.weakSignal,
+                  ),
+                ],
               ),
             ],
-            const SizedBox(height: 22),
-            FutureBuilder<GuidanceBundle>(
-              future: _bundleFuture,
-              builder: (context, snapshot) {
-                final bundle = snapshot.data;
-                if (bundle == null) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
-                    child: Column(
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 12),
-                        Text('AI正在结合这次真实探索，准备家长引导…'),
-                      ],
-                    ),
-                  );
-                }
-                return _GuidanceContent(bundle: bundle);
-              },
-            ),
           ],
         ),
       ),
@@ -125,16 +143,6 @@ class _GuidanceContent extends StatelessWidget {
         const SizedBox(height: 5),
         Text(bundle.warning, style: Theme.of(context).textTheme.bodySmall),
       ],
-      if (bundle.quotaRemaining case final remaining?) ...[
-        const SizedBox(height: 5),
-        Text(
-          '本设备剩余 $remaining / ${bundle.quotaLimit ?? 20} 次免费AI生成',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: remaining <= 3 ? const Color(0xFF9A4F32) : null,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
       const SizedBox(height: 20),
       Text('可以这样引导', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 10),
@@ -149,6 +157,84 @@ class _GuidanceContent extends StatelessWidget {
         _PraiseCard(suggestion: praise),
     ],
   );
+}
+
+class _AiGenerationAction extends StatelessWidget {
+  const _AiGenerationAction({
+    required this.quota,
+    required this.generating,
+    required this.aiGenerated,
+    required this.onGenerate,
+  });
+
+  final ParentGuidanceQuota? quota;
+  final bool generating;
+  final bool aiGenerated;
+  final VoidCallback onGenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = quota?.remaining;
+    final exhausted = remaining == 0;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9F0E9),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: Color(0xFF315D4A)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  aiGenerated ? '已生成本次个性化回应' : '需要更贴合本次探索的回应？',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Text(
+            exhausted
+                ? 'AI个性化额度已用完，本地陪伴建议仍然可以正常使用。'
+                : aiGenerated
+                ? '这些内容只依据本次已经记录的真实探索行为。'
+                : '由家长明确触发，将使用1次AI个性化生成；打开面板本身不计次。',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (remaining != null && remaining <= 3 && remaining > 0) ...[
+            const SizedBox(height: 5),
+            Text(
+              'AI个性化生成剩余 $remaining 次，本地建议不受影响。',
+              style: const TextStyle(
+                color: Color(0xFF9A4F32),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (!aiGenerated) ...[
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              key: const Key('generate-personalized-parent-guidance'),
+              onPressed: exhausted || generating ? null : onGenerate,
+              icon: generating
+                  ? const SizedBox.square(
+                      dimension: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_awesome_rounded),
+              label: Text(generating ? '正在生成' : '生成个性化回应'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _EvidenceCard extends StatelessWidget {

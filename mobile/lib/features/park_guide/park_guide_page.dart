@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
@@ -44,6 +46,11 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   bool _loading = true;
   String? _error;
   int _loadGeneration = 0;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _filtersKey = GlobalKey();
+  final GlobalKey _resultsKey = GlobalKey();
+  Timer? _recommendationUpdateTimer;
+  bool _recommendationsUpdated = false;
 
   @override
   void initState() {
@@ -162,9 +169,34 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
     })().timeout(timeout);
   }
 
+  void _updatePreferences(ParkGuidePreferences value) {
+    if (value.signature == _preferences.signature) return;
+    _recommendationUpdateTimer?.cancel();
+    setState(() {
+      _preferences = value;
+      _recommendationsUpdated = true;
+    });
+    _recommendationUpdateTimer = Timer(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _recommendationsUpdated = false);
+    });
+  }
+
+  void _scrollTo(GlobalKey key) {
+    final target = key.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      alignment: .08,
+    );
+  }
+
   @override
   void dispose() {
     _loadGeneration++;
+    _recommendationUpdateTimer?.cancel();
+    _scrollController.dispose();
     if (_ownsService && _service is HttpCommunityService) {
       _service.close();
     }
@@ -185,48 +217,60 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
         foregroundColor: _guideForest,
         scrolledUnderElevation: 0,
       ),
+      bottomNavigationBar: _RecommendationBottomBar(
+        loading: _loading,
+        count: recommendations.length,
+        summary: _preferences.shortSummary,
+        onTap: () =>
+            _scrollTo(recommendations.isEmpty ? _filtersKey : _resultsKey),
+      ),
       body: RefreshIndicator(
         onRefresh: _load,
         child: SingleChildScrollView(
           key: const Key('park-guide-scroll'),
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 40),
+          padding: const EdgeInsets.only(bottom: 130),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _GuideHero(),
               Transform.translate(
+                key: _filtersKey,
                 offset: const Offset(0, -18),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: _PreferenceJournal(
                     preferences: _preferences,
-                    onChanged: (value) => setState(() => _preferences = value),
+                    onChanged: _updatePreferences,
                   ),
                 ),
               ),
               Padding(
+                key: _resultsKey,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.eco_outlined,
-                      color: _guideForest,
-                      size: 22,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween(
+                        begin: const Offset(0, .08),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _loading
-                            ? '正在整理 ${_parks.isEmpty ? 3 : _parks.length} 个试点公园…'
-                            : '找到 ${recommendations.length} 个适合的地方',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: _guideForest,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
+                  ),
+                  child: _RecommendationStatus(
+                    key: ValueKey(
+                      '${_preferences.signature}:$_recommendationsUpdated:'
+                      '${recommendations.length}:$_loading',
                     ),
-                  ],
+                    loading: _loading,
+                    updated: _recommendationsUpdated,
+                    count: recommendations.length,
+                    summary: _preferences.shortSummary,
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -251,17 +295,34 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               if (_error != null && recommendations.isNotEmpty)
                 const SizedBox(height: 12),
               if (recommendations.isNotEmpty) ...[
-                for (final (index, item) in recommendations.indexed) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: _ParkRecommendationCard(
-                      recommendation: item,
-                      rank: index + 1,
-                      onOpen: () => _openPark(item),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 280),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SizeTransition(
+                      sizeFactor: animation,
+                      alignment: AlignmentDirectional.topStart,
+                      child: child,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                ],
+                  child: Column(
+                    key: ValueKey(_preferences.signature),
+                    children: [
+                      for (final (index, item) in recommendations.indexed) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: _ParkRecommendationCard(
+                            recommendation: item,
+                            rank: index + 1,
+                            highlighted: _recommendationsUpdated && index == 0,
+                            onOpen: () => _openPark(item),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ],
+                  ),
+                ),
               ],
               if (!_loading && _error == null && recommendations.isEmpty)
                 const Padding(
@@ -286,6 +347,139 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
       ),
     );
   }
+}
+
+class _RecommendationStatus extends StatelessWidget {
+  const _RecommendationStatus({
+    super.key,
+    required this.loading,
+    required this.updated,
+    required this.count,
+    required this.summary,
+  });
+
+  final bool loading;
+  final bool updated;
+  final int count;
+  final String summary;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: updated ? _guideForest : const Color(0xFFE8F0E3),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          updated ? Icons.check_rounded : Icons.eco_outlined,
+          color: updated ? Colors.white : _guideForest,
+          size: 19,
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loading
+                  ? '正在整理试点公园…'
+                  : updated
+                  ? '推荐已更新'
+                  : '找到 $count 个适合的地方',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: _guideForest,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              loading ? '正在读取路线与社区信息' : '$summary · 找到$count个',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Color(0xFF65716B), fontSize: 12.5),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _RecommendationBottomBar extends StatelessWidget {
+  const _RecommendationBottomBar({
+    required this.loading,
+    required this.count,
+    required this.summary,
+    required this.onTap,
+  });
+
+  final bool loading;
+  final int count;
+  final String summary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: _guideForest,
+    child: SafeArea(
+      top: false,
+      child: InkWell(
+        key: const Key('open-park-recommendations'),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 13, 18, 13),
+          child: Row(
+            children: [
+              const Icon(Icons.menu_book_rounded, color: Color(0xFFFFF8E8)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      loading
+                          ? '正在整理推荐'
+                          : count == 0
+                          ? '暂无完整匹配 · 调整条件'
+                          : '查看 $count 个推荐',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      summary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFD8E6DC),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const CircleAvatar(
+                backgroundColor: Color(0xFFFFF8E8),
+                foregroundColor: _guideForest,
+                child: Icon(Icons.arrow_forward_rounded),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _GuideHero extends StatelessWidget {
@@ -879,10 +1073,12 @@ class _ParkRecommendationCard extends StatelessWidget {
   const _ParkRecommendationCard({
     required this.recommendation,
     required this.rank,
+    required this.highlighted,
     required this.onOpen,
   });
   final ParkRecommendation recommendation;
   final int rank;
+  final bool highlighted;
   final VoidCallback onOpen;
 
   @override
@@ -895,11 +1091,15 @@ class _ParkRecommendationCard extends StatelessWidget {
         'assets/images/park_guide/park_taiziwan_thumbnail.webp',
       _ => 'assets/images/park_guide/park_wetland_thumbnail.webp',
     };
-    return DecoratedBox(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 240),
       decoration: BoxDecoration(
         color: _guidePaper,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE1DAC8)),
+        border: Border.all(
+          color: highlighted ? _guideForest : const Color(0xFFE1DAC8),
+          width: highlighted ? 1.8 : 1,
+        ),
       ),
       child: InkWell(
         key: Key('park-recommendation-${park.id}'),
@@ -977,15 +1177,79 @@ class _ParkRecommendationCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    recommendation.displayScore,
-                    style: const TextStyle(
-                      color: _guideOchre,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        recommendation.displayScore,
+                        style: const TextStyle(
+                          color: _guideOchre,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (highlighted) ...[
+                        const SizedBox(height: 6),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF0CE),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2B34F)),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              '更匹配本次选择',
+                              style: TextStyle(
+                                color: Color(0xFF835A09),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
+              if (highlighted) ...[
+                const SizedBox(height: 10),
+                Container(
+                  key: const Key('park-recommendation-change-reason'),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F5E9),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.eco_outlined,
+                        color: _guideForest,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          '变化原因：${recommendation.matchNote}',
+                          style: const TextStyle(
+                            color: _guideForest,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               if (recommendation.data.loadWarnings.isNotEmpty) ...[
                 Text(

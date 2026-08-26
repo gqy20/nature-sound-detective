@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 
@@ -45,11 +46,20 @@ void main() {
       audioQuality: const AudioQuality(usable: true),
       detections: const [],
       routeContext: context,
+      familyEvents: [
+        FamilyExplorationEvent(
+          eventId: 'evt_record_replay_00000001',
+          sequence: 1,
+          type: 'replayed_audio',
+          occurredAt: DateTime.utc(2026, 8, 25, 8),
+        ),
+      ],
     );
 
     final restored = ExplorationRecord.fromJson(record.toJson());
     expect(restored.routeContext?.parkId, 'taiziwan-park');
     expect(restored.routeContext?.zoneId, 'stream-trail');
     expect(restored.routeContext?.routeId, 'taiziwan-family-short');
+    expect(restored.familyEvents.single.type, 'replayed_audio');
   });
 }

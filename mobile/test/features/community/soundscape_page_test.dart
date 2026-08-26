@@ -44,27 +44,21 @@ void main() {
     );
     expect(find.text('林下步道'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.byKey(
-        const Key('open-exploration-route-botanical-morning-canopy'),
-      ),
+      find.byKey(const Key('open-exploration-route-botanical-morning-canopy')),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('亲子自然探索'), findsOneWidget);
     expect(find.text('清晨树冠声音路线'), findsOneWidget);
     await tester.tap(
-      find.byKey(
-        const Key('open-exploration-route-botanical-morning-canopy'),
-      ),
+      find.byKey(const Key('open-exploration-route-botanical-morning-canopy')),
     );
     await tester.pumpAndSettle();
     expect(find.text('自然探索路线'), findsOneWidget);
     expect(find.text('已完成 0 / 1 个倾听任务'), findsOneWidget);
     await tester.tap(
       find.byKey(
-        const Key(
-          'route-stop-hangzhou-botanical-garden:lingfeng-entrance',
-        ),
+        const Key('route-stop-hangzhou-botanical-garden:lingfeng-entrance'),
       ),
     );
     await tester.pumpAndSettle();
@@ -74,13 +68,31 @@ void main() {
     expect(find.text('杭州实景'), findsOneWidget);
     expect(find.byKey(const Key('hangzhou-offline-map')), findsOneWidget);
     await tester.scrollUntilVisible(
+      find.byKey(const Key('open-fullscreen-soundscape-map')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('open-fullscreen-soundscape-map')));
+    await tester.pumpAndSettle();
+    expect(find.text('杭州声音地图'), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-map-zoom-in')), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-map-zoom-out')), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-map-reset')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('soundscape-map-zoom-in')));
+    await tester.tap(find.byKey(const Key('soundscape-map-zoom-out')));
+    await tester.tap(find.byKey(const Key('soundscape-map-reset')));
+    await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
+    await tester.pumpAndSettle();
+    expect(find.text('查看这里的声音'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-selected-soundscape-area')));
+    await tester.pumpAndSettle();
+    expect(find.text('共听杭州'), findsOneWidget);
+    await tester.scrollUntilVisible(
       find.byKey(const Key('soundscape-area-xihu')),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.byKey(const Key('soundscape-area-xihu')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
-    await tester.pumpAndSettle();
     await tester.drag(find.byType(ListView).first, const Offset(0, -260));
     await tester.pumpAndSettle();
     expect(find.text('西湖区 · 1 条线索 · 1 条等待协助'), findsOneWidget);
@@ -218,27 +230,29 @@ class _FakeCommunityService implements CommunityService {
   ];
 
   @override
-  Future<EcologySnapshot> ecologySnapshot(String parkId) async => const EcologySnapshot(
-    parkId: 'hangzhou-botanical-garden',
-    validPostCount: 1,
-    independentObserverCount: 1,
-    soundTypeCounts: {'鸟鸣': 1},
-    dataSufficiency: 'low',
-    disclaimer: '不替代专业生态监测',
-  );
+  Future<EcologySnapshot> ecologySnapshot(String parkId) async =>
+      const EcologySnapshot(
+        parkId: 'hangzhou-botanical-garden',
+        validPostCount: 1,
+        independentObserverCount: 1,
+        soundTypeCounts: {'鸟鸣': 1},
+        dataSufficiency: 'low',
+        disclaimer: '不替代专业生态监测',
+      );
 
   @override
-  Future<DailyNatureBrief> dailyBrief(String parkId) async => const DailyNatureBrief(
-    parkId: 'hangzhou-botanical-garden',
-    parkName: '杭州植物园',
-    headline: '杭州植物园正在等待更多声音',
-    summary: '数据不足',
-    facts: ['1条观察'],
-    possibleExplanations: ['上传少不代表动物少'],
-    mission: '完成一次倾听',
-    dataSufficiency: 'low',
-    disclaimer: '社区趋势',
-  );
+  Future<DailyNatureBrief> dailyBrief(String parkId) async =>
+      const DailyNatureBrief(
+        parkId: 'hangzhou-botanical-garden',
+        parkName: '杭州植物园',
+        headline: '杭州植物园正在等待更多声音',
+        summary: '数据不足',
+        facts: ['1条观察'],
+        possibleExplanations: ['上传少不代表动物少'],
+        mission: '完成一次倾听',
+        dataSufficiency: 'low',
+        disclaimer: '社区趋势',
+      );
 
   @override
   Future<List<ExplorationRoute>> listRoutes(String parkId) async => const [

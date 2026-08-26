@@ -57,6 +57,7 @@ void main() {
     expect(result.hasReliableCommunityEvidence, isFalse);
     expect(result.displayScore, isNot(contains('分')));
     expect(result.communityEvidenceNote, contains('未使用动物活动趋势'));
+    expect(result.reasons, contains('适合综合自然声音探索'));
   });
 
   test('excludes routes outside the selected age band or time budget', () {
@@ -111,6 +112,64 @@ void main() {
     expect(result.single.data.park.id, 'taiziwan-park');
     expect(result.single.reasons, contains('现有试点信息标记为无障碍友好'));
   });
+
+  test('changes ranking for interest and walking preference', () {
+    final botanical = _data(
+      id: 'hangzhou-botanical-garden',
+      name: '杭州植物园',
+      tags: const ['鸟类', '树冠'],
+      duration: 35,
+      distance: 1.6,
+      age: 6,
+    );
+    final xixi = _data(
+      id: 'xixi-wetland',
+      name: '西溪湿地',
+      tags: const ['蛙类', '水鸟'],
+      duration: 45,
+      distance: 2,
+      age: 8,
+    );
+    final taiziwan = _data(
+      id: 'taiziwan-park',
+      name: '太子湾公园',
+      tags: const ['草地', '鸣虫'],
+      duration: 25,
+      distance: 1.1,
+      age: 6,
+    );
+    final values = [botanical, xixi, taiziwan];
+
+    final birds = const ParkRecommendationEngine().rank(
+      values,
+      const ParkGuidePreferences(
+        visitDuration: VisitDuration.sixtyMinutes,
+        interest: ParkInterest.birds,
+        walkPreference: WalkPreference.relaxed,
+      ),
+    );
+    final frogsAndFullRoute = const ParkRecommendationEngine().rank(
+      values,
+      const ParkGuidePreferences(
+        visitDuration: VisitDuration.sixtyMinutes,
+        interest: ParkInterest.frogsAndInsects,
+        walkPreference: WalkPreference.fullRoute,
+      ),
+    );
+    final relaxed = const ParkRecommendationEngine().rank(
+      values,
+      const ParkGuidePreferences(
+        visitDuration: VisitDuration.sixtyMinutes,
+        walkPreference: WalkPreference.relaxed,
+      ),
+    );
+
+    expect(birds.first.data.park.id, 'hangzhou-botanical-garden');
+    expect(birds.first.matchNote, contains('鸟鸣'));
+    expect(frogsAndFullRoute.first.data.park.id, 'xixi-wetland');
+    expect(frogsAndFullRoute.first.matchNote, contains('蛙虫'));
+    expect(relaxed.first.data.park.id, 'taiziwan-park');
+  });
 }
 
 ParkGuideData _data({
@@ -119,6 +178,7 @@ ParkGuideData _data({
   required List<String> tags,
   required int duration,
   required int age,
+  double distance = 1,
   String dataSufficiency = 'medium',
   int validPostCount = 2,
 }) => ParkGuideData(
@@ -146,7 +206,7 @@ ParkGuideData _data({
       parkId: id,
       name: '测试路线',
       durationMinutes: duration,
-      distanceKm: 1,
+      distanceKm: distance,
       ageMin: age,
       tags: tags,
       stops: [

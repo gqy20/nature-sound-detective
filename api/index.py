@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from app.yamnet_service import LABEL_PATH, MODEL_PATH, YamNetAnalyzer
 from app.community.routes import build_community_router
+from app.family_sessions.routes import build_family_session_router
 from app.field_observations import SCHEMA_PATH
 from app.observability import get_logger, install_observability, log_exception
 from app.investigation import apply_observation, apply_structured_observations, build_investigation
@@ -32,6 +33,7 @@ app.add_middleware(
 _analyzer: YamNetAnalyzer | None = None
 logger = get_logger("api.analysis")
 app.include_router(build_community_router())
+app.include_router(build_family_session_router())
 
 
 def _get_analyzer() -> YamNetAnalyzer:

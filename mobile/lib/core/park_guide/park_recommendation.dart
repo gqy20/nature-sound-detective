@@ -1,7 +1,7 @@
 import 'package:nature_sound_detective/core/community/community_models.dart';
 
 enum ParkInterest {
-  all('都可以'),
+  all('全部'),
   birds('鸟鸣'),
   frogsAndInsects('蛙虫'),
   naturalSoundscape('流水风雨');
@@ -59,6 +59,13 @@ class ParkGuidePreferences {
 
   int get childAge => ageBand.minAge;
   int get durationMinutes => visitDuration.maxMinutes;
+  String get shortSummary =>
+      '${ageBand.label} · ${visitDuration.label} · ${interest.label}'
+      '${requiresAccessibleRoute ? ' · 无障碍' : ''}';
+
+  String get signature =>
+      '${ageBand.name}:${visitDuration.name}:${interest.name}:'
+      '${walkPreference.name}:$requiresAccessibleRoute';
 
   ParkGuidePreferences copyWith({
     ChildAgeBand? ageBand,
@@ -104,6 +111,7 @@ class ParkRecommendation {
     required this.safetyNote,
     required this.communityEvidenceNote,
     required this.hasReliableCommunityEvidence,
+    required this.matchNote,
   });
 
   final ParkGuideData data;
@@ -114,6 +122,7 @@ class ParkRecommendation {
   final String safetyNote;
   final String communityEvidenceNote;
   final bool hasReliableCommunityEvidence;
+  final String matchNote;
 
   String get displayScore {
     if (hasReliableCommunityEvidence) return '$score分';

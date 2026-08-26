@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
@@ -85,6 +86,7 @@ class _MemoryStore implements ExplorationStore {
     Map<String, List<String>> fieldChecks = const {},
     Map<String, Map<String, List<String>>> fieldObservations = const {},
     RouteListeningContext? routeContext,
+    List<FamilyExplorationEvent> familyEvents = const [],
   }) => throw UnimplementedError();
   @override
   Future<void> setConfirmed(String id, bool confirmed) async {}

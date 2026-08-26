@@ -87,6 +87,7 @@ class ParentGuidanceRequest(BaseModel):
             "observedSafely",
         ]
     ] = Field(min_length=1, max_length=8)
+    events: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
 
 
 class CommunityPost(BaseModel):

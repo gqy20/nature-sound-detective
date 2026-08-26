@@ -2,6 +2,7 @@ import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/models/exploration_feedback.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 
 class ExplorationRecord {
   const ExplorationRecord({
@@ -17,6 +18,7 @@ class ExplorationRecord {
     this.fieldChecks = const {},
     this.fieldObservations = const {},
     this.routeContext,
+    this.familyEvents = const [],
   });
 
   factory ExplorationRecord.fromJson(Map<String, Object?> json) {
@@ -86,6 +88,13 @@ class ExplorationRecord {
         ),
         _ => null,
       },
+      familyEvents: (json['family_events'] as List<Object?>? ?? const [])
+          .whereType<Map<Object?, Object?>>()
+          .map(
+            (value) =>
+                FamilyExplorationEvent.fromJson(value.cast<String, Object?>()),
+          )
+          .toList(growable: false),
     );
   }
 
@@ -101,6 +110,7 @@ class ExplorationRecord {
   final Map<String, List<String>> fieldChecks;
   final Map<String, Map<String, List<String>>> fieldObservations;
   final RouteListeningContext? routeContext;
+  final List<FamilyExplorationEvent> familyEvents;
 
   ExplorationRecord copyWith({
     List<SoundDetection>? detections,
@@ -109,6 +119,7 @@ class ExplorationRecord {
     Map<String, List<String>>? fieldChecks,
     Map<String, Map<String, List<String>>>? fieldObservations,
     RouteListeningContext? routeContext,
+    List<FamilyExplorationEvent>? familyEvents,
   }) {
     return ExplorationRecord(
       id: id,
@@ -123,6 +134,7 @@ class ExplorationRecord {
       fieldChecks: fieldChecks ?? this.fieldChecks,
       fieldObservations: fieldObservations ?? this.fieldObservations,
       routeContext: routeContext ?? this.routeContext,
+      familyEvents: familyEvents ?? this.familyEvents,
     );
   }
 
@@ -139,5 +151,7 @@ class ExplorationRecord {
     if (fieldChecks.isNotEmpty) 'field_checks': fieldChecks,
     if (fieldObservations.isNotEmpty) 'field_observations': fieldObservations,
     if (routeContext != null) 'route_context': routeContext!.toJson(),
+    if (familyEvents.isNotEmpty)
+      'family_events': familyEvents.map((event) => event.toJson()).toList(),
   };
 }

@@ -12,7 +12,17 @@ import 'package:nature_sound_detective/features/community/exploration_route_page
 import 'package:nature_sound_detective/features/community/publication_page.dart';
 
 enum _SoundscapeView { recent, waiting, mission }
+
 enum _DemoFilter { all, real, demo }
+
+const _soundscapeAreaPositions = <String, Alignment>{
+  'yuhang': Alignment(-0.78, -0.68),
+  'gongshu': Alignment(-0.34, -0.46),
+  'xihu': Alignment(-0.58, -0.06),
+  'shangcheng': Alignment(-0.18, 0.16),
+  'binjiang': Alignment(-0.07, 0.64),
+  'xiaoshan': Alignment(0.36, 0.66),
+};
 
 class SoundscapePage extends StatefulWidget {
   const SoundscapePage({
@@ -140,12 +150,26 @@ class _SoundscapePageState extends State<SoundscapePage> {
   Future<void> _openRoute(ExplorationRoute route) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => ExplorationRoutePage(
-          route: route,
-          store: _routeProgressStore,
+        builder: (_) =>
+            ExplorationRoutePage(route: route, store: _routeProgressStore),
+      ),
+    );
+  }
+
+  Future<void> _openFullscreenMap() async {
+    final areaId = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => _FullscreenSoundscapeMap(
+          areas: _areas,
+          initialAreaId: _selectedAreaId,
         ),
       ),
     );
+    if (!mounted || areaId == null) return;
+    setState(() {
+      _selectedParkZoneId = null;
+      _selectedAreaId = areaId;
+    });
   }
 
   List<CommunityPost> get _visiblePosts {
@@ -499,10 +523,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
               ),
               const SizedBox(height: 12),
               if (_dailyBrief case final brief?)
-                _DailyNatureBriefCard(
-                  brief: brief,
-                  snapshot: _ecologySnapshot,
-                ),
+                _DailyNatureBriefCard(brief: brief, snapshot: _ecologySnapshot),
               if (_parkSites.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 _ParkZoneSoundMap(
@@ -537,6 +558,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
                 _selectedParkZoneId = null;
                 _selectedAreaId = _selectedAreaId == areaId ? null : areaId;
               }),
+              onOpenFullscreen: _openFullscreenMap,
             ),
             const SizedBox(height: 10),
             _MapSelectionSummary(area: _selectedArea, loading: _loading),
@@ -810,10 +832,7 @@ class _DailyNatureBriefCard extends StatelessWidget {
           ],
           if (brief.possibleExplanations.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text(
-              '为什么可能这样',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+            Text('为什么可能这样', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 4),
             for (final explanation in brief.possibleExplanations)
               Text('· $explanation'),
@@ -906,12 +925,14 @@ class _SoundscapeMap extends StatefulWidget {
     required this.selectedAreaId,
     required this.recentAreaId,
     required this.onSelected,
+    required this.onOpenFullscreen,
   });
   final List<SoundscapeArea> areas;
   final bool loading;
   final String? selectedAreaId;
   final String? recentAreaId;
   final ValueChanged<String> onSelected;
+  final VoidCallback onOpenFullscreen;
 
   @override
   State<_SoundscapeMap> createState() => _SoundscapeMapState();
@@ -920,18 +941,6 @@ class _SoundscapeMap extends StatefulWidget {
 class _SoundscapeMapState extends State<_SoundscapeMap>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
-
-  // Representative district centers projected into the bundled OSM image.
-  // Posts only expose district-level locations, so no recording coordinate is
-  // implied by these markers.
-  static const _positions = <String, Alignment>{
-    'yuhang': Alignment(-0.78, -0.68),
-    'gongshu': Alignment(-0.34, -0.46),
-    'xihu': Alignment(-0.58, -0.06),
-    'shangcheng': Alignment(-0.18, 0.16),
-    'binjiang': Alignment(-0.07, 0.64),
-    'xiaoshan': Alignment(0.36, 0.66),
-  };
 
   @override
   void initState() {
@@ -995,7 +1004,9 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
                       const ColoredBox(color: Color(0x12F5F0DF)),
                       for (final area in widget.areas)
                         Align(
-                          alignment: _positions[area.id] ?? Alignment.center,
+                          alignment:
+                              _soundscapeAreaPositions[area.id] ??
+                              Alignment.center,
                           child: TweenAnimationBuilder<double>(
                             tween: Tween(
                               begin: 0.92,
@@ -1023,12 +1034,23 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
                 top: 14,
                 child: _MapLabel(icon: Icons.map_outlined, label: '杭州实景'),
               ),
-              const Positioned(
-                right: 14,
+              Positioned(
+                right: 10,
                 top: 14,
-                child: _MapLabel(
-                  icon: Icons.privacy_tip_outlined,
-                  label: '区域级',
+                child: Row(
+                  children: [
+                    const _MapLabel(
+                      icon: Icons.privacy_tip_outlined,
+                      label: '仅显示区域',
+                    ),
+                    const SizedBox(width: 7),
+                    IconButton.filledTonal(
+                      key: const Key('open-fullscreen-soundscape-map'),
+                      tooltip: '全屏查看杭州声音地图',
+                      onPressed: widget.onOpenFullscreen,
+                      icon: const Icon(Icons.fullscreen_rounded),
+                    ),
+                  ],
                 ),
               ),
               if (widget.loading) const Positioned.fill(child: _MapLoading()),
@@ -1036,7 +1058,7 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
                 left: 16,
                 bottom: 12,
                 child: Text(
-                  '不显示精确录音位置',
+                  '双指缩放 · 点击右上角全屏查看',
                   style: TextStyle(
                     color: Color(0xFF61746B),
                     fontSize: 10,
@@ -1050,6 +1072,319 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
       ),
     ),
   );
+}
+
+class _FullscreenSoundscapeMap extends StatefulWidget {
+  const _FullscreenSoundscapeMap({
+    required this.areas,
+    required this.initialAreaId,
+  });
+
+  final List<SoundscapeArea> areas;
+  final String? initialAreaId;
+
+  @override
+  State<_FullscreenSoundscapeMap> createState() =>
+      _FullscreenSoundscapeMapState();
+}
+
+class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
+  final TransformationController _transformationController =
+      TransformationController();
+  String? _selectedAreaId;
+  bool _showGestureHint = true;
+  Timer? _gestureHintTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedAreaId = widget.initialAreaId;
+    _gestureHintTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _showGestureHint = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _gestureHintTimer?.cancel();
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  SoundscapeArea? get _selectedArea {
+    for (final area in widget.areas) {
+      if (area.id == _selectedAreaId) return area;
+    }
+    return null;
+  }
+
+  void _setScale(double scale) {
+    final target = scale.clamp(1.0, 4.0);
+    _transformationController.value = Matrix4.diagonal3Values(
+      target,
+      target,
+      1,
+    );
+  }
+
+  void _zoomBy(double factor) {
+    final current = _transformationController.value.getMaxScaleOnAxis();
+    _setScale(current * factor);
+  }
+
+  void _resetMap() {
+    _transformationController.value = Matrix4.identity();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _selectedArea;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F5EC),
+      appBar: AppBar(
+        title: const Text('杭州声音地图'),
+        backgroundColor: const Color(0xF2F8F5EC),
+        scrolledUnderElevation: 0,
+        actions: [
+          IconButton(
+            tooltip: '地图隐私说明',
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('仅显示区域'),
+                content: const Text('地图不展示录音的精确位置，也不代表专业生态分布。'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('知道了'),
+                  ),
+                ],
+              ),
+            ),
+            icon: const Icon(Icons.shield_outlined),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onDoubleTap: () {
+                final current = _transformationController.value
+                    .getMaxScaleOnAxis();
+                _setScale(current > 1.2 ? 1 : 2);
+              },
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                minScale: 1,
+                maxScale: 4,
+                panEnabled: true,
+                scaleEnabled: true,
+                boundaryMargin: const EdgeInsets.all(160),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      'assets/maps/hangzhou_osm.png',
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
+                    ),
+                    const ColoredBox(color: Color(0x12F5F0DF)),
+                    for (final area in widget.areas)
+                      Align(
+                        alignment:
+                            _soundscapeAreaPositions[area.id] ??
+                            Alignment.center,
+                        child: _AreaRipple(
+                          area: area,
+                          selected: area.id == _selectedAreaId,
+                          highlighted: false,
+                          pulse: 0,
+                          onTap: () => setState(() {
+                            _selectedAreaId = area.id;
+                            _showGestureHint = false;
+                          }),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 14,
+            top: 14,
+            child: _MapZoomControls(
+              onZoomIn: () => _zoomBy(1.35),
+              onZoomOut: () => _zoomBy(1 / 1.35),
+              onReset: _resetMap,
+            ),
+          ),
+          if (_showGestureHint)
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 166,
+              child: Center(child: _MapGestureHint()),
+            ),
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 14,
+            child: SafeArea(
+              top: false,
+              child: _FullscreenAreaPanel(
+                area: selected,
+                onOpen: selected == null
+                    ? null
+                    : () => Navigator.pop(context, selected.id),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MapZoomControls extends StatelessWidget {
+  const _MapZoomControls({
+    required this.onZoomIn,
+    required this.onZoomOut,
+    required this.onReset,
+  });
+
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: const Color(0xF7FFFDF5),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: const Color(0x22315449)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x18315449),
+          blurRadius: 14,
+          offset: Offset(0, 6),
+        ),
+      ],
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          key: const Key('soundscape-map-zoom-in'),
+          tooltip: '放大地图',
+          onPressed: onZoomIn,
+          icon: const Icon(Icons.add_rounded),
+        ),
+        const SizedBox(width: 32, child: Divider(height: 1)),
+        IconButton(
+          key: const Key('soundscape-map-zoom-out'),
+          tooltip: '缩小地图',
+          onPressed: onZoomOut,
+          icon: const Icon(Icons.remove_rounded),
+        ),
+        const SizedBox(width: 32, child: Divider(height: 1)),
+        IconButton(
+          key: const Key('soundscape-map-reset'),
+          tooltip: '复位地图',
+          onPressed: onReset,
+          icon: const Icon(Icons.center_focus_strong_rounded),
+        ),
+      ],
+    ),
+  );
+}
+
+class _MapGestureHint extends StatelessWidget {
+  const _MapGestureHint();
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: const Color(0xE6174936),
+      borderRadius: BorderRadius.circular(22),
+    ),
+    child: const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+      child: Text(
+        '双指缩放 · 单指移动 · 双击放大',
+        style: TextStyle(color: Colors.white, fontSize: 12),
+      ),
+    ),
+  );
+}
+
+class _FullscreenAreaPanel extends StatelessWidget {
+  const _FullscreenAreaPanel({required this.area, required this.onOpen});
+
+  final SoundscapeArea? area;
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = area;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFAFFFDF5),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x24315449),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 15, 18, 14),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              selected?.name ?? '选择一个城区',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: const Color(0xFF174936),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              selected == null
+                  ? '点击地图上的声音节点查看区域声景'
+                  : '${selected.postCount} 条声音 · ${selected.waitingCount} 条待协助',
+              style: const TextStyle(color: Color(0xFF5E6D66)),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              key: const Key('open-selected-soundscape-area'),
+              onPressed: onOpen,
+              icon: const Icon(Icons.hearing_rounded),
+              label: const Text('查看这里的声音'),
+            ),
+            const SizedBox(height: 8),
+            const Row(
+              children: [
+                Icon(Icons.shield_outlined, size: 16, color: Color(0xFF7A847F)),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    '仅显示区域，不展示精确录音位置',
+                    style: TextStyle(color: Color(0xFF7A847F), fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _MapLabel extends StatelessWidget {
@@ -1444,7 +1779,9 @@ class _PostMediaPreview extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => const ColoredBox(
                   color: Color(0xFFE8EFE8),
-                  child: Center(child: Icon(Icons.image_not_supported_outlined)),
+                  child: Center(
+                    child: Icon(Icons.image_not_supported_outlined),
+                  ),
                 ),
               ),
             ),
@@ -1462,10 +1799,8 @@ class _PostMediaPreview extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       onTap: () => Navigator.of(context).push<void>(
         MaterialPageRoute(
-          builder: (_) => CommunityVideoPage(
-            url: asset.url,
-            sourceLabel: label,
-          ),
+          builder: (_) =>
+              CommunityVideoPage(url: asset.url, sourceLabel: label),
         ),
       ),
       child: Container(

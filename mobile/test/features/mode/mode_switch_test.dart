@@ -26,7 +26,7 @@ void main() {
     expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
     expect(find.byKey(const Key('parent-park-guide-cta')), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
-    expect(find.textContaining('剩余 12 / 20 次'), findsOneWidget);
+    expect(find.textContaining('剩余 12 / 20 次'), findsNothing);
   });
 
   testWidgets('app switch persists the selected mode', (tester) async {

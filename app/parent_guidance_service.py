@@ -53,6 +53,14 @@ def parent_guidance_fingerprint(payload: dict[str, Any]) -> str:
         "weak_signal": bool(payload.get("weak_signal", False)),
         "observations": sorted(str(item) for item in payload.get("observations") or []),
         "behaviors": sorted(str(item) for item in payload.get("behaviors") or []),
+        "events": [
+            {
+                "type": str(item.get("type") or ""),
+                "sequence": int(item.get("sequence") or 0),
+            }
+            for item in payload.get("events") or []
+            if isinstance(item, dict)
+        ],
     }
     return hashlib.sha256(
         json.dumps(stable, ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -321,6 +329,11 @@ class ParentGuidanceService:
                     weak_signal=bool(payload.get("weak_signal", False)),
                     observations=[
                         str(item) for item in payload.get("observations") or []
+                    ]
+                    + [
+                        f"event:{item.get('sequence', 0)}:{item.get('type', '')}"
+                        for item in payload.get("events") or []
+                        if isinstance(item, dict)
                     ],
                     behaviors=behaviors,
                 )

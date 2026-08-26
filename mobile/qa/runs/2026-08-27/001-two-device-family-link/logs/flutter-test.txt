@@ -1,0 +1,246 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.2.0 available)
+  code_assets 1.2.1 (2.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.0 (1.19.0 available)
+  objective_c 9.5.0 (9.6.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  synchronized 3.4.1+1 (3.4.1+2 available)
+  test_api 0.7.11 (0.7.13 available)
+  vector_math 2.2.0 (2.4.2 available)
+  video_player 2.13.0 (2.14.0 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 6.3.0 (6.4.0 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart
+00:00 +0: D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart: extracts a normalized envelope from real PCM samples
+00:00 +1: D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart: renders live ring and analysis waveform as isolated painters
+00:00 +2: D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart: renders live ring and analysis waveform as isolated painters
+00:00 +3: D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart: renders live ring and analysis waveform as isolated painters
+00:00 +4: D:/C/Desktop/ai/xykw/mobile/test/core/audio/audio_waveform_test.dart: renders live ring and analysis waveform as isolated painters
+00:01 +5: D:/C/Desktop/ai/xykw/mobile/test/core/audio/pcm_resampler_test.dart: downmixes stereo PCM and resamples it
+00:01 +6: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_pcm_reader_test.dart: extracts PCM metadata and skips the WAV header
+00:02 +7: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: accepts a clear multi-second mono recording
+00:02 +8: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: rejects an almost silent recording
+00:02 +9: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: accepts a short clear call inside a mostly quiet recording
+00:02 +10: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: keeps a quiet but measurable call available for analysis
+00:02 +11: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: keeps a weak dynamic call instead of blocking model analysis
+00:02 +12: D:/C/Desktop/ai/xykw/mobile/test/core/audio/wav_quality_analyzer_test.dart: accepts a 96 kHz weak dynamic import like the field reference
+00:02 +13: D:/C/Desktop/ai/xykw/mobile/test/core/community/community_service_test.dart: coalesces anonymous session creation and sends bearer token
+00:02 +14: D:/C/Desktop/ai/xykw/mobile/test/core/community/community_service_test.dart: resolves relative audio and community media URLs
+00:02 +15: D:/C/Desktop/ai/xykw/mobile/test/core/community/community_service_test.dart: times out a hanging session and allows the next attempt
+00:02 +16: D:/C/Desktop/ai/xykw/mobile/test/core/community/community_service_test.dart: times out a hanging authenticated request
+00:02 +17: D:/C/Desktop/ai/xykw/mobile/test/core/community/community_service_test.dart: coalesces concurrent identity creation
+00:03 +18: D:/C/Desktop/ai/xykw/mobile/test/core/community/route_listening_context_test.dart: persists and clears the active route listening context
+00:03 +19: D:/C/Desktop/ai/xykw/mobile/test/core/community/route_listening_context_test.dart: round-trips route context inside an exploration record
+00:03 +20: D:/C/Desktop/ai/xykw/mobile/test/core/diagnostics/debug_export_service_test.dart: exports a session bundle without credentials or absolute paths
+{"timestamp":"2026-08-26T16:47:21.851694Z","level":"info","component":"settings","event":"creation_config_saved","has_minimax_key":true,"has_dashscope_key":true,"region":"beijing","music_model":"music-2.6","video_model":"wan2.7-t2v"}
+{"timestamp":"2026-08-26T16:47:21.887125Z","level":"info","component":"settings","event":"creation_config_loaded","has_minimax_key":true,"has_dashscope_key":true,"region":"beijing","music_model":"music-2.6","video_model":"wan2.7-t2v"}
+{"timestamp":"2026-08-26T16:47:22.090883Z","level":"info","component":"diagnostics","event":"bundle_exported","trace_id":"rec_42","audio_included":true,"session_included":true,"session_log_count":1,"byte_length":2339}
+00:04 +21: D:/C/Desktop/ai/xykw/mobile/test/core/diagnostics/debug_export_service_test.dart: fails closed when an exported log contains a likely secret
+{"timestamp":"2026-08-26T16:47:22.177960Z","level":"info","component":"settings","event":"creation_config_not_found"}
+{"timestamp":"2026-08-26T16:47:22.243854Z","level":"error","component":"diagnostics","event":"bundle_export_failed","error":"Bad state: 诊断包检测到疑似敏感信息，已停止导出。","stack_trace":"#0      DebugExportService._assertNoSecrets (package:nature_sound_detective/core/diagnostics/debug_export_service.dart:363:11)\n<asynchronous suspension>\n#1      DebugExportService.export (package:nature_sound_detective/core/diagnostics/debug_export_service.dart:238:7)\n<asynchronous suspension>\n#2      Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:103:19)\n<asynchronous suspension>\n#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)\n<asynchronous suspension>\n#4      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)\n<asynchronous suspension>\n#5      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)\n<asynchronous suspension>\n#6      main.<anonymous closure> (file:///D:/C/Desktop/ai/xykw/mobile/test/core/diagnostics/debug_export_service_test.dart:139:5)\n<asynchronous suspension>\n#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)\n<asynchronous suspension>\n#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)\n<asynchronous suspension>\n#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)\n<asynchronous suspension>\n"}
+00:04 +22: D:/C/Desktop/ai/xykw/mobile/test/core/family/family_session_test.dart: event queue serializes concurrent events and keeps sequence
+00:04 +23: D:/C/Desktop/ai/xykw/mobile/test/core/family/family_session_test.dart: service creates parent session with shared anonymous token
+00:04 +24: D:/C/Desktop/ai/xykw/mobile/test/core/family/family_session_test.dart: child records structured behavior and syncs it
+00:05 +25: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: replaces generic bird class with strong BirdNET species candidates
+00:05 +26: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: keeps one supported weak bird species as a tentative guess
+00:05 +27: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: does not expose a very weak unsupported bird species
+00:05 +28: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: promotes a supported low-score bird to an exact clue
+00:05 +29: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: keeps the top three bird species candidates by confidence
+00:05 +30: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: keeps mixed non-bird soundscape categories
+00:05 +31: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: keeps exact non-bird species beside a bird candidate
+00:05 +32: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: merges the same generic category across model families
+00:05 +33: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: downgrades an unsupported medium non-bird species to a category
+00:05 +34: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: keeps a medium species when another model supports its category
+00:05 +35: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: penalizes an overlapping single-model category with weaker evidence
+00:05 +36: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: cleans up the mixed result observed during device validation
+00:05 +37: D:/C/Desktop/ai/xykw/mobile/test/core/fusion/nature_detection_fusion_test.dart: returns no detection for empty or invalid outputs
+00:05 +38: D:/C/Desktop/ai/xykw/mobile/test/core/guidance/parent_guidance_engine_test.dart: provides two to three parent directions
+00:05 +39: D:/C/Desktop/ai/xykw/mobile/test/core/guidance/parent_guidance_engine_test.dart: praise is tied to observed behavior
+00:05 +40: D:/C/Desktop/ai/xykw/mobile/test/core/guidance/parent_guidance_engine_test.dart: single recorded behavior still gets three distinct fallback options
+00:06 +41: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_model_contract_test.dart: bundled BirdNET declares species logits and 1024-d embedding
+00:06 +42: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_score_test.dart: converts BirdNET logits to probabilities
+00:07 +43: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_species_test.dart: parses a species catalog
+00:07 +44: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_species_test.dart: normalizes a historical Traditional Chinese species snapshot
+00:07 +45: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_species_test.dart: rejects duplicate output indices
+00:07 +46: D:/C/Desktop/ai/xykw/mobile/test/core/inference/birdnet_species_test.dart: ships 200 unique Hangzhou candidates with official challenge names
+00:07 +47: D:/C/Desktop/ai/xykw/mobile/test/core/inference/nonbird_species_test.dart: parses installed non-bird model metadata
+00:07 +48: D:/C/Desktop/ai/xykw/mobile/test/core/inference/nonbird_species_test.dart: accepts the checked-in unavailable model descriptor
+00:07 +49: D:/C/Desktop/ai/xykw/mobile/test/core/inference/nonbird_species_test.dart: requires an extra runner-up margin for exact species
+00:07 +50: D:/C/Desktop/ai/xykw/mobile/test/core/inference/nonbird_species_test.dart: ships the challenge demo twelve-class model
+00:08 +51: D:/C/Desktop/ai/xykw/mobile/test/core/inference/recording_analyzer_preload_test.dart: cached model coalesces concurrent preload calls
+00:08 +52: D:/C/Desktop/ai/xykw/mobile/test/core/inference/recording_analyzer_preload_test.dart: cached model retries after a failed preload
+00:08 +53: D:/C/Desktop/ai/xykw/mobile/test/core/inference/tensor_output_buffer_test.dart: createTensorOutputBuffer creates an ordinary rank-one list
+00:08 +54: D:/C/Desktop/ai/xykw/mobile/test/core/inference/tensor_output_buffer_test.dart: createTensorOutputBuffer creates ordinary nested rows for isolate output replacement
+00:08 +55: D:/C/Desktop/ai/xykw/mobile/test/core/inference/tensor_output_buffer_test.dart: createTensorOutputBuffer preserves row-major order for higher-rank tensors
+00:08 +56: D:/C/Desktop/ai/xykw/mobile/test/core/inference/tensor_output_buffer_test.dart: createTensorOutputBuffer rejects invalid shapes
+00:09 +57: D:/C/Desktop/ai/xykw/mobile/test/core/inference/yamnet_category_map_test.dart: parses quoted AudioSet labels without splitting embedded commas
+00:09 +58: D:/C/Desktop/ai/xykw/mobile/test/core/logging/app_log_test.dart: redacts credentials and sensitive fields
+00:09 +59: D:/C/Desktop/ai/xykw/mobile/test/core/logging/app_log_test.dart: rolls files and exports a bounded diagnostic log
+00:10 +60: D:/C/Desktop/ai/xykw/mobile/test/core/mode/exploration_mode_store_test.dart: defaults to child mode and persists parent mode
+00:10 +61: D:/C/Desktop/ai/xykw/mobile/test/core/models/analysis_result_test.dart: round-trips the shared analysis contract
+00:10 +62: D:/C/Desktop/ai/xykw/mobile/test/core/models/analysis_result_test.dart: uses safe defaults for incomplete server data
+00:11 +63: D:/C/Desktop/ai/xykw/mobile/test/core/models/field_observation_schema_test.dart: loads the shared field observation schema
+00:11 +64: D:/C/Desktop/ai/xykw/mobile/test/core/models/species_media_test.dart: looks up media by normalized scientific name
+00:11 +65: D:/C/Desktop/ai/xykw/mobile/test/core/models/species_media_test.dart: returns null when a species has no curated image
+00:11 +66: D:/C/Desktop/ai/xykw/mobile/test/core/models/species_media_test.dart: bundles images for all 20 unambiguous official species
+00:11 +67: D:/C/Desktop/ai/xykw/mobile/test/core/models/species_media_test.dart: supports the BirdNET synonym for spotted dove
+00:12 +68: D:/C/Desktop/ai/xykw/mobile/test/core/network/direct_creation_service_test.dart: downloads MiniMax music and completed Wan video
+{"timestamp":"2026-08-26T16:47:30.063576Z","level":"info","component":"creation","event":"creation_started","trace_id":"1787762850052","source_bytes":2,"music_model":"music-2.6","video_model":"wan2.7-t2v","region":"beijing"}
+{"timestamp":"2026-08-26T16:47:30.105839Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"idle"}
+{"timestamp":"2026-08-26T16:47:30.109353Z","level":"info","component":"creation","event":"pipeline_started","trace_id":"1787762850052","resume":false,"stage":"idle","has_music":false,"has_video":false,"has_final_video":false}
+{"timestamp":"2026-08-26T16:47:30.134411Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.136535Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.148063Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850052","provider":"minimax","operation":"music","status_code":200,"duration_ms":10}
+{"timestamp":"2026-08-26T16:47:30.177598Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.178598Z","level":"info","component":"creation","event":"music_generation_succeeded","trace_id":"1787762850052","duration_ms":41,"byte_length":3}
+{"timestamp":"2026-08-26T16:47:30.190324Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"generatingNarration"}
+{"timestamp":"2026-08-26T16:47:30.191325Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"generatingNarration"}
+{"timestamp":"2026-08-26T16:47:30.192325Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850052","provider":"minimax","operation":"narration","status_code":200,"duration_ms":1}
+{"timestamp":"2026-08-26T16:47:30.218031Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"generatingNarration"}
+{"timestamp":"2026-08-26T16:47:30.220033Z","level":"info","component":"creation","event":"narration_generation_succeeded","trace_id":"1787762850052","duration_ms":28,"byte_length":3}
+{"timestamp":"2026-08-26T16:47:30.233091Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.234090Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.235597Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850052","provider":"dashscope","operation":"submit_video","status_code":200,"duration_ms":0}
+{"timestamp":"2026-08-26T16:47:30.251324Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.270030Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:30.271030Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:30.274031Z","level":"info","component":"creation","event":"video_status_changed","trace_id":"1787762850052","status":"SUCCEEDED"}
+{"timestamp":"2026-08-26T16:47:30.287297Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.288299Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.301683Z","level":"info","component":"creation","event":"asset_downloaded","trace_id":"1787762850052","asset_type":"video","duration_ms":11,"byte_length":8}
+{"timestamp":"2026-08-26T16:47:30.324270Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.325776Z","level":"info","component":"creation","event":"video_generation_succeeded","trace_id":"1787762850052","duration_ms":103,"byte_length":8}
+{"timestamp":"2026-08-26T16:47:30.342637Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"composing"}
+{"timestamp":"2026-08-26T16:47:30.342637Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"composing"}
+{"timestamp":"2026-08-26T16:47:30.365272Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"composing"}
+{"timestamp":"2026-08-26T16:47:30.366700Z","level":"info","component":"creation","event":"composition_succeeded","trace_id":"1787762850052","duration_ms":22,"byte_length":4,"has_narration":true}
+{"timestamp":"2026-08-26T16:47:30.399549Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850052","stage":"completed"}
+{"timestamp":"2026-08-26T16:47:30.399549Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850052","stage":"completed"}
+{"timestamp":"2026-08-26T16:47:30.400549Z","level":"info","component":"creation","event":"creation_completed","trace_id":"1787762850052","complete":true,"has_music":true,"has_video":true,"has_final_video":true}
+00:12 +69: D:/C/Desktop/ai/xykw/mobile/test/core/network/direct_creation_service_test.dart: keeps a completed video when music generation fails
+{"timestamp":"2026-08-26T16:47:30.445835Z","level":"info","component":"creation","event":"creation_started","trace_id":"1787762850436","source_bytes":2,"music_model":"music-2.6","video_model":"wan2.7-t2v","region":"beijing"}
+{"timestamp":"2026-08-26T16:47:30.466407Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"idle"}
+{"timestamp":"2026-08-26T16:47:30.467417Z","level":"info","component":"creation","event":"pipeline_started","trace_id":"1787762850436","resume":false,"stage":"idle","has_music":false,"has_video":false,"has_final_video":false}
+{"timestamp":"2026-08-26T16:47:30.495542Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.495542Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.497555Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850436","provider":"minimax","operation":"music","status_code":200,"duration_ms":1}
+{"timestamp":"2026-08-26T16:47:30.498555Z","level":"warning","component":"creation","event":"music_generation_failed","trace_id":"1787762850436","duration_ms":2,"error":"invalid key","stack_trace":"#0      DirectCreationService._checkMiniMax (package:nature_sound_detective/core/network/direct_creation_service.dart:671:9)\n#1      DirectCreationService._generateMusic (package:nature_sound_detective/core/network/direct_creation_service.dart:410:5)\n<asynchronous suspension>\n#2      DirectCreationService.resume (package:nature_sound_detective/core/network/direct_creation_service.dart:159:9)\n<asynchronous suspension>\n#3      main.<anonymous closure> (file:///D:/C/Desktop/ai/xykw/mobile/test/core/network/direct_creation_service_test.dart:133:20)\n<asynchronous suspension>\n#4      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)\n<asynchronous suspension>\n#5      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)\n<asynchronous suspension>\n#6      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)\n<asynchronous suspension>\n"}
+{"timestamp":"2026-08-26T16:47:30.509598Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"generatingMusic"}
+{"timestamp":"2026-08-26T16:47:30.523781Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"generatingNarration"}
+{"timestamp":"2026-08-26T16:47:30.523781Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"generatingNarration"}
+{"timestamp":"2026-08-26T16:47:30.526303Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850436","provider":"minimax","operation":"narration","status_code":200,"duration_ms":1}
+{"timestamp":"2026-08-26T16:47:30.526303Z","level":"warning","component":"creation","event":"narration_generation_failed","trace_id":"1787762850436","duration_ms":2,"error":"invalid key","stack_trace":"#0      DirectCreationService._checkMiniMax (package:nature_sound_detective/core/network/direct_creation_service.dart:671:9)\n#1      DirectCreationService._generateNarration (package:nature_sound_detective/core/network/direct_creation_service.dart:479:5)\n<asynchronous suspension>\n#2      DirectCreationService.resume (package:nature_sound_detective/core/network/direct_creation_service.dart:194:9)\n<asynchronous suspension>\n#3      main.<anonymous closure> (file:///D:/C/Desktop/ai/xykw/mobile/test/core/network/direct_creation_service_test.dart:133:20)\n<asynchronous suspension>\n#4      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)\n<asynchronous suspension>\n#5      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)\n<asynchronous suspension>\n#6      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)\n<asynchronous suspension>\n"}
+{"timestamp":"2026-08-26T16:47:30.542842Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.543843Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.545352Z","level":"info","component":"creation","event":"provider_response_received","trace_id":"1787762850436","provider":"dashscope","operation":"submit_video","status_code":200,"duration_ms":0}
+{"timestamp":"2026-08-26T16:47:30.565405Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"submittingVideo"}
+{"timestamp":"2026-08-26T16:47:30.582944Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:30.583944Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:30.583944Z","level":"info","component":"creation","event":"video_status_changed","trace_id":"1787762850436","status":"SUCCEEDED"}
+{"timestamp":"2026-08-26T16:47:30.601Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.603Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.613040Z","level":"info","component":"creation","event":"asset_downloaded","trace_id":"1787762850436","asset_type":"video","duration_ms":8,"byte_length":3}
+{"timestamp":"2026-08-26T16:47:30.626068Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"downloadingVideo"}
+{"timestamp":"2026-08-26T16:47:30.628073Z","level":"info","component":"creation","event":"video_generation_succeeded","trace_id":"1787762850436","duration_ms":98,"byte_length":3}
+{"timestamp":"2026-08-26T16:47:30.654508Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"1787762850436","stage":"partial"}
+{"timestamp":"2026-08-26T16:47:30.655548Z","level":"info","component":"creation","event":"stage_changed","trace_id":"1787762850436","stage":"partial"}
+{"timestamp":"2026-08-26T16:47:30.655548Z","level":"info","component":"creation","event":"creation_completed","trace_id":"1787762850436","complete":false,"has_music":false,"has_video":true,"has_final_video":false}
+00:13 +70: D:/C/Desktop/ai/xykw/mobile/test/core/network/parent_guidance_service_test.dart: parses directly generated AI guidance
+00:13 +71: D:/C/Desktop/ai/xykw/mobile/test/core/network/parent_guidance_service_test.dart: falls back locally when AI endpoint is unavailable
+AI parent guidance fallback: FormatException
+00:13 +72: D:/C/Desktop/ai/xykw/mobile/test/core/network/parent_guidance_service_test.dart: shows a local fallback when the twenty free calls are exhausted
+00:13 +73: D:/C/Desktop/ai/xykw/mobile/test/core/park_guide/park_recommendation_engine_test.dart: ranks a short matching route above a long route
+00:13 +74: D:/C/Desktop/ai/xykw/mobile/test/core/park_guide/park_recommendation_engine_test.dart: uses an honest fit label when community data is insufficient
+00:13 +75: D:/C/Desktop/ai/xykw/mobile/test/core/park_guide/park_recommendation_engine_test.dart: excludes routes outside the selected age band or time budget
+00:13 +76: D:/C/Desktop/ai/xykw/mobile/test/core/park_guide/park_recommendation_engine_test.dart: treats accessibility as a required condition
+00:13 +77: D:/C/Desktop/ai/xykw/mobile/test/core/park_guide/park_recommendation_engine_test.dart: changes ranking for interest and walking preference
+00:14 +78: D:/C/Desktop/ai/xykw/mobile/test/core/storage/creation_settings_store_test.dart: persists and clears local creation settings
+{"timestamp":"2026-08-26T16:47:32.095965Z","level":"info","component":"settings","event":"creation_config_saved","has_minimax_key":true,"has_dashscope_key":true,"region":"singapore","music_model":"music-2.6","video_model":"wan2.7-t2v"}
+{"timestamp":"2026-08-26T16:47:32.114374Z","level":"info","component":"settings","event":"creation_config_loaded","has_minimax_key":true,"has_dashscope_key":true,"region":"singapore","music_model":"music-2.6","video_model":"wan2.7-t2v"}
+{"timestamp":"2026-08-26T16:47:32.120446Z","level":"info","component":"settings","event":"creation_config_cleared"}
+{"timestamp":"2026-08-26T16:47:32.122001Z","level":"info","component":"settings","event":"creation_config_not_found"}
+00:14 +79: D:/C/Desktop/ai/xykw/mobile/test/core/storage/creation_store_test.dart: persists, orders, restores and deletes creation records
+{"timestamp":"2026-08-26T16:47:32.638304Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"older","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:32.668404Z","level":"debug","component":"creation_storage","event":"record_saved","trace_id":"newer","stage":"waitingForVideo"}
+{"timestamp":"2026-08-26T16:47:32.713427Z","level":"info","component":"creation_storage","event":"record_deleted","trace_id":"newer"}
+00:14 +80: D:/C/Desktop/ai/xykw/mobile/test/core/storage/creation_store_test.dart: refuses to delete a directory outside the creations root
+00:15 +81: D:/C/Desktop/ai/xykw/mobile/test/core/storage/exploration_store_test.dart: persists audio and structured exploration metadata
+{"timestamp":"2026-08-26T16:47:33.235893Z","level":"debug","component":"storage","event":"record_written","trace_id":"rec_1","byte_length":4}
+{"timestamp":"2026-08-26T16:47:33.415482Z","level":"info","component":"storage","event":"record_deleted","trace_id":"rec_1"}
+00:15 +82: D:/C/Desktop/ai/xykw/mobile/test/core/storage/exploration_store_test.dart: rejects path traversal in record ids
+00:15 +83: D:/C/Desktop/ai/xykw/mobile/test/core/storage/exploration_store_test.dart: shows current Simplified Chinese names for historical records
+00:16 +84: D:/C/Desktop/ai/xykw/mobile/test/features/community/publication_page_test.dart: publishes the real observation before its selected story video
+00:18 +85: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:19 +86: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:20 +87: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:21 +87: D:/C/Desktop/ai/xykw/mobile/test/features/mode/mode_switch_test.dart: parent view exposes the guide without replacing capture
+{"timestamp":"2026-08-26T16:47:38.122970Z","level":"info","component":"capture","event":"page_ready"}
+00:21 +88: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:21 +89: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:22 +90: D:/C/Desktop/ai/xykw/mobile/test/features/community/soundscape_page_test.dart: shows regional soundscape and structured listening card
+00:22 +91: D:/C/Desktop/ai/xykw/mobile/test/features/mode/mode_switch_test.dart: app switch persists the selected mode
+{"timestamp":"2026-08-26T16:47:39.499042Z","level":"info","component":"capture","event":"page_ready"}
+00:23 +92: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:23 +93: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:24 +93: D:/C/Desktop/ai/xykw/mobile/test/features/mode/mode_switch_test.dart: small screen with 200 percent text keeps capture usable
+{"timestamp":"2026-08-26T16:47:41.733505Z","level":"info","component":"capture","event":"page_ready"}
+00:24 +94: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:24 +95: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:25 +96: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:25 +97: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:25 +98: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:25 +99: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:26 +99: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: shows the Android-first capture shell
+{"timestamp":"2026-08-26T16:47:43.868027Z","level":"info","component":"capture","event":"page_ready"}
+00:26 +100: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: filters parks and opens a parent-guided route
+00:27 +100: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: keeps the timer inside the record control
+{"timestamp":"2026-08-26T16:47:44.677570Z","level":"info","component":"capture","event":"page_ready"}
+00:27 +101: D:/C/Desktop/ai/xykw/mobile/test/features/species/species_detail_page_test.dart: field checks, source and audio segment are interactive
+00:27 +101: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: keeps the timer inside the record control
+{"timestamp":"2026-08-26T16:47:44.876692Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+00:27 +102: D:/C/Desktop/ai/xykw/mobile/test/features/species/species_detail_page_test.dart: field checks, source and audio segment are interactive
+00:27 +103: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: keeps available park guidance when one endpoint fails
+00:27 +104: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: keeps available park guidance when one endpoint fails
+00:27 +105: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: shows an unusable recording in a fixed result sheet
+00:27 +106: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: shows an unusable recording in a fixed result sheet
+{"timestamp":"2026-08-26T16:47:45.055925Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:45.146207Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:45.246290Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":false,"quality_issue_count":1,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+00:28 +107: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: uses age ranges and treats accessibility as a requirement
+00:28 +108: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: shows progressive window clues while local analysis continues
+{"timestamp":"2026-08-26T16:47:45.892362Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:46.004999Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:46.075399Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":true,"quality_issue_count":0,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+{"timestamp":"2026-08-26T16:47:46.233313Z","level":"info","component":"inference","event":"analysis_presented","trace_id":"test","detection_count":1}
+00:28 +109: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: stops loading and offers retry when park list hangs
+00:28 +110: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: uses compact result status, duration and action row
+00:29 +111: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: uses compact result status, duration and action row
+{"timestamp":"2026-08-26T16:47:46.506298Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:46.634421Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:46.715407Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":true,"quality_issue_count":0,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+{"timestamp":"2026-08-26T16:47:46.718424Z","level":"info","component":"inference","event":"analysis_presented","trace_id":"test","detection_count":0}
+00:29 +112: D:/C/Desktop/ai/xykw/mobile/test/features/park_guide/park_guide_page_test.dart: retry recovers after a bounded park list failure
+00:29 +113: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: offers retry only when automatic analysis fails
+{"timestamp":"2026-08-26T16:47:47.111355Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:47.190898Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:47.287574Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":true,"quality_issue_count":0,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+{"timestamp":"2026-08-26T16:47:47.291302Z","level":"error","component":"inference","event":"analysis_failed","trace_id":"test","error":"Bad state: model unavailable","stack_trace":"#0      _FailingThenSuccessfulAnalyzer.analyze (file:///D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart:404:21)\n#1      _CapturePageState._analyzeRecording (package:nature_sound_detective/features/capture/capture_page.dart:606:42)\n#2      _CapturePageState._stopRecording (package:nature_sound_detective/features/capture/capture_page.dart:329:15)\n<asynchronous suspension>\n#3      _CapturePageState._toggleRecording (package:nature_sound_detective/features/capture/capture_page.dart:171:7)\n<asynchronous suspension>\n"}
+{"timestamp":"2026-08-26T16:47:47.550170Z","level":"info","component":"inference","event":"analysis_presented","trace_id":"test","detection_count":0}
+00:29 +114: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: opens the local science card without a cloud request
+{"timestamp":"2026-08-26T16:47:47.711914Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:47.852060Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:47.950742Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":true,"quality_issue_count":0,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+{"timestamp":"2026-08-26T16:47:47.952046Z","level":"info","component":"inference","event":"analysis_presented","trace_id":"test","detection_count":1}
+00:31 +115: D:/C/Desktop/ai/xykw/mobile/test/widget_test.dart: separates strong model clues from weak recording evidence
+{"timestamp":"2026-08-26T16:47:49.029368Z","level":"info","component":"capture","event":"page_ready"}
+{"timestamp":"2026-08-26T16:47:49.079881Z","level":"info","component":"audio","event":"recording_started","trace_id":"test","max_duration_ms":20000}
+{"timestamp":"2026-08-26T16:47:49.130772Z","level":"info","component":"audio","event":"recording_completed","trace_id":"test","duration_ms":5000,"sample_rate":16000,"channels":1,"byte_length":160000,"quality_usable":true,"quality_issue_count":0,"quality_rms":null,"quality_peak":null,"quality_best_window_rms":null,"quality_active_windows":null,"quality_total_windows":null,"audio_source":null}
+{"timestamp":"2026-08-26T16:47:49.132087Z","level":"info","component":"inference","event":"analysis_presented","trace_id":"test","detection_count":1}
+00:31 +116: All tests passed!

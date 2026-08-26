@@ -88,16 +88,31 @@ void main() {
     expect(find.text('8–9岁'), findsOneWidget);
     expect(find.text('10–11岁'), findsOneWidget);
     expect(find.text('12岁及以上'), findsOneWidget);
+    expect(find.text('全部'), findsOneWidget);
+    expect(find.text('都可以'), findsNothing);
     expect(find.text('需要无障碍路线'), findsOneWidget);
     expect(find.byType(Switch), findsOneWidget);
+    expect(find.text('查看 1 个推荐'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('park-age-fiveAndUnder')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('推荐已更新'), findsOneWidget);
+    expect(find.textContaining('暂无完整匹配'), findsOneWidget);
     expect(find.textContaining('没有同时符合年龄和时间条件'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('park-age-sixToSeven')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('推荐已更新'), findsOneWidget);
+    expect(find.text('更匹配本次选择'), findsOneWidget);
+    expect(
+      find.byKey(const Key('park-recommendation-change-reason')),
+      findsOneWidget,
+    );
     expect(find.text('太子湾公园'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('stops loading and offers retry when park list hangs', (

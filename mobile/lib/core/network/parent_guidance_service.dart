@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 import 'package:nature_sound_detective/core/guidance/parent_guidance_engine.dart';
+import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 
 class ParentGuidanceQuota {
@@ -119,6 +120,7 @@ class ParentGuidanceNetworkService {
     required Map<String, List<String>> observations,
     required Set<ExplorationBehavior> behaviors,
     required bool weakSignal,
+    List<FamilyExplorationEvent> events = const [],
   }) async {
     final safeBehaviors = behaviors.isEmpty
         ? const {ExplorationBehavior.recordedSound}
@@ -149,6 +151,10 @@ class ParentGuidanceNetworkService {
                     if (value != 'unknown') '${entry.key}:$value',
               ],
               'behaviors': safeBehaviors.map((item) => item.name).toList(),
+              'events': [
+                for (final event in events)
+                  {'type': event.type, 'sequence': event.sequence},
+              ],
             }),
           )
           .timeout(const Duration(seconds: 45));

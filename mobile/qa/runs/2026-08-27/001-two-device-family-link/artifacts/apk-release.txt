@@ -1,0 +1,6 @@
+Path: D:\C\Desktop\ai\xykw\mobile\build\app\outputs\flutter-apk\app-release.apk
+Version: 0.3.1+3002
+Package: com.xykw.nature_sound_detective
+Bytes: 105362576
+MiB: 100.48
+SHA-256: 6AA34730F7E8DEA771AF84AEE7225A1F7C660F9EAFBC7283BF188EDE3D295EA1

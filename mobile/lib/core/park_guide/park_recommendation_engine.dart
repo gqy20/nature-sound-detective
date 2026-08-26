@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation.dart';
 
 class ParkRecommendationEngine {
@@ -42,11 +43,12 @@ class ParkRecommendationEngine {
     var score = 30;
     final reasons = <String>[];
     if (route != null) {
-      score += 20;
+      final ageGap = preferences.childAge - route.ageMin;
+      score += max(8, 20 - ageGap * 2);
       reasons.add('适合${preferences.ageBand.label}儿童');
       final difference = (route.durationMinutes - preferences.durationMinutes)
           .abs();
-      final durationScore = max(0, 20 - (difference / 3).round());
+      final durationScore = max(0, 20 - (difference / 2.5).round());
       score += durationScore;
       reasons.add('路线约${route.durationMinutes}分钟，符合本次时间');
     }
@@ -54,30 +56,14 @@ class ParkRecommendationEngine {
       score += 5;
       reasons.add('现有试点信息标记为无障碍友好');
     }
-    final allTags = {
-      ...data.park.habitatTags,
-      ...data.sites.expand((site) => site.habitatTags),
-      ...data.routes.expand((route) => route.tags),
-    };
-    final interestMatches = switch (preferences.interest) {
-      ParkInterest.all => true,
-      ParkInterest.birds => allTags.any(
-        (tag) => tag.contains('鸟') || tag.contains('树冠') || tag.contains('林'),
-      ),
-      ParkInterest.frogsAndInsects => allTags.any(
-        (tag) =>
-            tag.contains('蛙') ||
-            tag.contains('虫') ||
-            tag.contains('湿地') ||
-            tag.contains('草'),
-      ),
-      ParkInterest.naturalSoundscape => allTags.any(
-        (tag) => tag.contains('水') || tag.contains('溪') || tag.contains('湿地'),
-      ),
-    };
-    if (interestMatches) {
-      score += 18;
-      reasons.add('生境与“${preferences.interest.label}”探索方向匹配');
+    final interestScore = _interestScore(data, route, preferences.interest);
+    score += interestScore;
+    if (interestScore > 0) {
+      reasons.add(
+        preferences.interest == ParkInterest.all
+            ? '适合综合自然声音探索'
+            : '生境与“${preferences.interest.label}”探索方向匹配',
+      );
     }
     final hasReliableCommunityEvidence =
         data.snapshot.dataSufficiency == 'medium' ||
@@ -88,14 +74,29 @@ class ParkRecommendationEngine {
     final communityEvidenceNote = hasReliableCommunityEvidence
         ? '近期${data.snapshot.validPostCount}条有效社区声音记录已纳入排序。'
         : '近期数据不足，本次排序未使用动物活动趋势。';
-    if (preferences.walkPreference == WalkPreference.fullRoute &&
-        route != null) {
-      score += 5;
+    if (route != null) {
+      score += switch (preferences.walkPreference) {
+        WalkPreference.relaxed =>
+          route.distanceKm <= 1.2
+              ? 20
+              : route.distanceKm <= 1.6
+              ? 10
+              : 0,
+        WalkPreference.fullRoute =>
+          route.distanceKm >= 1.8
+              ? 20
+              : route.distanceKm >= 1.5
+              ? 10
+              : 2,
+      };
     }
-    if (preferences.walkPreference == WalkPreference.relaxed &&
-        (route?.distanceKm ?? 9) <= 1.6) {
-      score += 5;
-    }
+    final matchNote = preferences.interest != ParkInterest.all
+        ? interestScore >= 16
+              ? '${preferences.interest.label}路线匹配'
+              : '${preferences.interest.label}生境较匹配'
+        : preferences.walkPreference == WalkPreference.relaxed
+        ? '短程路线更适合轻松步行'
+        : '路线长度更适合完整探索';
     final profile = _profiles[data.park.id] ?? _fallbackProfile;
     return ParkRecommendation(
       data: data,
@@ -106,7 +107,34 @@ class ParkRecommendationEngine {
       safetyNote: profile.safetyNote,
       communityEvidenceNote: communityEvidenceNote,
       hasReliableCommunityEvidence: hasReliableCommunityEvidence,
+      matchNote: matchNote,
     );
+  }
+
+  static int _interestScore(
+    ParkGuideData data,
+    ExplorationRoute? route,
+    ParkInterest interest,
+  ) {
+    if (interest == ParkInterest.all) return 10;
+    bool matches(String tag) => switch (interest) {
+      ParkInterest.all => true,
+      ParkInterest.birds =>
+        tag.contains('鸟') || tag.contains('树冠') || tag.contains('林'),
+      ParkInterest.frogsAndInsects =>
+        tag.contains('蛙') || tag.contains('虫') || tag.contains('湿地'),
+      ParkInterest.naturalSoundscape =>
+        tag.contains('水') ||
+            tag.contains('溪') ||
+            tag.contains('湿地') ||
+            tag.contains('雨'),
+    };
+
+    final routeMatches = route?.tags.where((tag) => matches(tag)).length ?? 0;
+    if (routeMatches > 0) return min(22, 16 + routeMatches * 3);
+    if (data.sites.any((site) => site.habitatTags.any(matches))) return 11;
+    if (data.park.habitatTags.any(matches)) return 6;
+    return 0;
   }
 
   static const _accessibleParkIds = {'taiziwan-park'};

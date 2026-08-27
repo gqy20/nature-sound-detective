@@ -29,7 +29,7 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile(
-        '../../../qa/runs/2026-08-27/025-marker-and-filter-surface-polish/screenshots/01-frameless-illustrated-criteria.png',
+        '../../goldens/park_guide/criteria-frameless.png',
       ),
     );
 
@@ -63,7 +63,7 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile(
-        '../../../qa/runs/2026-08-27/022-map-and-layout-density-polish/screenshots/02-top-aligned-recommendation.png',
+        '../../goldens/park_guide/recommendation-top-aligned.png',
       ),
     );
     final recommendation = find.byKey(

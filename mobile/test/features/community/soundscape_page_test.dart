@@ -105,7 +105,7 @@ void main() {
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile(
-        '../../../qa/runs/2026-08-27/024-soundscape-community-focus/screenshots/01-community-map-first.png',
+        '../../goldens/community/soundscape-community-map-first.png',
       ),
     );
 
@@ -240,7 +240,7 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
-        '../../../qa/runs/2026-08-27/022-map-and-layout-density-polish/screenshots/03-compact-map-source-sheet.png',
+        '../../goldens/community/map-source-sheet.png',
       ),
     );
     await tester.tap(find.byKey(const Key('enable-native-amap-first-use')));

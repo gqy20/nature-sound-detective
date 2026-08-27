@@ -66,7 +66,7 @@ void main() {
     await expectLater(
       find.byType(Scaffold).first,
       matchesGoldenFile(
-        '../../../qa/runs/2026-08-27/025-marker-and-filter-surface-polish/screenshots/02-mode-pill-without-chevron.png',
+        '../../goldens/mode/mode-pill-parent.png',
       ),
     );
   });

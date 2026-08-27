@@ -114,6 +114,19 @@ def test_two_device_pairing_event_sync_and_command_flow():
     assert commands.status_code == 200
     assert commands.json()[0]["template_id"] == "compare_high_low_sound"
 
+    mission_feedback = client.post(
+        f"/api/family-sessions/{session_id}/events/batch",
+        headers=child,
+        json={
+            "events": [
+                _event(4, "mission_received"),
+                _event(5, "mission_completed"),
+            ]
+        },
+    )
+    assert mission_feedback.status_code == 200
+    assert mission_feedback.json() == {"accepted": 2, "last_sequence": 5}
+
     ended = client.post(
         f"/api/family-sessions/{session_id}/end",
         headers=parent,

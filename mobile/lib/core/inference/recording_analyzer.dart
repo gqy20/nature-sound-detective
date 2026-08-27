@@ -34,6 +34,7 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
   late final CachedModel<NonBirdDetector?> _nonBirdDetector = CachedModel(
     NonBirdDetector.tryLoad,
   );
+  bool _disposed = false;
 
   Future<bool> preload() async {
     final timer = Stopwatch()..start();
@@ -167,6 +168,8 @@ class LocalRecordingAnalyzer implements RecordingAnalyzer {
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     final detector = await _detector.loadedValue();
     if (detector != null) await detector.close();
     final birdDetector = await _birdDetector.loadedValue();

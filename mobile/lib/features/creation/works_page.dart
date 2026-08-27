@@ -5,6 +5,7 @@ import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/storage/creation_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
+import 'package:nature_sound_detective/shared/widgets/app_popover_menu.dart';
 import 'package:share_plus/share_plus.dart';
 
 class WorksPage extends StatefulWidget {
@@ -192,16 +193,24 @@ class _WorksPageState extends State<WorksPage> {
                                 onPressed: () => _share(record),
                                 icon: const Icon(Icons.ios_share_rounded),
                               ),
-                            PopupMenuButton<String>(
+                            AppPopoverMenu<String>(
+                              tooltip: '作品操作',
+                              minWidth: 170,
                               onSelected: (value) {
                                 if (value == 'delete') _delete(record);
                               },
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(
+                              actions: const [
+                                AppPopoverAction(
                                   value: 'delete',
-                                  child: Text('删除作品'),
+                                  label: '删除作品',
+                                  icon: Icons.delete_outline_rounded,
+                                  destructive: true,
                                 ),
                               ],
+                              child: const SizedBox.square(
+                                dimension: 44,
+                                child: Icon(Icons.more_horiz_rounded),
+                              ),
                             ),
                           ],
                         ),

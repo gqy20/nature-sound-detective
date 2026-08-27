@@ -33,4 +33,14 @@ void main() {
     expect(await model.load(), 7);
     expect(calls, 2);
   });
+
+  test(
+    'local analyzer disposal is idempotent before models are loaded',
+    () async {
+      final analyzer = LocalRecordingAnalyzer();
+
+      await analyzer.dispose();
+      await analyzer.dispose();
+    },
+  );
 }

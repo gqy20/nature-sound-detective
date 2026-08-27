@@ -101,7 +101,7 @@ def update_investigation(run_dir: Path, investigation: dict[str, Any]) -> None:
 def environment_flags() -> dict[str, bool]:
     return {
         "yamnet_available": (Path(__file__).resolve().parents[1] / "mobile/assets/models/yamnet.tflite").is_file(),
-        "minimax_configured": bool(os.getenv("MINIMAX_API_KEY")),
+        "dashscope_audio_configured": bool(os.getenv("DASHSCOPE_API_KEY")),
         "wan_live_enabled": os.getenv("WAN_VIDEO_MODE", "mock").strip().lower() == "live",
     }
 

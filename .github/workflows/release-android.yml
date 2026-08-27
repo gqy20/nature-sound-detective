@@ -45,6 +45,28 @@ jobs:
             exit 1
           fi
 
+      - name: Validate app version
+        shell: bash
+        working-directory: .
+        run: |
+          full_version="$(sed -n 's/^version:[[:space:]]*//p' mobile/pubspec.yaml | head -n 1)"
+          app_version="${full_version%%+*}"
+          build_number="${full_version#*+}"
+          if [[ -z "${full_version}" || "${full_version}" == "${app_version}" ]]; then
+            echo "mobile/pubspec.yaml must contain versionName+versionCode" >&2
+            exit 1
+          fi
+          if [[ "${app_version}" != "${RELEASE_TAG}" ]]; then
+            echo "Tag ${RELEASE_TAG} does not match app version ${app_version}" >&2
+            exit 1
+          fi
+          if [[ ! "${build_number}" =~ ^[0-9]+$ ]]; then
+            echo "Invalid Android build number: ${build_number}" >&2
+            exit 1
+          fi
+          echo "APP_VERSION=${app_version}" >> "${GITHUB_ENV}"
+          echo "APP_BUILD_NUMBER=${build_number}" >> "${GITHUB_ENV}"
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -58,7 +80,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.44.6"
+          flutter-version: "3.44.8"
           channel: stable
           cache: true
 
@@ -78,8 +100,8 @@ jobs:
           --dart-define=ENABLE_DIAGNOSTICS=true
           --target-platform android-arm64
           --split-per-abi
-          --build-name "${RELEASE_TAG}"
-          --build-number "${GITHUB_RUN_NUMBER}"
+          --build-name "${APP_VERSION}"
+          --build-number "${APP_BUILD_NUMBER}"
 
       - name: Prepare release assets
         shell: bash
@@ -105,6 +127,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ! gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            awk -v version="${RELEASE_TAG}" '
+              $0 == "## [" version "]" || index($0, "## [" version "] - ") == 1 {
+                capture = 1
+                next
+              }
+              capture && /^## \[/ { exit }
+              capture { print }
+            ' CHANGELOG.md > release-notes.md
+            if [[ ! -s release-notes.md ]]; then
+              echo "自然声探员 ${RELEASE_TAG}" > release-notes.md
+            fi
+            gh release create "${RELEASE_TAG}" \
+              --title "自然声探员 ${RELEASE_TAG}" \
+              --notes-file release-notes.md
+          fi
           gh release upload "${RELEASE_TAG}" \
             mobile/dist/nature-sound-detective-${RELEASE_TAG}-android-arm64.apk \
             mobile/dist/checksums.txt \

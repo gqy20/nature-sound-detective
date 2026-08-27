@@ -8,6 +8,7 @@ import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
@@ -15,21 +16,171 @@ import 'package:nature_sound_detective/features/species/species_detail_page.dart
 
 void main() {
   testWidgets('shows the Android-first capture shell', (tester) async {
-    await tester.pumpWidget(const NatureSoundApp());
+    await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
 
     expect(find.text('自然声探员'), findsOneWidget);
     expect(find.text('听听，谁在附近？'), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
     expect(find.byKey(const Key('import-audio-button')), findsOneWidget);
+    expect(find.byKey(const Key('family-link-button')), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-button')), findsOneWidget);
+    expect(find.byKey(const Key('works-button')), findsOneWidget);
+    expect(find.byKey(const Key('creation-settings-button')), findsOneWidget);
+    expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
     expect(
       find.byKey(const Key('debug-export-button')),
       diagnosticsEnabled ? findsOneWidget : findsNothing,
     );
-    expect(find.byType(Scrollable), findsNothing);
+    expect(find.byKey(const Key('primary-feature-page-view')), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('把手机靠近想听的方向')).dy -
+          tester.getBottomLeft(find.text('听听，谁在附近？')).dy,
+      greaterThanOrEqualTo(12),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('record-limit-label'))).dy -
+          tester.getBottomLeft(find.byKey(const Key('record-button'))).dy,
+      greaterThanOrEqualTo(12),
+    );
+  });
+
+  testWidgets('swipes between primary features and shows its destination', (
+    tester,
+  ) async {
+    final logger = AppLogger(sinks: const []);
+    AppLog.useLogger(logger);
+    addTearDown(
+      () => AppLog.useLogger(AppLogger(sinks: const [ConsoleLogSink()])),
+    );
+    await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
+    await tester.pump();
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const Key('primary-feature-page-view'))),
+    );
+    await gesture.moveBy(const Offset(-520, 0));
+    await tester.pump();
+    expect(find.byKey(const Key('primary-swipe-indicator')), findsNothing);
+    await gesture.up();
+    await _pumpFrames(tester);
+    expect(
+      find.byKey(const Key('current-primary-feature-soundscape')),
+      findsOneWidget,
+    );
+    await tester.fling(
+      find.byKey(const Key('primary-feature-page-view')),
+      const Offset(-650, 0),
+      1200,
+    );
+    await _pumpFrames(tester);
+    expect(
+      find.byKey(const Key('current-primary-feature-parkGuide')),
+      findsOneWidget,
+    );
+    expect(
+      logger.recent.where(
+        (entry) =>
+            entry.event == 'primary_navigation_requested' &&
+            entry.fields['trigger'] == 'swipe',
+      ),
+      hasLength(2),
+    );
+    expect(
+      logger.recent.where(
+        (entry) => entry.event == 'primary_navigation_completed',
+      ),
+      hasLength(2),
+    );
+    await tester.pump(const Duration(seconds: 13));
+  });
+
+  testWidgets('existing header button uses the same primary pager', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('soundscape-button')));
+    await _pumpFrames(tester);
+
+    expect(
+      find.byKey(const Key('current-primary-feature-soundscape')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('primary page follows the finger and cancels a short swipe', (
+    tester,
+  ) async {
+    final logger = AppLogger(sinks: const []);
+    AppLog.useLogger(logger);
+    addTearDown(
+      () => AppLog.useLogger(AppLogger(sinks: const [ConsoleLogSink()])),
+    );
+    await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
+    await tester.pump();
+
+    final capture = find.byKey(const ValueKey('primary-capture-content'));
+    final startX = tester.getTopLeft(capture).dx;
+    final gesture = await tester.startGesture(tester.getCenter(capture));
+    await gesture.moveBy(const Offset(-100, 0));
+    await tester.pump();
+
+    expect(tester.getTopLeft(capture).dx, lessThan(startX - 40));
+
+    await gesture.up();
+    await _pumpFrames(tester);
+
+    expect(
+      find.byKey(const Key('current-primary-feature-capture')),
+      findsOneWidget,
+    );
+    expect(tester.getTopLeft(capture).dx, closeTo(startX, 1));
+    expect(
+      logger.recent.any((entry) => entry.event == 'primary_swipe_cancelled'),
+      isTrue,
+    );
+  });
+
+  testWidgets('system back returns directly without crossing sibling pages', (
+    tester,
+  ) async {
+    final logger = AppLogger(sinks: const []);
+    AppLog.useLogger(logger);
+    addTearDown(
+      () => AppLog.useLogger(AppLogger(sinks: const [ConsoleLogSink()])),
+    );
+    await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('works-button')));
+    await _pumpFrames(tester);
+    expect(
+      find.byKey(const Key('current-primary-feature-natureBook')),
+      findsOneWidget,
+    );
+
+    await tester.binding.handlePopRoute();
+    await _pumpFrames(tester);
+
+    expect(
+      find.byKey(const Key('current-primary-feature-capture')),
+      findsOneWidget,
+    );
+    final returnEvents = logger.recent.where(
+      (entry) =>
+          entry.event == 'primary_navigation_completed' &&
+          entry.fields['trigger'] == 'system_back',
+    );
+    expect(returnEvents, hasLength(1));
+    expect(returnEvents.single.fields['from'], 'natureBook');
+    expect(returnEvents.single.fields['to'], 'capture');
+    expect(returnEvents.single.fields['transition'], 'fade_through');
   });
 
   testWidgets('keeps the timer inside the record control', (tester) async {
     final recorder = _FakeRecorder();
+    final swipeLocks = <bool>[];
     await tester.pumpWidget(
       MaterialApp(
         home: CapturePage(
@@ -37,6 +188,7 @@ void main() {
           qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
           playback: const _FakePlayback(),
           analyzer: const _FakeAnalyzer(),
+          onPrimarySwipeLockChanged: swipeLocks.add,
         ),
       ),
     );
@@ -56,6 +208,60 @@ void main() {
     expect(find.text('结束'), findsOneWidget);
     expect(find.byKey(const Key('live-audio-wave-ring')), findsOneWidget);
     expect(find.byKey(const Key('live-wave-hint')), findsOneWidget);
+    expect(swipeLocks, contains(true));
+  });
+
+  testWidgets('does not dispose an analyzer owned by the app shell', (
+    tester,
+  ) async {
+    final analyzer = _CountingAnalyzer();
+    await tester.pumpWidget(MaterialApp(home: CapturePage(analyzer: analyzer)));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
+    expect(analyzer.disposeCalls, 0);
+  });
+
+  testWidgets('requests system microphone permission without an extra dialog', (
+    tester,
+  ) async {
+    final logger = AppLogger(sinks: const []);
+    AppLog.useLogger(logger);
+    addTearDown(
+      () => AppLog.useLogger(AppLogger(sinks: const [ConsoleLogSink()])),
+    );
+    final recorder = _PermissionRecorder();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: recorder,
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: const _FakeAnalyzer(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('允许记录自然声音？'), findsNothing);
+    expect(recorder.permissionRequests, 1);
+    expect(find.text('结束'), findsOneWidget);
+    expect(
+      logger.recent.any(
+        (entry) => entry.event == 'microphone_permission_requested',
+      ),
+      isTrue,
+    );
+    expect(
+      logger.recent.any(
+        (entry) =>
+            entry.event == 'microphone_permission_result' &&
+            entry.fields['granted'] == true,
+      ),
+      isTrue,
+    );
   });
 
   testWidgets('shows an unusable recording in a fixed result sheet', (
@@ -114,7 +320,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('uses compact result status, duration and action row', (
+  testWidgets('unknown result prioritizes saving evidence and retrying', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(430, 1000);
@@ -148,17 +354,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final save = find.byKey(const Key('save-exploration-button'));
-    final card = find.byKey(const Key('science-card-button'));
-    final create = find.byKey(const Key('open-creation-button'));
-    expect(find.text('保存'), findsOneWidget);
-    expect(find.text('科普卡'), findsOneWidget);
-    expect(find.text('创作'), findsOneWidget);
-    expect(find.text('保存到声音册'), findsNothing);
-    expect(find.text('生成儿童科普卡'), findsNothing);
-    expect(find.text('创作音乐和短片'), findsNothing);
-    expect(tester.getTopLeft(save).dy, tester.getTopLeft(card).dy);
-    expect(tester.getTopLeft(card).dy, tester.getTopLeft(create).dy);
+    expect(find.byKey(const Key('save-unknown-sound-button')), findsOneWidget);
+    expect(find.text('保存为未知声音'), findsOneWidget);
+    expect(find.byKey(const Key('unknown-retry-button')), findsOneWidget);
+    expect(find.text('再录一段试试'), findsOneWidget);
+    expect(find.byKey(const Key('science-card-button')), findsNothing);
+    expect(find.byKey(const Key('open-creation-button')), findsNothing);
   });
 
   testWidgets('offers retry only when automatic analysis fails', (
@@ -258,6 +459,12 @@ void main() {
   });
 }
 
+Future<void> _pumpFrames(WidgetTester tester, {int count = 40}) async {
+  for (var index = 0; index < count; index++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+}
+
 class _FakeRecorder implements AudioRecorder {
   @override
   Future<void> cancel() async {}
@@ -283,6 +490,19 @@ class _FakeRecorder implements AudioRecorder {
       channelCount: 1,
       byteLength: 160000,
     );
+  }
+}
+
+class _PermissionRecorder extends _FakeRecorder {
+  int permissionRequests = 0;
+
+  @override
+  Future<bool> hasPermission() async => false;
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    return true;
   }
 }
 
@@ -338,6 +558,20 @@ class _FakeAnalyzer implements RecordingAnalyzer {
 
   @override
   Future<void> dispose() async {}
+}
+
+class _CountingAnalyzer implements RecordingAnalyzer {
+  int disposeCalls = 0;
+
+  @override
+  Future<List<SoundDetection>> analyze(
+    RecordedAudio recording, {
+    void Function(List<SoundDetection> detections, int processed, int total)?
+    onProgress,
+  }) async => const [];
+
+  @override
+  Future<void> dispose() async => disposeCalls++;
 }
 
 class _ImmediateAnalyzer implements RecordingAnalyzer {

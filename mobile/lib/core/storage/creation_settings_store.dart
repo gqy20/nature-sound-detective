@@ -37,14 +37,20 @@ class FileCreationSettingsStore implements CreationSettingsStore {
       final decoded = jsonDecode(await file.readAsString());
       if (decoded is Map<String, Object?>) {
         final settings = CreationSettings.fromJson(decoded);
+        final hadLegacyFields = decoded.keys.any(
+          (key) => key.startsWith('minimax_') || key == 'dashscope_region',
+        );
+        if (hadLegacyFields) {
+          await file.writeAsString(jsonEncode(settings.toJson()), flush: true);
+          AppLog.info('settings', 'legacy_creation_config_removed');
+        }
         AppLog.info(
           'settings',
           'creation_config_loaded',
           fields: {
-            'has_minimax_key': settings.hasMusic,
             'has_dashscope_key': settings.hasVideo,
-            'region': settings.dashscopeRegion,
-            'music_model': settings.minimaxMusicModel,
+            'music_model': settings.dashscopeMusicModel,
+            'speech_model': settings.dashscopeSpeechModel,
             'video_model': settings.wanVideoModel,
           },
         );
@@ -70,10 +76,9 @@ class FileCreationSettingsStore implements CreationSettingsStore {
       'settings',
       'creation_config_saved',
       fields: {
-        'has_minimax_key': settings.hasMusic,
         'has_dashscope_key': settings.hasVideo,
-        'region': settings.dashscopeRegion,
-        'music_model': settings.minimaxMusicModel,
+        'music_model': settings.dashscopeMusicModel,
+        'speech_model': settings.dashscopeSpeechModel,
         'video_model': settings.wanVideoModel,
       },
     );

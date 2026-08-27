@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import app.community.routes as community_routes
+from app.community.amap_service import AmapMapService
 from app.community.auth import CommunityAuth
 from app.community.repository import MemoryCommunityRepository
 from app.community.storage import LocalCommunityMediaStore
@@ -18,6 +19,7 @@ def _client(
     *,
     repository=None,
     parent_guidance_service=None,
+    amap_map_service=None,
 ) -> TestClient:
     monkeypatch.setattr(community_routes, "COMMUNITY_MEDIA_DIR", tmp_path)
     monkeypatch.setenv("PARENT_GUIDANCE_MODE", "template")
@@ -28,6 +30,7 @@ def _client(
             media_store=LocalCommunityMediaStore(tmp_path),
             auth=CommunityAuth("test-community-secret-with-32-characters"),
             parent_guidance_service=parent_guidance_service,
+            amap_map_service=amap_map_service,
         )
     )
     return TestClient(app)
@@ -160,12 +163,17 @@ def test_area_summary_keeps_empty_hangzhou_regions(tmp_path, monkeypatch):
 
 
 def test_pilot_parks_sites_and_ecology_snapshot(tmp_path, monkeypatch):
-    client = _client(tmp_path, monkeypatch)
+    client = _client(
+        tmp_path,
+        monkeypatch,
+        amap_map_service=AmapMapService(api_key="configured-test-key"),
+    )
     parks = client.get("/api/community/parks")
     assert parks.status_code == 200
     assert {item["park_id"] for item in parks.json()} == {
         "hangzhou-botanical-garden", "xixi-wetland", "taiziwan-park"
     }
+    assert parks.json()[0]["map_image_url"] == "/api/community/maps/hangzhou/static"
     sites = client.get(
         "/api/community/sites", params={"park_id": "hangzhou-botanical-garden"}
     )

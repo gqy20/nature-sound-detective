@@ -79,4 +79,27 @@ void main() {
       lessThanOrEqualTo(5),
     );
   });
+
+  test('deduplicates identical error storms and emits one aggregate', () async {
+    final sink = _MemorySink();
+    final logger = AppLogger(sinks: [sink]);
+
+    for (var index = 0; index < 42; index++) {
+      logger.emit(
+        LogLevel.error,
+        'flutter',
+        'framework_error',
+        error: "type 'double' is not a subtype of type 'bool?' in type cast",
+        stackTrace: StackTrace.current,
+      );
+    }
+    await logger.flush();
+
+    expect(sink.entries, hasLength(2));
+    expect(sink.entries.first.event, 'framework_error');
+    expect(sink.entries.first.stackTrace, isNotNull);
+    expect(sink.entries.last.event, 'framework_error_repeated');
+    expect(sink.entries.last.fields['count'], 41);
+    expect(sink.entries.last.stackTrace, isNull);
+  });
 }

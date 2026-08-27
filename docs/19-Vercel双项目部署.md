@@ -24,7 +24,7 @@ Vercel API 不安装完整TensorFlow、BirdNET或FFmpeg，也不运行后台线�
 }
 ```
 
-前端据此隐藏媒体创作与反馈模块，并说明具体鸟种候选需要本地完整版。BirdNET、MiniMax 音乐与旁白、Wan 视频和 FFmpeg 三轨合成继续运行在本地或未来的常驻容器服务中。
+前端据此隐藏媒体创作与反馈模块，并说明具体鸟种候选需要本地完整版。BirdNET、百炼 Fun-Music 与 Qwen-Audio-TTS、Wan 视频和 FFmpeg 三轨合成继续运行在本地或未来的常驻容器服务中。
 
 ## API 部署
 

@@ -1,19 +1,22 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
-import 'package:nature_sound_detective/core/community/route_progress_store.dart';
+import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/storage/exploration_record.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/community/community_video_page.dart';
-import 'package:nature_sound_detective/features/community/exploration_route_page.dart';
+import 'package:nature_sound_detective/features/community/native_amap_view.dart';
 import 'package:nature_sound_detective/features/community/publication_page.dart';
+import 'package:nature_sound_detective/shared/widgets/app_popover_menu.dart';
 
-enum _SoundscapeView { recent, waiting, mission }
+enum _SoundscapeView { recent, waiting }
 
-enum _DemoFilter { all, real, demo }
+enum _DemoFilter { real, demo }
 
 const _soundscapeAreaPositions = <String, Alignment>{
   'yuhang': Alignment(-0.78, -0.68),
@@ -24,19 +27,32 @@ const _soundscapeAreaPositions = <String, Alignment>{
   'xiaoshan': Alignment(0.36, 0.66),
 };
 
+const _soundscapeAreaCoordinates = <String, (double, double)>{
+  'yuhang': (30.4203, 119.9780),
+  'gongshu': (30.3190, 120.1415),
+  'xihu': (30.2590, 120.1302),
+  'shangcheng': (30.2425, 120.1903),
+  'binjiang': (30.2084, 120.2118),
+  'xiaoshan': (30.1838, 120.2644),
+};
+
 class SoundscapePage extends StatefulWidget {
   const SoundscapePage({
     super.key,
     this.service,
     this.explorationStore,
     this.recordsLoader,
-    this.routeProgressStore,
+    this.preloader,
+    this.primaryPagePosition,
+    this.onOpenParkGuide,
   });
 
   final CommunityService? service;
   final ExplorationStore? explorationStore;
   final Future<List<ExplorationRecord>> Function()? recordsLoader;
-  final RouteProgressStore? routeProgressStore;
+  final SoundscapePreloader? preloader;
+  final ValueListenable<double>? primaryPagePosition;
+  final VoidCallback? onOpenParkGuide;
 
   @override
   State<SoundscapePage> createState() => _SoundscapePageState();
@@ -45,17 +61,11 @@ class SoundscapePage extends StatefulWidget {
 class _SoundscapePageState extends State<SoundscapePage> {
   late final CommunityService _service;
   late final Future<List<ExplorationRecord>> Function() _recordsLoader;
-  late final RouteProgressStore _routeProgressStore;
-  final AudioPlayer _player = AudioPlayer();
+  final ScrollController _scrollController = ScrollController();
+  AudioPlayer? _player;
   List<SoundscapeArea> _areas = const [];
   List<CommunityPost> _posts = const [];
   List<CommunityPark> _parks = const [];
-  List<CommunitySite> _parkSites = const [];
-  String? _selectedParkId;
-  String? _selectedParkZoneId;
-  DailyNatureBrief? _dailyBrief;
-  EcologySnapshot? _ecologySnapshot;
-  List<ExplorationRoute> _routes = const [];
   String? _selectedAreaId;
   String? _playingPostId;
   String? _recentAreaId;
@@ -63,34 +73,46 @@ class _SoundscapePageState extends State<SoundscapePage> {
   bool _loading = true;
   bool _acting = false;
   _SoundscapeView _view = _SoundscapeView.recent;
-  _DemoFilter _demoFilter = _DemoFilter.all;
+  _DemoFilter _demoFilter = _DemoFilter.real;
   StreamSubscription<PlayerState>? _playerSubscription;
   Timer? _highlightTimer;
+  bool _wasPrimaryVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _service = widget.service ?? HttpCommunityService();
+    _service =
+        widget.service ?? widget.preloader?.service ?? HttpCommunityService();
     final store = widget.explorationStore ?? FileExplorationStore();
     _recordsLoader = widget.recordsLoader ?? store.list;
-    _routeProgressStore = widget.routeProgressStore ?? FileRouteProgressStore();
-    _playerSubscription = _player.onPlayerStateChanged.listen((state) {
-      if (mounted && state != PlayerState.playing) {
-        setState(() => _playingPostId = null);
-      }
-    });
+    widget.primaryPagePosition?.addListener(_handlePrimaryPagePosition);
     _load();
   }
 
   @override
   void dispose() {
     _highlightTimer?.cancel();
+    widget.primaryPagePosition?.removeListener(_handlePrimaryPagePosition);
+    _scrollController.dispose();
     unawaited(_playerSubscription?.cancel());
-    unawaited(_player.dispose());
+    if (_player case final player?) unawaited(player.dispose());
     super.dispose();
   }
 
-  Future<void> _load() async {
+  void _handlePrimaryPagePosition() {
+    final position = widget.primaryPagePosition?.value;
+    if (position == null) return;
+    final visible = (position - 1).abs() < .04;
+    if (visible && !_wasPrimaryVisible && _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+      AppLog.debug('community', 'soundscape_scroll_reset_on_entry');
+    }
+    _wasPrimaryVisible = visible;
+  }
+
+  Future<void> _load({bool force = false}) async {
+    final timer = Stopwatch()..start();
+    AppLog.info('community', 'soundscape_load_started');
     if (mounted) {
       setState(() {
         _loading = true;
@@ -98,76 +120,70 @@ class _SoundscapePageState extends State<SoundscapePage> {
       });
     }
     try {
-      final values = await Future.wait([
-        _service.listAreas(),
-        _service.listPosts(),
-        _service.listParks(),
-      ]);
+      final value = widget.preloader == null
+          ? await SoundscapeBootstrapData.fetch(_service)
+          : await widget.preloader!.load(force: force);
       if (!mounted) return;
       setState(() {
-        _areas = values[0] as List<SoundscapeArea>;
-        _posts = values[1] as List<CommunityPost>;
-        _parks = values[2] as List<CommunityPark>;
-        _selectedParkId ??= _parks.firstOrNull?.id;
+        _areas = value.areas;
+        _posts = value.posts;
+        _parks = value.parks;
+        if (!_posts.any((post) => !post.isDemo) &&
+            _posts.any((post) => post.isDemo)) {
+          _demoFilter = _DemoFilter.demo;
+        }
       });
-      if (_selectedParkId != null) await _loadParkInsight(_selectedParkId!);
+      timer.stop();
+      AppLog.info(
+        'community',
+        'soundscape_load_completed',
+        fields: {
+          'duration_ms': timer.elapsedMilliseconds,
+          'area_count': _areas.length,
+          'post_count': _posts.length,
+          'park_count': _parks.length,
+          'startup_preload': widget.preloader != null,
+        },
+      );
     } on CommunityException catch (error) {
+      timer.stop();
+      AppLog.warning(
+        'community',
+        'soundscape_load_failed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+      );
       if (mounted) setState(() => _error = error.message);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      timer.stop();
+      AppLog.error(
+        'community',
+        'soundscape_load_failed',
+        fields: {'duration_ms': timer.elapsedMilliseconds},
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _error = '城市声景暂时没有连上，请稍后刷新。');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _loadParkInsight(String parkId) async {
-    try {
-      final values = await Future.wait([
-        _service.dailyBrief(parkId),
-        _service.ecologySnapshot(parkId),
-        _service.listRoutes(parkId),
-        _service.listSites(parkId: parkId),
-      ]);
-      if (!mounted || _selectedParkId != parkId) return;
-      setState(() {
-        _dailyBrief = values[0] as DailyNatureBrief;
-        _ecologySnapshot = values[1] as EcologySnapshot;
-        _routes = values[2] as List<ExplorationRoute>;
-        _parkSites = values[3] as List<CommunitySite>;
-      });
-    } catch (_) {
-      if (mounted && _selectedParkId == parkId) {
-        setState(() {
-          _dailyBrief = null;
-          _ecologySnapshot = null;
-          _routes = const [];
-          _parkSites = const [];
-        });
-      }
-    }
-  }
-
-  Future<void> _openRoute(ExplorationRoute route) async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) =>
-            ExplorationRoutePage(route: route, store: _routeProgressStore),
-      ),
-    );
-  }
-
   Future<void> _openFullscreenMap() async {
+    AppLog.info('amap', 'soundscape_map_fullscreen_opened');
     final areaId = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (_) => _FullscreenSoundscapeMap(
           areas: _areas,
           initialAreaId: _selectedAreaId,
+          mapImageUrl: _parks.firstOrNull?.mapImageUrl,
+          mapProvider: _parks.firstOrNull?.mapProvider ?? 'offline',
+          parks: _parks,
         ),
       ),
     );
     if (!mounted || areaId == null) return;
     setState(() {
-      _selectedParkZoneId = null;
       _selectedAreaId = areaId;
     });
   }
@@ -175,30 +191,16 @@ class _SoundscapePageState extends State<SoundscapePage> {
   List<CommunityPost> get _visiblePosts {
     var values = _posts;
     values = switch (_demoFilter) {
-      _DemoFilter.all => values,
       _DemoFilter.real => values.where((post) => !post.isDemo).toList(),
       _DemoFilter.demo => values.where((post) => post.isDemo).toList(),
     };
     if (_selectedAreaId != null) {
       values = values.where((post) => post.areaId == _selectedAreaId).toList();
     }
-    if (_selectedParkZoneId != null) {
-      values = values
-          .where(
-            (post) =>
-                post.parkId == _selectedParkId &&
-                post.zoneId == _selectedParkZoneId,
-          )
-          .toList();
-    }
     return switch (_view) {
       _SoundscapeView.recent => values,
       _SoundscapeView.waiting =>
         values.where((post) => post.responseCount == 0).toList(),
-      _SoundscapeView.mission =>
-        values
-            .where((post) => {'鸟鸣', '鸣虫', '蛙鸣'}.contains(post.soundType))
-            .toList(),
     };
   }
 
@@ -210,13 +212,19 @@ class _SoundscapePageState extends State<SoundscapePage> {
   }
 
   Future<void> _toggleAudio(CommunityPost post) async {
+    if (post.audioUrl.isEmpty) return;
+    final player = _player ??= AudioPlayer();
+    _playerSubscription ??= player.onPlayerStateChanged.listen((state) {
+      if (mounted && state != PlayerState.playing) {
+        setState(() => _playingPostId = null);
+      }
+    });
     if (_playingPostId == post.id) {
-      await _player.stop();
+      await player.stop();
       return;
     }
-    if (post.audioUrl.isEmpty) return;
     try {
-      await _player.play(UrlSource(post.audioUrl));
+      await player.play(UrlSource(post.audioUrl));
       if (mounted) setState(() => _playingPostId = post.id);
     } catch (_) {
       if (!mounted) return;
@@ -316,7 +324,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
     if (agreed != true) return;
     try {
       await _service.withdraw(post.id);
-      await _load();
+      await _load(force: true);
     } on CommunityException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -330,19 +338,9 @@ class _SoundscapePageState extends State<SoundscapePage> {
     final records = await _recordsLoader();
     if (!mounted) return;
     if (records.isEmpty) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('自然册里还没有声音'),
-          content: const Text('先完成一次录音和调查，再把最有价值的声音线索加入杭州声景。'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('知道了'),
-            ),
-          ],
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('自然册里还没有声音，先完成一次录音和调查。')));
       return;
     }
     final record = await showModalBottomSheet<ExplorationRecord>(
@@ -411,7 +409,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
     _highlightTimer = Timer(const Duration(seconds: 3), () {
       if (mounted) setState(() => _recentAreaId = null);
     });
-    await _load();
+    await _load(force: true);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -420,6 +418,45 @@ class _SoundscapePageState extends State<SoundscapePage> {
       ),
     );
   }
+
+  Future<void> _showSoundscapeInfo({
+    required int realCount,
+    required int demoCount,
+    required int waitingCount,
+  }) => showModalBottomSheet<void>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 4, 22, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('关于共听杭州', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 14),
+            _SoundscapeInfoRow(
+              icon: Icons.graphic_eq_rounded,
+              title: '当前数据',
+              detail:
+                  '$realCount 条真实观察 · $demoCount 条体验示例 · $waitingCount 条等待协助',
+            ),
+            const SizedBox(height: 12),
+            const _SoundscapeInfoRow(
+              icon: Icons.shield_outlined,
+              title: '隐私范围',
+              detail: '只显示公开的模糊区域，不展示录音精确位置或儿童身份。',
+            ),
+            const SizedBox(height: 12),
+            const _SoundscapeInfoRow(
+              icon: Icons.science_outlined,
+              title: '数据含义',
+              detail: '记录数量不代表动物数量，体验示例不作为真实社区趋势。',
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -434,148 +471,73 @@ class _SoundscapePageState extends State<SoundscapePage> {
         title: const Text('共听杭州'),
         actions: [
           if (!_loading && _error == null && _posts.isNotEmpty)
-            IconButton(
+            TextButton.icon(
               key: const Key('publish-community-sound'),
-              tooltip: '发布线索',
               onPressed: _startPublication,
-              icon: const Icon(Icons.radar_rounded),
+              icon: const Icon(Icons.add_rounded, size: 19),
+              label: const Text('发布'),
             ),
           IconButton(
-            tooltip: '隐私说明',
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('区域级城市声景'),
-                content: const Text('地图只展示经过授权的模糊区域，不代表精确位置或专业生态分布。'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('知道了'),
-                  ),
-                ],
-              ),
+            key: const Key('soundscape-info-button'),
+            tooltip: '数据与隐私',
+            onPressed: () => _showSoundscapeInfo(
+              realCount: realCount,
+              demoCount: demoCount,
+              waitingCount: waiting,
             ),
-            icon: const Icon(Icons.shield_outlined),
+            icon: const Icon(Icons.info_outline_rounded),
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => _load(force: true),
         child: ListView(
+          controller: _scrollController,
+          key: const PageStorageKey('soundscape-scroll-offset'),
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(18, 4, 18, 110),
           children: [
             Text(
-              total == 0 ? '等待杭州的第一声发现' : '今天，杭州正在共同倾听',
+              total == 0 ? '等待杭州的第一声发现' : '选择城区，听听公开声音',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 height: 1.18,
               ),
             ),
-            const SizedBox(height: 6),
-            Text('$realCount 条真实观察 · $demoCount 条体验示例 · $waiting 条等待协助'),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final value in _DemoFilter.values)
-                  ChoiceChip(
-                    key: Key('demo-filter-${value.name}'),
-                    label: Text(switch (value) {
-                      _DemoFilter.all => '全部',
-                      _DemoFilter.real => '真实观察',
-                      _DemoFilter.demo => '体验示例',
-                    }),
-                    selected: _demoFilter == value,
-                    onSelected: (_) => setState(() => _demoFilter = value),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_parks.isNotEmpty) ...[
-              Text('试点公园', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final park in _parks) ...[
-                      ChoiceChip(
-                        key: Key('community-park-${park.id}'),
-                        label: Text(park.name),
-                        selected: _selectedParkId == park.id,
-                        onSelected: (_) {
-                          setState(() {
-                            _selectedParkId = park.id;
-                            _dailyBrief = null;
-                            _ecologySnapshot = null;
-                            _routes = const [];
-                            _parkSites = const [];
-                            _selectedParkZoneId = null;
-                          });
-                          unawaited(_loadParkInsight(park.id));
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ],
-                ),
+            KeyedSubtree(
+              key: const Key('soundscape-map-section'),
+              child: _SoundscapeMap(
+                areas: _areas,
+                loading: _loading,
+                selectedAreaId: _selectedAreaId,
+                recentAreaId: _recentAreaId,
+                onSelected: (areaId) => setState(() {
+                  _selectedAreaId = _selectedAreaId == areaId ? null : areaId;
+                }),
+                onOpenFullscreen: _openFullscreenMap,
+                mapImageUrl: _parks.firstOrNull?.mapImageUrl,
+                mapProvider: _parks.firstOrNull?.mapProvider ?? 'offline',
               ),
-              const SizedBox(height: 12),
-              if (_dailyBrief case final brief?)
-                _DailyNatureBriefCard(brief: brief, snapshot: _ecologySnapshot),
-              if (_parkSites.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _ParkZoneSoundMap(
-                  sites: _parkSites,
-                  posts: _posts
-                      .where((post) => post.parkId == _selectedParkId)
-                      .toList(growable: false),
-                  selectedZoneId: _selectedParkZoneId,
-                  onSelected: (zoneId) => setState(() {
-                    _selectedAreaId = null;
-                    _selectedParkZoneId = _selectedParkZoneId == zoneId
-                        ? null
-                        : zoneId;
-                  }),
-                ),
-              ],
-              if (_routes case [final route, ...]) ...[
-                const SizedBox(height: 12),
-                _ExplorationRouteCard(
-                  route: route,
-                  onOpen: () => _openRoute(route),
-                ),
-              ],
-              const SizedBox(height: 18),
-            ],
-            _SoundscapeMap(
-              areas: _areas,
-              loading: _loading,
-              selectedAreaId: _selectedAreaId,
-              recentAreaId: _recentAreaId,
-              onSelected: (areaId) => setState(() {
-                _selectedParkZoneId = null;
-                _selectedAreaId = _selectedAreaId == areaId ? null : areaId;
-              }),
-              onOpenFullscreen: _openFullscreenMap,
             ),
-            const SizedBox(height: 10),
-            _MapSelectionSummary(area: _selectedArea, loading: _loading),
-            const SizedBox(height: 16),
+            if (_loading || _selectedArea != null) ...[
+              const SizedBox(height: 10),
+              _MapSelectionSummary(area: _selectedArea, loading: _loading),
+            ],
+            if (!_loading && realCount == 0 && demoCount > 0) ...[
+              const SizedBox(height: 10),
+              const _PilotDataNotice(),
+            ],
+            const SizedBox(height: 14),
             SegmentedButton<_SoundscapeView>(
               segments: const [
                 ButtonSegment(
                   value: _SoundscapeView.recent,
-                  label: Text('今日新声'),
+                  label: Text('最新声音'),
                 ),
                 ButtonSegment(
                   value: _SoundscapeView.waiting,
-                  label: Text('等待协助'),
-                ),
-                ButtonSegment(
-                  value: _SoundscapeView.mission,
-                  label: Text('本周任务'),
+                  label: Text('等你辨认'),
                 ),
               ],
               selected: {_view},
@@ -583,13 +545,9 @@ class _SoundscapePageState extends State<SoundscapePage> {
               onSelectionChanged: (values) =>
                   setState(() => _view = values.first),
             ),
-            if (_view == _SoundscapeView.mission) ...[
-              const SizedBox(height: 14),
-              const _MissionBanner(),
-            ],
             const SizedBox(height: 16),
             if (_error != null && !_loading)
-              _ErrorCard(message: _error!, onRetry: _load),
+              _ErrorCard(message: _error!, onRetry: () => _load(force: true)),
             if (!_loading && _error == null && visible.isEmpty)
               _EmptySoundscape(
                 areaSelected: _selectedAreaId != null,
@@ -608,11 +566,129 @@ class _SoundscapePageState extends State<SoundscapePage> {
               ),
               const SizedBox(height: 12),
             ],
+            if (widget.onOpenParkGuide != null) ...[
+              const SizedBox(height: 6),
+              _ParkGuideCrossLink(onTap: widget.onOpenParkGuide!),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+class _SoundscapeInfoRow extends StatelessWidget {
+  const _SoundscapeInfoRow({
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
+
+  final IconData icon;
+  final String title;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        width: 34,
+        height: 34,
+        decoration: const BoxDecoration(
+          color: Color(0xFFE2EEE6),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 18, color: const Color(0xFF174936)),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text(
+              detail,
+              style: const TextStyle(
+                color: Color(0xFF66716B),
+                fontSize: 12.5,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _PilotDataNotice extends StatelessWidget {
+  const _PilotDataNotice();
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF0CE),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: const Color(0xFFE5C16F)),
+    ),
+    child: const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      child: Row(
+        children: [
+          Icon(Icons.science_outlined, size: 19, color: Color(0xFF795B20)),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '杭州真实观察仍在积累，当前展示内容均标记为体验示例。',
+              style: TextStyle(
+                color: Color(0xFF654D20),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _ParkGuideCrossLink extends StatelessWidget {
+  const _ParkGuideCrossLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: const Color(0xFFE5EEE7),
+    borderRadius: BorderRadius.circular(18),
+    child: InkWell(
+      key: const Key('open-park-guide-from-soundscape'),
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(Icons.map_outlined, color: Color(0xFF174936), size: 20),
+            SizedBox(width: 9),
+            Expanded(
+              child: Text(
+                '想去现场听？打开亲子游园指南',
+                style: TextStyle(
+                  color: Color(0xFF174936),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Icon(Icons.arrow_forward_rounded, color: Color(0xFF174936)),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _MapSelectionSummary extends StatelessWidget {
@@ -671,250 +747,43 @@ class _MapSelectionSummary extends StatelessWidget {
   }
 }
 
-class _ParkZoneSoundMap extends StatelessWidget {
-  const _ParkZoneSoundMap({
-    required this.sites,
-    required this.posts,
-    required this.selectedZoneId,
-    required this.onSelected,
+class _HangzhouMapImage extends StatelessWidget {
+  const _HangzhouMapImage({
+    required this.mapImageUrl,
+    this.filterQuality = FilterQuality.medium,
   });
 
-  final List<CommunitySite> sites;
-  final List<CommunityPost> posts;
-  final String? selectedZoneId;
-  final ValueChanged<String> onSelected;
-
-  String _zoneCountLabel(String zoneId) {
-    final values = posts.where((post) => post.zoneId == zoneId).toList();
-    final real = values.where((post) => !post.isDemo).length;
-    final demo = values.where((post) => post.isDemo).length;
-    if (real > 0) return '$real 条真实${demo > 0 ? ' · $demo 条体验' : ''}';
-    return '$demo 条体验';
-  }
+  final String? mapImageUrl;
+  final FilterQuality filterQuality;
 
   @override
   Widget build(BuildContext context) {
-    const alignments = [
-      Alignment(-.82, .55),
-      Alignment(0, -.7),
-      Alignment(.82, .45),
-    ];
-    return Container(
-      key: const Key('park-zone-sound-map'),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF244E3D),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.park_outlined, color: Color(0xFFF5F1E5)),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  '公园分区声景',
-                  style: TextStyle(
-                    color: Color(0xFFF5F1E5),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Text(
-                selectedZoneId == null ? '点选查看' : '已筛选',
-                style: const TextStyle(color: Color(0xFFCFE0D5)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 148,
-            child: Stack(
+    final url = mapImageUrl;
+    if (url == null || url.isEmpty) return _offlineMap();
+    return Image.network(
+      url,
+      key: const Key('hangzhou-amap-image'),
+      fit: BoxFit.cover,
+      filterQuality: filterQuality,
+      gaplessPlayback: true,
+      errorBuilder: (_, _, _) => _offlineMap(),
+      loadingBuilder: (context, child, progress) => progress == null
+          ? child
+          : Stack(
+              fit: StackFit.expand,
               children: [
-                const Positioned.fill(
-                  child: Center(
-                    child: Icon(
-                      Icons.eco_outlined,
-                      size: 116,
-                      color: Color(0x1828A274),
-                    ),
-                  ),
-                ),
-                for (final (index, site) in sites.take(3).indexed)
-                  Align(
-                    alignment: alignments[index],
-                    child: InkWell(
-                      key: Key('park-zone-${site.zoneId}'),
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () => onSelected(site.zoneId),
-                      child: Container(
-                        width: 104,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selectedZoneId == site.zoneId
-                              ? const Color(0xFFFFE5A8)
-                              : const Color(0xFFF6F2E8),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.hearing_rounded, size: 18),
-                            const SizedBox(height: 3),
-                            Text(
-                              site.zoneName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              _zoneCountLabel(site.zoneId),
-                              style: const TextStyle(fontSize: 10),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                _offlineMap(),
+                const ColoredBox(color: Color(0x0FFFFFFF)),
               ],
             ),
-          ),
-          const Text(
-            '仅显示公开分区，不代表录音的精确位置。',
-            style: TextStyle(color: Color(0xFFCFE0D5), fontSize: 11),
-          ),
-        ],
-      ),
     );
   }
-}
 
-class _DailyNatureBriefCard extends StatelessWidget {
-  const _DailyNatureBriefCard({required this.brief, this.snapshot});
-  final DailyNatureBrief brief;
-  final EcologySnapshot? snapshot;
-
-  @override
-  Widget build(BuildContext context) => Card(
-    color: const Color(0xFFE8F0E8),
-    child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.wb_sunny_outlined, size: 19),
-              const SizedBox(width: 8),
-              const Text('今日自然声讯'),
-              const Spacer(),
-              _PostBadge(
-                label: '数据${_sufficiencyLabel(brief.dataSufficiency)}',
-                color: const Color(0xFFFFF7DC),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(brief.headline, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(brief.summary),
-          if (brief.facts.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            for (final fact in brief.facts) Text('· $fact'),
-          ],
-          if (brief.possibleExplanations.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text('为什么可能这样', style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 4),
-            for (final explanation in brief.possibleExplanations)
-              Text('· $explanation'),
-          ],
-          const SizedBox(height: 12),
-          Text('今日小任务', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 4),
-          Text(brief.mission),
-          const SizedBox(height: 10),
-          Text(brief.disclaimer, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      ),
-    ),
-  );
-
-  static String _sufficiencyLabel(String value) => switch (value) {
-    'high' => '充分',
-    'medium' => '中等',
-    _ => '不足',
-  };
-}
-
-class _ExplorationRouteCard extends StatelessWidget {
-  const _ExplorationRouteCard({required this.route, required this.onOpen});
-
-  final ExplorationRoute route;
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    key: Key('exploration-route-${route.id}'),
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFFF2D8),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.route_outlined, size: 20),
-            const SizedBox(width: 8),
-            const Text('亲子自然探索'),
-            const Spacer(),
-            Text('${route.durationMinutes}分钟 · ${route.distanceKm}公里'),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(route.name, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            _PostBadge(
-              label: '${route.ageMin}岁以上',
-              color: const Color(0xFFFFFDF5),
-            ),
-            for (final tag in route.tags)
-              _PostBadge(label: tag, color: const Color(0xFFFFFDF5)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        for (final (index, stop) in route.stops.indexed) ...[
-          Text(
-            '${index + 1}. ${stop.mission}（约${stop.minutes}分钟）',
-            style: const TextStyle(height: 1.4),
-          ),
-          if (index < route.stops.length - 1) const SizedBox(height: 6),
-        ],
-        const SizedBox(height: 10),
-        Text(route.disclaimer, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          key: Key('open-exploration-route-${route.id}'),
-          onPressed: onOpen,
-          icon: const Icon(Icons.directions_walk_rounded),
-          label: const Text('开始探索'),
-        ),
-      ],
-    ),
+  Widget _offlineMap() => Image.asset(
+    'assets/maps/hangzhou_osm.png',
+    key: const Key('hangzhou-offline-map'),
+    fit: BoxFit.cover,
+    filterQuality: filterQuality,
   );
 }
 
@@ -926,6 +795,8 @@ class _SoundscapeMap extends StatefulWidget {
     required this.recentAreaId,
     required this.onSelected,
     required this.onOpenFullscreen,
+    this.mapImageUrl,
+    this.mapProvider = 'offline',
   });
   final List<SoundscapeArea> areas;
   final bool loading;
@@ -933,6 +804,8 @@ class _SoundscapeMap extends StatefulWidget {
   final String? recentAreaId;
   final ValueChanged<String> onSelected;
   final VoidCallback onOpenFullscreen;
+  final String? mapImageUrl;
+  final String mapProvider;
 
   @override
   State<_SoundscapeMap> createState() => _SoundscapeMapState();
@@ -987,52 +860,44 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
           builder: (context, _) => Stack(
             children: [
               Positioned.fill(
-                child: InteractiveViewer(
-                  minScale: 1,
-                  maxScale: 2.4,
-                  panEnabled: true,
-                  scaleEnabled: true,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        'assets/maps/hangzhou_osm.png',
-                        key: const Key('hangzhou-offline-map'),
-                        fit: BoxFit.cover,
-                        filterQuality: FilterQuality.medium,
-                      ),
-                      const ColoredBox(color: Color(0x12F5F0DF)),
-                      for (final area in widget.areas)
-                        Align(
-                          alignment:
-                              _soundscapeAreaPositions[area.id] ??
-                              Alignment.center,
-                          child: TweenAnimationBuilder<double>(
-                            tween: Tween(
-                              begin: 0.92,
-                              end: widget.recentAreaId == area.id ? 1.1 : 1,
-                            ),
-                            duration: const Duration(milliseconds: 680),
-                            curve: Curves.easeOutBack,
-                            builder: (context, scale, child) =>
-                                Transform.scale(scale: scale, child: child),
-                            child: _AreaRipple(
-                              area: area,
-                              selected: widget.selectedAreaId == area.id,
-                              highlighted: widget.recentAreaId == area.id,
-                              pulse: _pulseController.value,
-                              onTap: () => widget.onSelected(area.id),
-                            ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _HangzhouMapImage(mapImageUrl: widget.mapImageUrl),
+                    const ColoredBox(color: Color(0x12F5F0DF)),
+                    for (final area in widget.areas)
+                      Align(
+                        alignment:
+                            _soundscapeAreaPositions[area.id] ??
+                            Alignment.center,
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(
+                            begin: 0.92,
+                            end: widget.recentAreaId == area.id ? 1.1 : 1,
+                          ),
+                          duration: const Duration(milliseconds: 680),
+                          curve: Curves.easeOutBack,
+                          builder: (context, scale, child) =>
+                              Transform.scale(scale: scale, child: child),
+                          child: _AreaRipple(
+                            area: area,
+                            selected: widget.selectedAreaId == area.id,
+                            highlighted: widget.recentAreaId == area.id,
+                            pulse: _pulseController.value,
+                            onTap: () => widget.onSelected(area.id),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 14,
                 top: 14,
-                child: _MapLabel(icon: Icons.map_outlined, label: '杭州实景'),
+                child: _MapLabel(
+                  icon: Icons.map_outlined,
+                  label: widget.mapProvider == 'amap' ? '高德静态底图' : '离线底图',
+                ),
               ),
               Positioned(
                 right: 10,
@@ -1054,18 +919,6 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
                 ),
               ),
               if (widget.loading) const Positioned.fill(child: _MapLoading()),
-              const Positioned(
-                left: 16,
-                bottom: 12,
-                child: Text(
-                  '双指缩放 · 点击右上角全屏查看',
-                  style: TextStyle(
-                    color: Color(0xFF61746B),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -1077,11 +930,17 @@ class _SoundscapeMapState extends State<_SoundscapeMap>
 class _FullscreenSoundscapeMap extends StatefulWidget {
   const _FullscreenSoundscapeMap({
     required this.areas,
+    required this.parks,
     required this.initialAreaId,
+    this.mapImageUrl,
+    this.mapProvider = 'offline',
   });
 
   final List<SoundscapeArea> areas;
+  final List<CommunityPark> parks;
   final String? initialAreaId;
+  final String? mapImageUrl;
+  final String mapProvider;
 
   @override
   State<_FullscreenSoundscapeMap> createState() =>
@@ -1092,21 +951,32 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
   final TransformationController _transformationController =
       TransformationController();
   String? _selectedAreaId;
-  bool _showGestureHint = true;
-  Timer? _gestureHintTimer;
+  String? _selectedParkId;
+  bool? _privacyAccepted;
+  bool _nativeMapAvailable = false;
+  bool _preferNativeMap = true;
+  bool _nativeMapReady = false;
+  bool _checkingNativeMap = true;
+  bool _nativeChoiceShown = false;
+  String? _nativeFailureMessage;
+  AmapNativeController? _nativeController;
+  String? _mapApprovalNumber;
+  Timer? _nativeLoadTimer;
 
   @override
   void initState() {
     super.initState();
     _selectedAreaId = widget.initialAreaId;
-    _gestureHintTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted) setState(() => _showGestureHint = false);
-    });
+    if (nativeAmapSupported) {
+      unawaited(_loadPrivacyConsent());
+    } else {
+      _privacyAccepted = false;
+    }
   }
 
   @override
   void dispose() {
-    _gestureHintTimer?.cancel();
+    _nativeLoadTimer?.cancel();
     _transformationController.dispose();
     super.dispose();
   }
@@ -1116,6 +986,259 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
       if (area.id == _selectedAreaId) return area;
     }
     return null;
+  }
+
+  CommunityPark? get _selectedPark {
+    for (final park in widget.parks) {
+      if (park.id == _selectedParkId) return park;
+    }
+    return null;
+  }
+
+  bool get _usingNativeMap =>
+      nativeAmapSupported &&
+      _nativeMapAvailable &&
+      _preferNativeMap &&
+      _privacyAccepted == true;
+
+  Future<void> _loadPrivacyConsent() async {
+    final available = await AmapPrivacyBridge.isAvailable();
+    final accepted = available && await AmapPrivacyBridge.hasConsent();
+    AppLog.info(
+      'amap',
+      'native_map_availability_checked',
+      fields: {'available': available, 'privacy_accepted': accepted},
+    );
+    if (mounted) {
+      setState(() {
+        _nativeMapAvailable = available;
+        _privacyAccepted = accepted;
+        _preferNativeMap = accepted;
+        _checkingNativeMap = false;
+        _nativeFailureMessage = available ? null : '当前安装包未启用高德动态地图';
+      });
+      if (available && !accepted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_offerNativeMap());
+        });
+      }
+    }
+  }
+
+  Future<void> _offerNativeMap() async {
+    if (_nativeChoiceShown ||
+        !_nativeMapAvailable ||
+        _privacyAccepted == true) {
+      return;
+    }
+    _nativeChoiceShown = true;
+    final enable = await showModalBottomSheet<bool>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      showDragHandle: false,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          key: const Key('native-map-choice-sheet'),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE2EEE6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.public_rounded,
+                      color: Color(0xFF174936),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '地图显示方式',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          '高德动态地图 · 支持缩放和移动',
+                          style: TextStyle(
+                            color: Color(0xFF5F6D66),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.shield_outlined,
+                    size: 17,
+                    color: Color(0xFF66736C),
+                  ),
+                  SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      '只使用城区与公园公共坐标，不传孩子位置或录音精确位置。',
+                      style: TextStyle(
+                        color: Color(0xFF66736C),
+                        fontSize: 12.5,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const Key('continue-offline-map'),
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('暂不启用'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      key: const Key('enable-native-amap-first-use'),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('启用动态地图'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (enable == true) {
+      await _acceptPrivacyConsent();
+    } else {
+      setState(() => _preferNativeMap = false);
+    }
+  }
+
+  Future<void> _acceptPrivacyConsent() async {
+    try {
+      await AmapPrivacyBridge.accept();
+      if (mounted) {
+        setState(() {
+          _privacyAccepted = true;
+          _preferNativeMap = true;
+          _nativeMapReady = false;
+          _nativeFailureMessage = null;
+        });
+      }
+    } on Object catch (error, stackTrace) {
+      if (!mounted) return;
+      AppLog.warning(
+        'amap',
+        'native_map_consent_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      setState(() {
+        _preferNativeMap = false;
+        _nativeFailureMessage = '高德动态地图初始化失败';
+      });
+    }
+  }
+
+  void _onNativeMapCreated(AmapNativeController controller) {
+    _nativeController = controller;
+    _nativeLoadTimer?.cancel();
+    _nativeLoadTimer = Timer(const Duration(seconds: 12), () {
+      if (!mounted || _nativeMapReady) return;
+      AppLog.warning('amap', 'native_map_failed', error: '地图加载超时');
+      setState(() {
+        _preferNativeMap = false;
+        _nativeFailureMessage = '高德动态地图加载超时';
+      });
+    });
+  }
+
+  void _onNativeMapReady(String? approvalNumber) {
+    _nativeLoadTimer?.cancel();
+    if (mounted) {
+      AppLog.info(
+        'amap',
+        'native_map_ready',
+        fields: {'has_approval_number': approvalNumber?.isNotEmpty == true},
+      );
+      setState(() {
+        _nativeMapReady = true;
+        _mapApprovalNumber = approvalNumber;
+        _nativeFailureMessage = null;
+      });
+    }
+  }
+
+  void _onNativeMapError(String message) {
+    _nativeLoadTimer?.cancel();
+    if (!mounted) return;
+    AppLog.warning('amap', 'native_map_failed', error: message);
+    setState(() {
+      _preferNativeMap = false;
+      _nativeMapReady = false;
+      _nativeFailureMessage = message;
+    });
+  }
+
+  void _retryNativeMap() {
+    if (_privacyAccepted != true) {
+      _nativeChoiceShown = false;
+      unawaited(_offerNativeMap());
+      return;
+    }
+    setState(() {
+      _preferNativeMap = true;
+      _nativeMapReady = false;
+      _nativeFailureMessage = null;
+    });
+  }
+
+  Future<void> _revokeMapConsent() async {
+    await AmapPrivacyBridge.revoke();
+    if (!mounted) return;
+    setState(() {
+      _privacyAccepted = false;
+      _preferNativeMap = false;
+      _nativeMapReady = false;
+      _mapApprovalNumber = null;
+      _nativeFailureMessage = null;
+    });
+  }
+
+  void _onNativeFeatureTap(String type, String id) {
+    if (!mounted) return;
+    setState(() {
+      if (type == 'park') {
+        _selectedParkId = id;
+        _selectedAreaId = _selectedPark?.areaId;
+      } else {
+        _selectedParkId = null;
+        _selectedAreaId = id;
+      }
+    });
   }
 
   void _setScale(double scale) {
@@ -1128,17 +1251,100 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
   }
 
   void _zoomBy(double factor) {
+    if (_usingNativeMap) {
+      if (factor > 1) {
+        unawaited(_nativeController?.zoomIn());
+      } else {
+        unawaited(_nativeController?.zoomOut());
+      }
+      return;
+    }
     final current = _transformationController.value.getMaxScaleOnAxis();
     _setScale(current * factor);
   }
 
   void _resetMap() {
+    if (_usingNativeMap) {
+      unawaited(_nativeController?.reset());
+      return;
+    }
     _transformationController.value = Matrix4.identity();
   }
+
+  Widget _buildFallbackMap() => GestureDetector(
+    onDoubleTap: () {
+      final current = _transformationController.value.getMaxScaleOnAxis();
+      _setScale(current > 1.2 ? 1 : 2);
+    },
+    child: InteractiveViewer(
+      transformationController: _transformationController,
+      minScale: 1,
+      maxScale: 4,
+      panEnabled: true,
+      scaleEnabled: true,
+      boundaryMargin: const EdgeInsets.all(160),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _HangzhouMapImage(
+            mapImageUrl: widget.mapImageUrl,
+            filterQuality: FilterQuality.high,
+          ),
+          const ColoredBox(color: Color(0x12F5F0DF)),
+          for (final area in widget.areas)
+            Align(
+              alignment: _soundscapeAreaPositions[area.id] ?? Alignment.center,
+              child: _AreaRipple(
+                area: area,
+                selected: area.id == _selectedAreaId,
+                highlighted: false,
+                pulse: 0,
+                onTap: () => setState(() {
+                  _selectedParkId = null;
+                  _selectedAreaId = area.id;
+                }),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  List<AmapNativeFeature> get _nativeAreas => widget.areas
+      .map((area) {
+        final coordinate = _soundscapeAreaCoordinates[area.id];
+        if (coordinate == null) return null;
+        return AmapNativeFeature(
+          id: area.id,
+          name: area.name,
+          latitude: coordinate.$1,
+          longitude: coordinate.$2,
+          postCount: area.postCount,
+          waitingCount: area.waitingCount,
+        );
+      })
+      .whereType<AmapNativeFeature>()
+      .toList(growable: false);
+
+  List<AmapNativeFeature> get _nativeParks => widget.parks
+      .map((park) {
+        final latitude = park.latitude;
+        final longitude = park.longitude;
+        if (latitude == null || longitude == null) return null;
+        return AmapNativeFeature(
+          id: park.id,
+          name: park.name,
+          latitude: latitude,
+          longitude: longitude,
+        );
+      })
+      .whereType<AmapNativeFeature>()
+      .toList(growable: false);
 
   @override
   Widget build(BuildContext context) {
     final selected = _selectedArea;
+    final selectedPark = _selectedPark;
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5EC),
       appBar: AppBar(
@@ -1147,16 +1353,42 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
         scrolledUnderElevation: 0,
         actions: [
           IconButton(
-            tooltip: '地图隐私说明',
+            key: const Key('map-privacy-button'),
+            tooltip: '地图来源与隐私',
             onPressed: () => showDialog<void>(
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('仅显示区域'),
-                content: const Text('地图不展示录音的精确位置，也不代表专业生态分布。'),
+                content: Text(
+                  '应用只向地图传入城区和公园的公共坐标，不传入孩子位置或录音精确坐标。高德地图可能按其隐私政策处理提供地图所需的设备与网络信息。\n\n'
+                  '${_mapApprovalNumber == null ? '' : '地图审图号：$_mapApprovalNumber\n'}'
+                  '这些区域声景不代表专业生态分布。',
+                ),
                 actions: [
+                  if (_privacyAccepted == true)
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _revokeMapConsent();
+                      },
+                      child: const Text('停用高德地图'),
+                    ),
+                  if (_nativeMapAvailable && _privacyAccepted != true)
+                    FilledButton(
+                      key: const Key('enable-native-amap'),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _acceptPrivacyConsent();
+                      },
+                      child: const Text('启用高德动态地图'),
+                    ),
+                  TextButton(
+                    onPressed: AmapPrivacyBridge.openPrivacyPolicy,
+                    child: const Text('高德隐私政策'),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('知道了'),
+                    child: const Text('关闭'),
                   ),
                 ],
               ),
@@ -1168,48 +1400,16 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: GestureDetector(
-              onDoubleTap: () {
-                final current = _transformationController.value
-                    .getMaxScaleOnAxis();
-                _setScale(current > 1.2 ? 1 : 2);
-              },
-              child: InteractiveViewer(
-                transformationController: _transformationController,
-                minScale: 1,
-                maxScale: 4,
-                panEnabled: true,
-                scaleEnabled: true,
-                boundaryMargin: const EdgeInsets.all(160),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      'assets/maps/hangzhou_osm.png',
-                      fit: BoxFit.cover,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const ColoredBox(color: Color(0x12F5F0DF)),
-                    for (final area in widget.areas)
-                      Align(
-                        alignment:
-                            _soundscapeAreaPositions[area.id] ??
-                            Alignment.center,
-                        child: _AreaRipple(
-                          area: area,
-                          selected: area.id == _selectedAreaId,
-                          highlighted: false,
-                          pulse: 0,
-                          onTap: () => setState(() {
-                            _selectedAreaId = area.id;
-                            _showGestureHint = false;
-                          }),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
+            child: _usingNativeMap
+                ? NativeAmapView(
+                    areas: _nativeAreas,
+                    parks: _nativeParks,
+                    onCreated: _onNativeMapCreated,
+                    onReady: _onNativeMapReady,
+                    onFeatureTap: _onNativeFeatureTap,
+                    onError: _onNativeMapError,
+                  )
+                : _buildFallbackMap(),
           ),
           Positioned(
             right: 14,
@@ -1220,13 +1420,22 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
               onReset: _resetMap,
             ),
           ),
-          if (_showGestureHint)
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 166,
-              child: Center(child: _MapGestureHint()),
-            ),
+          if (_usingNativeMap && !_nativeMapReady)
+            const Positioned.fill(child: _MapLoading()),
+          Positioned(
+            left: 14,
+            top: 14,
+            right: 78,
+            child: _nativeFailureMessage == null
+                ? _MapSourceBadge(
+                    dynamicMap: _usingNativeMap,
+                    checking: _checkingNativeMap,
+                  )
+                : _NativeMapFailureCard(
+                    message: _nativeFailureMessage!,
+                    onRetry: _retryNativeMap,
+                  ),
+          ),
           Positioned(
             left: 14,
             right: 14,
@@ -1235,6 +1444,7 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
               top: false,
               child: _FullscreenAreaPanel(
                 area: selected,
+                park: selectedPark,
                 onOpen: selected == null
                     ? null
                     : () => Navigator.pop(context, selected.id),
@@ -1245,6 +1455,89 @@ class _FullscreenSoundscapeMapState extends State<_FullscreenSoundscapeMap> {
       ),
     );
   }
+}
+
+class _MapSourceBadge extends StatelessWidget {
+  const _MapSourceBadge({required this.dynamicMap, required this.checking});
+
+  final bool dynamicMap;
+  final bool checking;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xF5FFFDF7),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFD9D6CA)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              dynamicMap ? Icons.public_rounded : Icons.map_outlined,
+              size: 16,
+              color: const Color(0xFF174936),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              checking
+                  ? '正在检查地图来源'
+                  : dynamicMap
+                  ? '高德动态地图'
+                  : '离线底图',
+              style: const TextStyle(
+                color: Color(0xFF174936),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _NativeMapFailureCard extends StatelessWidget {
+  const _NativeMapFailureCard({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: const Color(0xF5FFF8ED),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: const Color(0xFFE1CDA3)),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 7, 7, 7),
+      child: Row(
+        children: [
+          const Icon(Icons.map_outlined, size: 17, color: Color(0xFF795B20)),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF5F4B25),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: const Text('重试')),
+        ],
+      ),
+    ),
+  );
 }
 
 class _MapZoomControls extends StatelessWidget {
@@ -1300,87 +1593,125 @@ class _MapZoomControls extends StatelessWidget {
   );
 }
 
-class _MapGestureHint extends StatelessWidget {
-  const _MapGestureHint();
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: const Color(0xE6174936),
-      borderRadius: BorderRadius.circular(22),
-    ),
-    child: const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-      child: Text(
-        '双指缩放 · 单指移动 · 双击放大',
-        style: TextStyle(color: Colors.white, fontSize: 12),
-      ),
-    ),
-  );
-}
-
 class _FullscreenAreaPanel extends StatelessWidget {
-  const _FullscreenAreaPanel({required this.area, required this.onOpen});
+  const _FullscreenAreaPanel({
+    required this.area,
+    required this.park,
+    required this.onOpen,
+  });
 
   final SoundscapeArea? area;
+  final CommunityPark? park;
   final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final selected = area;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFAFFFDF5),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x24315449),
-            blurRadius: 24,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 15, 18, 14),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              selected?.name ?? '选择一个城区',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: const Color(0xFF174936),
-                fontWeight: FontWeight.w800,
+    final selectedPark = park;
+    if (selected == null && selectedPark == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xF5FFFDF5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFD9D6CA)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1F315449),
+                blurRadius: 16,
+                offset: Offset(0, 7),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              selected == null
-                  ? '点击地图上的声音节点查看区域声景'
-                  : '${selected.postCount} 条声音 · ${selected.waitingCount} 条待协助',
-              style: const TextStyle(color: Color(0xFF5E6D66)),
-            ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              key: const Key('open-selected-soundscape-area'),
-              onPressed: onOpen,
-              icon: const Icon(Icons.hearing_rounded),
-              label: const Text('查看这里的声音'),
-            ),
-            const SizedBox(height: 8),
-            const Row(
+            ],
+          ),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield_outlined, size: 16, color: Color(0xFF7A847F)),
-                SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    '仅显示区域，不展示精确录音位置',
-                    style: TextStyle(color: Color(0xFF7A847F), fontSize: 11),
+                Icon(
+                  Icons.touch_app_outlined,
+                  size: 18,
+                  color: Color(0xFF174936),
+                ),
+                SizedBox(width: 7),
+                Text(
+                  '点选地区查看声音',
+                  style: TextStyle(
+                    color: Color(0xFF174936),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
-          ],
+          ),
+        ),
+      );
+    }
+    return Material(
+      key: const Key('fullscreen-area-panel'),
+      color: const Color(0xFAFFFDF5),
+      elevation: 8,
+      shadowColor: const Color(0x24315449),
+      borderRadius: BorderRadius.circular(24),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const Key('open-selected-soundscape-area'),
+        borderRadius: BorderRadius.circular(24),
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE2EEE6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.hearing_rounded,
+                  color: Color(0xFF174936),
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selectedPark?.name ?? selected!.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFF174936),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      selectedPark != null
+                          ? '${selectedPark.areaName} · ${selectedPark.habitatTags.take(2).join(' · ')}'
+                          : '${selected!.postCount} 条声音 · ${selected.waitingCount} 条待协助',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF5E6D66),
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const CircleAvatar(
+                radius: 18,
+                backgroundColor: Color(0xFF174936),
+                foregroundColor: Colors.white,
+                child: Icon(Icons.arrow_forward_rounded, size: 19),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1470,8 +1801,8 @@ class _AreaRipple extends StatelessWidget {
     label: '${area.name}，${area.postCount} 条声音线索',
     button: true,
     child: SizedBox(
-      width: 72,
-      height: 72,
+      width: 64,
+      height: 64,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -1481,8 +1812,8 @@ class _AreaRipple extends StatelessWidget {
               child: Opacity(
                 opacity: .36 * (1 - pulse),
                 child: Container(
-                  width: 68,
-                  height: 68,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -1503,15 +1834,15 @@ class _AreaRipple extends StatelessWidget {
               duration: const Duration(milliseconds: 260),
               curve: Curves.easeOutCubic,
               width: selected || highlighted
-                  ? 62
+                  ? 58
                   : area.postCount == 0
-                  ? 48
-                  : 56,
+                  ? 44
+                  : 52,
               height: selected || highlighted
-                  ? 62
+                  ? 58
                   : area.postCount == 0
-                  ? 48
-                  : 56,
+                  ? 44
+                  : 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: selected
@@ -1557,25 +1888,6 @@ class _AreaRipple extends StatelessWidget {
               ),
             ),
           ),
-          if (area.waitingCount > 0)
-            Positioned(
-              right: 3,
-              top: 4,
-              child: Container(
-                width: 17,
-                height: 17,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD4A45C),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFFFDF5), width: 2),
-                ),
-                child: const Icon(
-                  Icons.question_mark_rounded,
-                  size: 10,
-                  color: Color(0xFF503814),
-                ),
-              ),
-            ),
         ],
       ),
     ),
@@ -1642,13 +1954,24 @@ class _CommunitySoundCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (onWithdraw != null)
-                  PopupMenuButton<String>(
+                  AppPopoverMenu<String>(
+                    tooltip: '公开记录操作',
+                    minWidth: 190,
                     onSelected: (value) {
                       if (value == 'withdraw') onWithdraw!();
                     },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'withdraw', child: Text('撤回公开记录')),
+                    actions: const [
+                      AppPopoverAction(
+                        value: 'withdraw',
+                        label: '撤回公开记录',
+                        icon: Icons.visibility_off_outlined,
+                        destructive: true,
+                      ),
                     ],
+                    child: const SizedBox.square(
+                      dimension: 44,
+                      child: Icon(Icons.more_horiz_rounded),
+                    ),
                   ),
               ],
             ),
@@ -1844,34 +2167,6 @@ class _Waveform extends StatelessWidget {
           ),
         );
       }),
-    ),
-  );
-}
-
-class _MissionBanner extends StatelessWidget {
-  const _MissionBanner();
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFFEED0),
-      borderRadius: BorderRadius.circular(22),
-    ),
-    child: const Row(
-      children: [
-        Icon(Icons.nightlight_round, color: Color(0xFF8A6124)),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('本周共同任务', style: TextStyle(fontWeight: FontWeight.w700)),
-              SizedBox(height: 3),
-              Text('寻找杭州夏夜的鸟鸣、蛙鸣与鸣虫'),
-            ],
-          ),
-        ),
-      ],
     ),
   );
 }

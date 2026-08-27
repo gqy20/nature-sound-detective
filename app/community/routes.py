@@ -9,9 +9,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import ValidationError
 
+from app.community.amap_service import AmapMapService, AmapMapUnavailable
 from app.community.auth import CommunityAuth, InMemoryRateLimiter, InvalidCommunityToken
 from app.community.catalog import PILOT_ROUTES, park_by_id, zone_by_id
 from app.community.models import ExplorationRoute
@@ -56,12 +57,14 @@ def build_community_router(
     auth: CommunityAuth | None = None,
     rate_limiter: InMemoryRateLimiter | None = None,
     parent_guidance_service: ParentGuidanceService | None = None,
+    amap_map_service: AmapMapService | None = None,
 ) -> APIRouter:
     repo = repository or repository_from_environment()
     store = media_store or media_store_from_environment(COMMUNITY_MEDIA_DIR)
     community_auth = auth or CommunityAuth.from_environment()
     limiter = rate_limiter or InMemoryRateLimiter()
     guidance_service = parent_guidance_service or ParentGuidanceService()
+    map_service = amap_map_service or AmapMapService()
     parent_guidance_limit = _parent_guidance_free_limit()
     router = APIRouter(prefix="/api/community", tags=["community"])
 
@@ -259,7 +262,32 @@ def build_community_router(
 
     @router.get("/parks")
     def parks():
-        return [item.model_dump(mode="json") for item in repo.park_summaries()]
+        values = [item.model_dump(mode="json") for item in repo.park_summaries()]
+        for item in values:
+            item["map_image_url"] = (
+                "/api/community/maps/hangzhou/static"
+                if map_service.configured
+                else None
+            )
+            item["map_provider"] = "amap" if map_service.configured else "offline"
+        return values
+
+    @router.get("/maps/hangzhou/static")
+    def hangzhou_static_map(zoom: int = 10):
+        if not 9 <= zoom <= 13:
+            raise HTTPException(422, "地图缩放级别必须在9至13之间")
+        try:
+            image = map_service.hangzhou_static_map(zoom=zoom)
+        except AmapMapUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        return Response(
+            content=image.content,
+            media_type=image.content_type,
+            headers={
+                "Cache-Control": "public, max-age=21600, stale-if-error=86400",
+                "X-Map-Provider": "amap",
+            },
+        )
 
     @router.get("/sites")
     def sites(park_id: str | None = None):

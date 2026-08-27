@@ -95,10 +95,14 @@ class CommunityPost {
     ecologyEligible: json['ecology_eligible'] as bool? ?? false,
     isDemo: json['is_demo'] as bool? ?? false,
     mediaAssets: switch (json['media_assets']) {
-      final List<Object?> values => values
-          .whereType<Map<Object?, Object?>>()
-          .map((value) => CommunityMediaAsset.fromJson(value.cast<String, Object?>()))
-          .toList(growable: false),
+      final List<Object?> values =>
+        values
+            .whereType<Map<Object?, Object?>>()
+            .map(
+              (value) =>
+                  CommunityMediaAsset.fromJson(value.cast<String, Object?>()),
+            )
+            .toList(growable: false),
       _ => const [],
     },
   );
@@ -139,15 +143,16 @@ class CommunityMediaAsset {
     this.provider,
     this.model,
   });
-  factory CommunityMediaAsset.fromJson(Map<String, Object?> json) => CommunityMediaAsset(
-    id: json['id'] as String? ?? '',
-    mediaType: json['media_type'] as String? ?? 'image',
-    sourceType: json['source_type'] as String? ?? 'ai_generated',
-    url: json['url'] as String? ?? '',
-    thumbnailUrl: json['thumbnail_url'] as String?,
-    provider: json['provider'] as String?,
-    model: json['model'] as String?,
-  );
+  factory CommunityMediaAsset.fromJson(Map<String, Object?> json) =>
+      CommunityMediaAsset(
+        id: json['id'] as String? ?? '',
+        mediaType: json['media_type'] as String? ?? 'image',
+        sourceType: json['source_type'] as String? ?? 'ai_generated',
+        url: json['url'] as String? ?? '',
+        thumbnailUrl: json['thumbnail_url'] as String?,
+        provider: json['provider'] as String?,
+        model: json['model'] as String?,
+      );
   final String id;
   final String mediaType;
   final String sourceType;
@@ -165,21 +170,47 @@ class CommunityPark {
     required this.areaName,
     required this.habitatTags,
     required this.zoneCount,
+    this.mapImageUrl,
+    this.mapProvider = 'offline',
+    this.latitude,
+    this.longitude,
   });
-  factory CommunityPark.fromJson(Map<String, Object?> json) => CommunityPark(
-    id: json['park_id'] as String? ?? '',
-    name: json['park_name'] as String? ?? '',
-    areaId: json['area_id'] as String? ?? '',
-    areaName: json['area_name'] as String? ?? '',
-    habitatTags: (json['habitat_tags'] as List<Object?>? ?? const []).whereType<String>().toList(),
-    zoneCount: json['zone_count'] as int? ?? 0,
-  );
+  factory CommunityPark.fromJson(Map<String, Object?> json, {Uri? baseUri}) {
+    final rawMapUrl = json['map_image_url'] as String?;
+    final resolvedMapUrl = rawMapUrl == null || rawMapUrl.isEmpty
+        ? null
+        : baseUri?.resolve(rawMapUrl).toString() ?? rawMapUrl;
+    return CommunityPark(
+      id: json['park_id'] as String? ?? '',
+      name: json['park_name'] as String? ?? '',
+      areaId: json['area_id'] as String? ?? '',
+      areaName: json['area_name'] as String? ?? '',
+      habitatTags: (json['habitat_tags'] as List<Object?>? ?? const [])
+          .whereType<String>()
+          .toList(),
+      zoneCount: json['zone_count'] as int? ?? 0,
+      mapImageUrl: resolvedMapUrl,
+      mapProvider: json['map_provider'] as String? ?? 'offline',
+      latitude: switch (json['public_centroid']) {
+        final Map<Object?, Object?> value => (value['lat'] as num?)?.toDouble(),
+        _ => null,
+      },
+      longitude: switch (json['public_centroid']) {
+        final Map<Object?, Object?> value => (value['lng'] as num?)?.toDouble(),
+        _ => null,
+      },
+    );
+  }
   final String id;
   final String name;
   final String areaId;
   final String areaName;
   final List<String> habitatTags;
   final int zoneCount;
+  final String? mapImageUrl;
+  final String mapProvider;
+  final double? latitude;
+  final double? longitude;
 }
 
 class CommunitySite {
@@ -197,7 +228,9 @@ class CommunitySite {
     parkName: json['park_name'] as String? ?? '',
     zoneId: json['zone_id'] as String? ?? '',
     zoneName: json['zone_name'] as String? ?? '',
-    habitatTags: (json['habitat_tags'] as List<Object?>? ?? const []).whereType<String>().toList(),
+    habitatTags: (json['habitat_tags'] as List<Object?>? ?? const [])
+        .whereType<String>()
+        .toList(),
   );
   final String id;
   final String parkId;
@@ -221,28 +254,31 @@ class EcologySnapshot {
     this.activityTrend = 'insufficient',
     this.zoneSummaries = const [],
   });
-  factory EcologySnapshot.fromJson(Map<String, Object?> json) => EcologySnapshot(
+  factory EcologySnapshot.fromJson(
+    Map<String, Object?> json,
+  ) => EcologySnapshot(
     parkId: json['park_id'] as String? ?? '',
     validPostCount: json['valid_post_count'] as int? ?? 0,
     independentObserverCount: json['independent_observer_count'] as int? ?? 0,
-    soundTypeCounts: (json['sound_type_counts'] as Map<Object?, Object?>? ?? const {}).map(
-      (key, value) => MapEntry(key.toString(), (value as num).toInt()),
-    ),
+    soundTypeCounts:
+        (json['sound_type_counts'] as Map<Object?, Object?>? ?? const {}).map(
+          (key, value) => MapEntry(key.toString(), (value as num).toInt()),
+        ),
     dataSufficiency: json['data_sufficiency'] as String? ?? 'low',
     disclaimer: json['disclaimer'] as String? ?? '',
     observationDayCount: json['observation_day_count'] as int? ?? 0,
     samplingModeCounts:
-        (json['sampling_mode_counts'] as Map<Object?, Object?>? ?? const {}).map(
-          (key, value) => MapEntry(key.toString(), (value as num).toInt()),
-        ),
+        (json['sampling_mode_counts'] as Map<Object?, Object?>? ?? const {})
+            .map(
+              (key, value) => MapEntry(key.toString(), (value as num).toInt()),
+            ),
     previousValidPostCount: json['previous_valid_post_count'] as int? ?? 0,
     activityTrend: json['activity_trend'] as String? ?? 'insufficient',
     zoneSummaries: (json['zone_summaries'] as List<Object?>? ?? const [])
         .whereType<Map<Object?, Object?>>()
         .map(
-          (value) => ZoneSoundscapeSummary.fromJson(
-            value.cast<String, Object?>(),
-          ),
+          (value) =>
+              ZoneSoundscapeSummary.fromJson(value.cast<String, Object?>()),
         )
         .toList(growable: false),
   );
@@ -269,19 +305,19 @@ class ZoneSoundscapeSummary {
     required this.dataSufficiency,
   });
 
-  factory ZoneSoundscapeSummary.fromJson(Map<String, Object?> json) =>
-      ZoneSoundscapeSummary(
-        zoneId: json['zone_id'] as String? ?? '',
-        zoneName: json['zone_name'] as String? ?? '',
-        validPostCount: json['valid_post_count'] as int? ?? 0,
-        independentObserverCount:
-            json['independent_observer_count'] as int? ?? 0,
-        soundTypeCounts:
-            (json['sound_type_counts'] as Map<Object?, Object?>? ?? const {}).map(
-              (key, value) => MapEntry(key.toString(), (value as num).toInt()),
-            ),
-        dataSufficiency: json['data_sufficiency'] as String? ?? 'low',
-      );
+  factory ZoneSoundscapeSummary.fromJson(
+    Map<String, Object?> json,
+  ) => ZoneSoundscapeSummary(
+    zoneId: json['zone_id'] as String? ?? '',
+    zoneName: json['zone_name'] as String? ?? '',
+    validPostCount: json['valid_post_count'] as int? ?? 0,
+    independentObserverCount: json['independent_observer_count'] as int? ?? 0,
+    soundTypeCounts:
+        (json['sound_type_counts'] as Map<Object?, Object?>? ?? const {}).map(
+          (key, value) => MapEntry(key.toString(), (value as num).toInt()),
+        ),
+    dataSufficiency: json['data_sufficiency'] as String? ?? 'low',
+  );
 
   final String zoneId;
   final String zoneName;
@@ -303,17 +339,23 @@ class DailyNatureBrief {
     required this.dataSufficiency,
     required this.disclaimer,
   });
-  factory DailyNatureBrief.fromJson(Map<String, Object?> json) => DailyNatureBrief(
-    parkId: json['park_id'] as String? ?? '',
-    parkName: json['park_name'] as String? ?? '',
-    headline: json['headline'] as String? ?? '',
-    summary: json['summary'] as String? ?? '',
-    facts: (json['facts'] as List<Object?>? ?? const []).whereType<String>().toList(),
-    possibleExplanations: (json['possible_explanations'] as List<Object?>? ?? const []).whereType<String>().toList(),
-    mission: json['mission'] as String? ?? '',
-    dataSufficiency: json['data_sufficiency'] as String? ?? 'low',
-    disclaimer: json['disclaimer'] as String? ?? '',
-  );
+  factory DailyNatureBrief.fromJson(Map<String, Object?> json) =>
+      DailyNatureBrief(
+        parkId: json['park_id'] as String? ?? '',
+        parkName: json['park_name'] as String? ?? '',
+        headline: json['headline'] as String? ?? '',
+        summary: json['summary'] as String? ?? '',
+        facts: (json['facts'] as List<Object?>? ?? const [])
+            .whereType<String>()
+            .toList(),
+        possibleExplanations:
+            (json['possible_explanations'] as List<Object?>? ?? const [])
+                .whereType<String>()
+                .toList(),
+        mission: json['mission'] as String? ?? '',
+        dataSufficiency: json['data_sufficiency'] as String? ?? 'low',
+        disclaimer: json['disclaimer'] as String? ?? '',
+      );
   final String parkId;
   final String parkName;
   final String headline;
@@ -371,9 +413,8 @@ class ExplorationRoute {
         stops: (json['stops'] as List<Object?>? ?? const [])
             .whereType<Map<Object?, Object?>>()
             .map(
-              (value) => ExplorationRouteStop.fromJson(
-                value.cast<String, Object?>(),
-              ),
+              (value) =>
+                  ExplorationRouteStop.fromJson(value.cast<String, Object?>()),
             )
             .toList(growable: false),
         disclaimer: json['disclaimer'] as String? ?? '',

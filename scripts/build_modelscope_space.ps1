@@ -18,7 +18,7 @@ if (Test-Path -LiteralPath $outputRoot) {
 }
 New-Item -ItemType Directory -Path $outputRoot | Out-Null
 
-Get-ChildItem -LiteralPath $sourceRoot -Force | Where-Object { $_.Name -ne "tests" } | ForEach-Object {
+Get-ChildItem -LiteralPath $sourceRoot -Force | Where-Object { $_.Name -notin @("tests", "__pycache__") } | ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $outputRoot -Recurse -Force
 }
 

@@ -1,22 +1,22 @@
 # 《自然声探员》宣传视频制作工程
 
-## 当前逐片调试（v027）
+## 当前逐片调试（v028）
 
-- 1080p 正式成片：`08-exports/1080p/xykw-promo-v027-1080p.mp4`
-- 成片交付清单：`08-exports/1080p/xykw-promo-v027-1080p-manifest.json`
-- 成片来源说明：`08-exports/1080p/xykw-promo-v027-1080p-provenance.md`
+- 1080p 正式成片：`08-exports/1080p/xykw-promo-v028-1080p.mp4`
+- 成片交付清单：`08-exports/1080p/xykw-promo-v028-1080p-manifest.json`
+- 成片来源说明：`08-exports/1080p/xykw-promo-v028-1080p-provenance.md`
 
-- 1080p 调试片段：`07-edit/debug-segments-v027/`
-- 2 fps 抽帧检查：`09-qc/story-scenes-v027-2fps/`
+- 1080p 调试片段：`07-edit/debug-segments-v028/`
+- 2 fps 抽帧检查：`09-qc/story-scenes-v028-2fps/`
 - 正式旁白：`06-audio/voiceover/formal/formal-voiceover-v013-105.wav`
 - 设计字幕：`07-edit/subtitles/xykw-promo-designed-v013-105.ass`
 - 通用字幕：`07-edit/subtitles/xykw-promo-voice-timed-v013-105.srt`
 - 逐镜头字幕：`07-edit/subtitles/v013-105-scenes/`
-- 15 镜头校验清单：`07-edit/debug-segments-v027/manifest-complete.json`
+- 15 镜头校验清单：`07-edit/debug-segments-v028/manifest-complete.json`
 - 字幕规范：`00-brief/subtitle-system-v013-105.md`
 - 质量检查：`09-qc/v013-105-narration-subtitle-review.md`
 
-v013-105 以“这段声音里，藏着什么？”贯穿家长、孩子、AI 调查和共听杭州；正式配音全片固定 `1.05x`，未使用逐场变速。v027 已将真实发音时间字幕接入全部 15 个独立 1080p 片段，所有尾留白低于 2 秒，并输出 110 秒 1080p 正式成片；逐片与成片均已按每秒 2 帧完成 220 帧抽检。
+v013-105 以“这段声音里，藏着什么？”贯穿家长、孩子、AI 调查和共听杭州；正式配音全片固定 `1.05x`，未使用逐场变速。v028 将 S04 改为“陪孩子循声寻找自然线索”，并统一删除字幕行末的普通标点；真实发音时间字幕已接入全部 15 个独立 1080p 片段，所有尾留白低于 2 秒，并输出 110 秒 1080p 正式成片。
 
 ## 当前 4K 交付（v014-map-entry）
 

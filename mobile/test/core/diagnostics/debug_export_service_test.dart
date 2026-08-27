@@ -30,7 +30,6 @@ void main() {
       );
       await settingsStore.save(
         const CreationSettings(
-          minimaxApiKey: 'sk-private-minimax-key',
           dashscopeApiKey: 'sk-private-dashscope-key',
           dashscopeWorkspaceId: 'private-workspace',
         ),
@@ -104,7 +103,7 @@ void main() {
           .map((file) => utf8.decode(file.readBytes()!))
           .join('\n');
       expect(allText, contains('rec_42'));
-      expect(allText, contains('minimax_configured'));
+      expect(allText, contains('dashscope_configured'));
       expect(allText, isNot(contains('sk-private')));
       expect(allText, isNot(contains('private-workspace')));
       expect(allText, isNot(contains(audio.path)));

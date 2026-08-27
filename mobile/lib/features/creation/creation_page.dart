@@ -157,7 +157,7 @@ class _CreationPageState extends State<CreationPage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('开始生成音乐和视频？'),
-        content: const Text('将直接调用你的 MiniMax 和阿里云百炼账户，可能消耗账户额度。原始录音不会上传。'),
+        content: const Text('将调用阿里云百炼生成音乐、旁白和视频，可能消耗账户额度。原始录音不会上传。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -403,7 +403,7 @@ class _CreationPageState extends State<CreationPage>
                           const SizedBox(height: 18),
                           Text('连接创作服务', style: theme.textTheme.titleLarge),
                           const SizedBox(height: 4),
-                          const Text('MiniMax + 阿里云百炼'),
+                          const Text('阿里云百炼 · 北京地域'),
                           const SizedBox(height: 16),
                           FilledButton.icon(
                             key: const Key('open-creation-settings'),

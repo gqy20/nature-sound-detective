@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/logging/app_log.dart';
@@ -59,7 +58,7 @@ class DirectCreationService implements CreationService {
   }) async {
     if (!settings.canCreate) {
       AppLog.warning('creation', 'configuration_missing');
-      throw const CreationException('请先配置 MiniMax 和阿里云百炼 API Key。');
+      throw const CreationException('请先配置阿里云百炼 API Key。');
     }
     final root = await _directoryProvider();
     final id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -76,9 +75,11 @@ class DirectCreationService implements CreationService {
       traceId: id,
       fields: {
         'source_bytes': await source.length(),
-        'music_model': settings.minimaxMusicModel,
+        'music_provider': 'dashscope',
+        'music_model': settings.dashscopeMusicModel,
+        'speech_model': settings.dashscopeSpeechModel,
         'video_model': settings.wanVideoModel,
-        'region': settings.dashscopeRegion,
+        'region': 'beijing',
       },
     );
     final copiedSource = File('${directory.path}/nature_original.wav');
@@ -106,7 +107,7 @@ class DirectCreationService implements CreationService {
     required CreationProgress onProgress,
   }) async {
     if (!settings.canCreate) {
-      throw const CreationException('请先配置 MiniMax 和阿里云百炼 API Key。');
+      throw const CreationException('请先配置阿里云百炼 API Key。');
     }
     var current = record;
     AppLog.info(
@@ -373,23 +374,21 @@ class DirectCreationService implements CreationService {
     final stopwatch = Stopwatch()..start();
     final response = await _client
         .post(
-          Uri.parse('https://api.minimaxi.com/v1/music_generation'),
+          Uri.parse(
+            '${settings.dashscopeBaseUrl}/api/v1/services/audio/music/generation',
+          ),
           headers: {
             HttpHeaders.authorizationHeader:
-                'Bearer ${settings.minimaxApiKey.trim()}',
+                'Bearer ${settings.dashscopeApiKey.trim()}',
             HttpHeaders.contentTypeHeader: 'application/json',
           },
           body: jsonEncode({
-            'model': settings.minimaxMusicModel.trim(),
-            'prompt': prompt,
-            'is_instrumental': true,
-            'stream': false,
-            'output_format': 'url',
-            'aigc_watermark': true,
-            'audio_setting': {
-              'sample_rate': 44100,
-              'bitrate': 256000,
+            'model': settings.dashscopeMusicModel.trim(),
+            'input': {
+              'prompt': prompt,
+              'is_instrumental': true,
               'format': 'mp3',
+              'enable_aigc_watermark': false,
             },
           }),
         )
@@ -399,32 +398,28 @@ class DirectCreationService implements CreationService {
       'provider_response_received',
       traceId: traceId,
       fields: {
-        'provider': 'minimax',
+        'provider': 'dashscope',
         'operation': 'music',
         'status_code': response.statusCode,
         'duration_ms': stopwatch.elapsedMilliseconds,
       },
     );
-    final payload = _jsonObject(response.body, 'MiniMax 音乐');
-    _checkHttp(response, payload, 'MiniMax 音乐');
-    _checkMiniMax(payload, 'MiniMax 音乐');
-    final data = payload['data'];
-    final audio = data is Map<String, Object?>
-        ? data['audio']?.toString()
-        : null;
-    if (audio == null || audio.isEmpty) {
-      throw const CreationException('MiniMax 没有返回音乐文件。');
-    }
-    if (audio.startsWith('http://') || audio.startsWith('https://')) {
-      await _download(
-        Uri.parse(audio),
-        destination,
-        traceId: traceId,
-        assetType: 'music',
+    final payload = _jsonObject(response.body, '阿里云 Fun-Music');
+    _checkHttp(response, payload, '阿里云 Fun-Music');
+    final output = payload['output'];
+    final audio = output is Map<String, Object?> ? output['audio'] : null;
+    final url = audio is Map<String, Object?> ? audio['url']?.toString() : null;
+    if (url == null || url.isEmpty) {
+      throw CreationException(
+        _apiMessage(payload) ?? '阿里云 Fun-Music 没有返回音乐文件。',
       );
-    } else {
-      await destination.writeAsBytes(_decodeHex(audio), flush: true);
     }
+    await _download(
+      Uri.parse(url),
+      destination,
+      traceId: traceId,
+      assetType: 'music',
+    );
   }
 
   Future<void> _generateNarration({
@@ -436,30 +431,24 @@ class DirectCreationService implements CreationService {
     final stopwatch = Stopwatch()..start();
     final response = await _client
         .post(
-          Uri.parse('https://api.minimaxi.com/v1/t2a_v2'),
+          Uri.parse(
+            '${settings.dashscopeBaseUrl}/api/v1/services/audio/tts/SpeechSynthesizer',
+          ),
           headers: {
             HttpHeaders.authorizationHeader:
-                'Bearer ${settings.minimaxApiKey.trim()}',
+                'Bearer ${settings.dashscopeApiKey.trim()}',
             HttpHeaders.contentTypeHeader: 'application/json',
           },
           body: jsonEncode({
-            'model': settings.minimaxSpeechModel.trim(),
-            'text': text,
-            'stream': false,
-            'voice_setting': {
-              'voice_id': settings.minimaxSpeechVoice.trim(),
-              'speed': 0.95,
-              'vol': 1.0,
-              'pitch': 0,
-              'emotion': 'calm',
-            },
-            'audio_setting': {
-              'sample_rate': 32000,
-              'bitrate': 128000,
+            'model': settings.dashscopeSpeechModel.trim(),
+            'input': {
+              'text': text,
+              'voice': settings.dashscopeSpeechVoice.trim(),
               'format': 'mp3',
-              'channel': 1,
+              'sample_rate': 24000,
+              'instruction': '温暖、平静、有好奇心，像自然教育老师，语速稍慢，不夸张。',
+              'enable_aigc_tag': true,
             },
-            'language_boost': 'Chinese',
           }),
         )
         .timeout(const Duration(seconds: 90));
@@ -468,23 +457,28 @@ class DirectCreationService implements CreationService {
       'provider_response_received',
       traceId: traceId,
       fields: {
-        'provider': 'minimax',
+        'provider': 'dashscope',
         'operation': 'narration',
         'status_code': response.statusCode,
         'duration_ms': stopwatch.elapsedMilliseconds,
       },
     );
-    final payload = _jsonObject(response.body, 'MiniMax 旁白');
-    _checkHttp(response, payload, 'MiniMax 旁白');
-    _checkMiniMax(payload, 'MiniMax 旁白');
-    final data = payload['data'];
-    final audio = data is Map<String, Object?>
-        ? data['audio']?.toString()
-        : null;
-    if (audio == null || audio.isEmpty) {
-      throw const CreationException('MiniMax 没有返回旁白音频。');
+    final payload = _jsonObject(response.body, '阿里云 Qwen-Audio-TTS');
+    _checkHttp(response, payload, '阿里云 Qwen-Audio-TTS');
+    final output = payload['output'];
+    final audio = output is Map<String, Object?> ? output['audio'] : null;
+    final url = audio is Map<String, Object?> ? audio['url']?.toString() : null;
+    if (url == null || url.isEmpty) {
+      throw CreationException(
+        _apiMessage(payload) ?? '阿里云 Qwen-Audio-TTS 没有返回旁白文件。',
+      );
     }
-    await destination.writeAsBytes(_decodeHex(audio), flush: true);
+    await _download(
+      Uri.parse(url),
+      destination,
+      traceId: traceId,
+      assetType: 'narration',
+    );
   }
 
   Future<String> _createWanTask({
@@ -663,39 +657,12 @@ class DirectCreationService implements CreationService {
     }
   }
 
-  void _checkMiniMax(Map<String, Object?> payload, String service) {
-    final base = payload['base_resp'];
-    if (base is Map<String, Object?>) {
-      final code = base['status_code'];
-      if (code != null && code != 0) {
-        throw CreationException(
-          base['status_msg']?.toString() ?? '$service 调用失败：$code',
-        );
-      }
-    }
-  }
-
   String? _apiMessage(Map<String, Object?> payload) {
     final output = payload['output'];
     if (output is Map<String, Object?> && output['message'] != null) {
       return output['message'].toString();
     }
     return payload['message']?.toString();
-  }
-
-  Uint8List _decodeHex(String value) {
-    if (value.length.isOdd) {
-      throw const CreationException('MiniMax 返回的音乐数据不完整。');
-    }
-    final bytes = Uint8List(value.length ~/ 2);
-    for (var index = 0; index < value.length; index += 2) {
-      final parsed = int.tryParse(value.substring(index, index + 2), radix: 16);
-      if (parsed == null) {
-        throw const CreationException('MiniMax 返回了无效的音乐数据。');
-      }
-      bytes[index ~/ 2] = parsed;
-    }
-    return bytes;
   }
 
   String _message(Object error) => switch (error) {

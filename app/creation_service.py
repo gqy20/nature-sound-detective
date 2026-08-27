@@ -17,8 +17,7 @@ from dotenv import load_dotenv
 
 from app.audio import duration_seconds
 from app.config import GENERATED_DIR, ROOT
-from app.minimax_service import generate_music as generate_minimax_music
-from app.minimax_service import generate_narration
+from app.dashscope_audio_service import generate_music, generate_narration
 from app.observability import get_logger, log_event, log_exception
 
 
@@ -359,26 +358,26 @@ class CreationService:
     ) -> dict[str, Any]:
         GENERATED_DIR.mkdir(parents=True, exist_ok=True)
         plan = build_creation_plan(result, location, investigation)
-        music_path = GENERATED_DIR / f"{job_id}_minimax_music.mp3"
-        narration_path = GENERATED_DIR / f"{job_id}_minimax_narration.mp3"
+        music_path = GENERATED_DIR / f"{job_id}_dashscope_music.mp3"
+        narration_path = GENERATED_DIR / f"{job_id}_dashscope_narration.mp3"
         raw_video_path = GENERATED_DIR / f"{job_id}_wan.mp4"
         video_path = GENERATED_DIR / f"{job_id}_postcard.mp4"
-        music_provider = "ai-music"
+        music_provider = "dashscope-fun-music"
         music_warning = ""
         progress("generating_music", "正在把自然声音变成音乐", {"plan": plan})
         if music_path.exists():
-            music_warning = "复用上一次已完成的 MiniMax 音乐"
-            excerpt_seconds = int(os.getenv("MINIMAX_MUSIC_EXCERPT_SECONDS", "20"))
+            music_warning = "复用上一次已完成的百炼音乐"
+            excerpt_seconds = int(os.getenv("DASHSCOPE_MUSIC_EXCERPT_SECONDS", "20"))
             if duration_seconds(music_path) > excerpt_seconds + 1:
                 trim_audio_excerpt(music_path, music_path, excerpt_seconds)
                 music_warning += "，并裁剪为短片片段"
         else:
             full_music_path = music_path.with_suffix(".full.mp3")
             try:
-                generate_minimax_music(plan["music_prompt"], full_music_path)
+                generate_music(plan["music_prompt"], full_music_path)
                 trim_audio_excerpt(
                     full_music_path, music_path,
-                    int(os.getenv("MINIMAX_MUSIC_EXCERPT_SECONDS", "20")),
+                    int(os.getenv("DASHSCOPE_MUSIC_EXCERPT_SECONDS", "20")),
                 )
             except Exception as exc:
                 log_exception(logger, "music_provider_fallback", job_id=job_id)
@@ -411,7 +410,7 @@ class CreationService:
             "music_warning": music_warning,
             "music_path": str(music_path),
             "music_url": f"/api/jobs/{job_id}/creation/music",
-            "narration_provider": "ai-speech" if narration_path.exists() else "unavailable",
+            "narration_provider": "dashscope-qwen-audio-tts" if narration_path.exists() else "unavailable",
             "narration_warning": narration_warning,
             "narration_text": plan["narration"],
             "narration_path": str(narration_path) if narration_path.exists() else "",

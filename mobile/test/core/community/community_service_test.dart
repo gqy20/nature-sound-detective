@@ -8,6 +8,13 @@ import 'package:http/testing.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 
 void main() {
+  test('debug builds default to the reachable production community API', () {
+    final service = HttpCommunityService();
+    addTearDown(service.close);
+
+    expect(service.baseUri.toString(), 'https://listen-api.gqy20.top');
+  });
+
   test('coalesces anonymous session creation and sends bearer token', () async {
     final directory = await Directory.systemTemp.createTemp('community-auth-');
     addTearDown(() => directory.delete(recursive: true));
@@ -123,6 +130,65 @@ void main() {
       'https://api.example.test/api/community/media/story.mp4',
     );
     expect(posts.single.isDemo, isTrue);
+  });
+
+  test('resolves the backend-proxied park map URL', () async {
+    final directory = await Directory.systemTemp.createTemp('community-map-');
+    addTearDown(() => directory.delete(recursive: true));
+    final client = MockClient((request) async {
+      if (request.url.path == '/api/community/session') {
+        return http.Response(
+          jsonEncode({
+            'token': 'signed-test-token',
+            'expires_at':
+                DateTime.now()
+                    .add(const Duration(days: 1))
+                    .millisecondsSinceEpoch ~/
+                1000,
+          }),
+          200,
+        );
+      }
+      if (request.url.path == '/api/community/parks') {
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode([
+              {
+                'park_id': 'hangzhou-botanical-garden',
+                'park_name': '杭州植物园',
+                'area_id': 'xihu',
+                'area_name': '西湖区',
+                'habitat_tags': ['林地'],
+                'zone_count': 3,
+                'public_centroid': {'lat': 30.252, 'lng': 120.118},
+                'map_image_url': '/api/community/maps/hangzhou/static',
+                'map_provider': 'amap',
+              },
+            ]),
+          ),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }
+      return http.Response('not found', 404);
+    });
+    final service = HttpCommunityService(
+      baseUri: Uri.parse('https://api.example.test'),
+      client: client,
+      identityStore: CommunityIdentityStore(
+        directoryProvider: () async => directory,
+      ),
+    );
+
+    final park = (await service.listParks()).single;
+
+    expect(
+      park.mapImageUrl,
+      'https://api.example.test/api/community/maps/hangzhou/static',
+    );
+    expect(park.mapProvider, 'amap');
+    expect(park.latitude, 30.252);
+    expect(park.longitude, 120.118);
   });
 
   test('times out a hanging session and allows the next attempt', () async {

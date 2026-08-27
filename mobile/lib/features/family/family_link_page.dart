@@ -10,10 +10,12 @@ class FamilyLinkPage extends StatefulWidget {
     super.key,
     required this.coordinator,
     this.guidanceService,
+    this.preferredRole,
   });
 
   final FamilySessionCoordinator coordinator;
   final ParentGuidanceNetworkService? guidanceService;
+  final FamilyDeviceRole? preferredRole;
 
   @override
   State<FamilyLinkPage> createState() => _FamilyLinkPageState();
@@ -109,12 +111,13 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
     appBar: AppBar(
       title: const Text('家庭设备联动'),
       actions: [
-        IconButton(
-          key: const Key('family-companion-settings'),
-          tooltip: '家长陪伴设置',
-          onPressed: _showCompanionSettings,
-          icon: const Icon(Icons.tune_rounded),
-        ),
+        if (widget.preferredRole != FamilyDeviceRole.child)
+          IconButton(
+            key: const Key('family-companion-settings'),
+            tooltip: '家长陪伴设置',
+            onPressed: _showCompanionSettings,
+            icon: const Icon(Icons.tune_rounded),
+          ),
       ],
     ),
     body: AnimatedBuilder(
@@ -122,15 +125,26 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
       builder: (context, _) {
         final coordinator = widget.coordinator;
         final connection = coordinator.connection;
+        final role = connection?.role ?? widget.preferredRole;
         return ListView(
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 40),
           children: [
             Text(
-              '孩子探索，家长陪伴',
+              role == FamilyDeviceRole.child
+                  ? '连接家长陪伴端'
+                  : role == FamilyDeviceRole.parent
+                  ? '连接儿童探索端'
+                  : '孩子探索，家长陪伴',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 6),
-            const Text('两台设备只同步探索事件，不传儿童身份、原始录音或精确位置。'),
+            Text(
+              role == FamilyDeviceRole.child
+                  ? '输入家长设备显示的连接码。你的录音和观察仍保存在这台设备。'
+                  : role == FamilyDeviceRole.parent
+                  ? '创建临时连接，查看孩子的探索步骤和陪伴建议。'
+                  : '两台设备只同步探索事件，不传儿童身份、原始录音或精确位置。',
+            ),
             const SizedBox(height: 20),
             if (coordinator.error case final error?) ...[
               _FamilyNotice(message: error, error: true),
@@ -138,6 +152,7 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
             ],
             if (connection == null)
               _UnlinkedDevices(
+                role: role,
                 pairCodeController: _pairCodeController,
                 busy: coordinator.busy,
                 onCreateParent: coordinator.createParentSession,
@@ -170,12 +185,14 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
 
 class _UnlinkedDevices extends StatelessWidget {
   const _UnlinkedDevices({
+    required this.role,
     required this.pairCodeController,
     required this.busy,
     required this.onCreateParent,
     required this.onJoinChild,
   });
 
+  final FamilyDeviceRole? role;
   final TextEditingController pairCodeController;
   final bool busy;
   final VoidCallback onCreateParent;
@@ -184,63 +201,73 @@ class _UnlinkedDevices extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      _RoleCard(
-        icon: Icons.family_restroom_rounded,
-        title: '这是家长陪伴设备',
-        description: '创建一次临时探索，查看孩子的进度和陪伴建议。',
-        actionLabel: '开始陪伴',
-        onPressed: busy ? null : onCreateParent,
-      ),
-      const SizedBox(height: 14),
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.explore_rounded),
-                  SizedBox(width: 10),
-                  Text(
-                    '这是儿童探索设备',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+      if (role != FamilyDeviceRole.child)
+        _RoleCard(
+          icon: Icons.family_restroom_rounded,
+          title: '这是家长陪伴设备',
+          description: '创建一次临时探索，查看孩子的进度和陪伴建议。',
+          actionLabel: '开始陪伴',
+          onPressed: busy ? null : onCreateParent,
+        ),
+      if (role == null) const SizedBox(height: 14),
+      if (role != FamilyDeviceRole.parent)
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.explore_rounded),
+                    SizedBox(width: 10),
+                    Text(
+                      '这是儿童探索设备',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text('输入家长设备显示的6位连接码。'),
+                const SizedBox(height: 14),
+                TextField(
+                  key: const Key('family-pair-code-field'),
+                  controller: pairCodeController,
+                  enabled: !busy,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    letterSpacing: 8,
+                    fontWeight: FontWeight.w700,
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text('输入家长设备显示的6位连接码。'),
-              const SizedBox(height: 14),
-              TextField(
-                key: const Key('family-pair-code-field'),
-                controller: pairCodeController,
-                enabled: !busy,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  letterSpacing: 8,
-                  fontWeight: FontWeight.w700,
+                  decoration: const InputDecoration(
+                    counterText: '',
+                    labelText: '连接码',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-                decoration: const InputDecoration(
-                  counterText: '',
-                  labelText: '连接码',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 12),
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: pairCodeController,
+                  builder: (context, value, _) => FilledButton.icon(
+                    key: const Key('join-family-session'),
+                    onPressed: busy || value.text.length != 6
+                        ? null
+                        : onJoinChild,
+                    icon: const Icon(Icons.link_rounded),
+                    label: Text(value.text.isEmpty ? '输入6位连接码' : '连接家长设备'),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                key: const Key('join-family-session'),
-                onPressed: busy ? null : onJoinChild,
-                icon: const Icon(Icons.link_rounded),
-                label: const Text('连接家长设备'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
     ],
   );
 }
@@ -388,10 +415,11 @@ class _ParentLiveCompanion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cue = coordinator.latestCue;
+    final latestCommand = coordinator.commands.lastOrNull;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _FamilyNotice(message: '儿童探索端已连接 · 实时陪伴中'),
+        _FamilyNotice(message: _syncStatusLabel(coordinator, parent: true)),
         const SizedBox(height: 14),
         Card(
           color: const Color(0xFFFFF2CE),
@@ -408,31 +436,52 @@ class _ParentLiveCompanion extends StatelessWidget {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        cue.title,
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.hearing_rounded,
+                            color: Color(0xFF174936),
+                            size: 21,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              cue.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '刚刚',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        '现在可以说',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 14),
                       Text(
                         '“${cue.say}”',
-                        style: const TextStyle(fontSize: 17),
+                        style: const TextStyle(fontSize: 18, height: 1.45),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        cue.explanation,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: coordinator.markCueSeen,
-                          child: const Text('知道了'),
-                        ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          TextButton.icon(
+                            key: const Key('open-companion-cue-reason'),
+                            onPressed: () => _showCueReason(context, cue),
+                            icon: const Icon(
+                              Icons.info_outline_rounded,
+                              size: 18,
+                            ),
+                            label: const Text('为什么这样说'),
+                          ),
+                          const Spacer(),
+                          FilledButton.tonal(
+                            onPressed: coordinator.markCueSeen,
+                            child: const Text('标为已读'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -491,6 +540,16 @@ class _ParentLiveCompanion extends StatelessWidget {
               label: Text(template.value),
             ),
           ),
+        if (latestCommand != null) ...[
+          const SizedBox(height: 4),
+          _MissionDeliveryCard(
+            label:
+                familyMissionLabels[latestCommand.templateId] ??
+                latestCommand.templateId,
+            received: coordinator.missionReceived(latestCommand.commandId),
+            completed: coordinator.missionCompleted(latestCommand.commandId),
+          ),
+        ],
         const SizedBox(height: 18),
         Text('探索时间线', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
@@ -515,6 +574,28 @@ class _ParentLiveCompanion extends StatelessWidget {
       ],
     );
   }
+
+  Future<void> _showCueReason(BuildContext context, CompanionCue cue) =>
+      showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 4, 22, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('为什么这样回应', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 10),
+                Text(cue.explanation),
+                const SizedBox(height: 8),
+                const Text('重点是肯定孩子的观察过程，不把声音候选说成确定答案。'),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class _ChildConnected extends StatelessWidget {
@@ -525,7 +606,7 @@ class _ChildConnected extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const _FamilyNotice(message: '家长陪伴端已连接 · 可以开始探索'),
+      _FamilyNotice(message: _syncStatusLabel(coordinator, parent: false)),
       const SizedBox(height: 14),
       Card(
         child: Padding(
@@ -552,6 +633,21 @@ class _ChildConnected extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 14),
+                if (coordinator.missionCompleted(command.commandId))
+                  const Chip(
+                    avatar: Icon(Icons.check_rounded, size: 18),
+                    label: Text('已经告诉家长：任务完成'),
+                  )
+                else
+                  FilledButton.icon(
+                    key: const Key('complete-family-mission'),
+                    onPressed: coordinator.busy
+                        ? null
+                        : coordinator.completeLatestMission,
+                    icon: const Icon(Icons.task_alt_rounded),
+                    label: const Text('我完成了这个任务'),
+                  ),
               ],
             ],
           ),
@@ -590,6 +686,69 @@ class _FamilyNotice extends StatelessWidget {
   );
 }
 
+class _MissionDeliveryCard extends StatelessWidget {
+  const _MissionDeliveryCard({
+    required this.label,
+    required this.received,
+    required this.completed,
+  });
+
+  final String label;
+  final bool received;
+  final bool completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final (status, icon, color) = completed
+        ? ('儿童已完成', Icons.task_alt_rounded, const Color(0xFF1F6B4F))
+        : received
+        ? ('儿童已收到', Icons.mark_email_read_outlined, const Color(0xFF315D4A))
+        : ('等待儿童端接收', Icons.schedule_send_outlined, const Color(0xFF856018));
+    return Container(
+      key: const Key('family-mission-delivery-status'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(
+                  status,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _syncStatusLabel(
+  FamilySessionCoordinator coordinator, {
+  required bool parent,
+}) {
+  final side = parent ? '儿童探索端' : '家长陪伴端';
+  if (coordinator.error != null) return '$side已连接 · 同步暂时中断';
+  if (coordinator.syncing) return '$side已连接 · 正在同步';
+  final last = coordinator.lastSyncedAt;
+  if (last == null) return '$side已连接 · 等待首次同步';
+  final seconds = DateTime.now().difference(last).inSeconds;
+  if (seconds < 15) return '$side已连接 · 刚刚同步';
+  if (seconds < 60) return '$side已连接 · $seconds秒前同步';
+  return '$side已连接 · 请检查网络';
+}
+
 String _eventLabel(String type) => switch (type) {
   'captured_sound' => '完成现场录音',
   'imported_sound' => '导入声音继续调查',
@@ -599,5 +758,7 @@ String _eventLabel(String type) => switch (type) {
   'accepted_uncertainty' => '选择暂时不知道',
   'retried_recording' => '重新尝试录音',
   'completed_safe_route_stop' => '完成安全路线任务',
+  'mission_received' => '收到家长共同任务',
+  'mission_completed' => '完成家长共同任务',
   _ => '完成探索步骤',
 };

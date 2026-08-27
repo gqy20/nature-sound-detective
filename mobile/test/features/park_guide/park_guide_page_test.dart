@@ -10,6 +10,10 @@ import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart'
 
 void main() {
   testWidgets('filters parks and opens a parent-guided route', (tester) async {
+    tester.view.physicalSize = const Size(430, 950);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final listeningStore = _MemoryListeningContextStore();
     await tester.pumpWidget(
       MaterialApp(
@@ -22,17 +26,49 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile(
+        '../../../qa/runs/2026-08-27/025-marker-and-filter-surface-polish/screenshots/01-frameless-illustrated-criteria.png',
+      ),
+    );
+
     expect(find.text('今天去哪听？'), findsOneWidget);
-    expect(find.text('太子湾公园'), findsOneWidget);
-    expect(find.textContaining('不代表动物数量'), findsOneWidget);
+    expect(find.byKey(const Key('park-guide-criteria-page')), findsOneWidget);
+    expect(
+      find.byKey(const Key('park-guide-recommendations-page')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('park-first-recommendation')), findsNothing);
+    expect(find.text('调整家庭条件'), findsNothing);
+    expect(find.textContaining('不代表动物数量'), findsNothing);
+    final preferences = find.byKey(const Key('park-preference-journal'));
+    expect(
+      find.descendant(of: preferences, matching: find.byType(Divider)),
+      findsNothing,
+    );
+    expect(
+      tester.getBottomLeft(preferences).dy,
+      lessThanOrEqualTo(tester.view.physicalSize.height),
+    );
 
     await tester.tap(find.text('6–7岁'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('park-guide-recommendations-page')),
+      findsOneWidget,
+    );
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile(
+        '../../../qa/runs/2026-08-27/022-map-and-layout-density-polish/screenshots/02-top-aligned-recommendation.png',
+      ),
+    );
     final recommendation = find.byKey(
       const Key('park-recommendation-taiziwan-park'),
     );
-    await tester.ensureVisible(recommendation);
-    await tester.pumpAndSettle();
     await tester.tap(recommendation);
     await tester.pumpAndSettle();
 
@@ -70,7 +106,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('太子湾公园'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(find.text('太子湾公园'), findsWidgets);
     expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
     expect(find.text('游园信息暂时没有连上，请稍后重试。'), findsNothing);
   });
@@ -84,6 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('5岁及以下'), findsOneWidget);
+    expect(find.text('孩子年龄'), findsOneWidget);
     expect(find.text('6–7岁'), findsOneWidget);
     expect(find.text('8–9岁'), findsOneWidget);
     expect(find.text('10–11岁'), findsOneWidget);
@@ -92,27 +131,26 @@ void main() {
     expect(find.text('都可以'), findsNothing);
     expect(find.text('需要无障碍路线'), findsOneWidget);
     expect(find.byType(Switch), findsOneWidget);
-    expect(find.text('查看 1 个推荐'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('park-age-fiveAndUnder')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('推荐已更新'), findsOneWidget);
-    expect(find.textContaining('暂无完整匹配'), findsOneWidget);
-    expect(find.textContaining('没有同时符合年龄和时间条件'), findsOneWidget);
+    expect(find.text('暂无完整匹配'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('park-age-sixToSeven')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('推荐已更新'), findsOneWidget);
-    expect(find.text('更匹配本次选择'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(find.text('本次首选'), findsOneWidget);
     expect(
       find.byKey(const Key('park-recommendation-change-reason')),
       findsOneWidget,
     );
-    expect(find.text('太子湾公园'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    expect(find.text('太子湾公园'), findsWidgets);
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('park-guide-criteria-page')), findsOneWidget);
   });
 
   testWidgets('stops loading and offers retry when park list hangs', (
@@ -151,7 +189,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('park-guide-loading')), findsNothing);
-    expect(find.text('太子湾公园'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(find.text('太子湾公园'), findsWidgets);
     expect(find.textContaining('探索路线暂时不可用'), findsOneWidget);
   });
 
@@ -169,7 +209,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('重新加载'), findsNothing);
-    expect(find.text('太子湾公园'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(find.text('太子湾公园'), findsWidgets);
     expect(service.calls, 3);
   });
 }

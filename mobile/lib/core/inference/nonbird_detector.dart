@@ -45,6 +45,7 @@ class NonBirdDetector {
   final Interpreter _interpreter;
   final IsolateInterpreter _isolate;
   final NonBirdModelCatalog catalog;
+  bool _closed = false;
 
   Future<List<SoundDetection>> detectEmbeddings(
     List<BirdnetEmbeddingWindow> windows,
@@ -236,6 +237,8 @@ class NonBirdDetector {
   }
 
   Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
     await _isolate.close();
     _interpreter.close();
   }

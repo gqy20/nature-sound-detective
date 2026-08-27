@@ -135,12 +135,24 @@ class RollingFileLogSink implements LogSink {
 }
 
 class AppLogger {
-  AppLogger({required List<LogSink> sinks, this.memoryLimit = 200})
-    : _sinks = List.of(sinks);
+  AppLogger({
+    required List<LogSink> sinks,
+    this.memoryLimit = 200,
+    this.errorDedupeWindow = const Duration(seconds: 5),
+    DateTime Function()? clock,
+  }) : _sinks = List.of(sinks),
+       _clock = clock ?? DateTime.now;
 
   final List<LogSink> _sinks;
   final int memoryLimit;
+  final Duration errorDedupeWindow;
+  final DateTime Function() _clock;
   final List<LogEntry> _recent = [];
+  String? _lastErrorFingerprint;
+  LogEntry? _lastErrorEntry;
+  DateTime? _errorWindowStartedAt;
+  DateTime? _lastSuppressedAt;
+  int _suppressedErrorCount = 0;
   RollingFileLogSink? fileSink;
 
   List<LogEntry> get recent => List.unmodifiable(_recent.reversed);
@@ -154,16 +166,38 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
+    final now = _clock();
+    final sanitizedError = error == null ? null : _redact(error.toString());
+    if (level == LogLevel.error) {
+      final firstLine = sanitizedError?.split(RegExp(r'[\r\n]')).first ?? '';
+      final fingerprint = '$component\u0000$event\u0000$firstLine';
+      final startedAt = _errorWindowStartedAt;
+      if (_lastErrorFingerprint == fingerprint &&
+          startedAt != null &&
+          now.difference(startedAt) <= errorDedupeWindow) {
+        _suppressedErrorCount++;
+        _lastSuppressedAt = now;
+        return;
+      }
+      _flushSuppressedErrors(now);
+      _lastErrorFingerprint = fingerprint;
+      _errorWindowStartedAt = now;
+    }
     final entry = LogEntry(
-      timestamp: DateTime.now(),
+      timestamp: now,
       level: level,
       component: component,
       event: event,
       traceId: traceId,
       fields: _sanitizeFields(fields),
-      error: error == null ? null : _redact(error.toString()),
+      error: sanitizedError,
       stackTrace: stackTrace == null ? null : _redact(stackTrace.toString()),
     );
+    if (level == LogLevel.error) _lastErrorEntry = entry;
+    _record(entry);
+  }
+
+  void _record(LogEntry entry) {
     _recent.add(entry);
     if (_recent.length > memoryLimit) _recent.removeAt(0);
     for (final sink in _sinks) {
@@ -171,7 +205,36 @@ class AppLogger {
     }
   }
 
+  void _flushSuppressedErrors(DateTime now) {
+    final source = _lastErrorEntry;
+    if (_suppressedErrorCount > 0 && source != null) {
+      final lastAt = _lastSuppressedAt ?? now;
+      final startedAt = _errorWindowStartedAt ?? lastAt;
+      _record(
+        LogEntry(
+          timestamp: now,
+          level: LogLevel.error,
+          component: source.component,
+          event: '${source.event}_repeated',
+          traceId: source.traceId,
+          fields: {
+            'original_event': source.event,
+            'count': _suppressedErrorCount,
+            'window_ms': lastAt.difference(startedAt).inMilliseconds,
+          },
+          error: source.error,
+        ),
+      );
+    }
+    _lastErrorFingerprint = null;
+    _lastErrorEntry = null;
+    _errorWindowStartedAt = null;
+    _lastSuppressedAt = null;
+    _suppressedErrorCount = 0;
+  }
+
   Future<void> flush() async {
+    _flushSuppressedErrors(_clock());
     await Future.wait(_sinks.map((sink) => sink.flush()));
   }
 

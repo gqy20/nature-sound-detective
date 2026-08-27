@@ -150,7 +150,7 @@ uv run python -m app.cli analyze "data/demo.wav" `
 | `yamnet` | 只运行通用声景模型 | 无 |
 | `acoustic` | 只运行BirdNET与非鸟分类头，用于专业模型调试 | 无 |
 
-分析完成后生成 `artifacts/cli-runs/<run-id>/`。CLI 分析命令不调用 MiniMax 或 Wan，不产生媒体生成费用。
+分析完成后生成 `artifacts/cli-runs/<run-id>/`。CLI 分析命令不调用 Fun-Music、Qwen-Audio-TTS 或 Wan，不产生媒体生成费用。
 
 ### 5.3 查看运行包
 

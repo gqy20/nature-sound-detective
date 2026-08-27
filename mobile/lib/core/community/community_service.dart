@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:path/path.dart' as p;
@@ -105,9 +104,10 @@ class HttpCommunityService implements CommunityService {
 
   static String get _defaultBaseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    return kReleaseMode
-        ? 'https://listen-api.gqy20.top'
-        : 'http://10.0.2.2:8770';
+    // Debug APKs are frequently installed on physical devices, where
+    // 10.0.2.2 does not point to the developer computer. Local backend work
+    // remains available through --dart-define=COMMUNITY_API_URL=...
+    return 'https://listen-api.gqy20.top';
   }
 
   final Uri baseUri;
@@ -184,9 +184,9 @@ class HttpCommunityService implements CommunityService {
     final response = await _request(
       _client.get(_uri('/api/community/parks'), headers: await _headers()),
     );
-    return _decodeList(
-      response,
-    ).map(CommunityPark.fromJson).toList(growable: false);
+    return _decodeList(response)
+        .map((json) => CommunityPark.fromJson(json, baseUri: baseUri))
+        .toList(growable: false);
   }
 
   @override

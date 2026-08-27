@@ -48,6 +48,7 @@ class MainActivity : FlutterActivity() {
         private const val CHANNEL = "com.xykw.nature_sound/audio_recorder"
         private const val MEDIA_CHANNEL = "com.xykw.nature_sound/media_composer"
         private const val BACKGROUND_CHANNEL = "com.xykw.nature_sound/creation_background"
+        private const val MAP_PRIVACY_CHANNEL = AMAP_PRIVACY_CHANNEL
         private const val TAG = "NatureAudio"
         private const val PERMISSION_REQUEST = 7301
         private const val AUDIO_PICK_REQUEST = 7302
@@ -105,6 +106,41 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MAP_PRIVACY_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                val preferences = getSharedPreferences(
+                    AMAP_PRIVACY_PREFERENCES,
+                    MODE_PRIVATE,
+                )
+                when (call.method) {
+                    "isAvailable" -> result.success(BuildConfig.AMAP_NATIVE_MAP_ENABLED)
+                    "hasConsent" -> result.success(
+                        preferences.getBoolean(AMAP_PRIVACY_ACCEPTED, false),
+                    )
+                    "accept" -> {
+                        preferences.edit().putBoolean(AMAP_PRIVACY_ACCEPTED, true).apply()
+                        result.success(null)
+                    }
+                    "revoke" -> {
+                        preferences.edit().putBoolean(AMAP_PRIVACY_ACCEPTED, false).apply()
+                        result.success(null)
+                    }
+                    "openPrivacyPolicy" -> {
+                        startActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://lbs.amap.com/pages/privacy/"),
+                            ),
+                        )
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        flutterEngine.platformViewsController.registry.registerViewFactory(
+            AMAP_VIEW_TYPE,
+            AmapSoundscapeViewFactory(flutterEngine.dartExecutor.binaryMessenger),
+        )
     }
 
     @UnstableApi

@@ -108,9 +108,29 @@ class _DetectionFeedbackPanelState extends State<_DetectionFeedbackPanel> {
               ],
             ),
             if (_decision == FeedbackDecision.wrong && taxa.isNotEmpty)
-              DropdownButton<String>(
-                hint: const Text('可选正确物种'),
-                value: _correctedTaxonId,
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                hint: const Text('选择更接近的物种'),
+                initialValue: _correctedTaxonId,
+                borderRadius: BorderRadius.circular(20),
+                dropdownColor: const Color(0xFFFFFDF7),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFFFFFCF5),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: const BorderSide(color: Color(0xFFE2DDCF)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    borderSide: const BorderSide(color: Color(0xFFE2DDCF)),
+                  ),
+                ),
                 items: [
                   for (final taxon in taxa)
                     DropdownMenuItem(

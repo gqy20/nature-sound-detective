@@ -1320,8 +1320,8 @@
     {
       "output_index": 2982,
       "scientific_name": "Ixos mcclellandii",
-      "name_zh": "Mountain Bulbul",
-      "source_name_zh": "Mountain Bulbul",
+      "name_zh": "绿翅短脚鹎",
+      "source_name_zh": "绿翅短脚鹎",
       "name_en": "Mountain Bulbul",
       "geo_score": 0.630802
     },
@@ -1408,8 +1408,8 @@
     {
       "output_index": 1878,
       "scientific_name": "Dendrocopos major",
-      "name_zh": "Great Spotted Woodpecker",
-      "source_name_zh": "Great Spotted Woodpecker",
+      "name_zh": "大斑啄木鸟",
+      "source_name_zh": "大斑啄木鸟",
       "name_en": "Great Spotted Woodpecker",
       "geo_score": 0.614806
     },
@@ -1432,24 +1432,24 @@
     {
       "output_index": 5076,
       "scientific_name": "Pterorhinus pectoralis",
-      "name_zh": "Greater Necklaced Laughingthrush",
-      "source_name_zh": "Greater Necklaced Laughingthrush",
+      "name_zh": "黑领噪鹛",
+      "source_name_zh": "黑领噪鹛",
       "name_en": "Greater Necklaced Laughingthrush",
       "geo_score": 0.608845
     },
     {
       "output_index": 2146,
       "scientific_name": "Enicurus leschenaulti",
-      "name_zh": "White-crowned Forktail",
-      "source_name_zh": "White-crowned Forktail",
+      "name_zh": "白冠燕尾",
+      "source_name_zh": "白冠燕尾",
       "name_en": "White-crowned Forktail",
       "geo_score": 0.608031
     },
     {
       "output_index": 2518,
       "scientific_name": "Glaucidium cuculoides",
-      "name_zh": "Asian Barred Owlet",
-      "source_name_zh": "Asian Barred Owlet",
+      "name_zh": "斑头鸺鹠",
+      "source_name_zh": "斑头鸺鹠",
       "name_en": "Asian Barred Owlet",
       "geo_score": 0.607093
     },

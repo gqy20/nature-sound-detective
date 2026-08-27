@@ -1,77 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
-import 'package:nature_sound_detective/core/community/route_progress_store.dart';
+import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
 import 'package:nature_sound_detective/features/community/soundscape_page.dart';
+import 'package:nature_sound_detective/features/community/native_amap_view.dart';
 
 void main() {
+  testWidgets('reuses startup soundscape preload without duplicate requests', (
+    tester,
+  ) async {
+    final service = _FakeCommunityService();
+    final preloader = SoundscapePreloader(service: service);
+    await preloader.load();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: service,
+          preloader: preloader,
+          recordsLoader: () async => const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(service.areaRequests, 1);
+    expect(service.postRequests, 1);
+    expect(service.parkRequests, 1);
+    expect(find.byKey(const Key('soundscape-map-section')), findsOneWidget);
+  });
+
+  testWidgets('offers a lightweight handoff to the park guide', (tester) async {
+    var opened = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _FakeCommunityService(),
+          recordsLoader: () async => const [],
+          onOpenParkGuide: () => opened = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('open-park-guide-from-soundscape')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('open-park-guide-from-soundscape')));
+
+    expect(opened, isTrue);
+  });
+
+  testWidgets('returns to the city map when the primary page is re-entered', (
+    tester,
+  ) async {
+    final position = ValueNotifier<double>(0);
+    addTearDown(position.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _FakeCommunityService(),
+          recordsLoader: () async => const [],
+          primaryPagePosition: position,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final list = find.byType(ListView).first;
+    await tester.drag(list, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    final scrollable = tester.state<ScrollableState>(
+      find.byType(Scrollable).first,
+    );
+    expect(scrollable.position.pixels, greaterThan(0));
+
+    position.value = 1;
+    await tester.pump();
+
+    expect(scrollable.position.pixels, 0);
+    expect(find.byKey(const Key('soundscape-map-section')), findsOneWidget);
+  });
+
   testWidgets('shows regional soundscape and structured listening card', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(430, 950);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final service = _FakeCommunityService();
     await tester.pumpWidget(
       MaterialApp(
         home: SoundscapePage(
           service: service,
           recordsLoader: () async => const [],
-          routeProgressStore: _MemoryRouteProgressStore(),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('共听杭州'), findsOneWidget);
-    expect(find.textContaining('1 条真实观察 · 1 条体验示例'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('demo-filter-demo')));
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<ChoiceChip>(find.byKey(const Key('demo-filter-demo')))
-          .selected,
-      isTrue,
-    );
-    await tester.tap(find.byKey(const Key('demo-filter-all')));
-    await tester.pumpAndSettle();
-    expect(find.text('杭州植物园'), findsOneWidget);
-    expect(find.text('今日自然声讯'), findsOneWidget);
-    expect(find.textContaining('等待更多声音'), findsOneWidget);
-    expect(find.text('为什么可能这样'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('park-zone-sound-map')),
-      250,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('林下步道'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('open-exploration-route-botanical-morning-canopy')),
-      250,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('亲子自然探索'), findsOneWidget);
-    expect(find.text('清晨树冠声音路线'), findsOneWidget);
-    await tester.tap(
-      find.byKey(const Key('open-exploration-route-botanical-morning-canopy')),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('自然探索路线'), findsOneWidget);
-    expect(find.text('已完成 0 / 1 个倾听任务'), findsOneWidget);
-    await tester.tap(
-      find.byKey(
-        const Key('route-stop-hangzhou-botanical-garden:lingfeng-entrance'),
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile(
+        '../../../qa/runs/2026-08-27/024-soundscape-community-focus/screenshots/01-community-map-first.png',
       ),
     );
+
+    expect(find.text('共听杭州'), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-map-section')), findsOneWidget);
+    expect(find.text('最新声音'), findsOneWidget);
+    expect(find.text('等你辨认'), findsOneWidget);
+    expect(find.text('本周任务'), findsNothing);
+    expect(find.byKey(const Key('soundscape-today-focus')), findsNothing);
+    expect(find.byKey(const Key('park-zone-sound-map')), findsNothing);
+    expect(find.text('发布'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('soundscape-info-button')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('路线探索完成'), findsOneWidget);
-    await tester.pageBack();
+    expect(find.textContaining('1 条真实观察 · 1 条体验示例'), findsOneWidget);
+    expect(find.textContaining('记录数量不代表动物数量'), findsOneWidget);
+    await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.text('杭州实景'), findsOneWidget);
+    expect(find.text('离线底图'), findsOneWidget);
     expect(find.byKey(const Key('hangzhou-offline-map')), findsOneWidget);
-    await tester.scrollUntilVisible(
+    await tester.ensureVisible(
       find.byKey(const Key('open-fullscreen-soundscape-map')),
-      250,
-      scrollable: find.byType(Scrollable).first,
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('open-fullscreen-soundscape-map')));
     await tester.pumpAndSettle();
     expect(find.text('杭州声音地图'), findsOneWidget);
@@ -83,7 +140,15 @@ void main() {
     await tester.tap(find.byKey(const Key('soundscape-map-reset')));
     await tester.tap(find.byKey(const Key('soundscape-area-xihu')));
     await tester.pumpAndSettle();
-    expect(find.text('查看这里的声音'), findsOneWidget);
+    final selectedPanel = find.byKey(const Key('fullscreen-area-panel'));
+    expect(selectedPanel, findsOneWidget);
+    expect(
+      find.descendant(
+        of: selectedPanel,
+        matching: find.textContaining('不展示精确录音位置'),
+      ),
+      findsNothing,
+    );
     await tester.tap(find.byKey(const Key('open-selected-soundscape-area')));
     await tester.pumpAndSettle();
     expect(find.text('共听杭州'), findsOneWidget);
@@ -120,25 +185,116 @@ void main() {
     await tester.tap(find.byKey(const Key('publish-community-sound')));
     await tester.pumpAndSettle();
 
-    expect(find.text('自然册里还没有声音'), findsOneWidget);
+    expect(find.textContaining('自然册里还没有声音'), findsOneWidget);
     expect(find.textContaining('先完成一次录音和调查'), findsOneWidget);
+  });
+
+  testWidgets('offers native dynamic map on first fullscreen entry', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 950);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    debugNativeAmapSupported = true;
+    var accepted = false;
+    const privacyChannel = MethodChannel('com.xykw.nature_sound/amap_privacy');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(privacyChannel, (call) async {
+          if (call.method == 'isAvailable') return true;
+          if (call.method == 'hasConsent') return false;
+          if (call.method == 'accept') accepted = true;
+          return null;
+        });
+    addTearDown(() {
+      debugNativeAmapSupported = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(privacyChannel, null);
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _FakeCommunityService(),
+          recordsLoader: () async => const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('open-fullscreen-soundscape-map')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('open-fullscreen-soundscape-map')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('enable-native-amap-first-use')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('native-map-choice-sheet'))).height,
+      lessThanOrEqualTo(300),
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile(
+        '../../../qa/runs/2026-08-27/022-map-and-layout-density-polish/screenshots/03-compact-map-source-sheet.png',
+      ),
+    );
+    await tester.tap(find.byKey(const Key('enable-native-amap-first-use')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(accepted, isTrue);
+    expect(find.byKey(const Key('native-amap-view')), findsOneWidget);
+    expect(find.text('高德动态地图'), findsOneWidget);
+  });
+
+  testWidgets('uses native AMap immediately after consent was saved', (
+    tester,
+  ) async {
+    debugNativeAmapSupported = true;
+    const privacyChannel = MethodChannel('com.xykw.nature_sound/amap_privacy');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(privacyChannel, (call) async {
+          if (call.method == 'isAvailable') return true;
+          if (call.method == 'hasConsent') return true;
+          return null;
+        });
+    addTearDown(() {
+      debugNativeAmapSupported = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(privacyChannel, null);
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _FakeCommunityService(),
+          recordsLoader: () async => const [],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('open-fullscreen-soundscape-map')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('open-fullscreen-soundscape-map')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byKey(const Key('native-amap-view')), findsOneWidget);
+    expect(find.text('高德动态地图'), findsOneWidget);
   });
 }
 
-class _MemoryRouteProgressStore implements RouteProgressStore {
-  final _values = <String, ExplorationRouteProgress>{};
-
-  @override
-  Future<ExplorationRouteProgress> load(String routeId) async =>
-      _values[routeId] ?? ExplorationRouteProgress(routeId: routeId);
-
-  @override
-  Future<void> save(ExplorationRouteProgress progress) async {
-    _values[progress.routeId] = progress;
-  }
-}
-
 class _FakeCommunityService implements CommunityService {
+  int areaRequests = 0;
+  int postRequests = 0;
+  int parkRequests = 0;
   final post = CommunityPost(
     id: 'post-1',
     alias: '雾林探员 027',
@@ -195,27 +351,33 @@ class _FakeCommunityService implements CommunityService {
   );
 
   @override
-  Future<List<SoundscapeArea>> listAreas() async => const [
-    SoundscapeArea(
-      id: 'xihu',
-      name: '西湖区',
-      postCount: 1,
-      waitingCount: 1,
-      soundTypes: ['鸟鸣'],
-    ),
-  ];
+  Future<List<SoundscapeArea>> listAreas() async {
+    areaRequests++;
+    return const [
+      SoundscapeArea(
+        id: 'xihu',
+        name: '西湖区',
+        postCount: 1,
+        waitingCount: 1,
+        soundTypes: ['鸟鸣'],
+      ),
+    ];
+  }
 
   @override
-  Future<List<CommunityPark>> listParks() async => const [
-    CommunityPark(
-      id: 'hangzhou-botanical-garden',
-      name: '杭州植物园',
-      areaId: 'xihu',
-      areaName: '西湖区',
-      habitatTags: ['林地'],
-      zoneCount: 3,
-    ),
-  ];
+  Future<List<CommunityPark>> listParks() async {
+    parkRequests++;
+    return const [
+      CommunityPark(
+        id: 'hangzhou-botanical-garden',
+        name: '杭州植物园',
+        areaId: 'xihu',
+        areaName: '西湖区',
+        habitatTags: ['林地'],
+        zoneCount: 3,
+      ),
+    ];
+  }
 
   @override
   Future<List<CommunitySite>> listSites({String? parkId}) async => const [
@@ -276,10 +438,10 @@ class _FakeCommunityService implements CommunityService {
   ];
 
   @override
-  Future<List<CommunityPost>> listPosts({String? areaId}) async => [
-    post,
-    demoPost,
-  ];
+  Future<List<CommunityPost>> listPosts({String? areaId}) async {
+    postRequests++;
+    return [post, demoPost];
+  }
 
   @override
   Future<CommunityPost> assist(

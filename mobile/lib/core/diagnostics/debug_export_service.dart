@@ -161,15 +161,14 @@ class DebugExportService {
 
       await _writeJson(File(p.join(staging.path, 'device.json')), deviceInfo);
       await _writeJson(File(p.join(staging.path, 'config.json')), {
-        'minimax_configured': settings.hasMusic,
-        'dashscope_configured': settings.hasVideo,
+        'dashscope_configured': settings.hasDashscopeKey,
         'dashscope_workspace_configured': settings.dashscopeWorkspaceId
             .trim()
             .isNotEmpty,
-        'dashscope_region': settings.dashscopeRegion,
-        'music_model': settings.minimaxMusicModel,
-        'speech_model': settings.minimaxSpeechModel,
-        'speech_voice': settings.minimaxSpeechVoice,
+        'dashscope_region': 'beijing',
+        'music_model': settings.dashscopeMusicModel,
+        'speech_model': settings.dashscopeSpeechModel,
+        'speech_voice': settings.dashscopeSpeechVoice,
         'video_model': settings.wanVideoModel,
       });
 

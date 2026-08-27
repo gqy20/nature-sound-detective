@@ -2,6 +2,9 @@
 
 面向杭州亲子家庭的自然声音 AI 工具原型：采集户外声音，识别常见物种，生成儿童科普内容，并逐步扩展声音故事、音乐与成长记录。
 
+版本变化见 [CHANGELOG.md](./CHANGELOG.md)，正式发布流程见
+[docs/release-process.md](./docs/release-process.md)。
+
 ## 当前进度
 
 - 使用 `uv` 管理 Python 3.11 环境；
@@ -11,7 +14,7 @@
 - 完成 BirdNET 2.4 第二阶段基线；
 - 接入杭州 200 种鸟类目录，并训练、安装 5 类来源标签非鸟声音基线；
 - 生成 142 个三秒候选片段，并按源录音隔离训练、验证和测试集合。
-- 跑通 Qwen3.5-Omni + BirdNET 亲子识别 MVP，并加入 20 秒输入提示、可取消等待、谨慎置信度、儿童内容安全护栏和上一次结果恢复。
+- 跑通 YAMNet + BirdNET + 非鸟分类头的本地亲子识别链路，并加入 20 秒输入提示、可取消等待、谨慎置信度、儿童内容安全护栏和上一次结果恢复。
 - 完成体验增强：无模型示例、录音音质检查、结果纠错、本机声音册、分类错误恢复和 24 小时录音清理。
 - 跑通 AI 配乐、AI 科普语音、通义万相 Wan 2.7 与 FFmpeg 三轨合成的创作闭环；开发环境默认不调用付费视频接口。
 - 完成 Web、Flutter、Android 原生层与 Python 服务端的结构化日志、跨端 trace ID、脱敏滚动日志和端侧诊断导出。
@@ -27,7 +30,7 @@
 flowchart LR
     A[手机录音或上传音频] --> B[截取前 20 秒]
     B --> C[单声道 16 kHz PCM WAV]
-    C --> D[Qwen3.5-Omni<br/>自然声音大类]
+    C --> D[YAMNet<br/>自然声音大类]
     C --> E[BirdNET 2.4<br/>杭州 200 种鸟类候选与非鸟嵌入]
     E --> J[5 类非鸟分类头<br/>蛙类、鸣虫与背景候选]
     D --> F[规则融合与置信度约束]
@@ -40,7 +43,7 @@ flowchart LR
 
 1. **采集录音**：浏览器通过 `MediaRecorder` 录制最长 20 秒的声音，也支持上传 15 MB 以内的常见音频文件。
 2. **统一格式**：浏览器将音频转换为单声道、16 kHz、16-bit PCM WAV；本地完整版还会用 FFmpeg 再次解码、截断和标准化。
-3. **声音大类识别**：Qwen3.5-Omni 直接理解 WAV 音频，判断鸟类、蛙类、昆虫、雨水、流水、风和树叶、人声、脚步、交通或机械噪声等大类，同时返回听觉依据与不确定性。
+3. **声音大类识别**：YAMNet 在本地判断鸟类、蛙类、昆虫、雨水、流水、风和树叶、人声、脚步、交通或机械噪声等大类，并返回对应时间片。正式分析链路不调用通用音频多模态大模型。
 4. **多类群候选**：本地完整版并行运行 BirdNET Acoustic 2.4，并用杭州坐标的全年地理先验将 6,522 个输出缩小为 200 种本地鸟类候选；原先验证过的 6 种鸟全部保留。蛙类与鸣虫复用 BirdNET 嵌入，当前已安装由 283 条来源标签录音训练的 5 类基线。它只能给出候选，仍需杭州公园人工听审测试集验证。
 5. **结果融合**：系统过滤越界类别，只保留一个主要声音；其他弱线索进入“可能还听到”。BirdNET 候选置信度达到 `0.25` 才展示，达到 `0.5` 才可将鸟声线索提升为较高置信度。
 6. **安全展示**：最终科普标题、解释、观察问题和安全提示来自审核过的类别模板，不直接展示未经约束的大模型故事，避免把候选物种写成确定事实。
@@ -51,7 +54,7 @@ flowchart LR
 
 | 能力 | 本地完整版 `app.main:app` | Vercel 线上版 `api/index.py` |
 |---|---|---|
-| Qwen 声音大类识别 | 支持 | 支持 |
+| YAMNet 声音大类识别 | 支持 | 支持 |
 | BirdNET 鸟种候选 | 支持 | 暂不支持 |
 | 异步任务与进度查询 | 支持 | 暂不支持，直接返回结果 |
 | 原录音回放与服务端任务保存 | 支持，默认保留不超过 24 小时 | 暂不持久化 |
@@ -76,18 +79,55 @@ uv sync --python 3.11
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8770
 ```
 
-浏览器打开 `http://127.0.0.1:8770/`。MVP 支持手机录音或上传，使用 Qwen3.5-Omni 识别自然声音大类；本地完整版再用 BirdNET 补充杭州 200 种鸟类候选。蛙类与鸣虫扩展见 [多类群声学识别接入](./docs/20-多类群声学识别接入.md)。
+浏览器打开 `http://127.0.0.1:8770/`。MVP 支持手机录音或上传，使用 YAMNet 识别自然声音大类；本地完整版再用 BirdNET 补充杭州 200 种鸟类候选，并用非鸟分类头补充蛙虫候选。蛙类与鸣虫扩展见 [多类群声学识别接入](./docs/20-多类群声学识别接入.md)。
+
+## 调查链路 CLI
+
+CLI 与本地 FastAPI 共享调查证据、观察问题和状态迁移逻辑，不需要手动激活虚拟环境：
+
+```powershell
+uv run python -m app.cli doctor
+uv run python -m app.cli analyze "data/demo.wav" --mode acoustic --location "杭州植物园"
+uv run python -m app.cli inspect "artifacts/cli-runs/<run-id>" --stage investigation
+uv run python -m app.cli investigate "artifacts/cli-runs/<run-id>" --choice observed
+uv run python -m app.cli replay "artifacts/cli-runs/<run-id>" --json
+```
+
+`analyze` 支持 `full`、`yamnet` 和 `acoustic` 三种本地模式，并生成默认不复制原始录音的可回放运行包。完整契约、API 端点、隐私边界和 Flutter 后续接入路线见 [CLI 与真实交互一致性调试体系](./docs/24-CLI与真实交互一致性调试体系.md)。
 
 ### 启动共听杭州
 
-服务端在 `.env` 中读取 `DATABASE_URL`。首次连接新的 Neon 数据库时执行：
+服务端在 `.env` 中读取 `DATABASE_URL`。数据库迁移默认只读检查，不需要进入 Neon 控制台：
 
 ```powershell
-uv run python -c "from pathlib import Path; from dotenv import load_dotenv; import os, psycopg; load_dotenv('.env'); connection=psycopg.connect(os.environ['DATABASE_URL']); connection.execute(Path('migrations/001_community_mvp.sql').read_text(encoding='utf-8')); connection.commit(); connection.close()"
+uv run python scripts/community_migrate.py
+uv run python scripts/community_migrate.py --json
 ```
+
+确认目标主机和待执行版本后，才使用写入模式：
+
+```powershell
+uv run python scripts/community_migrate.py --apply --confirm-host <status输出的完整主机名>
+```
+
+写入模式使用文件校验和、事务、PostgreSQL advisory lock 和迁移后验收；确认主机不完全匹配时会在连接写入前停止。CI 可使用 `--require-current` 检查数据库是否已经升级。
 
 Android 模拟器默认访问 `http://10.0.2.2:8770`。Release 包默认访问
 `https://listen-api.gqy20.top`，也可以通过编译参数覆盖：
+
+移动端日常命令统一从仓库根目录执行。Makefile 会优先使用环境变量指定的
+`FLUTTER` / `DART`，Windows 上未指定时自动使用
+`%USERPROFILE%/development/flutter/bin`：
+
+```powershell
+make help
+make build      # debug APK
+make verify     # analyze + full tests
+make release    # verify + arm64 release APK
+```
+
+`make release` 只构建发布 APK，不会自动升级版本、创建 Tag、推送或发布
+GitHub Release；正式版本发布仍遵循 `docs/release-process.md`。
 
 ```powershell
 flutter run --dart-define=COMMUNITY_API_URL=http://192.168.1.10:8770
@@ -116,9 +156,9 @@ defaults to `community`.
 对象存储配置必须整组提供，缺少任一项时服务端会拒绝启动，避免线上误写临时磁盘。撤回公开记录会同时删除对象存储中的短音频。API 仍有单实例内存限流；正式公开推广时应在 CDN/API Gateway 再增加分布式限流与滥用检测。
 Vercel Production 未配置对象存储时仍可浏览声景，但发布接口会返回 `503`，不会假装持久化成功。
 
-本地服务默认在启动完成前预加载 BirdNET 和非鸟分类头，避免第一条录音再承担模型加载时间；`GET /api/health` 的 `models` 字段可查看加载状态和耗时。内存受限时可用 `PRELOAD_MODELS=false` 恢复按需加载。Qwen 客户端仍按需创建，不会在启动时发起网络请求。
+本地服务默认在启动完成前顺序预加载 YAMNet、BirdNET 和非鸟分类头，避免第一条录音再承担模型加载时间；`GET /api/health` 的 `models` 字段可查看加载状态和耗时。内存受限时可用 `PRELOAD_MODELS=false` 恢复按需加载。
 
-线上展示版：[xykw-web.vercel.app](https://xykw-web.vercel.app)。它连接 [xykw-api.vercel.app](https://xykw-api.vercel.app)，使用 Qwen 完成声音大类识别；BirdNET、音乐、旁白和视频创作仍由本地完整版提供。
+线上展示版：[listen.gqy20.top](https://listen.gqy20.top/)。它连接轻量云端YAMNet服务完成声音大类识别；BirdNET、非鸟具体候选、音乐、旁白和视频创作仍由本地完整版提供。
 
 复制 `.env.example` 后填写密钥。`WAN_VIDEO_MODE` 默认为 `mock`，不会产生视频费用；比赛演示可设为 `reuse` 并指定已有成片，只有最终验收才显式设为 `live`。
 

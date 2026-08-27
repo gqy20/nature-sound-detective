@@ -63,7 +63,7 @@ def _doctor(_args: argparse.Namespace) -> int:
         "yamnet_server_model": (ROOT / "mobile/assets/models/yamnet.tflite").is_file(),
         "story_live_enabled": os.getenv("STORY_MODE", "template").strip().lower() == "live",
         "story_key_configured": bool(os.getenv("STORY_API_KEY") or os.getenv("DASHSCOPE_API_KEY")),
-        "minimax_configured": bool(os.getenv("MINIMAX_API_KEY")),
+        "dashscope_audio_configured": bool(os.getenv("DASHSCOPE_API_KEY")),
         "wan_live_enabled": os.getenv("WAN_VIDEO_MODE", "mock").strip().lower() == "live",
     }
     required = (

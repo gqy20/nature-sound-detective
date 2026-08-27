@@ -12,6 +12,13 @@ import 'package:nature_sound_detective/core/family/family_session_store.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 
 void main() {
+  test('debug builds default family sessions to the production API', () {
+    final service = FamilySessionService();
+    addTearDown(service.close);
+
+    expect(service.baseUri.toString(), 'https://listen-api.gqy20.top');
+  });
+
   test('event queue serializes concurrent events and keeps sequence', () async {
     final directory = await Directory.systemTemp.createTemp('family-events-');
     addTearDown(() => directory.delete(recursive: true));
@@ -95,6 +102,61 @@ void main() {
     expect(await queue.pending(), isEmpty);
     coordinator.dispose();
   });
+
+  test('child acknowledges and completes a shared mission', () async {
+    final directory = await Directory.systemTemp.createTemp('family-mission-');
+    addTearDown(() => directory.delete(recursive: true));
+    final connection = _connection(FamilyDeviceRole.child);
+    final store = _MemoryFamilySessionStore()..value = connection;
+    final command = FamilyCommand(
+      commandId: 'cmd-1',
+      templateId: 'listen_again_before_guessing',
+      sequence: 1,
+      createdAt: DateTime.utc(2026, 8, 27, 8),
+    );
+    final service = _FakeFamilyService(
+      connection: connection,
+      commands: [command],
+    );
+    final coordinator = FamilySessionCoordinator(
+      service: service,
+      store: store,
+      eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+    );
+
+    await coordinator.initialize();
+    expect(
+      service.uploaded.any((event) => event.type == 'mission_received'),
+      isTrue,
+    );
+
+    await coordinator.completeLatestMission();
+    expect(
+      service.uploaded.any((event) => event.type == 'mission_completed'),
+      isTrue,
+    );
+    expect(coordinator.missionCompleted('cmd-1'), isTrue);
+    coordinator.dispose();
+  });
+
+  test('parent keeps the latest sent mission for delivery feedback', () async {
+    final directory = await Directory.systemTemp.createTemp('family-parent-');
+    addTearDown(() => directory.delete(recursive: true));
+    final connection = _connection(FamilyDeviceRole.parent);
+    final store = _MemoryFamilySessionStore()..value = connection;
+    final service = _FakeFamilyService(connection: connection);
+    final coordinator = FamilySessionCoordinator(
+      service: service,
+      store: store,
+      eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+    );
+
+    await coordinator.initialize();
+    await coordinator.sendMission('compare_high_low_sound');
+
+    expect(coordinator.commands.single.templateId, 'compare_high_low_sound');
+    coordinator.dispose();
+  });
 }
 
 FamilySessionConnection _connection(FamilyDeviceRole role) =>
@@ -106,11 +168,13 @@ FamilySessionConnection _connection(FamilyDeviceRole role) =>
     );
 
 class _FakeFamilyService extends FamilySessionService {
-  _FakeFamilyService({required this.connection})
+  _FakeFamilyService({required this.connection, this.commands = const []})
     : super(client: MockClient((_) async => http.Response('{}', 200)));
 
   final FamilySessionConnection connection;
+  final List<FamilyCommand> commands;
   final List<FamilyExplorationEvent> uploaded = [];
+  bool _commandsReturned = false;
 
   @override
   Future<FamilySessionConnection> loadSession(String sessionId) async {
@@ -127,10 +191,31 @@ class _FakeFamilyService extends FamilySessionService {
   }
 
   @override
-  Future<List<FamilyCommand>> loadCommands(
+  Future<List<FamilyExplorationEvent>> loadEvents(
     String sessionId,
     int afterSequence,
   ) async => const [];
+
+  @override
+  Future<FamilyCommand> sendCommand(
+    String sessionId,
+    String templateId,
+  ) async => FamilyCommand(
+    commandId: 'cmd-sent',
+    templateId: templateId,
+    sequence: 1,
+    createdAt: DateTime.utc(2026, 8, 27, 9),
+  );
+
+  @override
+  Future<List<FamilyCommand>> loadCommands(
+    String sessionId,
+    int afterSequence,
+  ) async {
+    if (_commandsReturned) return const [];
+    _commandsReturned = true;
+    return commands;
+  }
 }
 
 class _MemoryFamilySessionStore extends FamilySessionStore {

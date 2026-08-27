@@ -223,6 +223,14 @@ class CompanionCueEngine {
           explanation: '肯定诚实判断，而不是要求孩子必须选出答案。',
           priority: 100,
         ),
+        'mission_completed' => CompanionCue(
+          eventId: event.eventId,
+          behavior: ExplorationBehavior.completedObservation,
+          title: '孩子完成了共同任务',
+          say: '你把刚才的任务认真做完了，还记得把结果告诉我。',
+          explanation: '及时确认共同任务，帮助孩子感受到家长真的在参与。',
+          priority: 95,
+        ),
         'compared_evidence' => CompanionCue(
           eventId: event.eventId,
           behavior: ExplorationBehavior.comparedEvidence,
@@ -270,6 +278,14 @@ class CompanionCueEngine {
           say: '你把刚才听见的声音保存下来，让发现有了可以回听的证据。',
           explanation: '把录音理解成留下证据，而不是完成任务打卡。',
           priority: 30,
+        ),
+        'mission_received' => CompanionCue(
+          eventId: event.eventId,
+          behavior: ExplorationBehavior.completedObservation,
+          title: '孩子已经收到共同任务',
+          say: '任务已经到你那里了，按自己的节奏慢慢找线索。',
+          explanation: '确认任务送达，不催促孩子立即完成。',
+          priority: 25,
         ),
         _ => null,
       };

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 MODELS = ASSETS / "models"
@@ -10,11 +9,14 @@ LABELS = ASSETS / "labels"
 
 MAX_AUDIO_SECONDS = 20
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+BIRD_SPECIES_DISPLAY_THRESHOLD = 0.42
+SUPPORTED_AUDIO_SUFFIXES = {".aac", ".flac", ".m4a", ".mp3", ".ogg", ".wav", ".webm"}
 VERSION = "0.1.0"
 
 GITHUB_URL = "https://github.com/gqy20/nature-sound-detective"
 APK_URL = f"{GITHUB_URL}/releases/download/{VERSION}/nature-sound-detective-{VERSION}-android-arm64.apk"
 WEB_URL = "https://xykw-web.vercel.app"
+STUDIO_DIRECT_URL = "https://gqy2025-nature-sound-detective.ms.show/"
 
 CATEGORY_NAMES = {
     "bird": "鸟类鸣叫",
@@ -39,4 +41,3 @@ OBSERVATION_TASKS = {
     "footsteps": "停下脚步再录一次，比较前后两段声音有什么变化。",
     "traffic": "远离道路和设备，在安全的人行区域换一个更安静的位置。",
 }
-

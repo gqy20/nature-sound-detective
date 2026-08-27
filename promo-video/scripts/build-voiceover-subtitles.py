@@ -39,6 +39,17 @@ def clean_text(text: str) -> str:
             .replace("通义万相二点七", "通义万相 Wan 2.7"))
 
 
+def strip_display_line_end_punctuation(text: str) -> str:
+    """Remove visually redundant punctuation at each rendered subtitle line end."""
+    lines = re.split(r"(\\N|\n)", text)
+    return "".join(
+        re.sub(r"[，。、；：,.;:]+$", "", part.rstrip())
+        if part not in {r"\N", "\n"}
+        else part
+        for part in lines
+    )
+
+
 def parse_srt(path: Path) -> list[tuple[float, float, str]]:
     if not path.exists():
         return []
@@ -149,7 +160,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             usable = max(0.08, event_end - cursor)
             for part, weight in zip(parts, weights):
                 finish = min(event_end, cursor + usable * weight / sum(weights))
-                styled = two_lines(part, max_chars).replace("{", r"\{").replace("}", r"\}")
+                display_part = strip_display_line_end_punctuation(part)
+                styled = strip_display_line_end_punctuation(two_lines(display_part, max_chars))
+                styled = styled.replace("{", r"\{").replace("}", r"\}")
                 scene_local_start = cursor - float(scene["start"])
                 if scene_id == "S10":
                     style = "SideLight" if scene_local_start < 2.1 else "StoryLight"
@@ -170,7 +183,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 global_srt.extend([
                     str(srt_index),
                     f"{srt_time(cursor)} --> {srt_time(finish)}",
-                    part,
+                    display_part,
                     "",
                 ])
                 srt_index += 1

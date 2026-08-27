@@ -5,6 +5,7 @@ import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/family/family_session_service.dart';
 import 'package:nature_sound_detective/core/family/family_session_store.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
+import 'package:nature_sound_detective/core/logging/app_log.dart';
 
 class FamilySessionCoordinator extends ChangeNotifier {
   FamilySessionCoordinator({
@@ -28,6 +29,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
   bool _refreshing = false;
   bool _syncing = false;
   bool _disposed = false;
+  DateTime? _lastSyncedAt;
 
   FamilySessionConnection? get connection => _connection;
   List<FamilyExplorationEvent> get events => List.unmodifiable(_events);
@@ -36,35 +38,66 @@ class FamilySessionCoordinator extends ChangeNotifier {
   String? get error => _error;
   bool get busy => _busy;
   bool get hasUnseenCue => _latestCue != null;
+  bool get syncing => _syncing || _refreshing;
+  DateTime? get lastSyncedAt => _lastSyncedAt;
 
   Future<void> initialize() async {
-    _connection = await _store.load();
-    if (_connection != null) {
-      await refresh();
-      _schedulePolling();
+    AppLog.info(
+      'family',
+      'family_service_configured',
+      fields: {
+        'api_scheme': _service.baseUri.scheme,
+        'api_host': _service.baseUri.host,
+      },
+    );
+    try {
+      _connection = await _store.load();
+      if (_connection != null) {
+        await refresh();
+        _schedulePolling();
+      }
+      AppLog.info(
+        'family',
+        'family_session_initialized',
+        fields: {
+          'restored': _connection != null,
+          'role': _connection?.role.name,
+          'status': _connection?.status.name,
+        },
+      );
+    } catch (error, stackTrace) {
+      _error = error.toString();
+      AppLog.warning(
+        'family',
+        'family_session_initialize_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
     _notify();
   }
 
   Future<void> createParentSession() async {
-    await _run(() async {
+    await _run('create_parent_session', () async {
       await _eventQueue.clear();
       _connection = await _service.createParentSession();
       _events.clear();
       _commands.clear();
       _latestCue = null;
+      _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
       _schedulePolling();
     });
   }
 
   Future<void> joinAsChild(String pairCode) async {
-    await _run(() async {
+    await _run('join_as_child', () async {
       await _eventQueue.clear();
       _connection = await _service.joinAsChild(pairCode);
       _events.clear();
       _commands.clear();
       _latestCue = null;
+      _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
       _schedulePolling();
     });
@@ -73,10 +106,11 @@ class FamilySessionCoordinator extends ChangeNotifier {
   Future<void> approveChild() async {
     final value = _connection;
     if (value == null || value.role != FamilyDeviceRole.parent) return;
-    await _run(() async {
+    await _run('approve_child', () async {
       _connection = (await _service.approve(
         value.sessionId,
       )).copyWith(pairCode: value.pairCode, pairExpiresAt: value.pairExpiresAt);
+      _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
       _schedulePolling();
     });
@@ -105,8 +139,16 @@ class FamilySessionCoordinator extends ChangeNotifier {
       }
       await _store.save(_connection!);
       _error = null;
-    } catch (error) {
+      _lastSyncedAt = DateTime.now();
+    } catch (error, stackTrace) {
       _error = error.toString();
+      AppLog.warning(
+        'family',
+        'family_session_refresh_failed',
+        fields: {'role': value.role.name, 'status': value.status.name},
+        error: error,
+        stackTrace: stackTrace,
+      );
     } finally {
       _refreshing = false;
     }
@@ -147,10 +189,43 @@ class FamilySessionCoordinator extends ChangeNotifier {
         !value.active) {
       return;
     }
-    await _run(() async {
-      await _service.sendCommand(value.sessionId, templateId);
+    await _run('send_mission', () async {
+      final command = await _service.sendCommand(value.sessionId, templateId);
+      _commands.add(command);
+      _lastSyncedAt = DateTime.now();
     });
   }
+
+  Future<void> completeLatestMission() async {
+    final value = _connection;
+    final command = _commands.lastOrNull;
+    if (value == null ||
+        command == null ||
+        value.role != FamilyDeviceRole.child ||
+        !value.active ||
+        missionCompleted(command.commandId)) {
+      return;
+    }
+    final event = await _eventQueue.append('mission_completed', {
+      'command_id': command.commandId,
+      'template_id': command.templateId,
+    });
+    _events.add(event);
+    await _syncPendingEvents();
+    _notify();
+  }
+
+  bool missionReceived(String commandId) => _events.any(
+    (event) =>
+        event.type == 'mission_received' &&
+        event.payload['command_id'] == commandId,
+  );
+
+  bool missionCompleted(String commandId) => _events.any(
+    (event) =>
+        event.type == 'mission_completed' &&
+        event.payload['command_id'] == commandId,
+  );
 
   void markCueSeen() {
     if (_latestCue == null) return;
@@ -161,7 +236,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
   Future<void> endSession() async {
     final value = _connection;
     if (value == null) return;
-    await _run(() async {
+    await _run('end_session', () async {
       if (value.role == FamilyDeviceRole.parent) {
         await _service.end(value.sessionId);
       }
@@ -169,7 +244,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
     });
   }
 
-  Future<void> leaveLocalSession() => _run(_clearLocal);
+  Future<void> leaveLocalSession() => _run('leave_local_session', _clearLocal);
 
   Future<void> _clearLocal() async {
     _pollTimer?.cancel();
@@ -177,6 +252,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _events.clear();
     _commands.clear();
     _latestCue = null;
+    _lastSyncedAt = null;
     await _store.clear();
     await _eventQueue.clear();
   }
@@ -193,8 +269,27 @@ class FamilySessionCoordinator extends ChangeNotifier {
     try {
       final events = await _eventQueue.pending();
       if (events.isEmpty) return;
+      AppLog.debug(
+        'family',
+        'family_event_sync_started',
+        fields: {'event_count': events.length},
+      );
       await _service.sendEvents(value.sessionId, events);
       await _eventQueue.remove(events.map((event) => event.eventId));
+      _lastSyncedAt = DateTime.now();
+      AppLog.info(
+        'family',
+        'family_event_sync_completed',
+        fields: {'event_count': events.length},
+      );
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'family',
+        'family_event_sync_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     } finally {
       _syncing = false;
     }
@@ -216,7 +311,13 @@ class FamilySessionCoordinator extends ChangeNotifier {
     final lastSequence = fresh.last.sequence;
     _connection = value.copyWith(lastEventSequence: lastSequence);
     _latestCue = const CompanionCueEngine().build(fresh);
+    _lastSyncedAt = DateTime.now();
     await _store.save(_connection!);
+    AppLog.info(
+      'family',
+      'family_parent_events_received',
+      fields: {'event_count': fresh.length, 'last_sequence': lastSequence},
+    );
   }
 
   Future<void> _pollChildCommands() async {
@@ -233,7 +334,24 @@ class FamilySessionCoordinator extends ChangeNotifier {
     if (fresh.isEmpty) return;
     _commands.addAll(fresh);
     _connection = value.copyWith(lastCommandSequence: fresh.last.sequence);
+    for (final command in fresh) {
+      final event = await _eventQueue.append('mission_received', {
+        'command_id': command.commandId,
+        'template_id': command.templateId,
+      });
+      _events.add(event);
+    }
+    await _syncPendingEvents();
+    _lastSyncedAt = DateTime.now();
     await _store.save(_connection!);
+    AppLog.info(
+      'family',
+      'family_child_commands_received',
+      fields: {
+        'command_count': fresh.length,
+        'last_sequence': fresh.last.sequence,
+      },
+    );
   }
 
   void _schedulePolling() {
@@ -248,15 +366,43 @@ class FamilySessionCoordinator extends ChangeNotifier {
     });
   }
 
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
+  Future<void> _run(String operation, Future<void> Function() action) async {
+    if (_busy) {
+      AppLog.warning(
+        'family',
+        'family_operation_blocked',
+        fields: {'operation': operation, 'reason': 'another_operation_active'},
+      );
+      return;
+    }
     _busy = true;
     _error = null;
+    AppLog.info(
+      'family',
+      'family_operation_started',
+      fields: {'operation': operation},
+    );
     _notify();
     try {
       await action();
-    } catch (error) {
+      AppLog.info(
+        'family',
+        'family_operation_completed',
+        fields: {
+          'operation': operation,
+          'role': _connection?.role.name,
+          'status': _connection?.status.name,
+        },
+      );
+    } catch (error, stackTrace) {
       _error = error.toString();
+      AppLog.warning(
+        'family',
+        'family_operation_failed',
+        fields: {'operation': operation},
+        error: error,
+        stackTrace: stackTrace,
+      );
     } finally {
       _busy = false;
       _notify();

@@ -133,6 +133,12 @@ def migration_detected(version: int, snapshot: SchemaSnapshot) -> bool:
         return "community_parent_guidance_quotas" in snapshot.relations
     if version == 4:
         return "community_parent_guidance_cache" in snapshot.relations
+    if version == 5:
+        return {
+            "family_exploration_sessions",
+            "family_exploration_events",
+            "family_session_commands",
+        }.issubset(snapshot.relations)
     return False
 
 

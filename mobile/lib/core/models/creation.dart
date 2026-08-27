@@ -13,64 +13,55 @@ enum CreationStage {
 
 class CreationSettings {
   const CreationSettings({
-    this.minimaxApiKey = '',
-    this.minimaxMusicModel = 'music-2.6',
-    this.minimaxSpeechModel = 'speech-2.8-hd',
-    this.minimaxSpeechVoice = 'female-tianmei',
     this.dashscopeApiKey = '',
     this.dashscopeWorkspaceId = '',
-    this.dashscopeRegion = 'beijing',
+    this.dashscopeMusicModel = 'fun-music-v1',
+    this.dashscopeSpeechModel = 'qwen-audio-3.0-tts-plus',
+    this.dashscopeSpeechVoice = 'longanlingxin',
     this.wanVideoModel = 'wan2.7-t2v',
   });
 
   factory CreationSettings.fromJson(Map<String, Object?> json) {
     return CreationSettings(
-      minimaxApiKey: json['minimax_api_key'] as String? ?? '',
-      minimaxMusicModel: json['minimax_music_model'] as String? ?? 'music-2.6',
-      minimaxSpeechModel:
-          json['minimax_speech_model'] as String? ?? 'speech-2.8-hd',
-      minimaxSpeechVoice:
-          json['minimax_speech_voice'] as String? ?? 'female-tianmei',
       dashscopeApiKey: json['dashscope_api_key'] as String? ?? '',
       dashscopeWorkspaceId: json['dashscope_workspace_id'] as String? ?? '',
-      dashscopeRegion: json['dashscope_region'] as String? ?? 'beijing',
+      dashscopeMusicModel:
+          json['dashscope_music_model'] as String? ?? 'fun-music-v1',
+      dashscopeSpeechModel:
+          json['dashscope_speech_model'] as String? ??
+          'qwen-audio-3.0-tts-plus',
+      dashscopeSpeechVoice:
+          json['dashscope_speech_voice'] as String? ?? 'longanlingxin',
       wanVideoModel: json['wan_video_model'] as String? ?? 'wan2.7-t2v',
     );
   }
 
-  final String minimaxApiKey;
-  final String minimaxMusicModel;
-  final String minimaxSpeechModel;
-  final String minimaxSpeechVoice;
   final String dashscopeApiKey;
   final String dashscopeWorkspaceId;
-  final String dashscopeRegion;
+  final String dashscopeMusicModel;
+  final String dashscopeSpeechModel;
+  final String dashscopeSpeechVoice;
   final String wanVideoModel;
 
-  bool get hasMusic => minimaxApiKey.trim().isNotEmpty;
-  bool get hasVideo => dashscopeApiKey.trim().isNotEmpty;
-  bool get canCreate => hasMusic && hasVideo;
+  bool get hasDashscopeKey => dashscopeApiKey.trim().isNotEmpty;
+  bool get hasMusic => hasDashscopeKey;
+  bool get hasNarration => hasDashscopeKey;
+  bool get hasVideo => hasDashscopeKey;
+  bool get canCreate => hasDashscopeKey;
 
   String get dashscopeBaseUrl {
     final workspace = dashscopeWorkspaceId.trim();
-    if (dashscopeRegion == 'singapore') {
-      return workspace.isEmpty
-          ? 'https://dashscope-intl.aliyuncs.com'
-          : 'https://$workspace.ap-southeast-1.maas.aliyuncs.com';
-    }
     return workspace.isEmpty
         ? 'https://dashscope.aliyuncs.com'
         : 'https://$workspace.cn-beijing.maas.aliyuncs.com';
   }
 
   Map<String, Object?> toJson() => {
-    'minimax_api_key': minimaxApiKey.trim(),
-    'minimax_music_model': minimaxMusicModel.trim(),
-    'minimax_speech_model': minimaxSpeechModel.trim(),
-    'minimax_speech_voice': minimaxSpeechVoice.trim(),
     'dashscope_api_key': dashscopeApiKey.trim(),
     'dashscope_workspace_id': dashscopeWorkspaceId.trim(),
-    'dashscope_region': dashscopeRegion,
+    'dashscope_music_model': dashscopeMusicModel.trim(),
+    'dashscope_speech_model': dashscopeSpeechModel.trim(),
+    'dashscope_speech_voice': dashscopeSpeechVoice.trim(),
     'wan_video_model': wanVideoModel.trim(),
   };
 }

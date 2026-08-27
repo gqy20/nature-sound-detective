@@ -8,6 +8,7 @@ import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/works_page.dart';
 import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
+import 'package:nature_sound_detective/shared/widgets/app_popover_menu.dart';
 
 String _speciesKey(SoundDetection detection) {
   final scientificName = detection.specificSpecies?.scientificName?.trim();
@@ -18,10 +19,16 @@ String _speciesKey(SoundDetection detection) {
 }
 
 class NatureBookPage extends StatefulWidget {
-  const NatureBookPage({super.key, this.store, this.playback});
+  const NatureBookPage({
+    super.key,
+    this.store,
+    this.playback,
+    this.onOpenSoundscape,
+  });
 
   final ExplorationStore? store;
   final AudioPlayback? playback;
+  final VoidCallback? onOpenSoundscape;
 
   @override
   State<NatureBookPage> createState() => _NatureBookPageState();
@@ -166,11 +173,13 @@ class _NatureBookPageState extends State<NatureBookPage> {
       actions: [
         IconButton(
           tooltip: '共听杭州',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => SoundscapePage(explorationStore: _store),
-            ),
-          ),
+          onPressed:
+              widget.onOpenSoundscape ??
+              () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => SoundscapePage(explorationStore: _store),
+                ),
+              ),
           icon: const Icon(Icons.radar_rounded),
         ),
       ],
@@ -307,13 +316,24 @@ class _SoundRecordCard extends StatelessWidget {
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
+              AppPopoverMenu<String>(
+                tooltip: '声音记录操作',
+                minWidth: 160,
                 onSelected: (value) {
                   if (value == 'delete') onDelete();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'delete', child: Text('删除')),
+                actions: const [
+                  AppPopoverAction(
+                    value: 'delete',
+                    label: '删除',
+                    icon: Icons.delete_outline_rounded,
+                    destructive: true,
+                  ),
                 ],
+                child: const SizedBox.square(
+                  dimension: 44,
+                  child: Icon(Icons.more_horiz_rounded),
+                ),
               ),
             ],
           ),

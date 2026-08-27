@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,23 +13,60 @@ void main() {
       directoryProvider: () async => directory,
     );
     const settings = CreationSettings(
-      minimaxApiKey: 'minimax-key',
       dashscopeApiKey: 'dashscope-key',
       dashscopeWorkspaceId: 'workspace-1',
-      dashscopeRegion: 'singapore',
+      dashscopeMusicModel: 'fun-music-preview',
+      dashscopeSpeechModel: 'qwen-audio-3.0-tts-flash',
+      dashscopeSpeechVoice: 'longanfengyue',
     );
 
     await store.save(settings);
     final restored = await store.load();
 
-    expect(restored.minimaxApiKey, 'minimax-key');
     expect(restored.dashscopeApiKey, 'dashscope-key');
+    expect(restored.dashscopeMusicModel, 'fun-music-preview');
+    expect(restored.dashscopeSpeechModel, 'qwen-audio-3.0-tts-flash');
+    expect(restored.dashscopeSpeechVoice, 'longanfengyue');
     expect(
       restored.dashscopeBaseUrl,
-      'https://workspace-1.ap-southeast-1.maas.aliyuncs.com',
+      'https://workspace-1.cn-beijing.maas.aliyuncs.com',
     );
 
     await store.clear();
     expect((await store.load()).canCreate, isFalse);
+  });
+
+  test('one DashScope key enables the complete creation pipeline', () {
+    const settings = CreationSettings(dashscopeApiKey: 'dashscope-key');
+
+    expect(settings.hasMusic, isTrue);
+    expect(settings.hasNarration, isTrue);
+    expect(settings.canCreate, isTrue);
+  });
+
+  test('loading once removes legacy MiniMax and region fields', () async {
+    final directory = await Directory.systemTemp.createTemp('legacy_settings_');
+    addTearDown(() => directory.delete(recursive: true));
+    final config = Directory('${directory.path}/config')..createSync();
+    final file = File('${config.path}/creation_settings.json');
+    await file.writeAsString(
+      jsonEncode({
+        'minimax_api_key': 'legacy-key',
+        'minimax_music_model': 'music-2.6',
+        'dashscope_region': 'singapore',
+        'dashscope_api_key': 'dashscope-key',
+      }),
+    );
+    final store = FileCreationSettingsStore(
+      directoryProvider: () async => directory,
+    );
+
+    final loaded = await store.load();
+    final cleaned =
+        jsonDecode(await file.readAsString()) as Map<String, Object?>;
+
+    expect(loaded.dashscopeApiKey, 'dashscope-key');
+    expect(cleaned.keys.where((key) => key.startsWith('minimax_')), isEmpty);
+    expect(cleaned.containsKey('dashscope_region'), isFalse);
   });
 }

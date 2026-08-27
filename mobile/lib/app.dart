@@ -6,7 +6,7 @@ import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode_store.dart';
-import 'package:nature_sound_detective/features/capture/capture_page.dart';
+import 'package:nature_sound_detective/features/navigation/primary_feature_shell.dart';
 
 class NatureSoundApp extends StatefulWidget {
   const NatureSoundApp({
@@ -14,11 +14,13 @@ class NatureSoundApp extends StatefulWidget {
     this.analyzer,
     this.modeStore,
     this.familySessionCoordinator,
+    this.preloadSoundscape = true,
   });
 
   final RecordingAnalyzer? analyzer;
   final ExplorationModeStore? modeStore;
   final FamilySessionCoordinator? familySessionCoordinator;
+  final bool preloadSoundscape;
 
   @override
   State<NatureSoundApp> createState() => _NatureSoundAppState();
@@ -140,6 +142,40 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
             borderRadius: BorderRadius.all(Radius.circular(24)),
           ),
         ),
+        dialogTheme: const DialogThemeData(
+          elevation: 10,
+          backgroundColor: Color(0xFFFFFDF7),
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Color(0x331A352B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(28)),
+            side: BorderSide(color: Color(0xFFE2DDCF)),
+          ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          elevation: 8,
+          modalElevation: 12,
+          backgroundColor: Color(0xFFFFFDF7),
+          modalBackgroundColor: Color(0xFFFFFDF7),
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Color(0x331A352B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          showDragHandle: true,
+          dragHandleColor: Color(0xFFB8B5AA),
+          dragHandleSize: Size(38, 4),
+        ),
+        popupMenuTheme: PopupMenuThemeData(
+          elevation: 10,
+          color: const Color(0xFFFFFDF7),
+          surfaceTintColor: Colors.transparent,
+          shadowColor: const Color(0x331A352B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFFE2DDCF)),
+          ),
+        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(52),
@@ -160,11 +196,12 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
         ),
         useMaterial3: true,
       ),
-      home: CapturePage(
+      home: PrimaryFeatureShell(
         analyzer: widget.analyzer,
         mode: _mode,
         onModeChanged: _setMode,
         familySessionCoordinator: _familySessionCoordinator,
+        preloadSoundscape: widget.preloadSoundscape,
       ),
     );
   }

@@ -26,6 +26,8 @@ ALLOWED_EVENT_TYPES = {
     "accepted_uncertainty",
     "retried_recording",
     "completed_safe_route_stop",
+    "mission_received",
+    "mission_completed",
 }
 
 ALLOWED_COMMAND_TEMPLATES = {

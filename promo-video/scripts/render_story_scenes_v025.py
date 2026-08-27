@@ -33,7 +33,7 @@ WORKSPACE = PROJECT.parent
 SCENES = {
     "S02": (4.0, "听得见，却看不见。"),
     "S03": (7.0, "整片声景，都是线索。"),
-    "S04": (6.0, "一次散步，变成共同调查。"),
+    "S04": (6.0, "循着声音，寻找自然。"),
     "S05": (7.0, "先确认这段声音证据。"),
     "S06": (10.0, "候选，不是答案。"),
     "S07": (6.0, "模型找候选，孩子去验证。"),
@@ -302,7 +302,7 @@ def product_frame(scene: str, t: float, screen: Image.Image, f, relief, wave, ex
         draw.text((1250, 486), "第一条线索", font=f["title"], fill=(*INK, round(255 * a)))
         draw.text((660, 690), "先保留声音，再开始判断。", font=f["label"], fill=(*MUTED, 225))
     elif scene == "S04":
-        title(draw, "一次散步，变成共同调查。", f)
+        title(draw, "循着声音，寻找自然。", f)
         # A short listening pulse resolves into the real locally recorded bird.
         cx, cy = 1215, 505
         pulse_fade = 1.0 - smooth((t - 0.35) / 0.85)

@@ -16,7 +16,14 @@ import soundfile as sf
 from scipy.signal import resample_poly
 import tensorflow as tf
 
-from studio_config import CATEGORY_NAMES, LABELS, MAX_AUDIO_SECONDS, MODELS, OBSERVATION_TASKS
+from studio_config import (
+    BIRD_SPECIES_DISPLAY_THRESHOLD,
+    CATEGORY_NAMES,
+    LABELS,
+    MAX_AUDIO_SECONDS,
+    MODELS,
+    OBSERVATION_TASKS,
+)
 
 
 @dataclass(frozen=True)
@@ -109,6 +116,7 @@ class StudioAnalyzer:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
+        self._inference_lock = threading.Lock()
         self._loaded = False
 
     def _load(self) -> None:
@@ -250,7 +258,7 @@ class StudioAnalyzer:
         for bird in birds:
             support = generic_by_category.get("bird")
             supported = support is not None and self._overlap(bird.intervals, support.intervals)
-            if bird.confidence >= 0.10 and (supported or bird.confidence >= 0.20):
+            if bird.confidence >= BIRD_SPECIES_DISPLAY_THRESHOLD:
                 bird.confidence = min(1.0, bird.confidence + (0.04 if supported else 0.0))
                 result.append(bird)
             elif (supported and bird.confidence >= 0.05) or bird.confidence >= 0.08:
@@ -274,9 +282,13 @@ class StudioAnalyzer:
     def analyze(self, audio_path: str | Path) -> dict[str, Any]:
         self._load()
         waveform, sample_rate = _load_audio(audio_path)
-        generic = self._yamnet(waveform, sample_rate)
-        birds, nonbirds = self._birdnet_and_nonbird(waveform, sample_rate)
-        detections = self._fuse(generic, birds, nonbirds)
+        # TFLite Interpreter mutates shared tensor state during invoke(). Keep one
+        # request inside the model pipeline at a time when the Studio uses the
+        # process-wide analyzer instance.
+        with self._inference_lock:
+            generic = self._yamnet(waveform, sample_rate)
+            birds, nonbirds = self._birdnet_and_nonbird(waveform, sample_rate)
+            detections = self._fuse(generic, birds, nonbirds)
         duration = len(waveform) / sample_rate
         return {
             "duration": round(duration, 2),

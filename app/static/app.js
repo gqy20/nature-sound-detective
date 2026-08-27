@@ -904,7 +904,7 @@ function renderCreation(job) {
   if (hasMusic) {
     $("creation-audio").src = creation.music_url;
     $("download-music").href = creation.music_url;
-    $("music-provider").textContent = ["ai-music", "minimax-music"].includes(creation.music_provider)
+    $("music-provider").textContent = creation.music_provider === "dashscope-fun-music"
       ? "AI 配乐"
       : "原声混音";
   } else {
@@ -932,7 +932,7 @@ function renderCreation(job) {
   } else if (status === "failed") {
     $("creation-status").textContent = creation.error || "创作没有完成，可以重新尝试。";
   } else if (status === "completed") {
-    const musicLabel = ["ai-music", "minimax-music"].includes(creation.music_provider)
+    const musicLabel = creation.music_provider === "dashscope-fun-music"
       ? "配乐由 AI 生成"
       : "音乐使用本次自然原声制作";
     const narrationLabel = hasNarration ? "科普语音由 AI 生成" : "本次未生成科普语音";

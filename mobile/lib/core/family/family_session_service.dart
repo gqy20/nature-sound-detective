@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/family/family_session_models.dart';
@@ -31,9 +30,7 @@ class FamilySessionService {
   static const _configuredBaseUrl = String.fromEnvironment('COMMUNITY_API_URL');
   static String get _defaultBaseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    return kReleaseMode
-        ? 'https://listen-api.gqy20.top'
-        : 'http://10.0.2.2:8770';
+    return 'https://listen-api.gqy20.top';
   }
 
   final Uri baseUri;

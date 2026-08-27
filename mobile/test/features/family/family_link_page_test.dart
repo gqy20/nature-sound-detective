@@ -18,8 +18,72 @@ void main() {
 
     expect(find.text('孩子主动回听了声音'), findsOneWidget);
     expect(find.textContaining('又认真听了一遍'), findsOneWidget);
+    expect(find.text('现在可以说'), findsNothing);
+    expect(find.text('肯定主动求证的行为。'), findsNothing);
+    await tester.tap(find.byKey(const Key('open-companion-cue-reason')));
+    await tester.pumpAndSettle();
+    expect(find.text('为什么这样回应'), findsOneWidget);
+    expect(find.text('肯定主动求证的行为。'), findsOneWidget);
+    await tester.tap(find.byType(ModalBarrier).last);
+    await tester.pumpAndSettle();
     expect(find.text('发送共同任务'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('family-mission-delivery-status')),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
+    expect(find.text('儿童已收到'), findsOneWidget);
     expect(find.text('探索时间线'), findsOneWidget);
+  });
+
+  testWidgets('child connection waits for a complete six digit code', (
+    tester,
+  ) async {
+    final coordinator = _UnlinkedCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FamilyLinkPage(
+          coordinator: coordinator,
+          preferredRole: FamilyDeviceRole.child,
+        ),
+      ),
+    );
+
+    expect(find.text('连接家长陪伴端'), findsOneWidget);
+    expect(find.text('这是家长陪伴设备'), findsNothing);
+    expect(find.text('这是儿童探索设备'), findsOneWidget);
+    expect(find.byKey(const Key('family-companion-settings')), findsNothing);
+    final join = find.byKey(const Key('join-family-session'));
+    expect(tester.widget<FilledButton>(join).onPressed, isNull);
+    await tester.enterText(
+      find.byKey(const Key('family-pair-code-field')),
+      '123456',
+    );
+    await tester.pump();
+    expect(tester.widget<FilledButton>(join).onPressed, isNotNull);
+  });
+
+  testWidgets('parent role only shows the parent connection flow', (
+    tester,
+  ) async {
+    final coordinator = _UnlinkedCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FamilyLinkPage(
+          coordinator: coordinator,
+          preferredRole: FamilyDeviceRole.parent,
+        ),
+      ),
+    );
+
+    expect(find.text('连接儿童探索端'), findsOneWidget);
+    expect(find.text('这是家长陪伴设备'), findsOneWidget);
+    expect(find.text('这是儿童探索设备'), findsNothing);
+    expect(find.byKey(const Key('family-pair-code-field')), findsNothing);
+    expect(find.byKey(const Key('family-companion-settings')), findsOneWidget);
   });
 
   testWidgets('companion settings keeps AI usage away from praise', (
@@ -64,12 +128,24 @@ class _FakeCoordinator extends FamilySessionCoordinator {
     type: 'replayed_audio',
     occurredAt: DateTime.utc(2026, 8, 26, 12),
   );
+  final _command = FamilyCommand(
+    commandId: 'cmd-parent-1',
+    templateId: 'listen_again_before_guessing',
+    sequence: 1,
+    createdAt: DateTime.utc(2026, 8, 26, 12),
+  );
 
   @override
   FamilySessionConnection get connection => _connection;
 
   @override
   List<FamilyExplorationEvent> get events => [_event];
+
+  @override
+  List<FamilyCommand> get commands => [_command];
+
+  @override
+  bool missionReceived(String commandId) => commandId == _command.commandId;
 
   @override
   CompanionCue get latestCue => CompanionCue(
@@ -80,4 +156,13 @@ class _FakeCoordinator extends FamilySessionCoordinator {
     explanation: '肯定主动求证的行为。',
     priority: 55,
   );
+}
+
+class _UnlinkedCoordinator extends FamilySessionCoordinator {
+  String? joinedCode;
+
+  @override
+  Future<void> joinAsChild(String pairCode) async {
+    joinedCode = pairCode;
+  }
 }

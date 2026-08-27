@@ -66,6 +66,7 @@ class BirdnetDetector implements AudioDetector {
   final Interpreter _interpreter;
   final IsolateInterpreter _isolate;
   final List<BirdnetSpecies> _species;
+  bool _closed = false;
 
   @override
   String get modelId => 'birdnet-acoustic';
@@ -212,6 +213,8 @@ class BirdnetDetector implements AudioDetector {
   }
 
   Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
     await _isolate.close();
     _interpreter.close();
     AppLog.debug('birdnet', 'model_closed');

@@ -1290,10 +1290,10 @@
       "status": "converted_from_birdnet_zh"
     },
     "Ixos mcclellandii": {
-      "name_zh_cn": "Mountain Bulbul",
-      "source_name_zh": "Mountain Bulbul",
+      "name_zh_cn": "绿翅短脚鹎",
+      "source_name_zh": "绿翅短脚鹎",
       "aliases": [],
-      "status": "converted_from_birdnet_zh"
+      "status": "manually_reviewed_zh_cn"
     },
     "Chroicocephalus ridibundus": {
       "name_zh_cn": "红嘴鸥",
@@ -1376,10 +1376,10 @@
       "status": "converted_from_birdnet_zh"
     },
     "Dendrocopos major": {
-      "name_zh_cn": "Great Spotted Woodpecker",
-      "source_name_zh": "Great Spotted Woodpecker",
+      "name_zh_cn": "大斑啄木鸟",
+      "source_name_zh": "大斑啄木鸟",
       "aliases": [],
-      "status": "converted_from_birdnet_zh"
+      "status": "manually_reviewed_zh_cn"
     },
     "Passer cinnamomeus": {
       "name_zh_cn": "山麻雀",
@@ -1396,22 +1396,22 @@
       "status": "converted_from_birdnet_zh"
     },
     "Pterorhinus pectoralis": {
-      "name_zh_cn": "Greater Necklaced Laughingthrush",
-      "source_name_zh": "Greater Necklaced Laughingthrush",
+      "name_zh_cn": "黑领噪鹛",
+      "source_name_zh": "黑领噪鹛",
       "aliases": [],
-      "status": "converted_from_birdnet_zh"
+      "status": "manually_reviewed_zh_cn"
     },
     "Enicurus leschenaulti": {
-      "name_zh_cn": "White-crowned Forktail",
-      "source_name_zh": "White-crowned Forktail",
+      "name_zh_cn": "白冠燕尾",
+      "source_name_zh": "白冠燕尾",
       "aliases": [],
-      "status": "converted_from_birdnet_zh"
+      "status": "manually_reviewed_zh_cn"
     },
     "Glaucidium cuculoides": {
-      "name_zh_cn": "Asian Barred Owlet",
-      "source_name_zh": "Asian Barred Owlet",
+      "name_zh_cn": "斑头鸺鹠",
+      "source_name_zh": "斑头鸺鹠",
       "aliases": [],
-      "status": "converted_from_birdnet_zh"
+      "status": "manually_reviewed_zh_cn"
     },
     "Cinclus pallasii": {
       "name_zh_cn": "河乌",

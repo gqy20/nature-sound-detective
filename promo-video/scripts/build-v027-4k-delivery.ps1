@@ -14,7 +14,7 @@ $provenancePath = Join-Path $outputDir "xykw-promo-$Version-4k-provenance.md"
 $reviewDir = Join-Path $projectDir "09-qc/$Version-master-4k-1fps"
 New-Item -ItemType Directory -Force -Path $outputDir, $reviewDir | Out-Null
 
-if (-not (Test-Path -LiteralPath $source)) { throw "Missing 1080p v027 master: $source" }
+if (-not (Test-Path -LiteralPath $source)) { throw "Missing 1080p $Version master: $source" }
 
 if ($Force -or -not (Test-Path -LiteralPath $output)) {
     $filter = "scale=3840:2160:flags=lanczos+accurate_rnd+full_chroma_int,setsar=1,fps=30,format=yuv420p"
@@ -36,7 +36,7 @@ if ($Force -or -not (Test-Path -LiteralPath $output)) {
         "-c:a", "copy", "-movflags", "+faststart", $output
     )
     & ffmpeg @arguments
-    if ($LASTEXITCODE -ne 0) { throw "Failed to build v027 4K delivery master" }
+    if ($LASTEXITCODE -ne 0) { throw "Failed to build $Version 4K delivery master" }
 }
 
 Get-ChildItem -LiteralPath $reviewDir -Filter "frame-*.jpg" -ErrorAction SilentlyContinue | Remove-Item -Force
@@ -48,7 +48,7 @@ $manifest = [pscustomobject]@{
     version = $Version
     output = $output
     source = $source
-    export_kind = "4K delivery upscale from approved v027 1080p master"
+    export_kind = "4K delivery upscale from approved $Version 1080p master"
     scaler = "FFmpeg Lanczos accurate_rnd full_chroma_int"
     width = 3840
     height = 2160
@@ -68,7 +68,7 @@ $provenance = @(
     "- Content source: approved xykw-promo-$Version-1080p.mp4.",
     "- Output: 3840x2160, 30 fps, BT.709, H.264, original standardized AAC audio.",
     "- Scaling: Lanczos accurate rounding with full chroma interpolation.",
-    "- This is a high-quality 4K delivery upscale, not a native 4K re-render of every v027 design layer.",
+    "- This is a high-quality 4K delivery upscale, not a native 4K re-render of every $Version design layer.",
     "- Review: one frame per second extracted after export."
 ) -join [Environment]::NewLine
 [IO.File]::WriteAllText($provenancePath, $provenance, [Text.UTF8Encoding]::new($false))

@@ -9,17 +9,28 @@ import 'package:nature_sound_detective/core/models/creation.dart';
 import 'package:nature_sound_detective/core/network/direct_creation_service.dart';
 
 void main() {
-  test('downloads MiniMax music and completed Wan video', () async {
+  test('uses one DashScope key for music, narration and Wan video', () async {
     final directory = await Directory.systemTemp.createTemp('creation_test_');
     addTearDown(() => directory.delete(recursive: true));
     final requests = <http.Request>[];
     final client = MockClient((request) async {
       requests.add(request);
-      if (request.url.host == 'api.minimaxi.com') {
+      if (request.url.path.endsWith('/audio/music/generation')) {
         return http.Response(
           jsonEncode({
-            'data': {'audio': '494433'},
-            'base_resp': {'status_code': 0},
+            'output': {
+              'audio': {'url': 'https://download.example/music.mp3'},
+            },
+          }),
+          200,
+        );
+      }
+      if (request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
+        return http.Response(
+          jsonEncode({
+            'output': {
+              'audio': {'url': 'https://download.example/narration.mp3'},
+            },
           }),
           200,
         );
@@ -44,7 +55,9 @@ void main() {
         );
       }
       if (request.url.host == 'download.example') {
-        return http.Response.bytes([0, 0, 0, 24, 102, 116, 121, 112], 200);
+        return request.url.path.endsWith('.mp3')
+            ? http.Response.bytes([73, 68, 51], 200)
+            : http.Response.bytes([0, 0, 0, 24, 102, 116, 121, 112], 200);
       }
       return http.Response('not found', 404);
     });
@@ -60,10 +73,7 @@ void main() {
     final source = File('${directory.path}/source.wav')
       ..writeAsBytesSync([1, 2]);
     final result = await service.create(
-      settings: const CreationSettings(
-        minimaxApiKey: 'minimax-test-key',
-        dashscopeApiKey: 'dashscope-test-key',
-      ),
+      settings: const CreationSettings(dashscopeApiKey: 'dashscope-test-key'),
       subject: '珠颈斑鸠',
       location: '杭州',
       sourceAudioPath: source.path,
@@ -73,9 +83,43 @@ void main() {
     expect(result.isComplete, isTrue);
     expect(result.wanTaskId, 'wan_task_1');
     expect(await File(result.musicPath!).readAsBytes(), [73, 68, 51]);
+    expect(await File(result.narrationPath!).readAsBytes(), [73, 68, 51]);
     expect(await File(result.videoPath!).length(), greaterThan(0));
     expect(updates.last.stage, CreationStage.completed);
-    expect(requests.first.headers['authorization'], 'Bearer minimax-test-key');
+    expect(
+      requests
+          .where(
+            (request) => request.url.path.endsWith('/audio/music/generation'),
+          )
+          .single
+          .headers['authorization'],
+      'Bearer dashscope-test-key',
+    );
+    final musicBody =
+        jsonDecode(
+              requests
+                  .where(
+                    (request) =>
+                        request.url.path.endsWith('/audio/music/generation'),
+                  )
+                  .single
+                  .body,
+            )
+            as Map<String, Object?>;
+    expect(musicBody['model'], 'fun-music-v1');
+    final speechBody =
+        jsonDecode(
+              requests
+                  .where(
+                    (request) => request.url.path.endsWith(
+                      '/audio/tts/SpeechSynthesizer',
+                    ),
+                  )
+                  .single
+                  .body,
+            )
+            as Map<String, Object?>;
+    expect(speechBody['model'], 'qwen-audio-3.0-tts-plus');
     expect(
       requests
           .where((request) => request.url.path.endsWith('/video-synthesis'))
@@ -91,13 +135,9 @@ void main() {
     );
     addTearDown(() => directory.delete(recursive: true));
     final client = MockClient((request) async {
-      if (request.url.host == 'api.minimaxi.com') {
-        return http.Response(
-          jsonEncode({
-            'base_resp': {'status_code': 1004, 'status_msg': 'invalid key'},
-          }),
-          200,
-        );
+      if (request.url.path.endsWith('/audio/music/generation') ||
+          request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
+        return http.Response(jsonEncode({'message': 'invalid key'}), 403);
       }
       if (request.url.path.endsWith('/video-synthesis')) {
         return http.Response(
@@ -131,10 +171,7 @@ void main() {
     final source = File('${directory.path}/source.wav')
       ..writeAsBytesSync([1, 2]);
     final result = await service.create(
-      settings: const CreationSettings(
-        minimaxApiKey: 'minimax-test-key',
-        dashscopeApiKey: 'dashscope-test-key',
-      ),
+      settings: const CreationSettings(dashscopeApiKey: 'dashscope-test-key'),
       subject: '流水',
       location: '杭州',
       sourceAudioPath: source.path,

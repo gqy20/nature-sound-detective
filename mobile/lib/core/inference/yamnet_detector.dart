@@ -65,6 +65,7 @@ class YamnetDetector implements AudioDetector {
   static const _hopSamples = 7800;
   final Interpreter _interpreter;
   final IsolateInterpreter _isolate;
+  bool _closed = false;
   final Map<String, List<int>> _indicesByCategory;
 
   @override
@@ -173,6 +174,8 @@ class YamnetDetector implements AudioDetector {
   }
 
   Future<void> close() async {
+    if (_closed) return;
+    _closed = true;
     await _isolate.close();
     _interpreter.close();
     AppLog.debug('yamnet', 'model_closed');

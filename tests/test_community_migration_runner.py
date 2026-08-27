@@ -57,6 +57,27 @@ def test_classifies_existing_mvp_as_baseline_and_v2_as_pending():
     ]
 
 
+def test_detects_family_session_migration_from_all_three_tables():
+    migrations = discover_migrations(ROOT / "migrations")
+    snapshot = SchemaSnapshot(
+        relations=frozenset(
+            {
+                "family_exploration_sessions",
+                "family_exploration_events",
+                "family_session_commands",
+            }
+        ),
+        post_columns=frozenset(),
+        public_view_columns=frozenset(),
+        community_site_count=0,
+        recorded_checksums={},
+    )
+
+    statuses = classify_migrations(migrations, snapshot)
+
+    assert statuses[-1].state == "baseline_required"
+
+
 def test_detects_changed_applied_migration_checksum():
     migrations = discover_migrations(ROOT / "migrations")
     statuses = classify_migrations(

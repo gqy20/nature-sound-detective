@@ -135,7 +135,7 @@
 - GitHub：https://github.com/gqy20/nature-sound-detective
 - 魔搭创空间：https://modelscope.cn/studios/gqy2025/nature-sound-detective
 - Web 展示：https://listen.gqy20.top/
-- Android 版本：https://github.com/gqy20/nature-sound-detective/releases/tag/0.1.0
+- Android 版本：https://github.com/gqy20/nature-sound-detective/releases/tag/0.4.0
 
 说明：模型输出仅作为调查候选，不替代现场观察或专业物种鉴定。视频中的部分自然画面由 AI 生成，并已在画面中标注；真实录音、调查记录与生成内容保持边界。
 

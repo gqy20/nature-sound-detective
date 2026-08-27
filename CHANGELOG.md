@@ -6,7 +6,7 @@
 
 ## [Unreleased]
 
-> 建议候选版本：`0.4.0`。本轮包含新的家庭双设备联动、原生动态地图和主功能导航，属于 minor 版本。正式发布前仍需修改 `mobile/pubspec.yaml`、完成 release 构建、提交、Tag、推送和 GitHub Release。
+## [0.4.0] - 2026-08-27
 
 ### 新增
 
@@ -61,5 +61,6 @@
 - 提供自然声音录制、基础声音识别、结果展示和本地探索记录能力。
 - 建立 Flutter Android 客户端、Python 服务端与基础模型资源结构。
 
-[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/gqy20/nature-sound-detective/compare/0.1.0...0.4.0
 [0.1.0]: https://github.com/gqy20/nature-sound-detective/releases/tag/0.1.0

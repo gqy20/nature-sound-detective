@@ -56,7 +56,8 @@ build: get
 debug: build
 
 release: verify
-	@cd $(MOBILE_DIR) && "$(FLUTTER)" build apk --release --target-platform android-arm64 --split-per-abi --no-pub
+	@cd $(MOBILE_DIR) && "$(FLUTTER)" clean
+	@cd $(MOBILE_DIR) && "$(FLUTTER)" build apk --release --target-platform android-arm64
 
 clean:
 	@cd $(MOBILE_DIR) && "$(FLUTTER)" clean

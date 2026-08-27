@@ -9,7 +9,7 @@ on:
       tag:
         description: Existing Git tag and GitHub Release to publish to
         required: true
-        default: "0.1.0"
+        default: "0.4.0"
 
 permissions:
   contents: write
@@ -93,13 +93,15 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Reset generated Android plugins for release
+        run: flutter clean
+
       - name: Build Android arm64 release APK
         run: >-
           flutter build apk
           --release
           --dart-define=ENABLE_DIAGNOSTICS=true
           --target-platform android-arm64
-          --split-per-abi
           --build-name "${APP_VERSION}"
           --build-number "${APP_BUILD_NUMBER}"
 
@@ -108,7 +110,7 @@ jobs:
         run: |
           apk_name="nature-sound-detective-${RELEASE_TAG}-android-arm64.apk"
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/${apk_name}"
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/${apk_name}"
           cd dist
           sha256sum "${apk_name}" > checksums.txt
 

@@ -39,7 +39,7 @@
 
 ## 本地开发
 
-当前移动端版本为 `0.3.1+3002`。比赛和内部测试 APK 仍使用 Android debug signing key；对外商店或长期分发前必须配置独立 release keystore，不能继续沿用当前签名。
+当前移动端版本为 `0.4.0+4001`。比赛和内部测试 APK 仍使用 Android debug signing key；对外商店或长期分发前必须配置独立 release keystore，不能继续沿用当前签名。
 
 正式版本号只在准备发布时更新。每次修改 `pubspec.yaml` 中的正式版本，必须同时提交代码、创建同名 Git Tag 和 GitHub Release，并上传 APK 与 SHA-256；仅生成 debug APK 或新增 QA 批次不升级正式版本。完整流程见 [`docs/release-process.md`](../docs/release-process.md)。
 
@@ -53,7 +53,7 @@ flutter run
 构建 Android arm64 发布包：
 
 ```bash
-flutter build apk --release --target-platform android-arm64 --split-per-abi
+flutter build apk --release --target-platform android-arm64
 ```
 
 科普卡不需要服务端地址或 API Key。创作密钥由用户在 App 设置页填写并仅保存在本机；一个北京地域百炼 Key 即可覆盖音乐、旁白和视频，Workspace ID 可选但推荐配置。自动测试使用替身响应，不会请求第三方生成 API。

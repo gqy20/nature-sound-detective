@@ -38,7 +38,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.44.6"
+          flutter-version: "3.44.8"
           channel: stable
           cache: true
 
@@ -55,6 +55,9 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Reset generated Android plugins for release
+        run: flutter clean
 
       - name: Build Android arm64 release APK
         run: >-

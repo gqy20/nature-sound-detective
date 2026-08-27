@@ -42,7 +42,7 @@ version: 0.4.0+4001
    flutter pub get --enforce-lockfile
    flutter analyze
    flutter test
-   flutter build apk --release --target-platform android-arm64 --split-per-abi
+   flutter build apk --release --target-platform android-arm64
    ```
 
 4. 记录 APK 的文件名、大小和 SHA-256。
@@ -66,8 +66,6 @@ version: 0.4.0+4001
 - 发现发布内容错误：提升到新版本修复，不移动已经公开的 Tag。
 - 工作区不干净：先整理和提交，不在临时状态上打 Tag。
 
-## 当前遗留状态
+## 历史版本说明
 
-仓库目前只存在 `0.1.0` Tag。`mobile/pubspec.yaml` 已经是 `0.3.1+3002`，但没有对应的 `0.3.1` Tag 和 GitHub Release，属于历史遗漏。
-
-不要把当前大量后续改动补发成 `0.3.1`。应在当前改动整理、测试和提交完成后，以新的正式版本发布，并从该版本开始严格执行本规则。
+`0.3.1` 曾只更新应用内部版本号，没有创建对应 Tag 和 GitHub Release，因此不补发、不复用。正式发布链从 `0.4.0+4001` / Tag `0.4.0` 起严格遵循本规则。

@@ -12,6 +12,9 @@ MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 BIRD_SPECIES_DISPLAY_THRESHOLD = 0.42
 SUPPORTED_AUDIO_SUFFIXES = {".aac", ".flac", ".m4a", ".mp3", ".ogg", ".wav", ".webm"}
 VERSION = "0.4.0"
+RELEASE_DATE = "2026-08-27"
+REVISION_FILE = ROOT / "REVISION"
+BUILD_REVISION = REVISION_FILE.read_text(encoding="utf-8-sig").strip() if REVISION_FILE.exists() else "local"
 
 GITHUB_URL = "https://github.com/gqy20/nature-sound-detective"
 APK_URL = f"{GITHUB_URL}/releases/download/{VERSION}/nature-sound-detective-{VERSION}-android-arm64.apk"

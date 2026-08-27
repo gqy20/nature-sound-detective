@@ -32,6 +32,13 @@ $headers = @{ Authorization = "Bearer $token" }
 & (Join-Path $PSScriptRoot "build_modelscope_space.ps1") -OutputDirectory $SpaceDirectory
 & (Join-Path $PSScriptRoot "test_modelscope_space.ps1") -SpaceDirectory $SpaceDirectory
 
+$studioConfig = Get-Content -Raw -LiteralPath (Join-Path $spaceRoot "studio_config.py")
+$versionMatch = [regex]::Match($studioConfig, '(?m)^VERSION\s*=\s*"([^"]+)"')
+if (-not $versionMatch.Success) { throw "Unable to read Studio VERSION from studio_config.py" }
+$studioVersion = $versionMatch.Groups[1].Value
+$studioRevision = (Get-Content -Raw -LiteralPath (Join-Path $spaceRoot "REVISION")).Trim()
+if (-not $studioRevision) { throw "Studio REVISION is empty" }
+
 $publishRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("nature-sound-detective-modelscope-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $publishRoot | Out-Null
 try {
@@ -46,7 +53,7 @@ try {
     git -C $publishRoot add --all
     git -C $publishRoot diff --cached --quiet
     if ($LASTEXITCODE -ne 0) {
-        git -C $publishRoot -c user.name="gqy20" -c user.email="actions@users.noreply.github.com" commit -m "Deploy nature-sound-detective 0.1.0"
+        git -C $publishRoot -c user.name="gqy20" -c user.email="actions@users.noreply.github.com" commit -m "Deploy nature-sound-detective $studioVersion ($studioRevision)"
         if ($LASTEXITCODE -ne 0) { throw "Unable to commit Studio files" }
         git -C $publishRoot push origin HEAD
         if ($LASTEXITCODE -ne 0) { throw "Unable to push Studio files" }

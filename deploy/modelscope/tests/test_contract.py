@@ -4,7 +4,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_required_files_exist():
-    for relative in ("app.py", "inference.py", "studio_config.py", "theme.css", "instrument.css", "requirements.txt", "README.md"):
+    for relative in ("app.py", "inference.py", "studio_config.py", "theme.css", "instrument.css", "experience.css", "requirements.txt", "README.md"):
+        assert (ROOT / relative).is_file()
+
+    for relative in (
+        "assets/ui/logo-horizontal.svg",
+        "assets/ui/hangzhou-mist.webp",
+        "assets/ui/hangzhou-osm.png",
+        "assets/ui/park-guide/hero-wetland.webp",
+        "assets/ui/park-guide/age-growth-strip.png",
+        "assets/ui/park-guide/time-nature-strip.png",
+        "assets/ui/park-guide/interest-nature-strip.png",
+        "assets/ui/park-guide/walk-routes-strip.png",
+        "assets/ui/examples/flowing-water-public-domain.ogg",
+        "assets/ui/examples/flowing-water-public-domain.license.json",
+    ):
         assert (ROOT / relative).is_file()
 
 
@@ -40,6 +54,62 @@ def test_default_experience_is_a_single_viewport_workspace():
     assert "overflow: hidden" in css
     assert "#result-content" in css
     assert "overflow: auto" in css
+
+
+def test_complete_product_experience_reuses_local_component_language():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+    experience_css = (ROOT / "experience.css").read_text(encoding="utf-8")
+
+    assert 'data-product-view="experience"' in app_source
+    assert 'elem_id="product-experience"' in app_source
+    assert "product_experience()" in app_source
+    for section_id in ("family-experience", "city-listening", "park-guide", "nature-book", "model-boundary"):
+        assert f'id="{section_id}"' in app_source
+    for component in ("family-demo", "soundscape-map", "park-journal", "sound-fingerprint", "model-ledger"):
+        assert component in app_source
+        assert f".{component}" in experience_css
+    assert "hangzhou-osm.png" in app_source
+    assert "park-guide/hero-wetland.webp" in app_source
+    assert "连接码" in app_source
+    assert "候选不是确认" in app_source
+
+
+def test_product_tour_is_visual_only_for_sensitive_workflows():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+
+    assert "只同步结构化事件" in app_source
+    assert "不公开精确位置" in app_source
+    assert "不会提高真实生态数据充分度" in app_source
+    assert app_source.count("fetch(") == 1
+    assert "flowing-water-public-domain.ogg" in app_source
+    assert "COMMUNITY_API_URL" not in app_source
+
+
+def test_real_analysis_continues_into_local_investigation_flow():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+    css = (ROOT / "instrument.css").read_text(encoding="utf-8")
+
+    assert "_investigation_followup" in app_source
+    assert 'data-result-view="child"' in app_source
+    assert 'data-result-view="parent"' in app_source
+    assert "data-observation-value" in app_source
+    assert "data-download-investigation" in app_source
+    assert "downloadInvestigation" in app_source
+    assert "没有上传到社区或训练集" in app_source
+    for component in ("investigation-followup", "result-perspective-switch", "observation-choice-grid", "investigation-card-local"):
+        assert f".{component}" in css
+
+
+def test_park_recommendation_updates_from_family_preferences():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+
+    assert "updateParkRecommendation" in app_source
+    for group in ("age", "time", "sound", "walk"):
+        assert f'data-choice-group="{group}"' in app_source
+    for park in ("wetland", "botanical", "taiziwan"):
+        assert f'data-park-card="{park}"' in app_source
+    assert 'id="park-result-title"' in app_source
+    assert 'id="park-result-reason"' in app_source
 
 
 def test_web_theme_reuses_android_material_tokens():
@@ -104,6 +174,16 @@ def test_field_instrument_layout_uses_selected_visual_direction():
     assert "createAnalyser" in app_source
     assert "getByteTimeDomainData" in app_source
     assert "left: calc(50% - 10px)" in css
+    assert "FIELD INPUT" not in app_source
+    assert "FIELD NOTES" not in app_source
+
+
+def test_section_titles_do_not_use_decorative_eyebrows():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+
+    assert 'class="section-kicker"' not in app_source
+    for label in ("TWO DEVICES", "LISTENING CITY", "FAMILY FIELD GUIDE", "PRIVATE FIELD ARCHIVE", "MODEL TRANSPARENCY"):
+        assert label not in app_source
 
 
 def test_studio_preflights_audio_before_enabling_analysis():
@@ -120,6 +200,17 @@ def test_studio_preflights_audio_before_enabling_analysis():
     assert "不会自动公开或进入训练集" in app_source
     assert "max_file_size=MAX_UPLOAD_BYTES" in app_source
     assert 'buttons=["download"]' in app_source
+
+
+def test_studio_exposes_release_revision_and_dynamic_publish_metadata():
+    config_source = (ROOT / "studio_config.py").read_text(encoding="utf-8")
+    publish_source = (ROOT.parents[1] / "scripts" / "publish_modelscope_space.ps1").read_text(encoding="utf-8")
+
+    assert 'VERSION = "0.4.0"' in config_source
+    assert "BUILD_REVISION" in config_source
+    assert "RELEASE_DATE" in config_source
+    assert "Deploy nature-sound-detective $studioVersion ($studioRevision)" in publish_source
+    assert 'commit -m "Deploy nature-sound-detective 0.1.0"' not in publish_source
 
 
 def test_user_facing_errors_do_not_include_internal_exception_text():

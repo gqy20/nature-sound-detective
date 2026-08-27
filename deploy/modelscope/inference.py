@@ -48,6 +48,79 @@ class Detection:
         return f"{self.category_id}|{self.scientific_name or self.species_name or ''}"
 
 
+@dataclass(frozen=True)
+class AudioQuality:
+    usable: bool
+    weak_signal: bool
+    ecology_usable: bool
+    rms: float
+    peak: float
+    clipped_ratio: float
+    best_window_rms: float
+    active_window_count: int
+    total_window_count: int
+    message: str
+
+
+def measure_audio_quality(waveform: np.ndarray, sample_rate: int) -> AudioQuality:
+    """Mirror the mobile weak-signal policy for decoded Studio audio."""
+    if waveform.size == 0 or sample_rate <= 0:
+        return AudioQuality(False, False, False, 0.0, 0.0, 0.0, 0.0, 0, 0, "没有检测到声音，请重新录制。")
+
+    values = waveform.astype(np.float32, copy=False)
+    rms = float(np.sqrt(np.mean(np.square(values))))
+    peak = float(np.max(np.abs(values)))
+    clipped_ratio = float(np.mean(np.abs(values) >= 0.98))
+    duration = values.size / sample_rate
+    window_size = max(sample_rate * 3, 1)
+    hop_size = max(window_size // 2, 1)
+    window_rms_values: list[float] = []
+    for start in range(0, values.size, hop_size):
+        end = min(start + window_size, values.size)
+        if end <= start:
+            break
+        window = values[start:end]
+        window_rms_values.append(float(np.sqrt(np.mean(np.square(window)))))
+        if end == values.size:
+            break
+
+    best_window_rms = max(window_rms_values, default=0.0)
+    active_window_count = sum(value >= 0.003 for value in window_rms_values)
+    weak_window_count = sum(value >= 0.0015 for value in window_rms_values)
+    total_window_count = len(window_rms_values)
+    has_clear_signal = active_window_count > 0
+    has_weak_dynamic_signal = not has_clear_signal and weak_window_count > 0 and peak >= 0.02
+    usable = duration >= 1 and (has_clear_signal or has_weak_dynamic_signal)
+
+    messages: list[str] = []
+    if duration < 1:
+        messages.append("录音不足 1 秒，请多录几次完整叫声。")
+    elif duration < 3:
+        messages.append("录音少于 3 秒，多录几次叫声会更容易识别。")
+    if has_weak_dynamic_signal:
+        messages.append("声音较远，但存在可分析的动态线索；请结合现场观察谨慎判断。")
+    elif best_window_rms < 0.012:
+        messages.append("声音有些远，但仍可以尝试识别。" if usable else "没有检测到清晰声音，请检查麦克风后再试。")
+    elif active_window_count < max(2, total_window_count // 4):
+        messages.append("声音只在少数片段出现，识别会重点分析这些片段。")
+    if clipped_ratio > 0.025:
+        messages.append("声音过强并出现失真，请离声源远一点。")
+    if not messages:
+        messages.append("录音音量和动态范围可用于候选分析。")
+
+    return AudioQuality(
+        usable=usable,
+        weak_signal=has_weak_dynamic_signal,
+        ecology_usable=usable and not has_weak_dynamic_signal,
+        rms=rms,
+        peak=peak,
+        clipped_ratio=clipped_ratio,
+        best_window_rms=best_window_rms,
+        active_window_count=active_window_count,
+        total_window_count=total_window_count,
+        message=" ".join(messages),
+    )
+
 def _load_audio(path: str | Path) -> tuple[np.ndarray, int]:
     try:
         waveform, sample_rate = sf.read(str(path), dtype="float32", always_2d=True)
@@ -280,8 +353,19 @@ class StudioAnalyzer:
         return sorted([*birds_out, *general_out], key=lambda item: item.confidence, reverse=True)
 
     def analyze(self, audio_path: str | Path) -> dict[str, Any]:
-        self._load()
         waveform, sample_rate = _load_audio(audio_path)
+        quality = measure_audio_quality(waveform, sample_rate)
+        if not quality.usable:
+            return {
+                "duration": round(len(waveform) / sample_rate, 2),
+                "detections": [],
+                "observation": "先检查麦克风和周围环境，再录一段至少 3 秒、包含明显动态变化的声音。",
+                "quality": quality.message,
+                "quality_state": "unusable",
+                "weak_signal": quality.weak_signal,
+                "ecology_usable": quality.ecology_usable,
+            }
+        self._load()
         # TFLite Interpreter mutates shared tensor state during invoke(). Keep one
         # request inside the model pipeline at a time when the Studio uses the
         # process-wide analyzer instance.
@@ -294,7 +378,10 @@ class StudioAnalyzer:
             "duration": round(duration, 2),
             "detections": detections,
             "observation": OBSERVATION_TASKS.get(detections[0].category_id, "再听一次，并记录声音出现的时间、方向和周围环境。") if detections else "这段录音的线索还不够清楚，换一个更安静的位置再录一次。",
-            "quality": "声音偏轻，建议靠近目标声源后再录。" if float(np.sqrt(np.mean(waveform ** 2))) < 0.008 else "录音音量可用于候选分析。",
+            "quality": quality.message,
+            "quality_state": "weak" if quality.weak_signal else "clear",
+            "weak_signal": quality.weak_signal,
+            "ecology_usable": quality.ecology_usable,
         }
 
 

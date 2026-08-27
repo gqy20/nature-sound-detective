@@ -8,7 +8,10 @@ import 'package:nature_sound_detective/core/community/route_progress_store.dart'
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart';
 
+import '../../support/tolerant_golden_comparator.dart';
+
 void main() {
+  useCrossPlatformGoldenComparator();
   testWidgets('filters parks and opens a parent-guided route', (tester) async {
     tester.view.physicalSize = const Size(430, 950);
     tester.view.devicePixelRatio = 1;
@@ -28,9 +31,7 @@ void main() {
 
     await expectLater(
       find.byType(Scaffold),
-      matchesGoldenFile(
-        '../../goldens/park_guide/criteria-frameless.png',
-      ),
+      matchesGoldenFile('../../goldens/park_guide/criteria-frameless.png'),
     );
 
     expect(find.text('今天去哪听？'), findsOneWidget);

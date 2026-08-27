@@ -5,9 +5,12 @@ import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
 import 'package:nature_sound_detective/features/community/soundscape_page.dart';
+
+import '../../support/tolerant_golden_comparator.dart';
 import 'package:nature_sound_detective/features/community/native_amap_view.dart';
 
 void main() {
+  useCrossPlatformGoldenComparator();
   testWidgets('reuses startup soundscape preload without duplicate requests', (
     tester,
   ) async {
@@ -239,9 +242,7 @@ void main() {
     );
     await expectLater(
       find.byType(MaterialApp),
-      matchesGoldenFile(
-        '../../goldens/community/map-source-sheet.png',
-      ),
+      matchesGoldenFile('../../goldens/community/map-source-sheet.png'),
     );
     await tester.tap(find.byKey(const Key('enable-native-amap-first-use')));
     await tester.pump();

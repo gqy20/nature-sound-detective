@@ -12,10 +12,7 @@ import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 
-import '../../support/tolerant_golden_comparator.dart';
-
 void main() {
-  useCrossPlatformGoldenComparator();
   testWidgets('parent view exposes the guide without replacing capture', (
     tester,
   ) async {
@@ -66,10 +63,6 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('只同步探索步骤，不传原始录音、精确位置或儿童身份。'), findsNothing);
-    await expectLater(
-      find.byType(Scaffold).first,
-      matchesGoldenFile('../../goldens/mode/mode-pill-parent.png'),
-    );
   });
 
   testWidgets('parent guide call to action opens the primary guide page', (

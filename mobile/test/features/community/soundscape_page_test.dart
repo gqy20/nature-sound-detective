@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,6 +57,35 @@ void main() {
     await tester.tap(find.byKey(const Key('open-park-guide-from-soundscape')));
 
     expect(opened, isTrue);
+  });
+
+  testWidgets('shows audio loading feedback immediately after tapping play', (
+    tester,
+  ) async {
+    final started = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _AudioCommunityService(),
+          recordsLoader: () async => const [],
+          audioStarter: (_) => started.future,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('play-community-audio-post')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('play-community-audio-post')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('community-audio-loading')), findsOneWidget);
+    started.complete();
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.stop_rounded), findsOneWidget);
   });
 
   testWidgets('returns to the city map when the primary page is re-entered', (
@@ -472,4 +503,29 @@ class _FakeCommunityService implements CommunityService {
 
   @override
   Future<void> withdraw(String postId) async {}
+}
+
+class _AudioCommunityService extends _FakeCommunityService {
+  @override
+  Future<List<CommunityPost>> listPosts({String? areaId}) async => [
+    CommunityPost(
+      id: 'audio-post',
+      alias: '声音测试员',
+      areaId: 'xihu',
+      areaName: '西湖区',
+      subject: '林间鸟鸣',
+      soundType: '鸟鸣',
+      observedAt: DateTime.utc(2026, 8, 29, 6),
+      createdAt: DateTime.utc(2026, 8, 29, 6),
+      audioUrl: 'https://example.test/audio.wav',
+      duration: const Duration(seconds: 12),
+      candidateNames: const ['鸟类'],
+      fieldObservations: const [],
+      status: 'published_unverified',
+      reviewStatus: 'not_requested',
+      responseCount: 0,
+      responseSummary: const {},
+      ownedByRequester: false,
+    ),
+  ];
 }

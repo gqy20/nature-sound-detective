@@ -6,6 +6,28 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-08-29
+
+### 新增
+
+- 家长实时陪伴现在提供 3–5 条基于本次探索行为的可选回应，并明确区分 AI 生成与本地审核模板。
+- 亲子游园指南改为三步流程：先选择公园，再选择家庭条件，最后查看该公园内的简单路线建议。
+
+### 改进
+
+- 共听杭州的体验音频迁移至项目自有 Vercel Blob，并为网络准备阶段增加即时加载反馈。
+- 儿童端移除亲子游园指南按钮、共听页跳转和横向页面，只在家长端保留该功能。
+- 窄屏顶部导航压缩家庭角色标签并保留 debug 入口，避免功能按钮溢出。
+- debug APK 的家长陪伴服务默认使用可由实体设备访问的生产 API。
+
+### 修复
+
+- 修复家庭实时陪伴卡片中文字、说明按钮和已读按钮重叠的问题。
+- 修复“打开实时陪伴”后页面空白或布局失败的问题。
+- 修复家长端顶部导航在真机窄屏上横向溢出的问题。
+- 修复 AI 已返回多条个性化回应、移动端却只展示第一条的问题。
+- 修复共听杭州播放按钮点击后长时间没有任何状态反馈的问题。
+
 ## [0.4.0] - 2026-08-27
 
 ### 新增
@@ -61,6 +83,7 @@
 - 提供自然声音录制、基础声音识别、结果展示和本地探索记录能力。
 - 建立 Flutter Android 客户端、Python 服务端与基础模型资源结构。
 
-[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.4.1...HEAD
+[0.4.1]: https://github.com/gqy20/nature-sound-detective/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/gqy20/nature-sound-detective/compare/0.1.0...0.4.0
 [0.1.0]: https://github.com/gqy20/nature-sound-detective/releases/tag/0.1.0

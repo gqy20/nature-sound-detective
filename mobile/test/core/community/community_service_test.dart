@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 
 void main() {
@@ -13,6 +14,20 @@ void main() {
     addTearDown(service.close);
 
     expect(service.baseUri.toString(), 'https://listen-api.gqy20.top');
+  });
+
+  test('demo Freesound posts use the smaller low quality preview', () {
+    final post = CommunityPost.fromJson({
+      'id': 'demo-audio',
+      'audio_url':
+          'https://cdn.freesound.org/previews/578/578150_1486586-hq.mp3',
+      'is_demo': true,
+    });
+
+    expect(
+      post.audioUrl,
+      'https://cdn.freesound.org/previews/578/578150_1486586-lq.mp3',
+    );
   });
 
   test('coalesces anonymous session creation and sends bearer token', () async {

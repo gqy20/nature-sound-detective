@@ -50,27 +50,27 @@ class DemoPost:
 
 CC0_AUDIO = {
     "morning_birds": (
-        "https://cdn.freesound.org/previews/578/578150_1486586-hq.mp3",
+        "https://cdn.freesound.org/previews/578/578150_1486586-lq.mp3",
         "Freesound #578150 · CC0",
     ),
     "crows": (
-        "https://cdn.freesound.org/previews/840/840818_16752880-hq.mp3",
+        "https://cdn.freesound.org/previews/840/840818_16752880-lq.mp3",
         "Freesound #840818 · CC0",
     ),
     "rain": (
-        "https://cdn.freesound.org/previews/398/398740_5923045-hq.mp3",
+        "https://cdn.freesound.org/previews/398/398740_5923045-lq.mp3",
         "Freesound #398740 · CC0",
     ),
     "crickets": (
-        "https://cdn.freesound.org/previews/529/529779_5828667-hq.mp3",
+        "https://cdn.freesound.org/previews/529/529779_5828667-lq.mp3",
         "Freesound #529779 · CC0",
     ),
     "water": (
-        "https://cdn.freesound.org/previews/582/582921_7811542-hq.mp3",
+        "https://cdn.freesound.org/previews/582/582921_7811542-lq.mp3",
         "Freesound #582921 · CC0",
     ),
     "city": (
-        "https://cdn.freesound.org/previews/818/818390_17247322-hq.mp3",
+        "https://cdn.freesound.org/previews/818/818390_17247322-lq.mp3",
         "Freesound #818390 · CC0",
     ),
 }

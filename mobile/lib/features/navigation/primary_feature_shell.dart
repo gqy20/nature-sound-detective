@@ -54,6 +54,18 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   Timer? _navigationSettleTimer;
   bool _soundscapeMapPrecacheStarted = false;
 
+  List<PrimaryFeature> get _availableFeatures =>
+      widget.mode == ExplorationMode.parent
+      ? PrimaryFeature.values
+      : const [
+          PrimaryFeature.capture,
+          PrimaryFeature.soundscape,
+          PrimaryFeature.natureBook,
+        ];
+
+  int _pageIndexOf(PrimaryFeature feature) =>
+      _availableFeatures.indexOf(feature);
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +86,19 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     if (_soundscapeMapPrecacheStarted) return;
     _soundscapeMapPrecacheStarted = true;
     unawaited(_precacheSoundscapeMap());
+  }
+
+  @override
+  void didUpdateWidget(covariant PrimaryFeatureShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mode == widget.mode) return;
+    _selectedIndex = 0;
+    _settledIndex = 0;
+    _gestureStartIndex = 0;
+    _pagePositionNotifier.value = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _controller.hasClients) _controller.jumpToPage(0);
+    });
   }
 
   Future<void> _precacheSoundscapeMap() async {
@@ -124,8 +149,11 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     PrimaryFeature feature, {
     String trigger = 'button',
   }) async {
+    final available = _availableFeatures;
+    final targetIndex = _pageIndexOf(feature);
+    if (targetIndex < 0) return;
     final fromIndex = _settledIndex;
-    final from = PrimaryFeature.values[fromIndex];
+    final from = available[fromIndex];
     AppLog.info(
       'navigation',
       'primary_navigation_requested',
@@ -169,11 +197,11 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
       );
       return;
     }
-    if (feature.index == fromIndex) return;
+    if (targetIndex == fromIndex) return;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     if (reduceMotion ||
         trigger == 'system_back' ||
-        (feature.index - fromIndex).abs() > 1) {
+        (targetIndex - fromIndex).abs() > 1) {
       await _fadeThroughTo(feature, trigger: trigger, animate: !reduceMotion);
       return;
     }
@@ -181,7 +209,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     _activeNavigationTrigger = trigger;
     try {
       await _controller.animateToPage(
-        feature.index,
+        targetIndex,
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeOutCubic,
       );
@@ -201,6 +229,9 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     required String trigger,
     required bool animate,
   }) async {
+    final available = _availableFeatures;
+    final targetIndex = _pageIndexOf(feature);
+    if (targetIndex < 0) return;
     final fromIndex = _settledIndex;
     setState(() {
       _transitioning = true;
@@ -215,12 +246,12 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           curve: Curves.easeOutCubic,
         );
       }
-      _controller.jumpToPage(feature.index);
-      _pagePositionNotifier.value = feature.index.toDouble();
-      if (_selectedIndex != feature.index && mounted) {
-        setState(() => _selectedIndex = feature.index);
+      _controller.jumpToPage(targetIndex);
+      _pagePositionNotifier.value = targetIndex.toDouble();
+      if (_selectedIndex != targetIndex && mounted) {
+        setState(() => _selectedIndex = targetIndex);
       }
-      _settledIndex = feature.index;
+      _settledIndex = targetIndex;
       if (animate) {
         await _directTransitionController.animateTo(
           1,
@@ -232,7 +263,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         'navigation',
         'primary_navigation_completed',
         fields: {
-          'from': PrimaryFeature.values[fromIndex].name,
+          'from': available[fromIndex].name,
           'to': feature.name,
           'trigger': trigger,
           'transition': 'fade_through',
@@ -251,6 +282,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   }
 
   bool _onPageScrollNotification(ScrollNotification notification) {
+    final available = _availableFeatures;
     if (notification.metrics.axis != Axis.horizontal) return false;
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
@@ -261,13 +293,13 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
       AppLog.debug(
         'navigation',
         'primary_swipe_started',
-        fields: {'from': PrimaryFeature.values[_gestureStartIndex].name},
+        fields: {'from': available[_gestureStartIndex].name},
       );
       AppLog.info(
         'navigation',
         'primary_navigation_requested',
         fields: {
-          'from': PrimaryFeature.values[_gestureStartIndex].name,
+          'from': available[_gestureStartIndex].name,
           'to': 'adjacent',
           'trigger': 'swipe',
           'locked': false,
@@ -290,9 +322,10 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
 
   void _settleNavigation() {
     if (_directTransitionActive || !_controller.hasClients) return;
+    final available = _availableFeatures;
     final finalIndex = (_controller.page ?? _selectedIndex.toDouble())
         .round()
-        .clamp(0, PrimaryFeature.values.length - 1)
+        .clamp(0, available.length - 1)
         .toInt();
     if (_selectedIndex != finalIndex && mounted) {
       setState(() => _selectedIndex = finalIndex);
@@ -302,15 +335,15 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         AppLog.debug(
           'navigation',
           'primary_swipe_cancelled',
-          fields: {'current': PrimaryFeature.values[finalIndex].name},
+          fields: {'current': available[finalIndex].name},
         );
       }
       _userDragging = false;
       _activeNavigationTrigger = null;
       return;
     }
-    final from = PrimaryFeature.values[_settledIndex];
-    final to = PrimaryFeature.values[finalIndex];
+    final from = available[_settledIndex];
+    final to = available[finalIndex];
     final trigger =
         _activeNavigationTrigger ?? (_userDragging ? 'swipe' : 'programmatic');
     _settledIndex = finalIndex;
@@ -336,6 +369,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
 
   @override
   Widget build(BuildContext context) {
+    final available = _availableFeatures;
     final rawPages = <Widget>[
       _KeepAlivePage(
         key: const ValueKey(PrimaryFeature.capture),
@@ -359,14 +393,17 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           explorationStore: _store,
           preloader: _soundscapePreloader,
           primaryPagePosition: _pagePositionNotifier,
-          onOpenParkGuide: () =>
-              _selectFeature(PrimaryFeature.parkGuide, trigger: 'button'),
+          onOpenParkGuide: widget.mode == ExplorationMode.parent
+              ? () =>
+                    _selectFeature(PrimaryFeature.parkGuide, trigger: 'button')
+              : null,
         ),
       ),
-      const _KeepAlivePage(
-        key: ValueKey(PrimaryFeature.parkGuide),
-        child: ParkGuidePage(key: ValueKey('primary-park-guide-content')),
-      ),
+      if (widget.mode == ExplorationMode.parent)
+        const _KeepAlivePage(
+          key: ValueKey(PrimaryFeature.parkGuide),
+          child: ParkGuidePage(key: ValueKey('primary-park-guide-content')),
+        ),
       _KeepAlivePage(
         key: const ValueKey(PrimaryFeature.natureBook),
         child: NatureBookPage(
@@ -440,7 +477,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
             IgnorePointer(
               child: SizedBox.shrink(
                 key: Key(
-                  'current-primary-feature-${PrimaryFeature.values[_selectedIndex].name}',
+                  'current-primary-feature-${available[_selectedIndex].name}',
                 ),
               ),
             ),

@@ -26,6 +26,7 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
   late final ParentGuidanceNetworkService _guidanceService;
   GuidanceBundle? _aiBundle;
   bool _generatingAi = false;
+  int _selectedAiSuggestionIndex = 0;
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
       setState(() {
         _aiBundle = bundle;
         _generatingAi = false;
+        _selectedAiSuggestionIndex = 0;
       });
     }
   }
@@ -173,6 +175,9 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
                 aiBundle: _aiBundle,
                 generatingAi: _generatingAi,
                 onGenerateAi: _generateAiCompanion,
+                selectedAiSuggestionIndex: _selectedAiSuggestionIndex,
+                onSelectAiSuggestion: (index) =>
+                    setState(() => _selectedAiSuggestionIndex = index),
               )
             else
               _ChildConnected(coordinator: coordinator),
@@ -406,16 +411,22 @@ class _ParentLiveCompanion extends StatelessWidget {
     required this.aiBundle,
     required this.generatingAi,
     required this.onGenerateAi,
+    required this.selectedAiSuggestionIndex,
+    required this.onSelectAiSuggestion,
   });
   final FamilySessionCoordinator coordinator;
   final GuidanceBundle? aiBundle;
   final bool generatingAi;
   final VoidCallback onGenerateAi;
+  final int selectedAiSuggestionIndex;
+  final ValueChanged<int> onSelectAiSuggestion;
 
   @override
   Widget build(BuildContext context) {
     final cue = coordinator.latestCue;
     final latestCommand = coordinator.commands.lastOrNull;
+    final aiSuggestions =
+        aiBundle?.praiseSuggestions.take(5).toList() ?? const [];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -465,7 +476,11 @@ class _ParentLiveCompanion extends StatelessWidget {
                         style: const TextStyle(fontSize: 18, height: 1.45),
                       ),
                       const SizedBox(height: 12),
-                      Row(
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
                           TextButton.icon(
                             key: const Key('open-companion-cue-reason'),
@@ -476,7 +491,6 @@ class _ParentLiveCompanion extends StatelessWidget {
                             ),
                             label: const Text('为什么这样说'),
                           ),
-                          const Spacer(),
                           FilledButton.tonal(
                             onPressed: coordinator.markCueSeen,
                             child: const Text('标为已读'),
@@ -500,12 +514,50 @@ class _ParentLiveCompanion extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 5),
-                Text(
-                  aiBundle == null
-                      ? '本地陪伴提示始终可用。需要时可由家长明确使用1次AI生成。'
-                      : aiBundle!.praiseSuggestions.firstOrNull?.text ??
-                            aiBundle!.warning,
-                ),
+                if (aiBundle == null)
+                  const Text('本地陪伴提示始终可用。需要时可由家长明确使用1次AI生成3至5条可选回应。')
+                else ...[
+                  Row(
+                    children: [
+                      Icon(
+                        aiBundle!.aiGenerated
+                            ? Icons.auto_awesome_rounded
+                            : Icons.shield_outlined,
+                        size: 17,
+                        color: const Color(0xFF315D4A),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          aiBundle!.aiGenerated
+                              ? 'AI根据本次探索生成 · 请选择一句'
+                              : '当前为本地审核模板 · 请选择一句',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (aiBundle!.warning.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    Text(
+                      aiBundle!.warning,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF8A5A22),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  for (final (index, suggestion) in aiSuggestions.indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _AiPraiseOption(
+                        index: index,
+                        suggestion: suggestion,
+                        selected: index == selectedAiSuggestionIndex,
+                        onSelected: () => onSelectAiSuggestion(index),
+                      ),
+                    ),
+                ],
                 if (aiBundle == null) ...[
                   const SizedBox(height: 12),
                   FilledButton.icon(
@@ -596,6 +648,75 @@ class _ParentLiveCompanion extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _AiPraiseOption extends StatelessWidget {
+  const _AiPraiseOption({
+    required this.index,
+    required this.suggestion,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final int index;
+  final PraiseSuggestion suggestion;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    key: Key('family-ai-response-option-$index'),
+    button: true,
+    selected: selected,
+    label: '回应选项 ${index + 1}：${suggestion.text}',
+    child: Material(
+      color: selected ? const Color(0xFFD9EADB) : const Color(0xFFFFFDF7),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: selected ? const Color(0xFF315D4A) : const Color(0xFFD5D8D1),
+          width: selected ? 1.5 : 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: onSelected,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(13),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                color: const Color(0xFF315D4A),
+                size: 21,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      suggestion.ability,
+                      style: const TextStyle(
+                        color: Color(0xFF315D4A),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(suggestion.text),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _ChildConnected extends StatelessWidget {

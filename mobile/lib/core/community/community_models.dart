@@ -68,7 +68,7 @@ class CommunityPost {
     createdAt:
         DateTime.tryParse(json['created_at'] as String? ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0),
-    audioUrl: json['audio_url'] as String? ?? '',
+    audioUrl: _optimizedCommunityAudioUrl(json),
     duration: Duration(milliseconds: json['duration_ms'] as int? ?? 0),
     candidateNames: switch (json['candidate_names']) {
       final List<Object?> values => values.whereType<String>().toList(),
@@ -131,6 +131,14 @@ class CommunityPost {
   final bool ecologyEligible;
   final bool isDemo;
   final List<CommunityMediaAsset> mediaAssets;
+}
+
+String _optimizedCommunityAudioUrl(Map<String, Object?> json) {
+  final raw = json['audio_url'] as String? ?? '';
+  if (json['is_demo'] != true || raw.isEmpty) return raw;
+  final uri = Uri.tryParse(raw);
+  if (uri?.host != 'cdn.freesound.org' || !raw.endsWith('-hq.mp3')) return raw;
+  return raw.replaceFirst(RegExp(r'-hq\.mp3$'), '-lq.mp3');
 }
 
 class CommunityMediaAsset {

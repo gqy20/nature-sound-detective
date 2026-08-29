@@ -15,7 +15,7 @@ const _guidePaper = Color(0xFFFFFCF5);
 const _guideOchre = Color(0xFFD39A20);
 const _guideLine = Color(0xFFD8D1BF);
 
-enum _ParkGuideStep { criteria, recommendations }
+enum _ParkGuideStep { parkSelection, criteria, recommendations }
 
 class ParkGuidePage extends StatefulWidget {
   const ParkGuidePage({
@@ -47,8 +47,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   bool _loading = true;
   String? _error;
   int _loadGeneration = 0;
-  _ParkGuideStep _step = _ParkGuideStep.criteria;
-  int _selectedRecommendationIndex = 0;
+  _ParkGuideStep _step = _ParkGuideStep.parkSelection;
+  String? _selectedParkId;
 
   @override
   void initState() {
@@ -171,7 +171,6 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
     if (value.signature == _preferences.signature) return;
     setState(() {
       _preferences = value;
-      _selectedRecommendationIndex = 0;
     });
     AppLog.info(
       'park_guide',
@@ -191,27 +190,32 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPark = _parks
+        .where((item) => item.park.id == _selectedParkId)
+        .firstOrNull;
     final recommendations = const ParkRecommendationEngine().rank(
-      _parks,
+      selectedPark == null ? const [] : [selectedPark],
       _preferences,
     );
+    final onFirstStep = _step == _ParkGuideStep.parkSelection;
     final onResults = _step == _ParkGuideStep.recommendations;
     return PopScope(
-      canPop: !onResults,
+      canPop: onFirstStep,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && onResults) {
-          setState(() => _step = _ParkGuideStep.criteria);
-        }
+        if (!didPop) _goBackOneStep();
       },
       child: Scaffold(
         backgroundColor: _guideIvory,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          leading: onResults
+          leading: !onFirstStep
               ? IconButton(
-                  key: const Key('back-to-park-criteria'),
-                  onPressed: () =>
-                      setState(() => _step = _ParkGuideStep.criteria),
+                  key: Key(
+                    onResults
+                        ? 'back-to-park-criteria'
+                        : 'back-to-park-selection',
+                  ),
+                  onPressed: _goBackOneStep,
                   icon: const Icon(Icons.arrow_back_rounded),
                 )
               : null,
@@ -250,13 +254,68 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               child: child,
             ),
           ),
-          child: onResults
-              ? _buildRecommendationsPage(recommendations)
-              : _buildCriteriaPage(recommendations),
+          child: switch (_step) {
+            _ParkGuideStep.parkSelection => _buildParkSelectionPage(),
+            _ParkGuideStep.criteria => _buildCriteriaPage(recommendations),
+            _ParkGuideStep.recommendations => _buildRecommendationsPage(
+              recommendations,
+            ),
+          },
         ),
       ),
     );
   }
+
+  void _goBackOneStep() => setState(() {
+    _step = switch (_step) {
+      _ParkGuideStep.recommendations => _ParkGuideStep.criteria,
+      _ParkGuideStep.criteria => _ParkGuideStep.parkSelection,
+      _ParkGuideStep.parkSelection => _ParkGuideStep.parkSelection,
+    };
+  });
+
+  Widget _buildParkSelectionPage() => ListView(
+    key: const Key('park-guide-park-selection-page'),
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
+    children: [
+      Text(
+        '今天想去哪座公园？',
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          color: _guideInk,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 6),
+      const Text('先确定目的地，再根据孩子年龄、停留时间和兴趣整理一条简单路线。'),
+      const SizedBox(height: 16),
+      if (_loading)
+        const LinearProgressIndicator(
+          key: Key('park-guide-loading'),
+          minHeight: 4,
+          color: _guideForest,
+          backgroundColor: Color(0xFFE4E0D3),
+        ),
+      if (_error case final error?) ...[
+        const SizedBox(height: 10),
+        _ErrorCard(message: error, onRetry: _load),
+      ],
+      if (!_loading && _parks.isEmpty && _error == null)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: Center(child: Text('暂时没有可选择的公园。')),
+        ),
+      for (final data in _parks) ...[
+        const SizedBox(height: 12),
+        _ParkChoiceCard(
+          data: data,
+          onTap: () => setState(() {
+            _selectedParkId = data.park.id;
+            _step = _ParkGuideStep.criteria;
+          }),
+        ),
+      ],
+    ],
+  );
 
   Widget _buildCriteriaPage(List<ParkRecommendation> recommendations) =>
       LayoutBuilder(
@@ -265,9 +324,23 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
           final textScale = MediaQuery.textScalerOf(context).scale(1);
           final panel = KeyedSubtree(
             key: const Key('park-preference-journal'),
-            child: _PreferenceJournal(
-              preferences: _preferences,
-              onChanged: _updatePreferences,
+            child: Column(
+              children: [
+                _SelectedParkBanner(
+                  name: _parks
+                      .where((item) => item.park.id == _selectedParkId)
+                      .firstOrNull
+                      ?.park
+                      .name,
+                  onChange: () =>
+                      setState(() => _step = _ParkGuideStep.parkSelection),
+                ),
+                const SizedBox(height: 10),
+                _PreferenceJournal(
+                  preferences: _preferences,
+                  onChanged: _updatePreferences,
+                ),
+              ],
             ),
           );
           final footer = Column(
@@ -290,7 +363,6 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                 onPressed: _loading || recommendations.isEmpty
                     ? null
                     : () => setState(() {
-                        _selectedRecommendationIndex = 0;
                         _step = _ParkGuideStep.recommendations;
                       }),
                 icon: const Icon(Icons.eco_outlined),
@@ -299,7 +371,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                       ? '正在整理推荐'
                       : recommendations.isEmpty
                       ? '暂无完整匹配'
-                      : '查看 ${recommendations.length} 个推荐',
+                      : '查看这条路线建议',
                 ),
               ),
             ],
@@ -346,18 +418,14 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               OutlinedButton(
                 onPressed: () =>
                     setState(() => _step = _ParkGuideStep.criteria),
-                child: const Text('重新选择'),
+                child: const Text('调整条件'),
               ),
             ],
           ),
         ),
       );
     }
-    final index = _selectedRecommendationIndex.clamp(
-      0,
-      recommendations.length - 1,
-    );
-    final selected = recommendations[index];
+    final selected = recommendations.first;
     return Padding(
       key: const Key('park-guide-recommendations-page'),
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
@@ -367,7 +435,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
             children: [
               Expanded(
                 child: Text(
-                  _preferences.shortSummary,
+                  '${selected.data.park.name} · ${_preferences.shortSummary}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -381,27 +449,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                 key: const Key('edit-park-preferences'),
                 onPressed: () =>
                     setState(() => _step = _ParkGuideStep.criteria),
-                child: const Text('重新选择'),
+                child: const Text('调整条件'),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              for (final (tabIndex, item) in recommendations.indexed)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: _RecommendationTab(
-                      key: Key('park-recommendation-tab-${item.data.park.id}'),
-                      label: item.data.park.name,
-                      selected: tabIndex == index,
-                      onTap: () => setState(
-                        () => _selectedRecommendationIndex = tabIndex,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 14),
@@ -421,8 +470,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                     width: constraints.maxWidth,
                     child: _ParkRecommendationCard(
                       recommendation: selected,
-                      rank: index + 1,
-                      highlighted: index == 0,
+                      rank: 1,
+                      highlighted: true,
                       onOpen: () => _openPark(selected),
                     ),
                   ),
@@ -463,50 +512,93 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   }
 }
 
-class _RecommendationTab extends StatelessWidget {
-  const _RecommendationTab({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+class _ParkChoiceCard extends StatelessWidget {
+  const _ParkChoiceCard({required this.data, required this.onTap});
 
-  final String label;
-  final bool selected;
+  final ParkGuideData data;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: selected,
-    label: label,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        height: 42,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFDCECE1) : const Color(0xFFF7F3E9),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? _guideForest : const Color(0xFFE2DCCA),
-            width: selected ? 1.5 : 1,
-          ),
-        ),
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: selected ? _guideForest : _guideInk,
-            fontSize: 11,
-            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+  Widget build(BuildContext context) {
+    final park = data.park;
+    return Material(
+      color: _guidePaper,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: const BorderSide(color: _guideLine),
+      ),
+      child: InkWell(
+        key: Key('select-park-${park.id}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE2EEE6),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.park_outlined, color: _guideForest),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      park.name,
+                      style: const TextStyle(
+                        color: _guideInk,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${park.areaName} · ${park.habitatTags.take(3).join(' · ')}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_rounded, color: _guideForest),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SelectedParkBanner extends StatelessWidget {
+  const _SelectedParkBanner({required this.name, required this.onChange});
+
+  final String? name;
+  final VoidCallback onChange;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFE2EEE6),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Row(
+      children: [
+        const Icon(Icons.park_outlined, size: 20, color: _guideForest),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            name == null ? '尚未选择公园' : '已选择：$name',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        TextButton(onPressed: onChange, child: const Text('换公园')),
+      ],
     ),
   );
 }

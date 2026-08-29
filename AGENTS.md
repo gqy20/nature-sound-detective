@@ -22,3 +22,11 @@
 - 移动端正式发布前至少运行 `make verify` 和 `make release`；`make release` 只负责验证并构建 release APK，不会自动修改版本、打 Tag、推送或创建 GitHub Release。
 - 交互测试资料继续归档到 `mobile/qa/runs/YYYY-MM-DD/NNN-slug/`；QA 批次通过不等同于正式版本发布。
 - 正式发布产物必须记录文件名、字节数和 SHA-256。
+
+## Android 真机调试安装
+
+- Windows 本机 adb 固定使用 `D:\tools\ADB_Cli\adb.exe`；先运行 `D:\tools\ADB_Cli\adb.exe devices -l` 确认目标设备。设备显示 `unauthorized` 时，提示用户解锁手机并确认 USB 调试授权，不得继续安装。
+- 安装当前工作区的最新调试构建时，先确认 `git status --short --branch` 和 `mobile/pubspec.yaml` 中的版本，再在仓库根目录运行 `make build`。普通真机调试不得修改正式版本号，也不得触发 Tag、推送或 GitHub Release。
+- debug APK 的固定路径为 `mobile/build/app/outputs/flutter-apk/app-debug.apk`。设备已安装同签名应用时，使用 `D:\tools\ADB_Cli\adb.exe install -r mobile/build/app/outputs/flutter-apk/app-debug.apk` 覆盖安装。
+- 若覆盖安装返回 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`，表示设备现有应用与当前 APK 签名不同。卸载会清除应用本地数据；必须先向用户明确说明并取得同意，之后才可运行 `D:\tools\ADB_Cli\adb.exe uninstall com.xykw.nature_sound_detective`，再重新安装 APK。不得为绕过签名冲突擅自更换包名或签名配置。
+- 安装成功后，使用 `D:\tools\ADB_Cli\adb.exe shell dumpsys package com.xykw.nature_sound_detective` 核对 `versionName`、`versionCode` 和安装时间，并再次检查 `git status --short --branch`，确认构建和安装没有产生非预期的工作区改动。

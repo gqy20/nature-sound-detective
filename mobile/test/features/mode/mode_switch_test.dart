@@ -127,14 +127,18 @@ void main() {
   testWidgets('connected parent lands on the live companion summary', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final coordinator = _ConnectedParentCoordinator();
     addTearDown(coordinator.dispose);
+    final store = _MemoryModeStore()..value = ExplorationMode.parent;
     await tester.pumpWidget(
-      MaterialApp(
-        home: CapturePage(
-          mode: ExplorationMode.parent,
-          familySessionCoordinator: coordinator,
-        ),
+      NatureSoundApp(
+        modeStore: store,
+        familySessionCoordinator: coordinator,
+        preloadSoundscape: false,
       ),
     );
     await tester.pump();
@@ -143,6 +147,18 @@ void main() {
     expect(find.text('孩子在探索，你来陪伴'), findsOneWidget);
     expect(find.text('孩子主动回听了声音'), findsOneWidget);
     expect(find.byKey(const Key('open-parent-live-companion')), findsOneWidget);
+    expect(
+      find.byKey(const Key('debug-export-button')),
+      diagnosticsEnabled ? findsOneWidget : findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const Key('open-parent-live-companion')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('家庭设备联动'), findsOneWidget);
+    expect(find.text('发送共同任务'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('small screen with 200 percent text keeps capture usable', (
@@ -213,6 +229,9 @@ class _ConnectedParentCoordinator extends FamilySessionCoordinator {
 
   @override
   FamilySessionConnection get connection => _connection;
+
+  @override
+  Future<void> initialize() async {}
 
   @override
   CompanionCue get latestCue => const CompanionCue(

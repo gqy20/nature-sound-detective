@@ -926,6 +926,7 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   void _openParkGuide() {
+    if (widget.mode != ExplorationMode.parent) return;
     if (widget.onPrimaryFeatureSelected case final select?) {
       select(PrimaryFeature.parkGuide);
       return;
@@ -1319,19 +1320,19 @@ class _CapturePageState extends State<CapturePage> {
             MediaQuery.textScalerOf(context).scale(1) > 1.4;
         return Row(
           children: [
-            Expanded(
-              child: GestureDetector(
-                onLongPress: diagnosticsEnabled ? _showDebugActions : null,
-                child: Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/logo_mark.png',
-                      width: 28,
-                      height: 28,
-                      filterQuality: FilterQuality.medium,
-                      excludeFromSemantics: true,
-                    ),
-                    if (!compact) ...[
+            if (!compact)
+              Expanded(
+                child: GestureDetector(
+                  onLongPress: diagnosticsEnabled ? _showDebugActions : null,
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/logo_mark.png',
+                        width: 28,
+                        height: 28,
+                        filterQuality: FilterQuality.medium,
+                        excludeFromSemantics: true,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         '自然声探员',
@@ -1341,15 +1342,17 @@ class _CapturePageState extends State<CapturePage> {
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
             if (widget.familySessionCoordinator case final coordinator?)
               ListenableBuilder(
                 listenable: coordinator,
                 builder: (context, _) => coordinator.connection?.active == true
-                    ? _LinkedFamilyRoleChip(role: coordinator.connection!.role)
+                    ? _LinkedFamilyRoleChip(
+                        role: coordinator.connection!.role,
+                        compact: compact,
+                      )
                     : _ModeMenu(
                         mode: widget.mode,
                         onChanged: widget.onModeChanged,
@@ -1416,12 +1419,13 @@ class _CapturePageState extends State<CapturePage> {
               onPressed: _openSoundscape,
               feature: PrimaryFeature.soundscape,
             ),
-            _primaryFeatureButton(
-              key: const Key('park-guide-button'),
-              tooltip: '亲子游园指南',
-              onPressed: _openParkGuide,
-              feature: PrimaryFeature.parkGuide,
-            ),
+            if (widget.mode == ExplorationMode.parent)
+              _primaryFeatureButton(
+                key: const Key('park-guide-button'),
+                tooltip: '亲子游园指南',
+                onPressed: _openParkGuide,
+                feature: PrimaryFeature.parkGuide,
+              ),
             _primaryFeatureButton(
               key: const Key('works-button'),
               tooltip: '自然册',
@@ -1461,7 +1465,12 @@ class _CapturePageState extends State<CapturePage> {
       animation: pagePosition,
       builder: (context, _) {
         final page = pagePosition.value;
-        final emphasis = (1 - (page - feature.index).abs()).clamp(0.0, 1.0);
+        final targetPage =
+            widget.mode == ExplorationMode.child &&
+                feature == PrimaryFeature.natureBook
+            ? 2
+            : feature.index;
+        final emphasis = (1 - (page - targetPage).abs()).clamp(0.0, 1.0);
         return Container(
           key: Key('primary-nav-state-${feature.name}'),
           decoration: BoxDecoration(
@@ -2088,14 +2097,15 @@ class _CapturePageState extends State<CapturePage> {
 }
 
 class _LinkedFamilyRoleChip extends StatelessWidget {
-  const _LinkedFamilyRoleChip({required this.role});
+  const _LinkedFamilyRoleChip({required this.role, this.compact = false});
   final FamilyDeviceRole role;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Tooltip(
     message: role == FamilyDeviceRole.parent ? '家长陪伴设备已连接' : '儿童探索设备已连接',
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 9, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFE4F0E7),
         borderRadius: BorderRadius.circular(16),
@@ -2110,15 +2120,17 @@ class _LinkedFamilyRoleChip extends StatelessWidget {
             size: 15,
             color: const Color(0xFF174936),
           ),
-          const SizedBox(width: 4),
-          Text(
-            role == FamilyDeviceRole.parent ? '家长端' : '儿童端',
-            style: const TextStyle(
-              color: Color(0xFF174936),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+          if (!compact) ...[
+            const SizedBox(width: 4),
+            Text(
+              role == FamilyDeviceRole.parent ? '家长端' : '儿童端',
+              style: const TextStyle(
+                color: Color(0xFF174936),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     ),

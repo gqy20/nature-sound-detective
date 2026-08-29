@@ -45,6 +45,7 @@ class SoundscapePage extends StatefulWidget {
     this.preloader,
     this.primaryPagePosition,
     this.onOpenParkGuide,
+    this.audioStarter,
   });
 
   final CommunityService? service;
@@ -53,6 +54,7 @@ class SoundscapePage extends StatefulWidget {
   final SoundscapePreloader? preloader;
   final ValueListenable<double>? primaryPagePosition;
   final VoidCallback? onOpenParkGuide;
+  final Future<void> Function(String audioUrl)? audioStarter;
 
   @override
   State<SoundscapePage> createState() => _SoundscapePageState();
@@ -68,6 +70,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
   List<CommunityPark> _parks = const [];
   String? _selectedAreaId;
   String? _playingPostId;
+  String? _loadingAudioPostId;
+  String? _requestedAudioPostId;
   String? _recentAreaId;
   String? _error;
   bool _loading = true;
@@ -213,25 +217,80 @@ class _SoundscapePageState extends State<SoundscapePage> {
 
   Future<void> _toggleAudio(CommunityPost post) async {
     if (post.audioUrl.isEmpty) return;
+    if (widget.audioStarter case final start?) {
+      if (_loadingAudioPostId == post.id) return;
+      if (_playingPostId == post.id) {
+        setState(() {
+          _playingPostId = null;
+          _requestedAudioPostId = null;
+        });
+        return;
+      }
+      setState(() {
+        _requestedAudioPostId = post.id;
+        _loadingAudioPostId = post.id;
+        _playingPostId = null;
+      });
+      try {
+        await start(post.audioUrl);
+        if (mounted) {
+          setState(() {
+            _playingPostId = post.id;
+            _loadingAudioPostId = null;
+          });
+        }
+      } catch (_) {
+        if (mounted) _handleAudioFailure();
+      }
+      return;
+    }
     final player = _player ??= AudioPlayer();
     _playerSubscription ??= player.onPlayerStateChanged.listen((state) {
-      if (mounted && state != PlayerState.playing) {
-        setState(() => _playingPostId = null);
-      }
+      if (!mounted) return;
+      setState(() {
+        if (state == PlayerState.playing) {
+          _playingPostId = _requestedAudioPostId;
+          _loadingAudioPostId = null;
+        } else if (state == PlayerState.stopped ||
+            state == PlayerState.completed) {
+          _playingPostId = null;
+          if (_loadingAudioPostId == null) _requestedAudioPostId = null;
+        }
+      });
     });
+    if (_loadingAudioPostId == post.id) return;
     if (_playingPostId == post.id) {
       await player.stop();
       return;
     }
     try {
+      setState(() {
+        _requestedAudioPostId = post.id;
+        _loadingAudioPostId = post.id;
+        _playingPostId = null;
+      });
+      await player.stop();
       await player.play(UrlSource(post.audioUrl));
-      if (mounted) setState(() => _playingPostId = post.id);
+      if (mounted && player.state == PlayerState.playing) {
+        setState(() {
+          _playingPostId = post.id;
+          _loadingAudioPostId = null;
+        });
+      }
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('这段声音暂时无法播放。')));
+      if (mounted) _handleAudioFailure();
     }
+  }
+
+  void _handleAudioFailure() {
+    setState(() {
+      _requestedAudioPostId = null;
+      _loadingAudioPostId = null;
+      _playingPostId = null;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('这段声音暂时无法播放。')));
   }
 
   Future<void> _assist(CommunityPost post, String choice) async {
@@ -557,6 +616,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
               _CommunitySoundCard(
                 post: post,
                 playing: _playingPostId == post.id,
+                loadingAudio: _loadingAudioPostId == post.id,
                 acting: _acting,
                 onPlay: () => _toggleAudio(post),
                 onAssist: (choice) => _assist(post, choice),
@@ -1898,6 +1958,7 @@ class _CommunitySoundCard extends StatelessWidget {
   const _CommunitySoundCard({
     required this.post,
     required this.playing,
+    required this.loadingAudio,
     required this.acting,
     required this.onPlay,
     required this.onAssist,
@@ -1905,6 +1966,7 @@ class _CommunitySoundCard extends StatelessWidget {
   });
   final CommunityPost post;
   final bool playing;
+  final bool loadingAudio;
   final bool acting;
   final VoidCallback onPlay;
   final ValueChanged<String> onAssist;
@@ -1994,10 +2056,27 @@ class _CommunitySoundCard extends StatelessWidget {
               children: [
                 IconButton.filled(
                   key: Key('play-community-${post.id}'),
-                  tooltip: playing ? '停止' : '先听声音',
-                  onPressed: post.audioUrl.isEmpty ? null : onPlay,
-                  icon: Icon(
-                    playing ? Icons.stop_rounded : Icons.play_arrow_rounded,
+                  tooltip: loadingAudio ? '正在加载声音' : (playing ? '停止' : '先听声音'),
+                  onPressed: post.audioUrl.isEmpty || loadingAudio
+                      ? null
+                      : onPlay,
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 160),
+                    child: loadingAudio
+                        ? const SizedBox.square(
+                            key: Key('community-audio-loading'),
+                            dimension: 19,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Icon(
+                            key: ValueKey(playing),
+                            playing
+                                ? Icons.stop_rounded
+                                : Icons.play_arrow_rounded,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),

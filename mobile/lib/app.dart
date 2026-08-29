@@ -178,7 +178,7 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
+            minimumSize: const Size(0, 52),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),
@@ -187,7 +187,7 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
+            minimumSize: const Size(0, 52),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),

@@ -26,7 +26,7 @@ void main() {
     expect(find.byKey(const Key('soundscape-button')), findsOneWidget);
     expect(find.byKey(const Key('works-button')), findsOneWidget);
     expect(find.byKey(const Key('creation-settings-button')), findsOneWidget);
-    expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
+    expect(find.byKey(const Key('park-guide-button')), findsNothing);
     expect(
       find.byKey(const Key('debug-export-button')),
       diagnosticsEnabled ? findsOneWidget : findsNothing,
@@ -74,8 +74,12 @@ void main() {
     );
     await _pumpFrames(tester);
     expect(
-      find.byKey(const Key('current-primary-feature-parkGuide')),
+      find.byKey(const Key('current-primary-feature-natureBook')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('open-park-guide-from-soundscape')),
+      findsNothing,
     );
     expect(
       logger.recent.where(

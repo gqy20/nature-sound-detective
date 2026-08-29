@@ -31,10 +31,17 @@ void main() {
 
     await expectLater(
       find.byType(Scaffold),
-      matchesGoldenFile('../../goldens/park_guide/criteria-frameless.png'),
+      matchesGoldenFile(
+        '../../goldens/park_guide/park-selection-frameless.png',
+      ),
     );
 
     expect(find.text('今天去哪听？'), findsOneWidget);
+    expect(
+      find.byKey(const Key('park-guide-park-selection-page')),
+      findsOneWidget,
+    );
+    await _selectTaiziwanPark(tester);
     expect(find.byKey(const Key('park-guide-criteria-page')), findsOneWidget);
     expect(
       find.byKey(const Key('park-guide-recommendations-page')),
@@ -51,6 +58,10 @@ void main() {
     expect(
       tester.getBottomLeft(preferences).dy,
       lessThanOrEqualTo(tester.view.physicalSize.height),
+    );
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('../../goldens/park_guide/criteria-frameless.png'),
     );
 
     await tester.tap(find.text('6–7岁'));
@@ -107,6 +118,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _selectTaiziwanPark(tester);
     await tester.tap(find.byKey(const Key('open-park-recommendations')));
     await tester.pumpAndSettle();
     expect(find.text('太子湾公园'), findsWidgets);
@@ -122,6 +134,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await _selectTaiziwanPark(tester);
     expect(find.text('5岁及以下'), findsOneWidget);
     expect(find.text('孩子年龄'), findsOneWidget);
     expect(find.text('6–7岁'), findsOneWidget);
@@ -190,6 +203,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('park-guide-loading')), findsNothing);
+    await _selectTaiziwanPark(tester);
     await tester.tap(find.byKey(const Key('open-park-recommendations')));
     await tester.pumpAndSettle();
     expect(find.text('太子湾公园'), findsWidgets);
@@ -210,11 +224,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('重新加载'), findsNothing);
+    await _selectTaiziwanPark(tester);
     await tester.tap(find.byKey(const Key('open-park-recommendations')));
     await tester.pumpAndSettle();
     expect(find.text('太子湾公园'), findsWidgets);
     expect(service.calls, 3);
   });
+}
+
+Future<void> _selectTaiziwanPark(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('select-park-taiziwan-park')));
+  await tester.pumpAndSettle();
 }
 
 class _FakeCommunityService implements CommunityService {

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
 import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
+import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 import 'package:nature_sound_detective/features/family/family_link_page.dart';
 
@@ -107,12 +108,91 @@ void main() {
     expect(find.textContaining('已使用 7 / 20，剩余 13 次'), findsOneWidget);
     expect(find.textContaining('本地陪伴提示不消耗次数'), findsOneWidget);
   });
+
+  testWidgets(
+    'AI companion exposes three selectable responses and its source',
+    (tester) async {
+      final coordinator = _FakeCoordinator();
+      addTearDown(coordinator.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FamilyLinkPage(
+            coordinator: coordinator,
+            guidanceService: _FakeGuidanceService(),
+          ),
+        ),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('generate-family-session-ai-guidance')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('AI根据本次探索生成'), findsOneWidget);
+      expect(
+        find.byKey(const Key('family-ai-response-option-0')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('family-ai-response-option-1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('family-ai-response-option-2')),
+        findsOneWidget,
+      );
+      expect(find.text('认真求证'), findsOneWidget);
+      expect(find.text('比较证据'), findsOneWidget);
+      expect(find.text('继续探索'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('family-ai-response-option-1')));
+      await tester.pump();
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('family-ai-response-option-1')),
+          matching: find.byIcon(Icons.check_circle_rounded),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 }
 
 class _FakeGuidanceService extends ParentGuidanceNetworkService {
   @override
   Future<ParentGuidanceQuota?> loadQuota() async =>
       const ParentGuidanceQuota(limit: 20, used: 7, remaining: 13);
+
+  @override
+  Future<GuidanceBundle> create({
+    required SoundDetection? detection,
+    required Map<String, List<String>> observations,
+    required Set<ExplorationBehavior> behaviors,
+    required bool weakSignal,
+    List<FamilyExplorationEvent> events = const [],
+  }) async => const GuidanceBundle(
+    guides: [],
+    praiseSuggestions: [
+      PraiseSuggestion(
+        behavior: ExplorationBehavior.replayedAudio,
+        ability: '认真求证',
+        text: '你愿意重新听一遍，让刚才的猜想有了更多声音证据。',
+      ),
+      PraiseSuggestion(
+        behavior: ExplorationBehavior.replayedAudio,
+        ability: '比较证据',
+        text: '你把前后两次听见的声音放在一起比较，发现了新的线索。',
+      ),
+      PraiseSuggestion(
+        behavior: ExplorationBehavior.replayedAudio,
+        ability: '继续探索',
+        text: '你没有急着下结论，而是为下一次倾听留下了问题。',
+      ),
+    ],
+    provider: 'qwen3.7-flash',
+    aiGenerated: true,
+  );
 }
 
 class _FakeCoordinator extends FamilySessionCoordinator {

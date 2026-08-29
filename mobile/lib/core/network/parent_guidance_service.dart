@@ -39,9 +39,10 @@ class ParentGuidanceNetworkService {
   static const _configuredBaseUrl = String.fromEnvironment('COMMUNITY_API_URL');
   static String get _defaultBaseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    return kReleaseMode
-        ? 'https://listen-api.gqy20.top'
-        : 'http://10.0.2.2:8770';
+    // Debug APKs are commonly installed on physical devices, where 10.0.2.2
+    // does not point to the developer computer. Local backend work remains
+    // available through --dart-define=COMMUNITY_API_URL=...
+    return 'https://listen-api.gqy20.top';
   }
 
   final Uri baseUri;

@@ -10,6 +10,15 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
 
 void main() {
+  test(
+    'debug builds default parent guidance to the reachable production API',
+    () {
+      final service = ParentGuidanceNetworkService();
+
+      expect(service.baseUri.toString(), 'https://listen-api.gqy20.top');
+    },
+  );
+
   test('parses directly generated AI guidance', () async {
     final directory = await Directory.systemTemp.createTemp('parent-ai-');
     addTearDown(() => directory.delete(recursive: true));

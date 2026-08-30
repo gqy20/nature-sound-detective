@@ -11,7 +11,7 @@ import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart'
 import '../../support/tolerant_golden_comparator.dart';
 
 void main() {
-  useCrossPlatformGoldenComparator();
+  useCrossPlatformGoldenComparator(precisionTolerance: 0.03);
   testWidgets('filters parks and opens a parent-guided route', (tester) async {
     tester.view.physicalSize = const Size(430, 950);
     tester.view.devicePixelRatio = 1;

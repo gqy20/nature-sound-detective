@@ -56,6 +56,15 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Upload golden failure diffs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-failures-${{ github.run_number }}
+          path: mobile/test/**/failures/**
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Reset generated Android plugins for release
         run: flutter clean
 

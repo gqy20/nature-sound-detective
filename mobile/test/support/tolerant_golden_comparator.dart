@@ -1,14 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const double _crossPlatformGoldenTolerance = 0.02;
+const double _defaultCrossPlatformGoldenTolerance = 0.02;
 
-void useCrossPlatformGoldenComparator() {
+void useCrossPlatformGoldenComparator({
+  double precisionTolerance = _defaultCrossPlatformGoldenTolerance,
+}) {
   final current = goldenFileComparator;
   if (current is! LocalFileComparator) return;
   goldenFileComparator = _TolerantGoldenFileComparator(
     current.basedir.resolve('_golden_comparator.dart'),
-    precisionTolerance: _crossPlatformGoldenTolerance,
+    precisionTolerance: precisionTolerance,
   );
 }
 

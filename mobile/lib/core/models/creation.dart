@@ -11,6 +11,8 @@ enum CreationStage {
   failed,
 }
 
+enum CreationVisualMode { bird, frog, environment }
+
 class CreationSettings {
   const CreationSettings({
     this.dashscopeApiKey = '',
@@ -18,7 +20,7 @@ class CreationSettings {
     this.dashscopeMusicModel = 'fun-music-v1',
     this.dashscopeSpeechModel = 'qwen-audio-3.0-tts-plus',
     this.dashscopeSpeechVoice = 'longanlingxin',
-    this.wanVideoModel = 'wan2.7-t2v',
+    this.wanVideoModel = 'wan3.0-video',
   });
 
   factory CreationSettings.fromJson(Map<String, Object?> json) {
@@ -32,7 +34,10 @@ class CreationSettings {
           'qwen-audio-3.0-tts-plus',
       dashscopeSpeechVoice:
           json['dashscope_speech_voice'] as String? ?? 'longanlingxin',
-      wanVideoModel: json['wan_video_model'] as String? ?? 'wan2.7-t2v',
+      wanVideoModel: switch (json['wan_video_model'] as String?) {
+        null || '' || 'wan2.7-t2v' => 'wan3.0-video',
+        final value => value,
+      },
     );
   }
 
@@ -122,6 +127,7 @@ class CreationRecord {
     required this.message,
     required this.directoryPath,
     required this.sourceAudioPath,
+    this.visualMode = CreationVisualMode.environment,
     this.musicPath = '',
     this.narrationPath = '',
     this.videoPath = '',
@@ -134,6 +140,8 @@ class CreationRecord {
 
   factory CreationRecord.fromJson(Map<String, Object?> json) {
     final stageName = json['stage'] as String? ?? CreationStage.idle.name;
+    final visualModeName =
+        json['visual_mode'] as String? ?? CreationVisualMode.environment.name;
     return CreationRecord(
       id: json['id'] as String? ?? '',
       subject: json['subject'] as String? ?? '自然环境声',
@@ -151,6 +159,10 @@ class CreationRecord {
       message: json['message'] as String? ?? '',
       directoryPath: json['directory_path'] as String? ?? '',
       sourceAudioPath: json['source_audio_path'] as String? ?? '',
+      visualMode: CreationVisualMode.values.firstWhere(
+        (value) => value.name == visualModeName,
+        orElse: () => CreationVisualMode.environment,
+      ),
       musicPath: json['music_path'] as String? ?? '',
       narrationPath: json['narration_path'] as String? ?? '',
       videoPath: json['video_path'] as String? ?? '',
@@ -171,6 +183,7 @@ class CreationRecord {
   final String message;
   final String directoryPath;
   final String sourceAudioPath;
+  final CreationVisualMode visualMode;
   final String musicPath;
   final String narrationPath;
   final String videoPath;
@@ -198,6 +211,7 @@ class CreationRecord {
     String? musicError,
     String? videoError,
     String? compositionError,
+    CreationVisualMode? visualMode,
   }) => CreationRecord(
     id: id,
     subject: subject,
@@ -208,6 +222,7 @@ class CreationRecord {
     message: message ?? this.message,
     directoryPath: directoryPath,
     sourceAudioPath: sourceAudioPath,
+    visualMode: visualMode ?? this.visualMode,
     musicPath: musicPath ?? this.musicPath,
     narrationPath: narrationPath ?? this.narrationPath,
     videoPath: videoPath ?? this.videoPath,
@@ -228,6 +243,7 @@ class CreationRecord {
     'message': message,
     'directory_path': directoryPath,
     'source_audio_path': sourceAudioPath,
+    'visual_mode': visualMode.name,
     'music_path': musicPath,
     'narration_path': narrationPath,
     'video_path': videoPath,

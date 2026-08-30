@@ -6,7 +6,12 @@ import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode_store.dart';
+import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/storage/creation_store.dart';
+import 'package:nature_sound_detective/core/storage/creation_settings_store.dart';
+import 'package:nature_sound_detective/features/creation/creation_page.dart';
 import 'package:nature_sound_detective/features/navigation/primary_feature_shell.dart';
+import 'package:nature_sound_detective/features/navigation/primary_feature_store.dart';
 
 class NatureSoundApp extends StatefulWidget {
   const NatureSoundApp({
@@ -14,31 +19,47 @@ class NatureSoundApp extends StatefulWidget {
     this.analyzer,
     this.modeStore,
     this.familySessionCoordinator,
+    this.creationStore,
+    this.activeCreationStore,
+    this.creationSettingsStore,
+    this.primaryFeatureStore,
     this.preloadSoundscape = true,
   });
 
   final RecordingAnalyzer? analyzer;
   final ExplorationModeStore? modeStore;
   final FamilySessionCoordinator? familySessionCoordinator;
+  final CreationStore? creationStore;
+  final ActiveCreationStore? activeCreationStore;
+  final CreationSettingsStore? creationSettingsStore;
+  final PrimaryFeatureStore? primaryFeatureStore;
   final bool preloadSoundscape;
 
   @override
   State<NatureSoundApp> createState() => _NatureSoundAppState();
 }
 
-class _NatureSoundAppState extends State<NatureSoundApp> {
+class _NatureSoundAppState extends State<NatureSoundApp>
+    with WidgetsBindingObserver {
   late final ExplorationModeStore _modeStore;
   late final FamilySessionCoordinator _familySessionCoordinator;
   late final bool _ownsFamilySessionCoordinator;
+  late final CreationStore _creationStore;
+  late final ActiveCreationStore _activeCreationStore;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   ExplorationMode _mode = ExplorationMode.child;
+  bool _resumeRouteScheduled = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _modeStore = widget.modeStore ?? ExplorationModeStore();
     _ownsFamilySessionCoordinator = widget.familySessionCoordinator == null;
     _familySessionCoordinator =
         widget.familySessionCoordinator ?? FamilySessionCoordinator();
+    _creationStore = widget.creationStore ?? CreationStore();
+    _activeCreationStore = widget.activeCreationStore ?? ActiveCreationStore();
     _familySessionCoordinator.addListener(_syncModeToFamilyRole);
     unawaited(
       _familySessionCoordinator.initialize().then(
@@ -46,13 +67,28 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
       ),
     );
     _loadMode();
+    unawaited(_restoreActiveCreationRoute());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _familySessionCoordinator.removeListener(_syncModeToFamilyRole);
     if (_ownsFamilySessionCoordinator) _familySessionCoordinator.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_familySessionCoordinator.resumePolling());
+    } else if ({
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.detached,
+    }.contains(state)) {
+      _familySessionCoordinator.pausePolling();
+    }
   }
 
   Future<void> _loadMode() async {
@@ -61,6 +97,44 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
       setState(() => _mode = value);
       _syncModeToFamilyRole();
     }
+  }
+
+  Future<void> _restoreActiveCreationRoute() async {
+    final recordId = await _activeCreationStore.load();
+    if (!mounted || recordId == null || _resumeRouteScheduled) return;
+    final record = await _creationStore.load(recordId);
+    if (!mounted ||
+        record == null ||
+        {CreationStage.idle, CreationStage.completed}.contains(record.stage)) {
+      await _activeCreationStore.clear();
+      return;
+    }
+    final activelyRunning = {
+      CreationStage.generatingMusic,
+      CreationStage.generatingNarration,
+      CreationStage.submittingVideo,
+      CreationStage.waitingForVideo,
+      CreationStage.downloadingVideo,
+      CreationStage.composing,
+    }.contains(record.stage);
+    if (!activelyRunning) await _activeCreationStore.clear();
+    _resumeRouteScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _navigatorKey.currentState
+          ?.push<void>(
+            MaterialPageRoute(
+              builder: (_) => CreationPage(
+                subject: record.subject,
+                location: record.location,
+                existingRecord: record,
+                activeCreationStore: _activeCreationStore,
+                settingsStore: widget.creationSettingsStore,
+              ),
+            ),
+          )
+          .whenComplete(() => _resumeRouteScheduled = false);
+    });
   }
 
   void _setMode(ExplorationMode value) {
@@ -94,6 +168,8 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
     const ivory = Color(0xFFF8F5EC);
 
     return MaterialApp(
+      restorationScopeId: 'nature_sound_app',
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: '自然声探员',
       theme: ThemeData(
@@ -202,6 +278,7 @@ class _NatureSoundAppState extends State<NatureSoundApp> {
         onModeChanged: _setMode,
         familySessionCoordinator: _familySessionCoordinator,
         preloadSoundscape: widget.preloadSoundscape,
+        featureStore: widget.primaryFeatureStore,
       ),
     );
   }

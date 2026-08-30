@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
+import 'package:nature_sound_detective/core/models/animal_story.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/field_observation_schema.dart';
+import 'package:nature_sound_detective/core/network/animal_story_service.dart';
+import 'package:nature_sound_detective/core/storage/animal_story_store.dart';
 import 'package:nature_sound_detective/features/species/species_detail_page.dart';
 
 void main() {
@@ -60,10 +64,8 @@ void main() {
     await tester.tap(find.text('高处树冠'));
     await tester.tap(find.text('重复鸣叫'));
     await tester.pumpAndSettle();
-    expect(find.text('✓ 已满足故事生成条件'), findsOneWidget);
-    await tester.ensureVisible(find.text('完成现场观察'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('完成现场观察'));
+    expect(find.text('观察线索已保存'), findsOneWidget);
+    expect(find.text('完成现场观察'), findsNothing);
     expect(changedObservations, {
       'time': ['early_morning'],
       'habitat': ['tree_canopy'],
@@ -119,7 +121,155 @@ void main() {
     expect(find.byIcon(Icons.flight_rounded), findsWidgets);
     expect(find.textContaining('Wikimedia'), findsNothing);
   });
+
+  testWidgets('generated story has clear hierarchy and is restored locally', (
+    tester,
+  ) async {
+    final generator = _FakeStoryGenerator();
+    final store = _MemoryStoryStore();
+    const detection = SoundDetection(
+      categoryId: 'bird',
+      nameZh: '鸟类鸣叫',
+      confidence: 0.72,
+      model: 'test',
+      specificSpecies: SpeciesCandidate(
+        nameZh: '白头鹎',
+        scientificName: 'Pycnonotus sinensis',
+      ),
+    );
+    const observations = {
+      'time': ['early_morning'],
+      'habitat': ['tree_canopy'],
+      'sound_pattern': ['repeated'],
+    };
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SpeciesDetailPage(
+          detection: detection,
+          initialObservations: observations,
+          storyGenerator: generator,
+          storyStore: store,
+          observationSchema: _testObservationSchema,
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('生成动物故事'),
+      320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('生成动物故事'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('树冠上的线索'),
+      320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('树冠上的线索'), findsOneWidget);
+    expect(find.textContaining('**'), findsNothing);
+    expect(find.text('下一次探索任务'), findsOneWidget);
+    expect(find.text('已保存到本机'), findsOneWidget);
+    expect(find.text('换一个故事'), findsOneWidget);
+    expect(generator.calls, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SpeciesDetailPage(
+          detection: detection,
+          initialObservations: observations,
+          storyGenerator: generator,
+          storyStore: store,
+          observationSchema: _testObservationSchema,
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('树冠上的线索'),
+      320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('树冠上的线索'), findsOneWidget);
+    expect(generator.calls, 1);
+  });
+
+  testWidgets('story failure stays visible beside the action', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SpeciesDetailPage(
+          detection: const SoundDetection(
+            categoryId: 'frog',
+            nameZh: '蛙类鸣叫',
+            confidence: 0.5,
+            model: 'test',
+          ),
+          initialObservations: const {
+            'time': ['night'],
+            'habitat': ['waterside'],
+          },
+          storyGenerator: _FailingStoryGenerator(),
+          storyStore: _MemoryStoryStore(),
+          observationSchema: _testObservationSchema,
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('生成动物故事'),
+      320,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('生成动物故事'));
+    await tester.pumpAndSettle();
+    expect(find.text('故事还没有准备好，可以稍后再试。'), findsOneWidget);
+  });
 }
+
+const _testObservationSchema = FieldObservationSchema(
+  version: 1,
+  minimumMeaningfulDimensions: 2,
+  dimensions: [
+    FieldObservationDimension(
+      id: 'time',
+      label: '什么时候发现的？',
+      multiple: false,
+      options: [
+        FieldObservationOption(value: 'early_morning', label: '清晨'),
+        FieldObservationOption(value: 'night', label: '夜间'),
+      ],
+    ),
+    FieldObservationDimension(
+      id: 'habitat',
+      label: '它在哪里活动？',
+      multiple: false,
+      options: [
+        FieldObservationOption(value: 'tree_canopy', label: '高处树冠'),
+        FieldObservationOption(value: 'waterside', label: '水边'),
+      ],
+    ),
+    FieldObservationDimension(
+      id: 'sound_pattern',
+      label: '声音有什么特点？',
+      multiple: true,
+      options: [FieldObservationOption(value: 'repeated', label: '重复鸣叫')],
+    ),
+  ],
+);
 
 class _FakePlayback implements AudioPlayback {
   final _controller = StreamController<bool>.broadcast();
@@ -155,4 +305,46 @@ class _FakePlayback implements AudioPlayback {
 
   @override
   Future<void> dispose() => _controller.close();
+}
+
+class _FakeStoryGenerator implements AnimalStoryGenerator {
+  int calls = 0;
+
+  @override
+  Future<AnimalStory> create({
+    required SoundDetection detection,
+    required Map<String, List<String>> selections,
+    required FieldObservationSchema schema,
+    String location = '杭州',
+  }) async {
+    calls += 1;
+    return const AnimalStory(
+      title: '树冠上的线索',
+      story: '清晨，白头鹎候选者在高处树冠留下了重复鸣叫的线索。',
+      observationPrompt: '下一次在远处记录声音的方向。',
+      notice: '这是关于候选动物白头鹎的AI故事，不代表物种确认。',
+    );
+  }
+}
+
+class _FailingStoryGenerator implements AnimalStoryGenerator {
+  @override
+  Future<AnimalStory> create({
+    required SoundDetection detection,
+    required Map<String, List<String>> selections,
+    required FieldObservationSchema schema,
+    String location = '杭州',
+  }) => Future.error(StateError('offline'));
+}
+
+class _MemoryStoryStore implements AnimalStoryStore {
+  final values = <String, AnimalStory>{};
+
+  @override
+  Future<AnimalStory?> load(String key) async => values[key];
+
+  @override
+  Future<void> save(String key, AnimalStory story) async {
+    values[key] = story;
+  }
 }

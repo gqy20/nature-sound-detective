@@ -1,0 +1,818 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e7]:
+        - link "Awwwards" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img [ref=e9]
+        - navigation [ref=e11]:
+          - list [ref=e12]:
+            - listitem [ref=e13]:
+              - generic [ref=e14] [cursor=pointer]:
+                - text: Explore
+                - img [ref=e15]
+            - listitem [ref=e17]:
+              - link "Directory" [ref=e18] [cursor=pointer]:
+                - /url: /directory/
+            - listitem [ref=e19]:
+              - link "Academy New" [ref=e20] [cursor=pointer]:
+                - /url: /academy/
+                - text: Academy
+                - generic [ref=e22]: New
+            - listitem [ref=e23]:
+              - link "Jobs" [ref=e24] [cursor=pointer]:
+                - /url: /jobs/
+            - listitem [ref=e25]:
+              - link "Market" [ref=e26] [cursor=pointer]:
+                - /url: /market/
+        - generic [ref=e29]:
+          - button "Search" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+          - textbox "Search by Inspiration" [ref=e33]
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - strong [ref=e36] [cursor=pointer]: Log in
+            - strong [ref=e37] [cursor=pointer]: Sign Up
+          - generic [ref=e38]:
+            - link "Be Pro" [ref=e39] [cursor=pointer]:
+              - /url: /pro
+            - link "Submit Website" [ref=e40] [cursor=pointer]:
+              - /url: /submit/
+    - generic [ref=e41]:
+      - generic [ref=e45]:
+        - link "HOBRO DIGITAL - Site of the Day" [ref=e46] [cursor=pointer]:
+          - /url: /sites/hobro-digital
+        - generic [ref=e48]:
+          - heading "Site of the Day Aug 29, 2026 Score 7.29 of 10" [level=2] [ref=e50]:
+            - generic [ref=e51]: Site of the Day
+            - strong [ref=e52]: Aug 29, 2026
+            - generic [ref=e53]: Score 7.29 of 10
+          - heading "HOBRO DIGITAL" [level=1] [ref=e55]
+          - list [ref=e59]:
+            - listitem [ref=e60]:
+              - figure [ref=e62]:
+                - link "Hobro Digital" [ref=e63] [cursor=pointer]:
+                  - /url: /hobro.digital/
+                  - generic [ref=e64]:
+                    - strong [ref=e65]: Hobro Digital
+                    - superscript [ref=e66]: PRO
+        - img "HOBRO DIGITAL" [ref=e69]
+      - generic [ref=e72]:
+        - generic [ref=e73]:
+          - heading "Latest" [level=2] [ref=e75]
+          - heading "Nominees Lottie animation" [level=3] [ref=e77]:
+            - generic [ref=e78]:
+              - text: Nominees
+              - generic:
+                - img "Lottie animation":
+                  - generic:
+                    - img
+          - generic [ref=e80]: Vote for the latest websites on awwwards
+        - list [ref=e81]:
+          - listitem [ref=e82]:
+            - generic [ref=e83]:
+              - figure [ref=e84]:
+                - link "Jesper Landberg" [ref=e85] [cursor=pointer]:
+                  - /url: /sites/jesper-landberg-4
+                  - img "Jesper Landberg" [ref=e86]
+              - generic [ref=e88]:
+                - heading "Jesper Landberg" [level=3] [ref=e89]:
+                  - link "Jesper Landberg" [ref=e90] [cursor=pointer]:
+                    - /url: /sites/jesper-landberg-4
+                - generic [ref=e91]:
+                  - generic [ref=e92]: by
+                  - list [ref=e94]:
+                    - listitem [ref=e95]:
+                      - figure [ref=e97]:
+                        - link "Jesper Landberg" [ref=e98] [cursor=pointer]:
+                          - /url: /jesperlandberg/
+                          - generic [ref=e99]:
+                            - strong [ref=e100]: Jesper Landberg
+                            - superscript [ref=e101]: PRO
+          - listitem [ref=e102]:
+            - generic [ref=e103]:
+              - figure [ref=e104]:
+                - link "Loop Creative Studio" [ref=e105] [cursor=pointer]:
+                  - /url: /sites/loop-creative-studio
+                  - img "Loop Creative Studio" [ref=e106]
+              - generic [ref=e108]:
+                - heading "Loop Creative Studio" [level=3] [ref=e109]:
+                  - link "Loop Creative Studio" [ref=e110] [cursor=pointer]:
+                    - /url: /sites/loop-creative-studio
+                - generic [ref=e111]:
+                  - generic [ref=e112]: by
+                  - list [ref=e114]:
+                    - listitem [ref=e115]:
+                      - figure [ref=e117]:
+                        - link "Anton Drukarov" [ref=e118] [cursor=pointer]:
+                          - /url: /anton-drukarov/
+                          - generic [ref=e119]:
+                            - strong [ref=e120]: Anton Drukarov
+                            - superscript [ref=e121]: PRO
+        - generic [ref=e123]:
+          - generic [ref=e124]: Check out all submitted websites
+          - link "View Nominees" [ref=e125] [cursor=pointer]:
+            - /url: /websites/nominees/
+            - img [ref=e126]
+            - strong [ref=e128]: View Nominees
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - heading "Winners" [level=2] [ref=e134]
+          - heading "Recent Sites of the Day." [level=3] [ref=e136]:
+            - text: Recent Sites
+            - text: of the Day.
+        - list [ref=e137]:
+          - listitem [ref=e138]:
+            - generic [ref=e139]:
+              - figure [ref=e140]:
+                - link "Decathlon Yestalgia" [ref=e141] [cursor=pointer]:
+                  - /url: /sites/decathlon-yestalgia
+                  - img "Decathlon Yestalgia" [ref=e142]
+              - generic [ref=e144]:
+                - heading "Decathlon Yestalgia" [level=3] [ref=e145]:
+                  - link "Decathlon Yestalgia" [ref=e146] [cursor=pointer]:
+                    - /url: /sites/decathlon-yestalgia
+                - generic [ref=e147]:
+                  - generic [ref=e148]: by
+                  - list [ref=e150]:
+                    - listitem [ref=e151]:
+                      - figure [ref=e153]:
+                        - link "index" [ref=e154] [cursor=pointer]:
+                          - /url: /by_index/
+                          - generic [ref=e155]:
+                            - strong [ref=e156]: index
+                            - superscript [ref=e157]: PRO
+          - listitem [ref=e158]:
+            - generic [ref=e159]:
+              - figure [ref=e160]:
+                - link "Sharplink" [ref=e161] [cursor=pointer]:
+                  - /url: /sites/sharplink
+                  - img "Sharplink" [ref=e162]
+              - generic [ref=e164]:
+                - heading "Sharplink" [level=3] [ref=e165]:
+                  - link "Sharplink" [ref=e166] [cursor=pointer]:
+                    - /url: /sites/sharplink
+                - generic [ref=e167]:
+                  - generic [ref=e168]: by
+                  - list [ref=e170]:
+                    - listitem [ref=e171]:
+                      - figure [ref=e173]:
+                        - link "Studio Freight" [ref=e174] [cursor=pointer]:
+                          - /url: /studiofreight/
+                          - generic [ref=e175]:
+                            - strong [ref=e176]: Studio Freight
+                            - superscript [ref=e177]: PRO
+          - listitem [ref=e178]:
+            - generic [ref=e179]:
+              - figure [ref=e180]:
+                - link "Ai in Design Report 2026" [ref=e181] [cursor=pointer]:
+                  - /url: /sites/ai-in-design-report-2026
+                  - img "Ai in Design Report 2026" [ref=e182]
+              - generic [ref=e184]:
+                - heading "Ai in Design Report 2026" [level=3] [ref=e185]:
+                  - link "Ai in Design Report 2026" [ref=e186] [cursor=pointer]:
+                    - /url: /sites/ai-in-design-report-2026
+                - generic [ref=e187]:
+                  - generic [ref=e188]: by
+                  - list [ref=e190]:
+                    - listitem [ref=e191]:
+                      - figure [ref=e193]:
+                        - link "++hellohello" [ref=e194] [cursor=pointer]:
+                          - /url: /hellohelloteam/
+                          - generic [ref=e195]:
+                            - strong [ref=e196]: ++hellohello
+                            - superscript [ref=e197]: PRO
+          - listitem [ref=e198]:
+            - generic [ref=e199]:
+              - figure [ref=e200]:
+                - link "MIU MIU A House that we shaped" [ref=e201] [cursor=pointer]:
+                  - /url: /sites/miu-miu-a-house-that-we-shaped
+                  - img "MIU MIU A House that we shaped" [ref=e202]
+              - generic [ref=e204]:
+                - heading "MIU MIU A House that we shaped" [level=3] [ref=e205]:
+                  - link "MIU MIU A House that we shaped" [ref=e206] [cursor=pointer]:
+                    - /url: /sites/miu-miu-a-house-that-we-shaped
+                - generic [ref=e207]:
+                  - generic [ref=e208]: by
+                  - list [ref=e210]:
+                    - listitem [ref=e211]:
+                      - figure [ref=e213]:
+                        - link "Merci Michel" [ref=e214] [cursor=pointer]:
+                          - /url: /Merci-Michel/
+                          - generic [ref=e215]:
+                            - strong [ref=e216]: Merci Michel
+                            - superscript [ref=e217]: PRO
+          - listitem [ref=e218]:
+            - generic [ref=e219]:
+              - figure [ref=e220]:
+                - link "/zeroz Brand Site" [ref=e221] [cursor=pointer]:
+                  - /url: /sites/zeroz-brand-site
+                  - img "/zeroz Brand Site" [ref=e222]
+              - generic [ref=e224]:
+                - heading "/zeroz Brand Site" [level=3] [ref=e225]:
+                  - link "/zeroz Brand Site" [ref=e226] [cursor=pointer]:
+                    - /url: /sites/zeroz-brand-site
+                - generic [ref=e227]:
+                  - generic [ref=e228]: by
+                  - list [ref=e230]:
+                    - listitem [ref=e231]:
+                      - figure [ref=e233]:
+                        - link "SHIFTBRAIN" [ref=e234] [cursor=pointer]:
+                          - /url: /shiftbrain-inc/
+                          - generic [ref=e235]:
+                            - strong [ref=e236]: SHIFTBRAIN
+                            - superscript [ref=e237]: PRO
+          - listitem [ref=e238]:
+            - generic [ref=e239]:
+              - figure [ref=e240]:
+                - link "Kononenko Architectural Bureau" [ref=e241] [cursor=pointer]:
+                  - /url: /sites/kononenko-architectural-bureau
+                  - img "Kononenko Architectural Bureau" [ref=e242]
+              - generic [ref=e244]:
+                - heading "Kononenko Architectural Bureau" [level=3] [ref=e245]:
+                  - link "Kononenko Architectural Bureau" [ref=e246] [cursor=pointer]:
+                    - /url: /sites/kononenko-architectural-bureau
+                - generic [ref=e247]:
+                  - generic [ref=e248]: by
+                  - list [ref=e250]:
+                    - listitem [ref=e251]:
+                      - figure [ref=e253]:
+                        - link "Reksa Andhika" [ref=e254] [cursor=pointer]:
+                          - /url: /reksaandhika/
+                          - generic [ref=e255]:
+                            - strong [ref=e256]: Reksa Andhika
+                            - superscript [ref=e257]: PRO
+        - generic [ref=e259]:
+          - generic [ref=e260]: Check out all submitted websites
+          - link "View Winners" [ref=e261] [cursor=pointer]:
+            - /url: /websites/sites_of_the_day/
+            - img [ref=e262]
+            - strong [ref=e264]: View Winners
+      - generic [ref=e268]:
+        - generic [ref=e269]:
+          - heading "Academy" [level=2] [ref=e271]
+          - heading "Learn from the best instructors." [level=3] [ref=e273]:
+            - text: Learn from the
+            - text: best instructors.
+        - list [ref=e274]:
+          - listitem [ref=e275]:
+            - generic [ref=e276]:
+              - figure [ref=e279]:
+                - link "Learn UI Design with Figma from Scratch" [ref=e280] [cursor=pointer]:
+                  - /url: /academy/course/ui-design-for-beginners-with-figma
+                  - img "Learn UI Design with Figma from Scratch" [ref=e281]
+              - heading "Learn UI Design with Figma from Scratch" [level=3] [ref=e283]:
+                - link "Learn UI Design with Figma from Scratch" [ref=e284] [cursor=pointer]:
+                  - /url: /academy/course/ui-design-for-beginners-with-figma
+              - generic [ref=e285]:
+                - generic [ref=e286]:
+                  - strong [ref=e287]: Instructor
+                  - generic [ref=e288]: Daniele Buffa
+                - generic [ref=e289]:
+                  - generic [ref=e292]:
+                    - strong [ref=e293]: Score
+                    - text: 4.9/5
+                  - link "View Course" [ref=e297] [cursor=pointer]:
+                    - /url: /academy/course/ui-design-for-beginners-with-figma
+                    - img [ref=e298]
+          - listitem [ref=e300]:
+            - generic [ref=e301]:
+              - figure [ref=e304]:
+                - 'link "Nordic Design Intensive Course: Complete Branding" [ref=e305] [cursor=pointer]':
+                  - /url: /academy/course/nordic-design-intensive-course-complete-branding
+                  - 'img "Nordic Design Intensive Course: Complete Branding" [ref=e306]'
+              - 'heading "Nordic Design Intensive Course: Complete Branding" [level=3] [ref=e308]':
+                - 'link "Nordic Design Intensive Course: Complete Branding" [ref=e309] [cursor=pointer]':
+                  - /url: /academy/course/nordic-design-intensive-course-complete-branding
+              - generic [ref=e310]:
+                - generic [ref=e311]:
+                  - strong [ref=e312]: Instructor
+                  - generic [ref=e313]: Hmmm Creative Studio
+                - generic [ref=e314]:
+                  - generic [ref=e317]:
+                    - strong [ref=e318]: Score
+                    - text: 5/5
+                  - link "View Course" [ref=e322] [cursor=pointer]:
+                    - /url: /academy/course/nordic-design-intensive-course-complete-branding
+                    - img [ref=e323]
+          - listitem [ref=e325]:
+            - generic [ref=e326]:
+              - figure [ref=e329]:
+                - 'link "Innovative Web Design in Figma: A Step-by-Step Process" [ref=e330] [cursor=pointer]':
+                  - /url: /academy/course/innovative-web-design-in-figma-a-step-by-step-process
+                  - 'img "Innovative Web Design in Figma: A Step-by-Step Process" [ref=e331]'
+              - 'heading "Innovative Web Design in Figma: A Step-by-Step Process" [level=3] [ref=e333]':
+                - 'link "Innovative Web Design in Figma: A Step-by-Step Process" [ref=e334] [cursor=pointer]':
+                  - /url: /academy/course/innovative-web-design-in-figma-a-step-by-step-process
+              - generic [ref=e335]:
+                - generic [ref=e336]:
+                  - strong [ref=e337]: Instructor
+                  - generic [ref=e338]: Louis Paquet
+                - generic [ref=e339]:
+                  - generic [ref=e342]:
+                    - strong [ref=e343]: Score
+                    - text: 5/5
+                  - link "View Course" [ref=e347] [cursor=pointer]:
+                    - /url: /academy/course/innovative-web-design-in-figma-a-step-by-step-process
+                    - img [ref=e348]
+        - generic [ref=e351]:
+          - generic [ref=e352]:
+            - text: Choose from over
+            - strong [ref=e353]: hundreds
+            - text: of courses
+          - link "View Academy" [ref=e354] [cursor=pointer]:
+            - /url: /academy/
+            - img [ref=e355]
+            - strong [ref=e357]: View Academy
+      - generic [ref=e360]:
+        - generic [ref=e363]:
+          - heading "Collections" [level=2] [ref=e365]
+          - heading "Explore a wide variety of collections." [level=3] [ref=e367]:
+            - text: Explore a wide
+            - text: variety of collections.
+        - list [ref=e368]:
+          - listitem [ref=e369]:
+            - generic [ref=e370]:
+              - figure [ref=e371]:
+                - link "View Collection" [ref=e372] [cursor=pointer]:
+                  - /url: /awwwards_collections/collections/horizontal-layout-websites/
+                  - img "Horizontal Layout Websites" [ref=e373]
+              - generic [ref=e375]:
+                - heading "Horizontal Layout Websites" [level=3] [ref=e376]:
+                  - link "Horizontal Layout Websites" [ref=e377] [cursor=pointer]:
+                    - /url: /awwwards_collections/collections/horizontal-layout-websites/
+                - generic [ref=e378]:
+                  - generic [ref=e379]: followed by
+                  - generic [ref=e380]:
+                    - list [ref=e381]:
+                      - listitem [ref=e382]:
+                        - figure [ref=e383]:
+                          - img "empi" [ref=e384]
+                      - listitem [ref=e385]:
+                        - figure [ref=e386]:
+                          - img "mariana-cristofaro" [ref=e387]
+                      - listitem [ref=e388]:
+                        - figure [ref=e389]:
+                          - img "Adesko24" [ref=e390]
+                    - strong [ref=e392]: "+52"
+          - listitem [ref=e393]:
+            - generic [ref=e394]:
+              - figure [ref=e395]:
+                - link "View Collection" [ref=e396] [cursor=pointer]:
+                  - /url: /mireia_ortega/collections/color-palettes-websites/
+                  - img "Color Palettes Websites" [ref=e397]
+              - generic [ref=e399]:
+                - heading "Color Palettes Websites" [level=3] [ref=e400]:
+                  - link "Color Palettes Websites" [ref=e401] [cursor=pointer]:
+                    - /url: /mireia_ortega/collections/color-palettes-websites/
+                - generic [ref=e402]:
+                  - generic [ref=e403]: followed by
+                  - generic [ref=e404]:
+                    - list [ref=e405]:
+                      - listitem [ref=e406]:
+                        - figure [ref=e407]:
+                          - img "kris-3" [ref=e408]
+                      - listitem [ref=e409]:
+                        - figure [ref=e410]:
+                          - img "puma-conversational" [ref=e411]
+                      - listitem [ref=e412]:
+                        - figure [ref=e413]:
+                          - img "mariana-cristofaro" [ref=e414]
+                    - strong [ref=e416]: "+221"
+        - generic [ref=e418]:
+          - generic [ref=e419]: Find inspiration for your projects
+          - link "View Collections" [ref=e420] [cursor=pointer]:
+            - /url: /collections/
+            - img [ref=e421]
+            - strong [ref=e423]: View Collections
+      - generic [ref=e426]:
+        - generic [ref=e427]:
+          - heading "Directory" [level=2] [ref=e429]
+          - heading "w.creators Lottie animation" [level=3] [ref=e431]:
+            - generic [ref=e432]:
+              - text: w.creators
+              - generic:
+                - img "Lottie animation":
+                  - generic:
+                    - img
+          - generic [ref=e434]: Active creators in your country.
+        - list [ref=e435]:
+          - listitem [ref=e436]:
+            - generic [ref=e437]:
+              - generic [ref=e438]:
+                - figure [ref=e439]:
+                  - link "Positioner - Hotel Agency" [ref=e440] [cursor=pointer]:
+                    - /url: /positioner/
+                    - img "Positioner - Hotel Agency" [ref=e441]
+                - generic [ref=e443]:
+                  - img "Positioner - Hotel Agency" [ref=e445]
+                  - img "Positioner - Hotel Agency" [ref=e447]
+                  - img "Positioner - Hotel Agency" [ref=e449]
+                  - img "Positioner - Hotel Agency" [ref=e451]
+                  - img "Positioner - Hotel Agency" [ref=e453]
+              - generic [ref=e460]:
+                - generic [ref=e461]:
+                  - paragraph [ref=e462]: International
+                  - heading "Positioner - Hotel Agency" [level=2] [ref=e463]:
+                    - link "Positioner - Hotel Agency" [ref=e464] [cursor=pointer]:
+                      - /url: /positioner/
+                - generic [ref=e466]:
+                  - generic [ref=e467]: Works
+                  - strong [ref=e468]: "29"
+              - generic [ref=e469]:
+                - link "positioner.com" [ref=e471] [cursor=pointer]:
+                  - /url: http://www.positioner.com
+                - generic [ref=e472]: 23 awards
+          - listitem [ref=e473]:
+            - generic [ref=e474]:
+              - generic [ref=e475]:
+                - figure [ref=e476]:
+                  - link "Báchoo" [ref=e477] [cursor=pointer]:
+                    - /url: /bachoo.studio/
+                    - img "Báchoo" [ref=e478]
+                - generic [ref=e480]:
+                  - img "Báchoo" [ref=e482]
+                  - img "Báchoo" [ref=e484]
+                  - img "Báchoo" [ref=e486]
+                  - img "Báchoo" [ref=e488]
+                  - img "Báchoo" [ref=e490]
+              - generic [ref=e497]:
+                - generic [ref=e498]:
+                  - paragraph [ref=e499]: International
+                  - heading "Báchoo" [level=2] [ref=e500]:
+                    - link "Báchoo" [ref=e501] [cursor=pointer]:
+                      - /url: /bachoo.studio/
+                - generic [ref=e503]:
+                  - generic [ref=e504]: Works
+                  - strong [ref=e505]: "23"
+              - generic [ref=e506]:
+                - link "bachoodesign.com" [ref=e508] [cursor=pointer]:
+                  - /url: http://bachoodesign.com
+                - generic [ref=e509]: 23 awards
+        - table [ref=e511]:
+          - rowgroup [ref=e512]:
+            - row "Name Profile Awards Categories" [ref=e513]:
+              - columnheader "Name" [ref=e514]
+              - columnheader "Profile" [ref=e515]
+              - columnheader "Awards" [ref=e516]
+              - columnheader "Categories" [ref=e517]
+              - columnheader [ref=e518]
+          - rowgroup [ref=e519]:
+            - row "Agency 36 View" [ref=e520]:
+              - cell [ref=e521]:
+                - list [ref=e524]:
+                  - listitem [ref=e525]:
+                    - figure [ref=e527]:
+                      - link "Zajno" [ref=e528] [cursor=pointer]:
+                        - /url: /Zajno/
+                        - generic [ref=e529]:
+                          - strong [ref=e530]: Zajno
+                          - superscript [ref=e531]: INT
+              - cell "Agency" [ref=e532]
+              - cell "36" [ref=e533]
+              - cell [ref=e534]
+              - cell "View" [ref=e535]:
+                - link "View" [ref=e537] [cursor=pointer]:
+                  - /url: /Zajno/
+            - row "Agency 0 SEO/SEM View" [ref=e538]:
+              - cell [ref=e539]:
+                - list [ref=e542]:
+                  - listitem [ref=e543]:
+                    - figure [ref=e545]:
+                      - link "CT SEO Experts" [ref=e546] [cursor=pointer]:
+                        - /url: /ct-seo-experts/
+                        - generic [ref=e547]:
+                          - strong [ref=e548]: CT SEO Experts
+                          - superscript [ref=e549]: PRO
+              - cell "Agency" [ref=e550]
+              - cell "0" [ref=e551]
+              - cell "SEO/SEM" [ref=e552]:
+                - generic [ref=e553]: SEO/SEM
+              - cell "View" [ref=e554]:
+                - link "View" [ref=e556] [cursor=pointer]:
+                  - /url: /ct-seo-experts/
+            - row "Studio 0 Web Design View" [ref=e557]:
+              - cell [ref=e558]:
+                - list [ref=e561]:
+                  - listitem [ref=e562]:
+                    - figure [ref=e564]:
+                      - link "Four By North" [ref=e565] [cursor=pointer]:
+                        - /url: /fourbynorth/
+                        - generic [ref=e566]:
+                          - strong [ref=e567]: Four By North
+                          - superscript [ref=e568]: PRO
+              - cell "Studio" [ref=e569]
+              - cell "0" [ref=e570]
+              - cell "Web Design" [ref=e571]:
+                - generic [ref=e572]: Web Design
+              - cell "View" [ref=e573]:
+                - link "View" [ref=e575] [cursor=pointer]:
+                  - /url: /fourbynorth/
+            - row "Studio 0 View" [ref=e576]:
+              - cell [ref=e577]:
+                - list [ref=e580]:
+                  - listitem [ref=e581]:
+                    - figure [ref=e583]:
+                      - link "Weabers" [ref=e584] [cursor=pointer]:
+                        - /url: /weabers/
+                        - generic [ref=e585]:
+                          - strong [ref=e586]: Weabers
+                          - superscript [ref=e587]: PRO
+              - cell "Studio" [ref=e588]
+              - cell "0" [ref=e589]
+              - cell [ref=e590]
+              - cell "View" [ref=e591]:
+                - link "View" [ref=e593] [cursor=pointer]:
+                  - /url: /weabers/
+        - generic [ref=e595]:
+          - generic [ref=e596]:
+            - text: Connect with over
+            - strong [ref=e597]: 6,070
+            - text: Agencies and Professionals
+          - link "View Directory" [ref=e598] [cursor=pointer]:
+            - /url: /directory/
+            - img [ref=e599]
+            - strong [ref=e601]: View Directory
+      - generic [ref=e604]:
+        - generic [ref=e605]:
+          - heading "Blog" [level=2] [ref=e607]
+          - heading "Explore these popular posts." [level=3] [ref=e609]:
+            - text: Explore these
+            - text: popular posts.
+        - list [ref=e610]:
+          - listitem [ref=e611]:
+            - generic [ref=e612]:
+              - figure [ref=e615]:
+                - 'link "Shopify vs WooCommerce: What''s the better?" [ref=e616] [cursor=pointer]':
+                  - /url: /shopify-vs-woocommerce.html
+                  - 'img "Shopify vs WooCommerce: What''s the better?" [ref=e617]'
+              - generic [ref=e618]:
+                - 'heading "Shopify vs WooCommerce: What''s the better?" [level=3] [ref=e619]':
+                  - 'link "Shopify vs WooCommerce: What''s the better?" [ref=e620] [cursor=pointer]':
+                    - /url: /shopify-vs-woocommerce.html
+                - text: What's the best website builder for an e-commerce? In the world of eCommerce, choosing the right platform can mean the difference between success...
+          - listitem [ref=e621]:
+            - generic [ref=e622]:
+              - figure [ref=e625]:
+                - link "100 Best Free Fonts for Designers in 2025" [ref=e626] [cursor=pointer]:
+                  - /url: /best-free-fonts.html
+                  - img "100 Best Free Fonts for Designers in 2025" [ref=e627]
+              - generic [ref=e628]:
+                - heading "100 Best Free Fonts for Designers in 2025" [level=3] [ref=e629]:
+                  - link "100 Best Free Fonts for Designers in 2025" [ref=e630] [cursor=pointer]:
+                    - /url: /best-free-fonts.html
+                - text: Typography is currently playing a central role in web design, with progressive improvements like Variable Fonts, CSS Shapes, FlexBox
+          - listitem [ref=e631]:
+            - generic [ref=e632]:
+              - figure [ref=e635]:
+                - link "Trendy Gradients in Web Design" [ref=e636] [cursor=pointer]:
+                  - /url: /gradients-in-web-design-elements.html
+                  - img "Trendy Gradients in Web Design" [ref=e637]
+              - generic [ref=e638]:
+                - heading "Trendy Gradients in Web Design" [level=3] [ref=e639]:
+                  - link "Trendy Gradients in Web Design" [ref=e640] [cursor=pointer]:
+                    - /url: /gradients-in-web-design-elements.html
+                - text: This year we have seen many&nbsp;multicolored gradients with vibrant color palettes and irregular shapes with blur and distortion effects. Gradients...
+          - listitem [ref=e641]:
+            - generic [ref=e642]:
+              - figure [ref=e645]:
+                - link "30 Great Websites with Parallax Scrolling" [ref=e646] [cursor=pointer]:
+                  - /url: /30-great-websites-with-parallax-scrolling.html
+                  - img "30 Great Websites with Parallax Scrolling" [ref=e647]
+              - generic [ref=e648]:
+                - heading "30 Great Websites with Parallax Scrolling" [level=3] [ref=e649]:
+                  - link "30 Great Websites with Parallax Scrolling" [ref=e650] [cursor=pointer]:
+                    - /url: /30-great-websites-with-parallax-scrolling.html
+                - text: The parallax effect has been around for years in classic video games, but it&nbsp;became a trend in the web design world. This cool effect is...
+        - generic [ref=e652]:
+          - generic [ref=e653]: Browse all articles
+          - link "View Blog" [ref=e654] [cursor=pointer]:
+            - /url: /blog/
+            - img [ref=e655]
+            - strong [ref=e657]: View Blog
+      - generic [ref=e661]:
+        - generic [ref=e662]:
+          - heading "Market" [level=2] [ref=e664]
+          - heading "A curated marketplace for digital & physical products" [level=3] [ref=e666]:
+            - text: A curated marketplace
+            - text: for digital & physical products
+        - list [ref=e667]:
+          - listitem [ref=e668]:
+            - generic [ref=e669]:
+              - figure [ref=e670]:
+                - link "Mira - Framer template for design studios." [ref=e671] [cursor=pointer]:
+                  - /url: /market/product_6a860d3d47575020403740
+                  - img "Mira - Framer template for design studios." [ref=e672]
+              - generic [ref=e673]:
+                - generic [ref=e675]:
+                  - text: Digital Product
+                  - heading "Mira - Framer template for design studios." [level=3] [ref=e676]:
+                    - link "Mira - Framer template for design studios." [ref=e677] [cursor=pointer]:
+                      - /url: /market/product_6a860d3d47575020403740
+                - generic [ref=e678]:
+                  - generic [ref=e679]:
+                    - generic [ref=e680]:
+                      - text: By
+                      - strong [ref=e681]: Joseph Alexander
+                    - generic [ref=e682]:
+                      - strong [ref=e684]: from
+                      - generic [ref=e685]:
+                        - strong [ref=e686]: "129"
+                        - superscript [ref=e687]: USD
+                  - link "View Product" [ref=e688] [cursor=pointer]:
+                    - /url: /market/product_6a860d3d47575020403740
+                    - generic [ref=e689]:
+                      - strong [ref=e692]: View Product
+                      - img [ref=e694]
+          - listitem [ref=e696]:
+            - generic [ref=e697]:
+              - figure [ref=e698]:
+                - 'link "Waida Studio Figma Bundle: 40 Full Website Designs" [ref=e699] [cursor=pointer]':
+                  - /url: /market/product_6a7dae3867617589381985
+                  - 'img "Waida Studio Figma Bundle: 40 Full Website Designs" [ref=e700]'
+              - generic [ref=e701]:
+                - generic [ref=e703]:
+                  - text: Digital Product
+                  - 'heading "Waida Studio Figma Bundle: 40 Full Website Designs" [level=3] [ref=e704]':
+                    - 'link "Waida Studio Figma Bundle: 40 Full Website Designs" [ref=e705] [cursor=pointer]':
+                      - /url: /market/product_6a7dae3867617589381985
+                - generic [ref=e706]:
+                  - generic [ref=e707]:
+                    - generic [ref=e708]:
+                      - text: By
+                      - strong [ref=e709]: Waida Studio
+                    - generic [ref=e710]:
+                      - strong [ref=e712]: from
+                      - generic [ref=e713]:
+                        - strong [ref=e714]: "49"
+                        - superscript [ref=e715]: USD
+                  - link "View Product" [ref=e716] [cursor=pointer]:
+                    - /url: /market/product_6a7dae3867617589381985
+                    - generic [ref=e717]:
+                      - strong [ref=e720]: View Product
+                      - img [ref=e722]
+          - listitem [ref=e724]:
+            - generic [ref=e725]:
+              - figure [ref=e726]:
+                - link "Brett Parker - Framer Portfolio Template" [ref=e727] [cursor=pointer]:
+                  - /url: /market/product_6a73ce7c69fc5086813119
+                  - img "Brett Parker - Framer Portfolio Template" [ref=e728]
+              - generic [ref=e729]:
+                - generic [ref=e731]:
+                  - text: Digital Product
+                  - heading "Brett Parker - Framer Portfolio Template" [level=3] [ref=e732]:
+                    - link "Brett Parker - Framer Portfolio Template" [ref=e733] [cursor=pointer]:
+                      - /url: /market/product_6a73ce7c69fc5086813119
+                - generic [ref=e734]:
+                  - generic [ref=e735]:
+                    - generic [ref=e736]:
+                      - text: By
+                      - strong [ref=e737]: Virtù
+                    - generic [ref=e738]:
+                      - strong [ref=e740]: from
+                      - generic [ref=e741]:
+                        - strong [ref=e742]: "49"
+                        - superscript [ref=e743]: USD
+                  - link "View Product" [ref=e744] [cursor=pointer]:
+                    - /url: /market/product_6a73ce7c69fc5086813119
+                    - generic [ref=e745]:
+                      - strong [ref=e748]: View Product
+                      - img [ref=e750]
+        - generic [ref=e753]:
+          - generic [ref=e754]: Browse specially curated products
+          - link "View Market" [ref=e755] [cursor=pointer]:
+            - /url: /market/
+            - img [ref=e756]
+            - strong [ref=e758]: View Market
+      - list [ref=e762]:
+        - listitem [ref=e763]:
+          - generic [ref=e764]:
+            - img "Submit your website for visibility and recognition" [ref=e765]
+            - generic [ref=e766]:
+              - paragraph [ref=e767]: Share your work
+              - heading "Submit your website for visibility and recognition" [level=3] [ref=e768]
+              - link "Submit Website" [ref=e769] [cursor=pointer]:
+                - /url: /submit/
+            - generic [ref=e770]:
+              - text: Got questions? Read our
+              - link "FAQs" [ref=e771] [cursor=pointer]:
+                - /url: /faqs/
+        - listitem [ref=e772]:
+          - generic [ref=e773]:
+            - img "Get access to special pro features" [ref=e774]
+            - generic [ref=e775]:
+              - paragraph [ref=e776]: Be a member
+              - heading "Get access to special pro features" [level=3] [ref=e777]
+              - link "Be Pro" [ref=e778] [cursor=pointer]:
+                - /url: /plans/user-plans
+            - generic [ref=e779]:
+              - text: Got questions? Read our
+              - link "FAQs" [ref=e780] [cursor=pointer]:
+                - /url: /faqs/
+      - generic [ref=e782]:
+        - link "Awwwards home page" [ref=e785] [cursor=pointer]:
+          - /url: /
+          - img [ref=e786]
+        - list [ref=e791]:
+          - listitem [ref=e792]:
+            - link "Nominees" [ref=e793] [cursor=pointer]:
+              - /url: "#nominees"
+          - listitem [ref=e794]:
+            - link "Courses" [ref=e795] [cursor=pointer]:
+              - /url: "#courses"
+          - listitem [ref=e796]:
+            - link "Collections" [ref=e797] [cursor=pointer]:
+              - /url: "#collections"
+          - listitem [ref=e798]:
+            - link "Directory" [ref=e799] [cursor=pointer]:
+              - /url: "#directory"
+          - listitem [ref=e800]:
+            - link "Market" [ref=e801] [cursor=pointer]:
+              - /url: "#market"
+        - strong [ref=e804]:
+          - link "Visit Sotd." [ref=e805] [cursor=pointer]:
+            - /url: https://hobro.digital
+    - contentinfo [ref=e806]:
+      - generic [ref=e807]:
+        - generic [ref=e808]:
+          - paragraph [ref=e809]:
+            - img [ref=e810]
+          - generic [ref=e813]:
+            - list [ref=e814]:
+              - listitem [ref=e815]:
+                - link "Websites" [ref=e816] [cursor=pointer]:
+                  - /url: /websites/
+              - listitem [ref=e817]:
+                - link "Collections" [ref=e818] [cursor=pointer]:
+                  - /url: /collections/search/
+              - listitem [ref=e819]:
+                - link "Elements" [ref=e820] [cursor=pointer]:
+                  - /url: /elements/
+            - list [ref=e821]:
+              - listitem [ref=e822]:
+                - link "Academy" [ref=e823] [cursor=pointer]:
+                  - /url: /academy/
+              - listitem [ref=e824]:
+                - link "Jobs" [ref=e825] [cursor=pointer]:
+                  - /url: /jobs/search/
+              - listitem [ref=e826]:
+                - link "Market" [ref=e827] [cursor=pointer]:
+                  - /url: /market/
+            - list [ref=e828]:
+              - listitem [ref=e829]:
+                - link "Directory" [ref=e830] [cursor=pointer]:
+                  - /url: /directory/search/
+              - listitem [ref=e831]:
+                - link "Conferences" [ref=e832] [cursor=pointer]:
+                  - /url: https://conference.awwwards.com
+            - list [ref=e833]:
+              - listitem [ref=e834]:
+                - link "FAQs" [ref=e835] [cursor=pointer]:
+                  - /url: /faqs/
+              - listitem [ref=e836]:
+                - link "About Us" [ref=e837] [cursor=pointer]:
+                  - /url: /about-us/
+              - listitem [ref=e838]:
+                - link "Contact Us" [ref=e839] [cursor=pointer]:
+                  - /url: /contact-us/
+        - generic [ref=e840]:
+          - list [ref=e842]:
+            - listitem [ref=e843]:
+              - link "Cookies Policy" [ref=e844] [cursor=pointer]:
+                - /url: /cookies-policy/
+            - listitem [ref=e845]:
+              - link "Legal Terms" [ref=e846] [cursor=pointer]:
+                - /url: /terms/
+            - listitem [ref=e847]:
+              - link "Privacy Policy" [ref=e848] [cursor=pointer]:
+                - /url: /privacy-policy/
+          - list [ref=e850]:
+            - listitem [ref=e851]:
+              - strong [ref=e852]: "Connect:"
+            - listitem [ref=e853]:
+              - link "Instagram" [ref=e854] [cursor=pointer]:
+                - /url: https://www.instagram.com/awwwards
+            - listitem [ref=e855]:
+              - link "LinkedIn" [ref=e856] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/awwwards
+            - listitem [ref=e857]:
+              - link "Twitter" [ref=e858] [cursor=pointer]:
+                - /url: https://twitter.com/awwwards
+            - listitem [ref=e859]:
+              - link "Facebook" [ref=e860] [cursor=pointer]:
+                - /url: https://www.facebook.com/awwwards
+            - listitem [ref=e861]:
+              - link "YouTube" [ref=e862] [cursor=pointer]:
+                - /url: https://www.youtube.com/awwwardstv
+            - listitem [ref=e863]:
+              - link "TikTok" [ref=e864] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@awwwards.com
+            - listitem [ref=e865]:
+              - link "Pinterest" [ref=e866] [cursor=pointer]:
+                - /url: https://www.pinterest.es/awwwards/
+  - generic [ref=e867]:
+    - paragraph [ref=e868]:
+      - text: This website uses cookies to ensure you get the best experience on our website.
+      - link "Cookies Policy" [ref=e869] [cursor=pointer]:
+        - /url: /cookies-policy/
+    - generic [ref=e870] [cursor=pointer]: GOT IT

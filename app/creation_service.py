@@ -18,10 +18,12 @@ from dotenv import load_dotenv
 from app.audio import duration_seconds
 from app.config import GENERATED_DIR, ROOT
 from app.dashscope_audio_service import generate_music, generate_narration
+from app.generated_prompts import prompt_version, render_prompt
 from app.observability import get_logger, log_event, log_exception
 
 
 logger = get_logger("creation")
+PROMPT_VERSION = prompt_version("creation")
 
 
 CreationProgress = Callable[[str, str, dict[str, Any] | None], None]
@@ -56,24 +58,25 @@ def build_creation_plan(
         "unknown": "现场暂时无法判断，因此保留机器候选",
     }.get(last_choice, "这次作品只依据录音中的机器候选")
     uncertainty = str(result.get("uncertainty") or "具体物种仍待进一步观察")
-    music_prompt = (
-        f"纯音乐，无人声，以{primary}为灵感，自然、轻盈、好奇的儿童探索氛围，"
-        "柔和木琴、钢琴、轻打击乐，简单原创旋律，舒缓中速，适合作为亲子自然观察短片背景音乐，"
-        "避免宏大、紧张、悲伤和密集鼓点。"
-    )
+    music_prompt = render_prompt("creation.server_music", primary=primary)
     short_fact = explanation.split("。", 1)[0].strip("。")
     if len(short_fact) > 48:
         short_fact = short_fact[:48].rstrip("，、")
-    narration = (
-        f"在{location}，我们听见了{primary}。{short_fact}。"
-        f"{observation_summary}。这是一条调查线索，不是最终鉴定。"
+    narration = render_prompt(
+        "creation.server_narration",
+        location=location,
+        primary=primary,
+        short_fact=short_fact,
+        observation_summary=observation_summary,
     )
-    video_prompt = (
-        f"生成一支9:16竖屏、无字幕、无文字、无人物特写的儿童自然科普短片。"
-        f"地点氛围：中国杭州城市公园。主题：{title}，主要声音线索：{primary}。"
-        f"调查状态：{status}；现场观察摘要：{observation_summary}；不确定性：{uncertainty}。"
-        f"画面表达：{explanation} 镜头缓慢、真实自然、柔和日光、纪录片质感，"
-        "不捕捉、不触摸、不追逐动物；如无法确定具体物种，只表现环境线索，不出现具体动物近景。"
+    video_prompt = render_prompt(
+        "creation.server_video",
+        title=title,
+        primary=primary,
+        status=status,
+        observation_summary=observation_summary,
+        uncertainty=uncertainty,
+        explanation=explanation,
     )
     return {
         "title": title,
@@ -85,6 +88,7 @@ def build_creation_plan(
         "music_prompt": music_prompt,
         "narration": narration,
         "video_prompt": video_prompt,
+        "prompt_version": PROMPT_VERSION,
         "location": location,
     }
 
@@ -213,7 +217,7 @@ def _download(client: httpx.Client, url: str, destination: Path) -> None:
 def generate_wan_video(
     prompt: str,
     destination: Path,
-    duration: int = 10,
+    duration: int = 5,
     existing_task_id: str = "",
     on_task_created: TaskCreated | None = None,
 ) -> str:
@@ -221,7 +225,7 @@ def generate_wan_video(
         raise RuntimeError("Wan 视频生成未启用")
     api_key = os.environ["DASHSCOPE_API_KEY"]
     base = _api_base()
-    model = os.getenv("WAN_VIDEO_MODEL", "wan2.7-t2v")
+    model = os.getenv("WAN_VIDEO_MODEL", "wan3.0-video")
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -238,11 +242,13 @@ def generate_wan_video(
                     "model": model,
                     "input": {
                         "prompt": prompt,
-                        "negative_prompt": "字幕，文字，水印以外的标识，儿童正脸，捕捉动物，触摸动物，畸形，低清晰度",
+                        "negative_prompt": render_prompt(
+                            "creation.server_video_negative"
+                        ),
                     },
                     "parameters": {
-                        "resolution": "720P", "ratio": "9:16", "duration": duration,
-                        "prompt_extend": True, "watermark": True,
+                        "resolution": "480P", "ratio": "9:16", "duration": duration,
+                        "audio": False, "prompt_extend": True, "watermark": True,
                     },
                 },
             )
@@ -287,7 +293,7 @@ def prepare_video(
             prompt, destination, duration, existing_task_id=existing_task_id,
             on_task_created=on_task_created,
         )
-        return os.getenv("WAN_VIDEO_MODEL", "wan2.7-t2v"), task_id
+        return os.getenv("WAN_VIDEO_MODEL", "wan3.0-video"), task_id
     if mode == "reuse":
         configured = os.getenv("WAN_VIDEO_REUSE_PATH", "").strip()
         candidates = [Path(configured)] if configured else sorted(
@@ -399,7 +405,7 @@ class CreationService:
                 log_exception(logger, "narration_generation_skipped", job_id=job_id)
                 narration_warning = str(exc)
         narration_duration = duration_seconds(narration_path) if narration_path.exists() else 0
-        video_duration = max(5, min(15, math.ceil(narration_duration + 0.6) if narration_duration else 10))
+        video_duration = 5
         prior = previous_creation or {}
 
         creation: dict[str, Any] = {
@@ -429,11 +435,15 @@ class CreationService:
         )
         progress("generating_video", stage_message, creation)
         try:
-            timed_prompt = f"生成一支{video_duration}秒短片。{plan['video_prompt']}"
+            timed_prompt = render_prompt(
+                "creation.server_video_timed",
+                duration_seconds=video_duration,
+                video_prompt=plan["video_prompt"],
+            )
             def persist_task(task_id: str) -> None:
                 creation.update({
                     "wan_task_id": task_id,
-                    "video_provider": os.getenv("WAN_VIDEO_MODEL", "wan2.7-t2v"),
+                    "video_provider": os.getenv("WAN_VIDEO_MODEL", "wan3.0-video"),
                 })
                 progress("generating_video", "视频任务已提交，正在等待结果", creation)
 

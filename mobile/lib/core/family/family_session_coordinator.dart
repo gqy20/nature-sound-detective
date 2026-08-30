@@ -12,15 +12,19 @@ class FamilySessionCoordinator extends ChangeNotifier {
     FamilySessionService? service,
     FamilySessionStore? store,
     FamilyEventQueue? eventQueue,
+    FamilyTimelineStore? timelineStore,
   }) : _service = service ?? FamilySessionService(),
        _store = store ?? FamilySessionStore(),
-       _eventQueue = eventQueue ?? FamilyEventQueue();
+       _eventQueue = eventQueue ?? FamilyEventQueue(),
+       _timelineStore = timelineStore ?? FamilyTimelineStore();
 
   final FamilySessionService _service;
   final FamilySessionStore _store;
   final FamilyEventQueue _eventQueue;
+  final FamilyTimelineStore _timelineStore;
   final List<FamilyExplorationEvent> _events = [];
   final List<FamilyCommand> _commands = [];
+  final Set<String> _seenCueEventIds = {};
   Timer? _pollTimer;
   FamilySessionConnection? _connection;
   CompanionCue? _latestCue;
@@ -53,6 +57,25 @@ class FamilySessionCoordinator extends ChangeNotifier {
     try {
       _connection = await _store.load();
       if (_connection != null) {
+        final timeline = await _timelineStore.load();
+        if (timeline?.sessionId == _connection!.sessionId) {
+          _events
+            ..clear()
+            ..addAll(timeline!.events);
+          _commands
+            ..clear()
+            ..addAll(timeline.commands);
+          _seenCueEventIds
+            ..clear()
+            ..addAll(timeline.seenCueEventIds);
+          _restoreLatestCue();
+        } else {
+          _connection = _connection!.copyWith(
+            lastEventSequence: 0,
+            lastCommandSequence: 0,
+          );
+          await _timelineStore.clear();
+        }
         await refresh();
         _schedulePolling();
       }
@@ -80,12 +103,15 @@ class FamilySessionCoordinator extends ChangeNotifier {
   Future<void> createParentSession() async {
     await _run('create_parent_session', () async {
       await _eventQueue.clear();
+      await _timelineStore.clear();
       _connection = await _service.createParentSession();
       _events.clear();
       _commands.clear();
       _latestCue = null;
+      _seenCueEventIds.clear();
       _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
+      await _saveTimeline();
       _schedulePolling();
     });
   }
@@ -93,12 +119,15 @@ class FamilySessionCoordinator extends ChangeNotifier {
   Future<void> joinAsChild(String pairCode) async {
     await _run('join_as_child', () async {
       await _eventQueue.clear();
+      await _timelineStore.clear();
       _connection = await _service.joinAsChild(pairCode);
       _events.clear();
       _commands.clear();
       _latestCue = null;
+      _seenCueEventIds.clear();
       _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
+      await _saveTimeline();
       _schedulePolling();
     });
   }
@@ -112,6 +141,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
       )).copyWith(pairCode: value.pairCode, pairExpiresAt: value.pairExpiresAt);
       _lastSyncedAt = DateTime.now();
       await _store.save(_connection!);
+      await _saveTimeline();
       _schedulePolling();
     });
   }
@@ -138,6 +168,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
         }
       }
       await _store.save(_connection!);
+      await _saveTimeline();
       _error = null;
       _lastSyncedAt = DateTime.now();
     } catch (error, stackTrace) {
@@ -178,6 +209,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
     };
     final event = await _eventQueue.append(type, payload);
     _events.add(event);
+    await _saveTimeline();
     await _syncPendingEvents();
     _notify();
   }
@@ -193,6 +225,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
       final command = await _service.sendCommand(value.sessionId, templateId);
       _commands.add(command);
       _lastSyncedAt = DateTime.now();
+      await _saveTimeline();
     });
   }
 
@@ -211,6 +244,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
       'template_id': command.templateId,
     });
     _events.add(event);
+    await _saveTimeline();
     await _syncPendingEvents();
     _notify();
   }
@@ -227,9 +261,11 @@ class FamilySessionCoordinator extends ChangeNotifier {
         event.payload['command_id'] == commandId,
   );
 
-  void markCueSeen() {
+  Future<void> markCueSeen() async {
     if (_latestCue == null) return;
+    _seenCueEventIds.add(_latestCue!.eventId);
     _latestCue = null;
+    await _saveTimeline();
     _notify();
   }
 
@@ -251,10 +287,12 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _connection = null;
     _events.clear();
     _commands.clear();
+    _seenCueEventIds.clear();
     _latestCue = null;
     _lastSyncedAt = null;
     await _store.clear();
     await _eventQueue.clear();
+    await _timelineStore.clear();
   }
 
   Future<void> _syncPendingEvents() async {
@@ -310,9 +348,14 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _events.addAll(fresh);
     final lastSequence = fresh.last.sequence;
     _connection = value.copyWith(lastEventSequence: lastSequence);
-    _latestCue = const CompanionCueEngine().build(fresh);
+    _latestCue = const CompanionCueEngine().build(
+      fresh
+          .where((event) => !_seenCueEventIds.contains(event.eventId))
+          .toList(growable: false),
+    );
     _lastSyncedAt = DateTime.now();
     await _store.save(_connection!);
+    await _saveTimeline();
     AppLog.info(
       'family',
       'family_parent_events_received',
@@ -344,6 +387,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
     await _syncPendingEvents();
     _lastSyncedAt = DateTime.now();
     await _store.save(_connection!);
+    await _saveTimeline();
     AppLog.info(
       'family',
       'family_child_commands_received',
@@ -364,6 +408,41 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (!_busy) unawaited(refresh());
     });
+  }
+
+  void pausePolling() => _pollTimer?.cancel();
+
+  Future<void> resumePolling() async {
+    if (_connection == null || _disposed) return;
+    await refresh();
+    _schedulePolling();
+  }
+
+  void _restoreLatestCue() {
+    _latestCue = const CompanionCueEngine().build(
+      _events
+          .where((event) => !_seenCueEventIds.contains(event.eventId))
+          .toList(growable: false),
+    );
+  }
+
+  Future<void> _saveTimeline() async {
+    final connection = _connection;
+    if (connection == null) return;
+    final events = _events.length <= 100
+        ? List<FamilyExplorationEvent>.of(_events)
+        : _events.sublist(_events.length - 100);
+    final commands = _commands.length <= 100
+        ? List<FamilyCommand>.of(_commands)
+        : _commands.sublist(_commands.length - 100);
+    await _timelineStore.save(
+      FamilyTimelineSnapshot(
+        sessionId: connection.sessionId,
+        events: events,
+        commands: commands,
+        seenCueEventIds: _seenCueEventIds.toList(growable: false),
+      ),
+    );
   }
 
   Future<void> _run(String operation, Future<void> Function() action) async {

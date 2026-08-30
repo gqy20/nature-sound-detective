@@ -78,6 +78,7 @@ void main() {
       location: '杭州',
       sourceAudioPath: source.path,
       onProgress: updates.add,
+      visualMode: CreationVisualMode.bird,
     );
 
     expect(result.isComplete, isTrue);
@@ -119,6 +120,27 @@ void main() {
                   .body,
             )
             as Map<String, Object?>;
+    final videoBody =
+        jsonDecode(
+              requests
+                  .where(
+                    (request) => request.url.path.endsWith('/video-synthesis'),
+                  )
+                  .single
+                  .body,
+            )
+            as Map<String, Object?>;
+    expect(videoBody['model'], 'wan3.0-video');
+    final videoParameters = videoBody['parameters'] as Map<String, Object?>;
+    expect(videoParameters['audio'], isFalse);
+    expect(videoParameters['resolution'], '480P');
+    expect(videoParameters['duration'], 5);
+    final videoInput = videoBody['input'] as Map<String, Object?>;
+    expect(videoInput['prompt'], contains('一只珠颈斑鸠'));
+    expect(videoInput['prompt'], contains('横向树枝'));
+    expect(videoInput['prompt'], isNot(contains('只展示环境')));
+    expect(videoInput['negative_prompt'], contains('儿童正脸'));
+    expect(videoInput['negative_prompt'], contains('额外肢体'));
     expect(speechBody['model'], 'qwen-audio-3.0-tts-plus');
     expect(
       requests
@@ -135,8 +157,17 @@ void main() {
     );
     addTearDown(() => directory.delete(recursive: true));
     final client = MockClient((request) async {
-      if (request.url.path.endsWith('/audio/music/generation') ||
-          request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
+      if (request.url.path.endsWith('/audio/music/generation')) {
+        return http.Response(
+          jsonEncode({
+            'code': 'AccessDenied',
+            'message': 'Access denied.',
+            'request_id': 'request-music-denied',
+          }),
+          403,
+        );
+      }
+      if (request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
         return http.Response(jsonEncode({'message': 'invalid key'}), 403);
       }
       if (request.url.path.endsWith('/video-synthesis')) {
@@ -180,7 +211,8 @@ void main() {
 
     expect(result.hasMusic, isFalse);
     expect(result.hasVideo, isTrue);
-    expect(result.musicError, contains('invalid key'));
+    expect(result.musicError, contains('尚未开通 Fun-Music'));
+    expect(result.musicError, contains('request-music-denied'));
   });
 }
 

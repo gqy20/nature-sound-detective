@@ -74,6 +74,7 @@ def test_template_story_is_available_without_api_key(monkeypatch):
     assert story["provider"] == "reviewed-template"
     assert "白头鹎" in story["story"]
     assert "不代表本次录音已经确认" in story["candidate_notice"]
+    assert "认识候选动物" not in story["story"]
 
 
 def test_live_story_uses_structured_output_and_safety_validation(monkeypatch):
@@ -125,6 +126,69 @@ def test_live_story_uses_structured_output_and_safety_validation(monkeypatch):
     )
     assert story["provider"] == "qwen3.7-flash"
     assert story["usage"]["completion_tokens"] == 120
+    assert story["prompt_version"] == "animal-story-v5"
+
+
+def test_story_policy_rejects_markdown_in_visible_content():
+    candidate = story_candidates(RESULT)[0]
+    with pytest.raises(ValueError, match="Markdown"):
+        _validate_story(
+            {
+                "title": "白头鹎的树冠线索",
+                "story": (
+                    "清晨，白头鹎候选者在**高处树冠**留下了重复鸣叫的线索。"
+                    "声音在枝叶附近出现又消失，我们只在远处记下当时听见的节奏和方向。"
+                    "这些线索还不足以确认答案，却让下一次观察有了更清楚的目标。"
+                ),
+                "observation_prompt": "下一次在远处记录白头鹎候选声音的方向。",
+                "observations_used": ["清晨", "高处树冠", "重复鸣叫"],
+            },
+            candidate,
+            OBSERVATIONS,
+        )
+
+
+def test_story_policy_requires_every_observation_inside_story_body():
+    candidate = story_candidates(RESULT)[0]
+    with pytest.raises(ValueError, match="正文"):
+        _validate_story(
+            {
+                "title": "白头鹎留下的线索",
+                "story": (
+                    "白头鹎候选者在枝叶附近留下了一段声音。"
+                    "我们没有追过去，只在远处记下当时听见的节奏和方向。"
+                    "这些线索还不足以确认答案，却让下一次观察有了更清楚的目标。"
+                ),
+                "observation_prompt": "下一次在远处记录白头鹎候选声音的方向。",
+                "observations_used": ["清晨", "高处树冠", "重复鸣叫"],
+            },
+            candidate,
+            OBSERVATIONS,
+        )
+
+
+def test_story_policy_rejects_conflicting_observation_time():
+    candidate = story_candidates(RESULT)[0]
+    daytime_observations = [
+        {"dimension": "time", "value": "daytime", "label": "白天"},
+        {"dimension": "habitat", "value": "tree_canopy", "label": "高处树冠"},
+    ]
+    with pytest.raises(ValueError, match="时间矛盾"):
+        _validate_story(
+            {
+                "title": "白头鹎的白天线索",
+                "story": (
+                    "白天，白头鹎候选者在高处树冠留下了一段声音。"
+                    "故事却又把这段相遇写成清晨，与现场记录并不相符。"
+                    "我们只在远处记下当时听见的节奏和方向，等待下一次观察补上新的线索。"
+                    "声音在周围环境里出现又消失，我们仍然把未知留给下一次相遇。"
+                ),
+                "observation_prompt": "下一次在远处记录白头鹎候选声音的方向。",
+                "observations_used": ["白天", "高处树冠"],
+            },
+            candidate,
+            daytime_observations,
+        )
 
 
 @pytest.mark.parametrize(

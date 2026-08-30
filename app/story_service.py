@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import re
+import secrets
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -13,10 +14,13 @@ import httpx
 from dotenv import load_dotenv
 
 from app.config import ROOT
+from app.generated_prompts import prompt_generation, prompt_version, render_prompt
 from app.observability import get_logger, log_event, log_exception
 
 
 logger = get_logger("story")
+PROMPT_VERSION = prompt_version("story")
+PROMPT_GENERATION = prompt_generation("story")
 
 ANIMAL_CATEGORIES = {"鸟类鸣叫", "蛙类鸣叫", "昆虫鸣叫"}
 STORY_TYPES = {"animal_life", "why_it_calls"}
@@ -32,6 +36,17 @@ ALWAYS_UNSAFE_OBSERVATION_PATTERN = re.compile(r"爬树|下水|靠近巢穴")
 FALSE_CONFIRMATION_PATTERN = re.compile(r"这段录音(?:中|里)?(?:就是|确定是)|我们(?:已经)?确认|一定是|发现了一只")
 PRECISE_NUMBER_PATTERN = re.compile(r"\d+(?:\.\d+)?\s*(?:年|个月|枚|只|公里|千米|米)")
 UNVERIFIED_CLAIM_PATTERN = re.compile(r"生态(?:健康)?指标|环境健康指标|不挖洞|从不|绝不")
+MARKDOWN_PATTERN = re.compile(r"(?:\*\*|__|```|^#{1,6}\s|^\s*[-*]\s)", re.MULTILINE)
+UNSUPPORTED_DETAIL_PATTERN = re.compile(
+    r"宣告领地|占领领地|求偶|标志性|露水|嫩叶|繁殖季|产卵|"
+    r"寻找食物|觅食|同伴交流|城市邻居|水草间|湿润环境"
+)
+TIME_CONFLICTS = {
+    "清晨": re.compile(r"傍晚|夜间|夜幕|夜色"),
+    "白天": re.compile(r"清晨|早晨|傍晚|夜间|夜幕|夜色"),
+    "傍晚": re.compile(r"清晨|早晨|白天"),
+    "夜间": re.compile(r"清晨|早晨|白天|傍晚"),
+}
 
 
 def story_candidates(result: dict[str, Any]) -> list[dict[str, Any]]:
@@ -119,6 +134,8 @@ def _validate_story(
     if not 8 <= len(observation) <= 100:
         raise ValueError("动物故事观察问题长度无效")
     combined = f"{title}\n{story}\n{observation}"
+    if MARKDOWN_PATTERN.search(combined):
+        raise ValueError("动物故事不应包含Markdown标记")
     safety_scan = "".join(
         segment
         for segment in re.split(r"[。！？；\n]", f"{story}\n{observation}")
@@ -141,6 +158,8 @@ def _validate_story(
         raise ValueError("无知识库模式不允许生成未经核验的精确数字")
     if UNVERIFIED_CLAIM_PATTERN.search(story):
         raise ValueError("无知识库模式不允许生成高风险或绝对物种断言")
+    if UNSUPPORTED_DETAIL_PATTERN.search(story):
+        raise ValueError("无知识库模式不允许生成未核验的生态细节")
     if candidate["name_zh"] not in combined:
         raise ValueError("动物故事没有围绕所选候选")
     expected_observations = {
@@ -151,32 +170,76 @@ def _validate_story(
     }
     if expected_observations and claimed_observations != expected_observations:
         raise ValueError("动物故事没有完整使用结构化现场观察")
+    missing_observations = expected_observations.difference(
+        label for label in expected_observations if label in story
+    )
+    if missing_observations:
+        raise ValueError("动物故事没有在正文中使用全部现场观察")
+    selected_times = {
+        str(item.get("label"))
+        for item in observations or []
+        if item.get("dimension") == "time" and item.get("value") != "unknown"
+    }
+    for selected_time in selected_times:
+        conflict = TIME_CONFLICTS.get(selected_time)
+        if conflict and conflict.search(story):
+            raise ValueError("动物故事与现场观察时间矛盾")
     return {"title": title, "story": story, "observation_prompt": observation}
 
 
 def _template_story(candidate: dict[str, Any], story_type: str, observations: list[dict[str, Any]]) -> dict[str, str]:
     name = candidate["name_zh"]
-    category = candidate["category"]
     labels = [str(item.get("label")) for item in observations if item.get("value") != "unknown"]
     observed = "、".join(labels)
+    subject = f"{name}候选者"
+    variant = secrets.randbelow(3)
     if story_type == "why_it_calls":
-        story = (
-            f"今天先来认识候选动物{name}。动物发出声音，常常与联系同伴、表达位置或适应周围环境有关。"
-            f"故事里的这只{name}当时留下了这些现场线索：{observed}。"
-            f"{name}的真实叫声会受到时间、距离和环境噪声影响，所以一次录音只能提供{category}线索。"
-            "把声音的节奏、方向和出现时间记下来，下一次再比较，才能逐渐接近答案。"
-        )
-        observation = f"下一次听到相似声音时，可以远远记录{name}候选声音的节奏是否重复。"
-        title = f"{name}为什么发声"
+        stories = [
+            (
+                f"故事里的{subject}没有露出全貌，只留下了{observed}这几条线索。"
+                "声音一次次出现，又消失在周围的环境里。"
+                f"它为什么发声，现在还不能下结论。对{name}的好奇，可以先放在下一次相遇里。"
+                "多记一次方向和节奏，就会多一块接近答案的拼图。"
+            ),
+            (
+                f"{name}候选者用{observed}开始了这个声音故事。"
+                "我们听见了它，却还不知道这些声音真正想表达什么。"
+                "未知没有让故事停下，反而让每一次重新倾听都变得重要。"
+                f"只要继续在远处记录，{name}的声音谜题就会慢慢拥有更多可以比较的线索。"
+            ),
+            (
+                f"如果声音会留下便签，{name}候选者那天写下的就是：{observed}。"
+                "便签没有告诉我们发声的原因，只把一个好问题留在了原地。"
+                "我们不需要追赶答案，可以让方向、节奏和出现时间在下一次观察中再写一张便签。"
+            ),
+        ]
+        story = stories[variant]
+        observation = f"下一次听到相似声音时，在远处记录{name}候选声音的方向和节奏。"
+        title = f"{name}留下的声音谜题"
     else:
-        story = (
-            f"今天先来认识候选动物{name}。每种动物都有自己的活动时间、寻找食物的方法和与同伴联系的方式。"
-            f"故事里的这只{name}当时留下了这些现场线索：{observed}。"
-            f"声音是认识{name}的一条线索，但真实生活还藏在它活动的高度、周围环境和声音节奏里。"
-            "我们不急着宣布答案，而是把这些特点逐次记录，让下一次观察补上新的证据。"
-        )
-        observation = f"下一次可以远远观察，{name}候选声音来自高处、低处还是地面附近。"
-        title = f"认识候选动物{name}"
+        stories = [
+            (
+                f"故事里的{subject}藏在自然的一角，它当时留下了{observed}这几条线索。"
+                "我们没有追过去，只在远处把看见和听见的内容记下来。"
+                f"这些线索让{name}的身影变得更清楚了一点，却还不足以成为最后答案。"
+                "一个好的自然故事，不是急着猜中，而是让每次观察都为它增加新的一页。"
+            ),
+            (
+                f"{name}候选者没有走到故事中央，它只留下了{observed}这几个清楚的词。"
+                "它们像放在小路边的路标，指向一个还看不完整的身影。"
+                "我们把路标记下来，没有为空白的地方随便添上答案。"
+                f"等下一次相遇时，新的线索会继续补上{name}的这段自然故事。"
+            ),
+            (
+                f"如果自然会写便签，{name}候选者那天留下的内容就是：{observed}。"
+                "这张便签很短，没有外形、没有答案，却真实记下了那次相遇。"
+                "我们把它收好，让未知继续保持未知。"
+                f"下一次再听见或看见时，就能为{name}的故事增加一张新便签。"
+            ),
+        ]
+        story = stories[variant]
+        observation = f"下一次在远处观察，记下{name}候选声音出现的方向和高度。"
+        title = f"{name}留下的自然线索"
     return {"title": title[:28], "story": story, "observation_prompt": observation}
 
 
@@ -191,19 +254,16 @@ def _observation_fingerprint(observations: list[dict[str, Any]]) -> str:
 def _prompt(candidate: dict[str, Any], location: str, story_type: str, observations: list[dict[str, Any]]) -> str:
     angle = "它为什么发声" if story_type == "why_it_calls" else "这个动物怎样度过一天"
     observation_text = "、".join(str(item.get("label")) for item in observations if item.get("value") != "unknown")
-    return f"""请为6至12岁儿童创作一则关于候选动物的中文科普故事。
-候选动物：{candidate['name_zh']}
-学名：{candidate.get('scientific_name') or '未提供'}
-候选层级：{candidate['candidate_status']}
-声音大类：{candidate['category']}
-区域背景：{location or '杭州'}，仅表示项目服务区域，不得虚构西湖、植物园、公园、池塘、芦苇荡等具体采集地点
-故事主题：{angle}
-用户本次实际选择的现场观察：{observation_text}
-
-当前没有外部物种知识库。故事必须自然使用每一项用户现场观察，把它们写成“故事里这只候选动物当时的活动”，不得扩写成这个物种永远如此。只使用广泛、稳妥的常识，不写精确寿命、数量、距离、保护等级、繁殖数字、生态健康指标、绝对习性或未经核验的独特结论。不要使用“从不”“绝不”“不挖洞”等绝对句式。故事主体必须是动物本身，而不是录音现场或孩子的调查过程。不得声称本次录音已经确认这个动物，不得鼓励追逐、捕捉、触摸、投喂、爬树或靠近巢穴。动物自身捕食昆虫等自然行为可以描述，但观察建议只能是远距离倾听和观看。
-
-返回JSON，不要Markdown：
-{{"title":"4至28字","story":"120至260字，介绍动物生活或发声，语言生动但不虚构精确事实","observations_used":["逐字复制全部用户现场观察标签"],"observation_prompt":"一句安全、远距离、可执行的观察建议"}}"""
+    return render_prompt(
+        "story.user",
+        candidate_name=candidate["name_zh"],
+        scientific_name=candidate.get("scientific_name") or "未提供",
+        candidate_status=candidate["candidate_status"],
+        category=candidate["category"],
+        location=location or "杭州",
+        angle=angle,
+        observation_text=observation_text,
+    )
 
 
 class AnimalStoryService:
@@ -256,14 +316,14 @@ class AnimalStoryService:
                                 "messages": [
                                     {
                                         "role": "system",
-                                        "content": "你是儿童自然教育故事编辑。事实边界、安全和候选状态高于故事性。",
+                                        "content": render_prompt("story.system"),
                                     },
                                     {"role": "user", "content": _prompt(candidate, location, story_type, observations)},
                                 ],
-                                "temperature": 0.7,
-                                "enable_thinking": False,
-                                "max_completion_tokens": 500,
-                                "response_format": {"type": "json_object"},
+                                "temperature": PROMPT_GENERATION["temperature"],
+                                "enable_thinking": PROMPT_GENERATION["enable_thinking"],
+                                "max_completion_tokens": PROMPT_GENERATION["max_completion_tokens"],
+                                "response_format": {"type": PROMPT_GENERATION["response_format"]},
                             },
                         )
                         response.raise_for_status()
@@ -284,6 +344,7 @@ class AnimalStoryService:
             **story,
             "candidate_notice": f"这是关于候选动物{candidate['name_zh']}的AI故事，不代表本次录音已经确认物种。",
             "content_label": "AI基于候选信息创作" if provider != "reviewed-template" else "安全模板故事",
+            "prompt_version": PROMPT_VERSION,
             "provider": provider,
             "model": self.model if provider != "reviewed-template" else None,
             "warning": warning,

@@ -27,10 +27,14 @@ void main() {
     await tester.pump();
 
     expect(find.text('和孩子一起听听'), findsOneWidget);
-    expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
-    expect(find.byKey(const Key('works-button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('primary-feature-navigation-bar')),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('park-guide-button')), findsNothing);
+    expect(find.byKey(const Key('works-button')), findsNothing);
     expect(find.byKey(const Key('creation-settings-button')), findsOneWidget);
-    expect(find.byKey(const Key('soundscape-button')), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-button')), findsNothing);
     expect(find.byKey(const Key('parent-park-guide-cta')), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
     expect(find.textContaining('剩余 12 / 20 次'), findsNothing);
@@ -57,7 +61,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.value, ExplorationMode.parent);
-    expect(find.text('陪孩子一起探索'), findsOneWidget);
+    expect(find.text('家长陪伴'), findsOneWidget);
+    expect(find.text('还没有连接儿童端'), findsOneWidget);
+    expect(find.text('陪孩子一起探索'), findsNothing);
+    expect(
+      find.byKey(const Key('primary-feature-navigation-bar')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('primary-feature-navigation-bar')),
+        matching: find.text('陪伴'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('primary-feature-navigation-bar')),
+        matching: find.text('录音'),
+      ),
+      findsNothing,
+    );
+    expect(find.byKey(const Key('park-guide-button')), findsOneWidget);
     expect(
       find.byKey(const Key('parent-connect-family-primary')),
       findsOneWidget,
@@ -81,12 +106,21 @@ void main() {
       find.byKey(const Key('current-primary-feature-parkGuide')),
       findsOneWidget,
     );
+    final guideRect = tester.getRect(
+      find.byKey(const ValueKey('primary-park-guide-content')),
+    );
+    expect(guideRect.left, closeTo(0, 0.1));
+    expect(
+      guideRect.right,
+      closeTo(
+        tester.view.physicalSize.width / tester.view.devicePixelRatio,
+        0.1,
+      ),
+    );
     await tester.pump(const Duration(seconds: 13));
   });
 
-  testWidgets('parent header feature button remains actionable', (
-    tester,
-  ) async {
+  testWidgets('parent floating navigation remains actionable', (tester) async {
     final store = _MemoryModeStore()..value = ExplorationMode.parent;
     await tester.pumpWidget(
       NatureSoundApp(modeStore: store, preloadSoundscape: false),
@@ -144,7 +178,8 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('parent-role-home')), findsOneWidget);
-    expect(find.text('孩子在探索，你来陪伴'), findsOneWidget);
+    expect(find.text('孩子正在探索'), findsOneWidget);
+    expect(find.text('孩子在探索，你来陪伴'), findsNothing);
     expect(find.text('孩子主动回听了声音'), findsOneWidget);
     expect(find.byKey(const Key('open-parent-live-companion')), findsOneWidget);
     expect(
@@ -183,6 +218,20 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('record-button')), findsOneWidget);
+    expect(find.byKey(const Key('app-brand-mark')), findsOneWidget);
+    expect(find.byKey(const Key('capture-location-label')), findsOneWidget);
+    expect(
+      tester.getCenter(find.byKey(const Key('app-brand-mark'))).dx,
+      lessThan(
+        tester.getCenter(find.byKey(const Key('exploration-mode-menu'))).dx,
+      ),
+    );
+    expect(
+      tester.getCenter(find.byKey(const Key('exploration-mode-menu'))).dx,
+      lessThan(
+        tester.getCenter(find.byKey(const Key('creation-settings-button'))).dx,
+      ),
+    );
     expect(
       find.byKey(const Key('debug-export-button')),
       diagnosticsEnabled ? findsOneWidget : findsNothing,

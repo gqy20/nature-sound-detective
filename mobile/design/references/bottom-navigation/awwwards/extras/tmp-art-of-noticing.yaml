@@ -1,0 +1,413 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://thomasmamfredas.com
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Honorable Mention - Apr 12, 2026" [level=2] [ref=e151]
+            - heading "Art Of Noticing" [level=1] [ref=e153]
+            - list [ref=e157]:
+              - listitem [ref=e158]:
+                - figure [ref=e160]:
+                  - link "Hankatt®" [ref=e161] [cursor=pointer]:
+                    - /url: /Hankatt/
+                    - strong [ref=e163]: Hankatt®
+        - list [ref=e165]:
+          - listitem [ref=e166]
+      - heading "A clean, interactive portfolio for videographer Thomas Mamfredas. Jump in and float through a visual gallery of his best photo and video work." [level=3] [ref=e171]
+    - generic [ref=e174]:
+      - generic [ref=e175]:
+        - heading "Elements" [level=2] [ref=e177]
+        - heading "Keep the focus in these elements." [level=3] [ref=e179]:
+          - text: Keep the focus in
+          - text: these elements.
+      - list [ref=e180]:
+        - listitem [ref=e181]:
+          - generic [ref=e182]:
+            - figure [ref=e183]:
+              - link "Gallery" [ref=e184] [cursor=pointer]:
+                - /url: /inspiration/gallery-art-of-noticing
+                - img "Gallery" [ref=e185]
+            - generic [ref=e187]:
+              - heading "Gallery" [level=3] [ref=e188]:
+                - link "Gallery" [ref=e189] [cursor=pointer]:
+                  - /url: /inspiration/gallery-art-of-noticing
+              - generic [ref=e190]:
+                - generic [ref=e191]: from
+                - link "Gallery" [ref=e192] [cursor=pointer]:
+                  - /url: /elements/gallery/
+        - listitem [ref=e193]:
+          - generic [ref=e194]:
+            - figure [ref=e195]:
+              - link "Preloader" [ref=e196] [cursor=pointer]:
+                - /url: /inspiration/preloader-art-of-noticing
+                - img "Preloader" [ref=e197]
+              - generic:
+                - generic:
+                  - text: "2"
+                  - img
+            - generic [ref=e199]:
+              - heading "Preloader" [level=3] [ref=e200]:
+                - link "Preloader" [ref=e201] [cursor=pointer]:
+                  - /url: /inspiration/preloader-art-of-noticing
+              - generic [ref=e202]:
+                - generic [ref=e203]: from
+                - link "Loading" [ref=e204] [cursor=pointer]:
+                  - /url: /elements/loading/
+        - listitem [ref=e205]:
+          - generic [ref=e206]:
+            - figure [ref=e207]:
+              - link "Footer" [ref=e208] [cursor=pointer]:
+                - /url: /inspiration/footer-art-of-noticing
+                - img "Footer" [ref=e209]
+            - generic [ref=e211]:
+              - heading "Footer" [level=3] [ref=e212]:
+                - link "Footer" [ref=e213] [cursor=pointer]:
+                  - /url: /inspiration/footer-art-of-noticing
+              - generic [ref=e214]:
+                - generic [ref=e215]: from
+                - link "Footer" [ref=e216] [cursor=pointer]:
+                  - /url: /elements/footer/
+        - listitem [ref=e217]:
+          - generic [ref=e218]:
+            - figure [ref=e219]:
+              - link "Work Showcase" [ref=e220] [cursor=pointer]:
+                - /url: /inspiration/work-showcase-art-of-noticing
+                - img "Work Showcase" [ref=e221]
+              - generic:
+                - generic:
+                  - text: "3"
+                  - img
+            - generic [ref=e223]:
+              - heading "Work Showcase" [level=3] [ref=e224]:
+                - link "Work Showcase" [ref=e225] [cursor=pointer]:
+                  - /url: /inspiration/work-showcase-art-of-noticing
+              - generic [ref=e226]:
+                - generic [ref=e227]: from
+                - link "UI Components" [ref=e228] [cursor=pointer]:
+                  - /url: /elements/ui_components/
+        - listitem [ref=e229]:
+          - generic [ref=e230]:
+            - figure [ref=e231]:
+              - link "Project Detail" [ref=e232] [cursor=pointer]:
+                - /url: /inspiration/project-detail-art-of-noticing
+                - img "Project Detail" [ref=e233]
+            - generic [ref=e235]:
+              - heading "Project Detail" [level=3] [ref=e236]:
+                - link "Project Detail" [ref=e237] [cursor=pointer]:
+                  - /url: /inspiration/project-detail-art-of-noticing
+              - generic [ref=e238]:
+                - generic [ref=e239]: from
+                - link "Other Element" [ref=e240] [cursor=pointer]:
+                  - /url: /elements/other/
+        - listitem [ref=e241]:
+          - generic [ref=e242]:
+            - figure [ref=e243]:
+              - link [ref=e244] [cursor=pointer]:
+                - /url: /inspiration/mobile-art-of-noticing
+            - generic [ref=e246]:
+              - heading "Great element" [level=3] [ref=e247]:
+                - link "Great element" [ref=e248] [cursor=pointer]:
+                  - /url: /inspiration/mobile-art-of-noticing
+              - generic [ref=e249]:
+                - generic [ref=e250]: from
+                - link "Mobile thumbnail" [ref=e251] [cursor=pointer]:
+                  - /url: /elements/mobile_thumbnail/
+        - listitem [ref=e252]:
+          - generic [ref=e253]:
+            - figure [ref=e254]:
+              - link [ref=e255] [cursor=pointer]:
+                - /url: /inspiration/desktop-art-of-noticing
+            - generic [ref=e257]:
+              - heading "Great element" [level=3] [ref=e258]:
+                - link "Great element" [ref=e259] [cursor=pointer]:
+                  - /url: /inspiration/desktop-art-of-noticing
+              - generic [ref=e260]:
+                - generic [ref=e261]: from
+                - link "Desktop thumbnail" [ref=e262] [cursor=pointer]:
+                  - /url: /elements/thumbnail/
+    - generic [ref=e267]:
+      - heading "Color Palette" [level=2] [ref=e270]
+      - list [ref=e273]:
+        - listitem [ref=e274]:
+          - generic [ref=e277]:
+            - generic [ref=e278]:
+              - strong [ref=e279]: HEX
+              - text: "#0d0d0d"
+            - link [ref=e281] [cursor=pointer]:
+              - /url: /websites/%230d0d0d/
+              - img [ref=e283]
+        - listitem [ref=e285]:
+          - generic [ref=e288]:
+            - generic [ref=e289]:
+              - strong [ref=e290]: HEX
+              - text: "#ffffff"
+            - link [ref=e292] [cursor=pointer]:
+              - /url: /websites/%23ffffff/
+              - img [ref=e294]
+    - generic [ref=e298]:
+      - paragraph [ref=e299]: This website has been created using...
+      - list [ref=e301]:
+        - listitem [ref=e302]:
+          - strong [ref=e303]:
+            - link "Art & Illustration" [ref=e304] [cursor=pointer]:
+              - /url: /websites/art-illustration/
+        - listitem [ref=e305]:
+          - strong [ref=e306]:
+            - link "Film & TV" [ref=e307] [cursor=pointer]:
+              - /url: /websites/film-tv/
+        - listitem [ref=e308]:
+          - strong [ref=e309]:
+            - link "Photography" [ref=e310] [cursor=pointer]:
+              - /url: /websites/photography/
+        - listitem [ref=e311]:
+          - strong [ref=e312]:
+            - link "Clean" [ref=e313] [cursor=pointer]:
+              - /url: /websites/clean/
+        - listitem [ref=e314]:
+          - strong [ref=e315]:
+            - link "Parallax" [ref=e316] [cursor=pointer]:
+              - /url: /websites/parallax/
+        - listitem [ref=e317]:
+          - strong [ref=e318]:
+            - link "Scrolling" [ref=e319] [cursor=pointer]:
+              - /url: /websites/scrolling/
+        - listitem [ref=e320]:
+          - strong [ref=e321]:
+            - link "Transitions" [ref=e322] [cursor=pointer]:
+              - /url: /websites/transitions/
+        - listitem [ref=e323]:
+          - strong [ref=e324]:
+            - link "UI design" [ref=e325] [cursor=pointer]:
+              - /url: /websites/ui-design/
+        - listitem [ref=e326]:
+          - strong [ref=e327]:
+            - link "Microinteractions" [ref=e328] [cursor=pointer]:
+              - /url: /websites/microinteractions/
+        - listitem [ref=e329]:
+          - strong [ref=e330]:
+            - link "GSAP" [ref=e331] [cursor=pointer]:
+              - /url: /websites/gsap/
+        - listitem [ref=e332]:
+          - strong [ref=e333]:
+            - link "Three.js" [ref=e334] [cursor=pointer]:
+              - /url: /websites/three-js/
+        - listitem [ref=e335]:
+          - strong [ref=e336]:
+            - link "Javascript" [ref=e337] [cursor=pointer]:
+              - /url: /websites/javascript/
+    - generic [ref=e340]:
+      - generic [ref=e342]:
+        - heading "Votes" [level=2] [ref=e343]
+        - list [ref=e344]:
+          - listitem [ref=e345] [cursor=pointer]: Community Members
+      - list [ref=e348]:
+        - listitem [ref=e349]:
+          - generic [ref=e350]:
+            - figure [ref=e351]:
+              - link "Sukumar Swain" [ref=e352] [cursor=pointer]:
+                - /url: /sukumarswain/
+                - img "Sukumar Swain" [ref=e353]
+            - generic [ref=e354]:
+              - generic [ref=e355]:
+                - strong [ref=e356]: Sukumar Swain
+                - text: "* from"
+                - strong [ref=e357]: India
+              - generic [ref=e358]: sukumarswain.com
+          - generic [ref=e361]: "7.00"
+        - listitem [ref=e362]:
+          - generic [ref=e363]:
+            - figure [ref=e364]:
+              - link "PopArt Studio" [ref=e365] [cursor=pointer]:
+                - /url: /popartstudio/
+                - img "PopArt Studio" [ref=e366]
+            - generic [ref=e367]:
+              - generic [ref=e368]:
+                - strong [ref=e369]: PopArt Studio
+                - text: from
+                - strong [ref=e370]: United States
+              - generic [ref=e371]: popwebdesign.net
+          - generic [ref=e374]: "7.70"
+        - listitem [ref=e375]:
+          - generic [ref=e376]:
+            - figure [ref=e377]:
+              - link "webgallerysubmission" [ref=e378] [cursor=pointer]:
+                - /url: /webgallerysubmission/
+                - img "webgallerysubmission" [ref=e379]
+            - generic [ref=e380]:
+              - generic [ref=e381]:
+                - strong [ref=e382]: webgallerysubmission
+                - text: from
+                - strong [ref=e383]: India
+              - generic [ref=e384]: webgallerysubmission.com
+          - generic [ref=e387]: "7.70"
+        - listitem [ref=e388]:
+          - generic [ref=e389]:
+            - figure [ref=e390]:
+              - link "Michael Johns" [ref=e391] [cursor=pointer]:
+                - /url: /michael-johns/
+                - img "Michael Johns" [ref=e392]
+            - generic [ref=e394]:
+              - strong [ref=e395]: Michael Johns
+              - text: from
+              - strong [ref=e396]: United States
+          - generic [ref=e399]: "7.00"
+        - listitem [ref=e400]:
+          - generic [ref=e401]:
+            - figure [ref=e402]:
+              - link "Paulina Banaś" [ref=e403] [cursor=pointer]:
+                - /url: /paulina-banas/
+                - img "Paulina Banaś" [ref=e404]
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - strong [ref=e407]: Paulina Banaś
+                - text: "* from"
+                - strong [ref=e408]: Poland
+              - generic [ref=e409]: paulinabanas.com
+          - generic [ref=e412]: "7.40"
+          - generic [ref=e414] [cursor=pointer]: •••
+  - contentinfo [ref=e415]:
+    - generic [ref=e416]:
+      - generic [ref=e417]:
+        - paragraph [ref=e418]:
+          - img [ref=e419]
+        - generic [ref=e422]:
+          - list [ref=e423]:
+            - listitem [ref=e424]:
+              - link "Websites" [ref=e425] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e426]:
+              - link "Collections" [ref=e427] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e428]:
+              - link "Elements" [ref=e429] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e430]:
+            - listitem [ref=e431]:
+              - link "Academy" [ref=e432] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e433]:
+              - link "Jobs" [ref=e434] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e435]:
+              - link "Market" [ref=e436] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e437]:
+            - listitem [ref=e438]:
+              - link "Directory" [ref=e439] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e440]:
+              - link "Conferences" [ref=e441] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e442]:
+            - listitem [ref=e443]:
+              - link "FAQs" [ref=e444] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e445]:
+              - link "About Us" [ref=e446] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e447]:
+              - link "Contact Us" [ref=e448] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e449]:
+        - list [ref=e451]:
+          - listitem [ref=e452]:
+            - link "Cookies Policy" [ref=e453] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e454]:
+            - link "Legal Terms" [ref=e455] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e456]:
+            - link "Privacy Policy" [ref=e457] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e459]:
+          - listitem [ref=e460]:
+            - strong [ref=e461]: "Connect:"
+          - listitem [ref=e462]:
+            - link "Instagram" [ref=e463] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e464]:
+            - link "LinkedIn" [ref=e465] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e466]:
+            - link "Twitter" [ref=e467] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e468]:
+            - link "Facebook" [ref=e469] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e470]:
+            - link "YouTube" [ref=e471] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e472]:
+            - link "TikTok" [ref=e473] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e474]:
+            - link "Pinterest" [ref=e475] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

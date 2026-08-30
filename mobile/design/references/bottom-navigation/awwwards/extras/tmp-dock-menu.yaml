@@ -1,0 +1,600 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]: dock menu
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - navigation [ref=e131]:
+      - list [ref=e134]:
+        - listitem [ref=e135]:
+          - generic [ref=e136] [cursor=pointer]:
+            - generic [ref=e137]: Awards
+            - img [ref=e138]
+        - listitem [ref=e140]:
+          - generic [ref=e141] [cursor=pointer]:
+            - generic [ref=e142]: Popular
+            - img [ref=e143]
+        - listitem [ref=e145]:
+          - generic [ref=e146] [cursor=pointer]:
+            - generic [ref=e147]: Font
+            - img [ref=e148]
+            - img [ref=e150]
+        - listitem [ref=e152]:
+          - generic [ref=e153] [cursor=pointer]:
+            - generic [ref=e154]: Color
+            - img [ref=e155]
+            - img [ref=e157]
+    - list [ref=e163]:
+      - listitem [ref=e164]:
+        - generic [ref=e165]:
+          - figure [ref=e166]:
+            - link "Off Menu" [ref=e167] [cursor=pointer]:
+              - /url: /sites/off-menu
+              - img "Off Menu" [ref=e168]
+          - generic [ref=e169]:
+            - figure [ref=e171]:
+              - link "Petr Knoll Petr Knoll" [ref=e172] [cursor=pointer]:
+                - /url: /petr-knoll/
+                - img "Petr Knoll" [ref=e173]
+                - heading "Petr Knoll" [level=3] [ref=e175]
+            - generic [ref=e177]:
+              - generic [ref=e180]: DEV
+              - generic [ref=e183]: SOTD
+      - listitem [ref=e184]:
+        - generic [ref=e185]:
+          - figure [ref=e186]:
+            - link "Cooldock" [ref=e187] [cursor=pointer]:
+              - /url: /sites/cooldock
+              - img "Cooldock" [ref=e188]
+          - generic [ref=e189]:
+            - figure [ref=e191]:
+              - link "Solt Wagner Solt Wagner" [ref=e192] [cursor=pointer]:
+                - /url: /solt-wagner/
+                - img "Solt Wagner" [ref=e193]
+                - heading "Solt Wagner" [level=3] [ref=e195]
+            - generic [ref=e200]: HM
+      - listitem [ref=e201]:
+        - generic [ref=e202]:
+          - figure [ref=e203]:
+            - link "RI/OS" [ref=e204] [cursor=pointer]:
+              - /url: /sites/ri-os
+              - img "RI/OS" [ref=e205]
+          - figure [ref=e208]:
+            - link "Roberto Izquierdo Roberto Izquierdo" [ref=e209] [cursor=pointer]:
+              - /url: /roberto.izquierdo/
+              - img "Roberto Izquierdo" [ref=e210]
+              - heading "Roberto Izquierdo" [level=3] [ref=e212]
+      - listitem [ref=e214]:
+        - generic [ref=e215]:
+          - figure [ref=e216]:
+            - link "Detector.io" [ref=e217] [cursor=pointer]:
+              - /url: /sites/detector-io
+              - img "Detector.io" [ref=e218]
+          - figure [ref=e221]:
+            - link "Detector.io Detector.io" [ref=e222] [cursor=pointer]:
+              - /url: /Detector/
+              - img "Detector.io" [ref=e223]
+              - heading "Detector.io" [level=3] [ref=e225]
+      - listitem [ref=e227]:
+        - generic [ref=e228]:
+          - figure [ref=e229]:
+            - link "363 Car & Social Club" [ref=e230] [cursor=pointer]:
+              - /url: /sites/363-car-social-club
+              - img "363 Car & Social Club" [ref=e231]
+          - generic [ref=e232]:
+            - figure [ref=e234]:
+              - link "Studio123 Studio123" [ref=e235] [cursor=pointer]:
+                - /url: /studio123/
+                - img "Studio123" [ref=e236]
+                - heading "Studio123" [level=3] [ref=e238]
+            - generic [ref=e243]: HM
+      - listitem [ref=e244]:
+        - generic [ref=e245]:
+          - figure [ref=e246]:
+            - link "Skanvi" [ref=e247] [cursor=pointer]:
+              - /url: /sites/skanvi
+              - img "Skanvi" [ref=e248]
+          - figure [ref=e251]:
+            - link "FEWTURE® FEWTURE®" [ref=e252] [cursor=pointer]:
+              - /url: /fewture/
+              - img "FEWTURE®" [ref=e253]
+              - heading "FEWTURE®" [level=3] [ref=e255]
+      - listitem [ref=e257]:
+        - generic [ref=e258]:
+          - figure [ref=e259]:
+            - link "Niblu" [ref=e260] [cursor=pointer]:
+              - /url: /sites/niblu
+              - img "Niblu" [ref=e261]
+          - figure [ref=e264]:
+            - link "Snow Fox Studio Snow Fox Studio PRO" [ref=e265] [cursor=pointer]:
+              - /url: /snowfox/
+              - img "Snow Fox Studio" [ref=e266]
+              - generic [ref=e267]:
+                - heading "Snow Fox Studio" [level=3] [ref=e268]
+                - superscript [ref=e269]: PRO
+      - listitem [ref=e271]:
+        - generic [ref=e272]:
+          - figure [ref=e273]:
+            - link "Leo Cussen Centre for Law" [ref=e274] [cursor=pointer]:
+              - /url: /sites/leo-cussen-centre-for-law
+              - img "Leo Cussen Centre for Law" [ref=e275]
+          - figure [ref=e278]:
+            - link "Bone Digital Bone Digital" [ref=e279] [cursor=pointer]:
+              - /url: /Bone.Digital/
+              - img "Bone Digital" [ref=e280]
+              - heading "Bone Digital" [level=3] [ref=e282]
+      - listitem [ref=e284]:
+        - generic [ref=e285]:
+          - figure [ref=e286]:
+            - link "Streamline - Variant B" [ref=e287] [cursor=pointer]:
+              - /url: https://go.streamlinehq.com/pixel-yellow
+              - img "Streamline - Variant B" [ref=e288]
+          - generic [ref=e293]: PROMOTED
+      - listitem [ref=e294]:
+        - generic [ref=e295]:
+          - figure [ref=e296]:
+            - link "Partake Foods" [ref=e297] [cursor=pointer]:
+              - /url: /sites/partake-foods
+              - img "Partake Foods" [ref=e298]
+          - figure [ref=e301]:
+            - link "Has Merit Has Merit PRO" [ref=e302] [cursor=pointer]:
+              - /url: /hasmerit-studio/
+              - img "Has Merit" [ref=e303]
+              - generic [ref=e304]:
+                - heading "Has Merit" [level=3] [ref=e305]
+                - superscript [ref=e306]: PRO
+      - listitem [ref=e308]:
+        - generic [ref=e309]:
+          - figure [ref=e310]:
+            - link "Depo Luxe" [ref=e311] [cursor=pointer]:
+              - /url: /sites/depo-luxe
+              - img "Depo Luxe" [ref=e312]
+          - generic [ref=e313]:
+            - figure [ref=e315]:
+              - link "Cuchillo Cuchillo PRO" [ref=e316] [cursor=pointer]:
+                - /url: /Cuchillo/
+                - img "Cuchillo" [ref=e317]
+                - generic [ref=e318]:
+                  - heading "Cuchillo" [level=3] [ref=e319]
+                  - superscript [ref=e320]: PRO
+            - generic [ref=e322]:
+              - generic [ref=e325]: DEV
+              - generic [ref=e328]: SOTD
+      - listitem [ref=e329]:
+        - generic [ref=e330]:
+          - figure [ref=e331]:
+            - link "DROPDEAD" [ref=e332] [cursor=pointer]:
+              - /url: /sites/dropdead
+              - img "DROPDEAD" [ref=e333]
+          - generic [ref=e334]:
+            - figure [ref=e336]:
+              - link "WIRO WIRO PRO" [ref=e337] [cursor=pointer]:
+                - /url: /wiroagency/
+                - img "WIRO" [ref=e338]
+                - generic [ref=e339]:
+                  - heading "WIRO" [level=3] [ref=e340]
+                  - superscript [ref=e341]: PRO
+            - generic [ref=e346]: HM
+      - listitem [ref=e347]:
+        - generic [ref=e348]:
+          - figure [ref=e349]:
+            - link "Planetoño" [ref=e350] [cursor=pointer]:
+              - /url: /sites/planetono
+              - img "Planetoño" [ref=e351]
+          - generic [ref=e352]:
+            - figure [ref=e354]:
+              - link "Tubik Tubik PRO" [ref=e355] [cursor=pointer]:
+                - /url: /tubik/
+                - img "Tubik" [ref=e356]
+                - generic [ref=e357]:
+                  - heading "Tubik" [level=3] [ref=e358]
+                  - superscript [ref=e359]: PRO
+            - generic [ref=e361]:
+              - generic [ref=e364]: AH
+              - generic [ref=e367]: DEV
+              - generic [ref=e370]: SOTD
+      - listitem [ref=e371]:
+        - generic [ref=e372]:
+          - figure [ref=e373]:
+            - link "LxL Creative" [ref=e374] [cursor=pointer]:
+              - /url: /sites/lxl-creative
+              - img "LxL Creative" [ref=e375]
+          - figure [ref=e378]:
+            - link "Jordan Gilroy Jordan Gilroy PRO" [ref=e379] [cursor=pointer]:
+              - /url: /jordan-gilroy/
+              - img "Jordan Gilroy" [ref=e380]
+              - generic [ref=e381]:
+                - heading "Jordan Gilroy" [level=3] [ref=e382]
+                - superscript [ref=e383]: PRO
+      - listitem [ref=e385]:
+        - generic [ref=e386]:
+          - figure [ref=e387]:
+            - link "Moncalisse" [ref=e388] [cursor=pointer]:
+              - /url: /sites/moncalisse
+              - img "Moncalisse" [ref=e389]
+          - generic [ref=e390]:
+            - figure [ref=e392]:
+              - link "thebrandingcrew thebrandingcrew PRO" [ref=e393] [cursor=pointer]:
+                - /url: /thebrandingcrew/
+                - img "thebrandingcrew" [ref=e394]
+                - generic [ref=e395]:
+                  - heading "thebrandingcrew" [level=3] [ref=e396]
+                  - superscript [ref=e397]: PRO
+            - generic [ref=e402]: HM
+      - listitem [ref=e403]:
+        - generic [ref=e404]:
+          - figure [ref=e405]:
+            - link "Alliance Moving & Storage" [ref=e406] [cursor=pointer]:
+              - /url: /sites/alliance-moving-storage
+              - img "Alliance Moving & Storage" [ref=e407]
+          - figure [ref=e410]:
+            - link "Comrade Digital Marketing Comrade Digital Marketing" [ref=e411] [cursor=pointer]:
+              - /url: /comrade-digital-marketing-agency/
+              - img "Comrade Digital Marketing" [ref=e412]
+              - heading "Comrade Digital Marketing" [level=3] [ref=e414]
+      - listitem [ref=e416]:
+        - generic [ref=e417]:
+          - figure [ref=e418]:
+            - link "DripModa" [ref=e419] [cursor=pointer]:
+              - /url: /sites/dripmoda
+              - img "DripModa" [ref=e420]
+          - generic [ref=e421]:
+            - figure [ref=e423]:
+              - link "WIRO WIRO PRO" [ref=e424] [cursor=pointer]:
+                - /url: /wiroagency/
+                - img "WIRO" [ref=e425]
+                - generic [ref=e426]:
+                  - heading "WIRO" [level=3] [ref=e427]
+                  - superscript [ref=e428]: PRO
+            - generic [ref=e433]: HM
+      - listitem [ref=e434]:
+        - generic [ref=e435]:
+          - figure [ref=e436]:
+            - link "Mosby's Files" [ref=e437] [cursor=pointer]:
+              - /url: /sites/mosbys-files
+              - img "Mosby's Files" [ref=e438]
+          - generic [ref=e439]:
+            - figure [ref=e441]:
+              - link "Tubik Tubik PRO" [ref=e442] [cursor=pointer]:
+                - /url: /tubik/
+                - img "Tubik" [ref=e443]
+                - generic [ref=e444]:
+                  - heading "Tubik" [level=3] [ref=e445]
+                  - superscript [ref=e446]: PRO
+            - generic [ref=e448]:
+              - generic [ref=e451]: DEV
+              - generic [ref=e454]: SOTD
+      - listitem [ref=e455]:
+        - generic [ref=e456]:
+          - figure [ref=e457]:
+            - link "Serotoninn" [ref=e458] [cursor=pointer]:
+              - /url: /sites/serotoninn
+              - img "Serotoninn" [ref=e459]
+          - generic [ref=e460]:
+            - figure [ref=e462]:
+              - link "BL/S® BL/S® PRO" [ref=e463] [cursor=pointer]:
+                - /url: /blacklead/
+                - img "BL/S®" [ref=e464]
+                - generic [ref=e465]:
+                  - heading "BL/S®" [level=3] [ref=e466]
+                  - superscript [ref=e467]: PRO
+            - generic [ref=e469]:
+              - generic [ref=e472]: AH
+              - generic [ref=e475]: DEV
+              - generic [ref=e478]: SOTD
+      - listitem [ref=e479]:
+        - generic [ref=e480]:
+          - figure [ref=e481]:
+            - link "HGD Media" [ref=e482] [cursor=pointer]:
+              - /url: /sites/hgd-media
+              - img "HGD Media" [ref=e483]
+          - figure [ref=e486]:
+            - link "nils-heitmann nils-heitmann" [ref=e487] [cursor=pointer]:
+              - /url: /nils-heitmann/
+              - img "nils-heitmann" [ref=e488]
+              - heading "nils-heitmann" [level=3] [ref=e490]
+      - listitem [ref=e492]:
+        - generic [ref=e493]:
+          - figure [ref=e494]:
+            - link "Acid Crunch" [ref=e495] [cursor=pointer]:
+              - /url: /sites/acid-crunch
+              - img "Acid Crunch" [ref=e496]
+          - generic [ref=e497]:
+            - figure [ref=e499]:
+              - link "Roman Baturin Roman Baturin" [ref=e500] [cursor=pointer]:
+                - /url: /roman-baturin/
+                - img "Roman Baturin" [ref=e501]
+                - heading "Roman Baturin" [level=3] [ref=e503]
+            - generic [ref=e508]: HM
+      - listitem [ref=e509]:
+        - generic [ref=e510]:
+          - figure [ref=e511]:
+            - link "Don Molinico" [ref=e512] [cursor=pointer]:
+              - /url: /sites/don-molinico
+              - img "Don Molinico" [ref=e513]
+          - generic [ref=e514]:
+            - figure [ref=e516]:
+              - link "AUGE EXPERIENCE AUGE EXPERIENCE PRO" [ref=e517] [cursor=pointer]:
+                - /url: /auge-xp/
+                - img "AUGE EXPERIENCE" [ref=e518]
+                - generic [ref=e519]:
+                  - heading "AUGE EXPERIENCE" [level=3] [ref=e520]
+                  - superscript [ref=e521]: PRO
+            - generic [ref=e523]:
+              - generic [ref=e526]: DEV
+              - generic [ref=e529]: SOTD
+      - listitem [ref=e530]:
+        - generic [ref=e531]:
+          - figure [ref=e532]:
+            - link "Nivis Gear" [ref=e533] [cursor=pointer]:
+              - /url: /sites/nivis-gear
+              - img "Nivis Gear" [ref=e534]
+          - generic [ref=e535]:
+            - figure [ref=e537]:
+              - link "SavoirFaire© SavoirFaire© PRO" [ref=e538] [cursor=pointer]:
+                - /url: /SavoirFaire/
+                - img "SavoirFaire©" [ref=e539]
+                - generic [ref=e540]:
+                  - heading "SavoirFaire©" [level=3] [ref=e541]
+                  - superscript [ref=e542]: PRO
+            - generic [ref=e547]: HM
+      - listitem [ref=e548]:
+        - generic [ref=e549]:
+          - figure [ref=e550]:
+            - link "Oliver Gareis" [ref=e551] [cursor=pointer]:
+              - /url: /sites/oliver-gareis
+              - img "Oliver Gareis" [ref=e552]
+          - generic [ref=e553]:
+            - figure [ref=e555]:
+              - link "OliverGareis OliverGareis" [ref=e556] [cursor=pointer]:
+                - /url: /OliverGareis/
+                - img "OliverGareis" [ref=e557]
+                - heading "OliverGareis" [level=3] [ref=e559]
+            - generic [ref=e564]: HM
+      - listitem [ref=e565]:
+        - generic [ref=e566]:
+          - figure [ref=e567]:
+            - link "Switch Nails" [ref=e568] [cursor=pointer]:
+              - /url: /sites/switch-nails
+              - img "Switch Nails" [ref=e569]
+          - generic [ref=e570]:
+            - figure [ref=e572]:
+              - link "coi coi" [ref=e573] [cursor=pointer]:
+                - /url: /coi/
+                - img "coi" [ref=e574]
+                - heading "coi" [level=3] [ref=e576]
+            - generic [ref=e581]: HM
+      - listitem [ref=e582]:
+        - generic [ref=e583]:
+          - figure [ref=e584]:
+            - link "Dragonfly Redux" [ref=e585] [cursor=pointer]:
+              - /url: /sites/dragonfly-redux
+              - img "Dragonfly Redux" [ref=e586]
+          - generic [ref=e587]:
+            - figure [ref=e589]:
+              - link "Studio Freight Studio Freight PRO" [ref=e590] [cursor=pointer]:
+                - /url: /studiofreight/
+                - img "Studio Freight" [ref=e591]
+                - generic [ref=e592]:
+                  - heading "Studio Freight" [level=3] [ref=e593]
+                  - superscript [ref=e594]: PRO
+            - generic [ref=e596]:
+              - generic [ref=e599]: AH
+              - generic [ref=e602]: SOTD
+      - listitem [ref=e603]:
+        - generic [ref=e604]:
+          - figure [ref=e605]:
+            - link "Realevate" [ref=e606] [cursor=pointer]:
+              - /url: /sites/realevate
+              - img "Realevate" [ref=e607]
+          - figure [ref=e610]:
+            - link "Or Halevi Or Halevi PRO" [ref=e611] [cursor=pointer]:
+              - /url: /ORHALEVI/
+              - img "Or Halevi" [ref=e612]
+              - generic [ref=e613]:
+                - heading "Or Halevi" [level=3] [ref=e614]
+                - superscript [ref=e615]: PRO
+      - listitem [ref=e617]:
+        - generic [ref=e618]:
+          - figure [ref=e619]:
+            - link "Eventive" [ref=e620] [cursor=pointer]:
+              - /url: /sites/eventive
+              - img "Eventive" [ref=e621]
+          - figure [ref=e624]:
+            - link "BlueCubeMedia BlueCubeMedia" [ref=e625] [cursor=pointer]:
+              - /url: /BlueCubeMedia/
+              - img "BlueCubeMedia" [ref=e626]
+              - heading "BlueCubeMedia" [level=3] [ref=e628]
+      - listitem [ref=e630]:
+        - generic [ref=e631]:
+          - figure [ref=e632]:
+            - link "Omnicom Reputation Group" [ref=e633] [cursor=pointer]:
+              - /url: /sites/omnicom-reputation-group
+              - img "Omnicom Reputation Group" [ref=e634]
+          - generic [ref=e635]:
+            - figure [ref=e637]:
+              - link "BONHOMME BONHOMME INT" [ref=e638] [cursor=pointer]:
+                - /url: /BONHOMME/
+                - img "BONHOMME" [ref=e639]
+                - generic [ref=e640]:
+                  - heading "BONHOMME" [level=3] [ref=e641]
+                  - superscript [ref=e642]: INT
+            - generic [ref=e647]: HM
+      - listitem [ref=e648]:
+        - generic [ref=e649]:
+          - figure [ref=e650]:
+            - link "Carrière Scène" [ref=e651] [cursor=pointer]:
+              - /url: /sites/carriere-scene
+              - img "Carrière Scène" [ref=e652]
+          - generic [ref=e653]:
+            - figure [ref=e655]:
+              - link "Mambo Mambo Mambo Mambo PRO" [ref=e656] [cursor=pointer]:
+                - /url: /mambo/
+                - img "Mambo Mambo" [ref=e657]
+                - generic [ref=e658]:
+                  - heading "Mambo Mambo" [level=3] [ref=e659]
+                  - superscript [ref=e660]: PRO
+            - generic [ref=e665]: HM
+      - listitem [ref=e666]:
+        - generic [ref=e667]:
+          - figure [ref=e668]:
+            - link "Bucks Sauce" [ref=e669] [cursor=pointer]:
+              - /url: /sites/bucks-sauce
+              - img "Bucks Sauce" [ref=e670]
+          - generic [ref=e671]:
+            - figure [ref=e673]:
+              - link "Buzzworthy Buzzworthy PRO" [ref=e674] [cursor=pointer]:
+                - /url: /Buzzworthy/
+                - img "Buzzworthy" [ref=e675]
+                - generic [ref=e676]:
+                  - heading "Buzzworthy" [level=3] [ref=e677]
+                  - superscript [ref=e678]: PRO
+            - generic [ref=e680]:
+              - generic [ref=e683]: AH
+              - generic [ref=e686]: DEV
+              - generic [ref=e689]: SOTD
+      - listitem [ref=e690]:
+        - generic [ref=e691]:
+          - figure [ref=e692]:
+            - link "Amp One" [ref=e693] [cursor=pointer]:
+              - /url: /sites/amp-one
+              - img "Amp One" [ref=e694]
+          - generic [ref=e695]:
+            - figure [ref=e697]:
+              - link "MOYIN MOYIN" [ref=e698] [cursor=pointer]:
+                - /url: /moyin/
+                - img "MOYIN" [ref=e699]
+                - heading "MOYIN" [level=3] [ref=e701]
+            - generic [ref=e706]: HM
+  - contentinfo [ref=e708]:
+    - generic [ref=e709]:
+      - generic [ref=e710]:
+        - paragraph [ref=e711]:
+          - img [ref=e712]
+        - generic [ref=e715]:
+          - list [ref=e716]:
+            - listitem [ref=e717]:
+              - link "Websites" [ref=e718] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e719]:
+              - link "Collections" [ref=e720] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e721]:
+              - link "Elements" [ref=e722] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e723]:
+            - listitem [ref=e724]:
+              - link "Academy" [ref=e725] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e726]:
+              - link "Jobs" [ref=e727] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e728]:
+              - link "Market" [ref=e729] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e730]:
+            - listitem [ref=e731]:
+              - link "Directory" [ref=e732] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e733]:
+              - link "Conferences" [ref=e734] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e735]:
+            - listitem [ref=e736]:
+              - link "FAQs" [ref=e737] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e738]:
+              - link "About Us" [ref=e739] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e740]:
+              - link "Contact Us" [ref=e741] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e742]:
+        - list [ref=e744]:
+          - listitem [ref=e745]:
+            - link "Cookies Policy" [ref=e746] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e747]:
+            - link "Legal Terms" [ref=e748] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e749]:
+            - link "Privacy Policy" [ref=e750] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e752]:
+          - listitem [ref=e753]:
+            - strong [ref=e754]: "Connect:"
+          - listitem [ref=e755]:
+            - link "Instagram" [ref=e756] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e757]:
+            - link "LinkedIn" [ref=e758] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e759]:
+            - link "Twitter" [ref=e760] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e761]:
+            - link "Facebook" [ref=e762] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e763]:
+            - link "YouTube" [ref=e764] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e765]:
+            - link "TikTok" [ref=e766] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e767]:
+            - link "Pinterest" [ref=e768] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

@@ -1,0 +1,330 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://dock.cool
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Honorable Mention - Jul 13, 2026" [level=2] [ref=e151]
+            - heading "Cooldock" [level=1] [ref=e153]
+            - list [ref=e157]:
+              - listitem [ref=e158]:
+                - figure [ref=e160]:
+                  - link "Solt Wagner" [ref=e161] [cursor=pointer]:
+                    - /url: /solt-wagner/
+                    - strong [ref=e163]: Solt Wagner
+        - list [ref=e165]:
+          - listitem [ref=e166]
+      - heading "Cooldock brings music, todos, events, weather, search, stats, quick actions, and more useful widgets into one beautiful live dock beside your original Mac Dock." [level=3] [ref=e171]
+    - generic [ref=e174]:
+      - generic [ref=e175]:
+        - heading "Elements" [level=2] [ref=e177]
+        - heading "Keep the focus in these elements." [level=3] [ref=e179]:
+          - text: Keep the focus in
+          - text: these elements.
+      - list [ref=e180]:
+        - listitem [ref=e181]:
+          - generic [ref=e182]:
+            - figure [ref=e183]:
+              - link "Features" [ref=e184] [cursor=pointer]:
+                - /url: /inspiration/features-cooldock
+                - img "Features" [ref=e185]
+            - generic [ref=e187]:
+              - heading "Features" [level=3] [ref=e188]:
+                - link "Features" [ref=e189] [cursor=pointer]:
+                  - /url: /inspiration/features-cooldock
+              - generic [ref=e190]:
+                - generic [ref=e191]: from
+                - link "UI Components" [ref=e192] [cursor=pointer]:
+                  - /url: /elements/ui_components/
+        - listitem [ref=e193]:
+          - generic [ref=e194]:
+            - figure [ref=e195]:
+              - link "Pricing" [ref=e196] [cursor=pointer]:
+                - /url: /inspiration/pricing-cooldock
+                - img "Pricing" [ref=e197]
+            - generic [ref=e199]:
+              - heading "Pricing" [level=3] [ref=e200]:
+                - link "Pricing" [ref=e201] [cursor=pointer]:
+                  - /url: /inspiration/pricing-cooldock
+              - generic [ref=e202]:
+                - generic [ref=e203]: from
+                - link "Pricing page" [ref=e204] [cursor=pointer]:
+                  - /url: /elements/pricing_page/
+        - listitem [ref=e205]:
+          - generic [ref=e206]:
+            - figure [ref=e207]:
+              - link "Footer" [ref=e208] [cursor=pointer]:
+                - /url: /inspiration/footer-cooldock
+                - img "Footer" [ref=e209]
+            - generic [ref=e211]:
+              - heading "Footer" [level=3] [ref=e212]:
+                - link "Footer" [ref=e213] [cursor=pointer]:
+                  - /url: /inspiration/footer-cooldock
+              - generic [ref=e214]:
+                - generic [ref=e215]: from
+                - link "Footer" [ref=e216] [cursor=pointer]:
+                  - /url: /elements/footer/
+    - generic [ref=e221]:
+      - heading "Color Palette" [level=2] [ref=e224]
+      - generic [ref=e225]:
+        - generic:
+          - list
+    - generic [ref=e228]:
+      - paragraph [ref=e229]: This website has been created using...
+      - list [ref=e231]:
+        - listitem [ref=e232]:
+          - strong [ref=e233]:
+            - link "Mobile & Apps" [ref=e234] [cursor=pointer]:
+              - /url: /websites/mobile-apps/
+        - listitem [ref=e235]:
+          - strong [ref=e236]:
+            - link "Technology" [ref=e237] [cursor=pointer]:
+              - /url: /websites/technology/
+        - listitem [ref=e238]:
+          - strong [ref=e239]:
+            - link "Web & Interactive" [ref=e240] [cursor=pointer]:
+              - /url: /websites/web-interactive/
+        - listitem [ref=e241]:
+          - strong [ref=e242]:
+            - link "Navigation Menu" [ref=e243] [cursor=pointer]:
+              - /url: /websites/navigation/
+        - listitem [ref=e244]:
+          - strong [ref=e245]:
+            - link "Video" [ref=e246] [cursor=pointer]:
+              - /url: /websites/video/
+        - listitem [ref=e247]:
+          - strong [ref=e248]:
+            - link "Responsive" [ref=e249] [cursor=pointer]:
+              - /url: /websites/responsive/
+        - listitem [ref=e250]:
+          - strong [ref=e251]:
+            - link "UI design" [ref=e252] [cursor=pointer]:
+              - /url: /websites/ui-design/
+        - listitem [ref=e253]:
+          - strong [ref=e254]:
+            - link "Animation" [ref=e255] [cursor=pointer]:
+              - /url: /websites/animation/
+        - listitem [ref=e256]:
+          - strong [ref=e257]:
+            - link "App Style" [ref=e258] [cursor=pointer]:
+              - /url: /websites/app-style/
+        - listitem [ref=e259]:
+          - strong [ref=e260]:
+            - link "Sketch" [ref=e261] [cursor=pointer]:
+              - /url: /websites/sketchapp/
+        - listitem [ref=e262]:
+          - strong [ref=e263]:
+            - link "Framer" [ref=e264] [cursor=pointer]:
+              - /url: /websites/framer/
+    - generic [ref=e267]:
+      - generic [ref=e269]:
+        - heading "Votes" [level=2] [ref=e270]
+        - list [ref=e271]:
+          - listitem [ref=e272] [cursor=pointer]: Community Members
+      - list [ref=e275]:
+        - listitem [ref=e276]:
+          - generic [ref=e277]:
+            - figure [ref=e278]:
+              - link "SwarajSingh" [ref=e279] [cursor=pointer]:
+                - /url: /swaraj-singh/
+                - img "SwarajSingh" [ref=e280]
+            - generic [ref=e281]:
+              - generic [ref=e282]:
+                - strong [ref=e283]: SwarajSingh
+                - text: "* from"
+                - strong [ref=e284]: India
+              - generic [ref=e285]: portfolio-25-phi.vercel.app
+          - generic [ref=e288]: "7.40"
+        - listitem [ref=e289]:
+          - generic [ref=e290]:
+            - figure [ref=e291]:
+              - link "PopArt Studio" [ref=e292] [cursor=pointer]:
+                - /url: /popartstudio/
+                - img "PopArt Studio" [ref=e293]
+            - generic [ref=e294]:
+              - generic [ref=e295]:
+                - strong [ref=e296]: PopArt Studio
+                - text: from
+                - strong [ref=e297]: United States
+              - generic [ref=e298]: popwebdesign.net
+          - generic [ref=e301]: "9.60"
+        - listitem [ref=e302]:
+          - generic [ref=e303]:
+            - figure [ref=e304]:
+              - link "Rémy Canal" [ref=e305] [cursor=pointer]:
+                - /url: /remy.cnl/
+                - img "Rémy Canal" [ref=e306]
+            - generic [ref=e307]:
+              - generic [ref=e308]:
+                - strong [ref=e309]: Rémy Canal
+                - text: "* from"
+                - strong [ref=e310]: France
+              - generic [ref=e311]: remycanal.me
+          - generic [ref=e314]: "7.60"
+        - listitem [ref=e315]:
+          - generic [ref=e316]:
+            - figure [ref=e317]:
+              - link "romain-gelb" [ref=e318] [cursor=pointer]:
+                - /url: /romain-gelb/
+                - img "romain-gelb" [ref=e319]
+            - generic [ref=e320]:
+              - generic [ref=e321]:
+                - strong [ref=e322]: romain-gelb
+                - text: "* from"
+                - strong [ref=e323]: France
+              - generic [ref=e324]: studiofief.com
+          - generic [ref=e327]: "7.40"
+        - listitem [ref=e328]:
+          - generic [ref=e329]:
+            - figure [ref=e330]:
+              - link "mosh-1" [ref=e331] [cursor=pointer]:
+                - /url: /mosh-1/
+                - img "mosh-1" [ref=e332]
+            - strong [ref=e335]: mosh-1
+          - generic [ref=e338]: "9.70"
+          - generic [ref=e340] [cursor=pointer]: •••
+  - contentinfo [ref=e341]:
+    - generic [ref=e342]:
+      - generic [ref=e343]:
+        - paragraph [ref=e344]:
+          - img [ref=e345]
+        - generic [ref=e348]:
+          - list [ref=e349]:
+            - listitem [ref=e350]:
+              - link "Websites" [ref=e351] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e352]:
+              - link "Collections" [ref=e353] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e354]:
+              - link "Elements" [ref=e355] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e356]:
+            - listitem [ref=e357]:
+              - link "Academy" [ref=e358] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e359]:
+              - link "Jobs" [ref=e360] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e361]:
+              - link "Market" [ref=e362] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e363]:
+            - listitem [ref=e364]:
+              - link "Directory" [ref=e365] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e366]:
+              - link "Conferences" [ref=e367] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e368]:
+            - listitem [ref=e369]:
+              - link "FAQs" [ref=e370] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e371]:
+              - link "About Us" [ref=e372] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e373]:
+              - link "Contact Us" [ref=e374] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e375]:
+        - list [ref=e377]:
+          - listitem [ref=e378]:
+            - link "Cookies Policy" [ref=e379] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e380]:
+            - link "Legal Terms" [ref=e381] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e382]:
+            - link "Privacy Policy" [ref=e383] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e385]:
+          - listitem [ref=e386]:
+            - strong [ref=e387]: "Connect:"
+          - listitem [ref=e388]:
+            - link "Instagram" [ref=e389] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e390]:
+            - link "LinkedIn" [ref=e391] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e392]:
+            - link "Twitter" [ref=e393] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e394]:
+            - link "Facebook" [ref=e395] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e396]:
+            - link "YouTube" [ref=e397] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e398]:
+            - link "TikTok" [ref=e399] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e400]:
+            - link "Pinterest" [ref=e401] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

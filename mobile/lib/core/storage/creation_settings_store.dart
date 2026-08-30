@@ -37,9 +37,11 @@ class FileCreationSettingsStore implements CreationSettingsStore {
       final decoded = jsonDecode(await file.readAsString());
       if (decoded is Map<String, Object?>) {
         final settings = CreationSettings.fromJson(decoded);
-        final hadLegacyFields = decoded.keys.any(
-          (key) => key.startsWith('minimax_') || key == 'dashscope_region',
-        );
+        final hadLegacyFields =
+            decoded.keys.any(
+              (key) => key.startsWith('minimax_') || key == 'dashscope_region',
+            ) ||
+            decoded['wan_video_model'] == 'wan2.7-t2v';
         if (hadLegacyFields) {
           await file.writeAsString(jsonEncode(settings.toJson()), flush: true);
           AppLog.info('settings', 'legacy_creation_config_removed');

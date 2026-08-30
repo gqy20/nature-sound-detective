@@ -12,11 +12,13 @@ import httpx
 from dotenv import load_dotenv
 
 from app.config import ROOT
+from app.generated_prompts import prompt_generation, prompt_version, render_prompt
 from app.observability import get_logger, log_event, log_exception
 
 
 logger = get_logger("parent_guidance")
-PROMPT_VERSION = "parent-guidance-v4"
+PROMPT_VERSION = prompt_version("parent_guidance")
+PROMPT_GENERATION = prompt_generation("parent_guidance")
 
 
 ALLOWED_BEHAVIORS = {
@@ -258,23 +260,15 @@ def _prompt(
         for item in behaviors
         if item in ALLOWED_BEHAVIORS
     ]
-    return f"""请直接为一位正在陪孩子进行自然声音调查的家长生成现场引导和过程性夸奖。
-
-候选：{candidate_name or '暂时没有具体候选'}
-声音类别：{category or '自然声音'}
-模型分数：{confidence:.2f}，这不是准确率
-录音是否为弱动态信号：{'是' if weak_signal else '否'}
-孩子/家庭实际填写的观察：{'、'.join(observations) or '暂无'}
-本次真实发生的行为：
-{chr(10).join(behavior_lines)}
-
-你必须直接创作自然、具体、不重复的中文表达。每句夸奖必须严格依据上面的真实行为，并在evidence_behavior中逐字返回对应ID。不得虚构孩子看见动物、留在步道、认真比较、重新录音等没有列出的行为。不得把候选写成确定答案。引导只能鼓励远距离倾听和观看，不得鼓励追逐、捕捉、触摸、投喂、拨开灌木、爬树、下水或靠近巢穴。安全提醒应写在avoid字段；如果say或action必须提及危险动作，必须使用“不要、避免、无需、不能”等明确否定表达。避免“你真棒、太聪明、小天才”等空泛评价。
-
-如果真实行为中没有observedSafely，夸奖文本和能力标签不得提及安全、步道、追逐、捕捉、触摸、投喂或“没有靠近”等安全表现；这些词只允许出现在guide的avoid字段中。只有evidence_behavior为capturedSound时才能说孩子按下录音键、现场录下声音；importedSound只能表述为选择或导入了已有声音；旧版recordedSound不得自行判断是哪一种。
-
-返回JSON，不要Markdown：
-{{"guides":[{{"goal":"目标","say":"家长可以直接说的话","action":"一起做的动作","avoid":"需要避免的做法"}}],"praises":[{{"evidence_behavior":"真实行为ID","ability":"能力标签","text":"家长可以直接说的具体夸奖"}}]}}
-guides必须2至3条，praises必须3至5条。"""
+    return render_prompt(
+        "parent_guidance.user",
+        candidate_name=candidate_name or "暂时没有具体候选",
+        category=category or "自然声音",
+        confidence=f"{confidence:.2f}",
+        weak_signal="是" if weak_signal else "否",
+        observations="、".join(observations) or "暂无",
+        behavior_lines="\n".join(behavior_lines),
+    )
 
 
 class ParentGuidanceService:
@@ -319,6 +313,7 @@ class ParentGuidanceService:
                 "provider": "reviewed-template",
                 "ai_generated": False,
                 "warning": "AI陪伴模型未启用，已使用审核模板",
+                "prompt_version": PROMPT_VERSION,
             }
         try:
             with httpx.Client(timeout=httpx.Timeout(35, connect=12)) as client:
@@ -344,9 +339,9 @@ class ParentGuidanceService:
                     correction = (
                         ""
                         if not validation_error
-                        else (
-                            "\n\n上一次输出已被拒绝，原因："
-                            f"{validation_error}。请完全重写JSON，删除没有真实行为依据的内容。"
+                        else render_prompt(
+                            "parent_guidance.correction",
+                            validation_error=validation_error,
                         )
                     )
                     response = client.post(
@@ -360,14 +355,16 @@ class ParentGuidanceService:
                             "messages": [
                                 {
                                     "role": "system",
-                                    "content": "你是亲子自然教育陪伴编辑。真实行为证据、安全和儿童自主性高于文采。",
+                                    "content": render_prompt("parent_guidance.system"),
                                 },
                                 {"role": "user", "content": prompt + correction},
                             ],
-                            "temperature": 0.75 if attempt else 0.85,
-                            "enable_thinking": False,
-                            "max_completion_tokens": 900,
-                            "response_format": {"type": "json_object"},
+                            "temperature": PROMPT_GENERATION["retry_temperature"]
+                            if attempt
+                            else PROMPT_GENERATION["initial_temperature"],
+                            "enable_thinking": PROMPT_GENERATION["enable_thinking"],
+                            "max_completion_tokens": PROMPT_GENERATION["max_completion_tokens"],
+                            "response_format": {"type": PROMPT_GENERATION["response_format"]},
                         },
                     )
                     response.raise_for_status()
@@ -389,6 +386,7 @@ class ParentGuidanceService:
                         "provider": self.model,
                         "ai_generated": True,
                         "warning": "",
+                        "prompt_version": PROMPT_VERSION,
                         "generation_attempts": attempt + 1,
                         "usage": {
                             "prompt_tokens": prompt_tokens,
@@ -423,4 +421,5 @@ class ParentGuidanceService:
                 "provider": "reviewed-template",
                 "ai_generated": False,
                 "warning": "AI生成未通过事实或安全校验，已使用审核模板",
+                "prompt_version": PROMPT_VERSION,
             }

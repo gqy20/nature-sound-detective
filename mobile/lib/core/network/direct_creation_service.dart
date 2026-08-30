@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:nature_sound_detective/core/ai/generated_prompts.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/media/media_composer.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
@@ -18,6 +19,7 @@ abstract interface class CreationService {
     required String location,
     required String sourceAudioPath,
     required CreationProgress onProgress,
+    CreationVisualMode visualMode = CreationVisualMode.environment,
   });
 
   Future<CreationArtifacts> resume({
@@ -45,6 +47,7 @@ class DirectCreationService implements CreationService {
   final Future<Directory> Function() _directoryProvider;
   final CreationStore _store;
   final MediaComposer _composer;
+  static const _videoDurationSeconds = 5;
   final Duration pollInterval;
   final Duration videoTimeout;
 
@@ -55,6 +58,7 @@ class DirectCreationService implements CreationService {
     required String location,
     required String sourceAudioPath,
     required CreationProgress onProgress,
+    CreationVisualMode visualMode = CreationVisualMode.environment,
   }) async {
     if (!settings.canCreate) {
       AppLog.warning('creation', 'configuration_missing');
@@ -79,6 +83,7 @@ class DirectCreationService implements CreationService {
         'music_model': settings.dashscopeMusicModel,
         'speech_model': settings.dashscopeSpeechModel,
         'video_model': settings.wanVideoModel,
+        'visual_mode': visualMode.name,
         'region': 'beijing',
       },
     );
@@ -95,6 +100,7 @@ class DirectCreationService implements CreationService {
       message: '准备创作',
       directoryPath: directory.path,
       sourceAudioPath: copiedSource.path,
+      visualMode: visualMode,
     );
     await _store.save(record);
     return resume(settings: settings, record: record, onProgress: onProgress);
@@ -230,7 +236,7 @@ class DirectCreationService implements CreationService {
           await progress(CreationStage.submittingVideo, '正在提交自然短片');
           taskId = await _createWanTask(
             settings: settings,
-            prompt: _videoPrompt(current.subject, current.location),
+            prompt: _videoPrompt(current),
             traceId: current.id,
           );
           current = current.copyWith(wanTaskId: taskId, videoError: '');
@@ -502,12 +508,16 @@ class DirectCreationService implements CreationService {
             'model': settings.wanVideoModel.trim(),
             'input': {
               'prompt': prompt,
-              'negative_prompt': '字幕，文字，儿童正脸，捕捉动物，触摸动物，畸形，低清晰度',
+              'negative_prompt': AiPromptCatalog.render(
+                'creation.mobile_video_negative',
+                const {},
+              ),
             },
             'parameters': {
-              'resolution': '720P',
+              'resolution': '480P',
               'ratio': '9:16',
-              'duration': 10,
+              'duration': _videoDurationSeconds,
+              'audio': false,
               'prompt_extend': true,
               'watermark': true,
             },
@@ -623,17 +633,31 @@ class DirectCreationService implements CreationService {
   }
 
   String _musicPrompt(String subject, String location) =>
-      '为儿童自然观察创作一段温柔、清澈、富有呼吸感的纯音乐。地点是$location，声音主题是$subject。'
-      '以木琴、轻柔弦乐、原声打击乐和空气感铺底，不要人声，不要歌词，不要戏剧化高潮，给自然原声留出空间。';
+      AiPromptCatalog.render('creation.mobile_music', {
+        'subject': subject,
+        'location': location,
+      });
 
-  String _videoPrompt(String subject, String location) =>
-      '生成一支10秒的竖屏儿童自然科普短片。地点氛围：中国$location的城市公园，主题声音：$subject。'
-      '清晨薄雾、柔和自然光、真实纪录片质感、缓慢稳定镜头。只展示环境和声音线索，不出现文字、字幕、儿童正脸，'
-      '不表现捕捉或触摸野生动物。不确定具体物种时不要生成动物近景。';
+  String _videoPrompt(CreationRecord record) => switch (record.visualMode) {
+    CreationVisualMode.bird => AiPromptCatalog.render(
+      'creation.mobile_video_bird',
+      {'subject': record.subject, 'location': record.location},
+    ),
+    CreationVisualMode.frog => AiPromptCatalog.render(
+      'creation.mobile_video_frog',
+      {'subject': record.subject, 'location': record.location},
+    ),
+    CreationVisualMode.environment => AiPromptCatalog.render(
+      'creation.mobile_video_environment',
+      {'location': record.location},
+    ),
+  };
 
   String _narrationText(String subject, String location) =>
-      '在$location，我们听见了$subject。每一种自然声音，都在告诉我们环境正在发生什么。'
-      '再安静听一听，它的节奏有没有变化？';
+      AiPromptCatalog.render('creation.mobile_narration', {
+        'subject': subject,
+        'location': location,
+      });
 
   Map<String, Object?> _jsonObject(String body, String service) {
     try {
@@ -652,9 +676,38 @@ class DirectCreationService implements CreationService {
   ) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw CreationException(
-        _apiMessage(payload) ?? '$service 请求失败（${response.statusCode}）。',
+        _friendlyApiMessage(payload, service) ??
+            '$service 请求失败（${response.statusCode}）。',
       );
     }
+  }
+
+  String? _friendlyApiMessage(Map<String, Object?> payload, String service) {
+    final code = payload['code']?.toString() ?? '';
+    final requestId =
+        payload['request_id']?.toString() ??
+        switch (payload['output']) {
+          Map<Object?, Object?> output => output['request_id']?.toString(),
+          _ => null,
+        };
+    final requestSuffix = requestId == null || requestId.isEmpty
+        ? ''
+        : '（请求 ID：$requestId）';
+    final normalized = code.toLowerCase();
+    if (service.contains('Fun-Music') &&
+        (normalized.contains('accessdenied') ||
+            normalized.contains('access_denied'))) {
+      return '当前阿里云百炼业务空间尚未开通 Fun-Music。请在华北 2（北京）模型广场申请权限，并确认 API Key 与业务空间一致。$requestSuffix';
+    }
+    if (normalized.contains('workspace.accessdenied')) {
+      return '当前 API Key 无权访问这个业务空间，请检查北京地域的 Workspace ID 与模型授权。$requestSuffix';
+    }
+    if (normalized.contains('arrearage')) {
+      return '阿里云账户当前不可用，请检查欠费、余额和百炼服务状态。$requestSuffix';
+    }
+    final message = _apiMessage(payload);
+    if (message == null || message.isEmpty) return null;
+    return '$message$requestSuffix';
   }
 
   String? _apiMessage(Map<String, Object?> payload) {

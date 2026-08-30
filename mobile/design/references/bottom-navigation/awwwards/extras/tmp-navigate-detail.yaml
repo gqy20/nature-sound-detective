@@ -1,0 +1,692 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e136]:
+            - strong [ref=e138]: SOTD
+            - strong [ref=e141]: "7.93"
+          - list [ref=e143]:
+            - listitem [ref=e144]:
+              - img [ref=e146] [cursor=pointer]
+            - listitem [ref=e148]:
+              - img [ref=e150] [cursor=pointer]
+            - listitem [ref=e152]:
+              - link [ref=e153] [cursor=pointer]:
+                - /url: https://nvg8.io/
+                - img [ref=e154]
+        - generic [ref=e156]:
+          - heading "Site of the Day - Apr 16, 2025" [level=2] [ref=e158]
+          - heading "Navigate" [level=1] [ref=e160]:
+            - link "Navigate" [ref=e161] [cursor=pointer]:
+              - /url: https://nvg8.io/
+          - list [ref=e165]:
+            - listitem [ref=e166]:
+              - figure [ref=e168]:
+                - link "Resn" [ref=e169] [cursor=pointer]:
+                  - /url: /resn/
+                  - generic [ref=e170]:
+                    - strong [ref=e171]: Resn
+                    - superscript [ref=e172]: PRO
+        - list [ref=e173]:
+          - listitem [ref=e174]:
+            - img "Navigate" [ref=e176]
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - heading "Elements" [level=2] [ref=e181]
+          - heading "See the highlights of this website." [level=3] [ref=e183]:
+            - text: See the highlights
+            - text: of this website.
+        - list [ref=e184]:
+          - listitem [ref=e185]:
+            - generic [ref=e186]:
+              - figure [ref=e188]:
+                - link "Character Animations" [ref=e189] [cursor=pointer]:
+                  - /url: /inspiration/character-animations-navigate
+                - generic:
+                  - generic:
+                    - text: "2"
+                    - img
+                  - generic: video
+              - generic [ref=e192]:
+                - heading "Character Animations" [level=3] [ref=e193]:
+                  - link "Character Animations" [ref=e194] [cursor=pointer]:
+                    - /url: /inspiration/character-animations-navigate
+                - generic [ref=e195]:
+                  - generic [ref=e196]: from
+                  - link "Video" [ref=e197] [cursor=pointer]:
+                    - /url: /elements/video/
+          - listitem [ref=e198]:
+            - generic [ref=e199]:
+              - figure [ref=e201]:
+                - link "Pause Loops" [ref=e202] [cursor=pointer]:
+                  - /url: /inspiration/pause-loops-navigate
+                - generic:
+                  - generic:
+                    - text: "3"
+                    - img
+                  - generic: video
+              - generic [ref=e205]:
+                - heading "Pause Loops" [level=3] [ref=e206]:
+                  - link "Pause Loops" [ref=e207] [cursor=pointer]:
+                    - /url: /inspiration/pause-loops-navigate
+                - generic [ref=e208]:
+                  - generic [ref=e209]: from
+                  - link "Animation" [ref=e210] [cursor=pointer]:
+                    - /url: /elements/animation/
+          - listitem [ref=e211]:
+            - generic [ref=e212]:
+              - figure [ref=e214]:
+                - link "Custom Icons" [ref=e215] [cursor=pointer]:
+                  - /url: /inspiration/custom-icons-navigate
+                - generic:
+                  - generic:
+                    - text: "3"
+                    - img
+                  - generic: video
+              - generic [ref=e218]:
+                - heading "Custom Icons" [level=3] [ref=e219]:
+                  - link "Custom Icons" [ref=e220] [cursor=pointer]:
+                    - /url: /inspiration/custom-icons-navigate
+                - generic [ref=e221]:
+                  - generic [ref=e222]: from
+                  - link "Icons" [ref=e223] [cursor=pointer]:
+                    - /url: /elements/icons/
+    - generic [ref=e224]:
+      - generic [ref=e226]:
+        - heading "Color Palette" [level=2] [ref=e229]
+        - generic [ref=e230]:
+          - paragraph [ref=e231]:
+            - text: This website uses a color
+            - text: palette of
+            - strong [ref=e232]: "2"
+            - text: colors
+          - list [ref=e234]:
+            - listitem [ref=e235]:
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - strong [ref=e240]: HEX
+                  - text: "#FF6D38"
+                - link [ref=e242] [cursor=pointer]:
+                  - /url: /websites/%23FF6D38/
+                  - img [ref=e244]
+            - listitem [ref=e246]:
+              - generic [ref=e249]:
+                - generic [ref=e250]:
+                  - strong [ref=e251]: HEX
+                  - text: "#8584FF"
+                - link [ref=e253] [cursor=pointer]:
+                  - /url: /websites/%238584FF/
+                  - img [ref=e255]
+      - generic [ref=e257]:
+        - generic [ref=e258]:
+          - heading "Technologies & Tools" [level=2] [ref=e261]
+          - list [ref=e262]:
+            - listitem [ref=e263]:
+              - strong [ref=e264]:
+                - link "Games & Entertainment" [ref=e265] [cursor=pointer]:
+                  - /url: /websites/games-entertainment/
+            - listitem [ref=e266]:
+              - strong [ref=e267]:
+                - link "Technology" [ref=e268] [cursor=pointer]:
+                  - /url: /websites/technology/
+            - listitem [ref=e269]:
+              - strong [ref=e270]:
+                - link "Startups" [ref=e271] [cursor=pointer]:
+                  - /url: /websites/startups/
+            - listitem [ref=e272]:
+              - strong [ref=e273]:
+                - link "Animation" [ref=e274] [cursor=pointer]:
+                  - /url: /websites/animation/
+            - listitem [ref=e275]:
+              - strong [ref=e276]:
+                - link "Colorful" [ref=e277] [cursor=pointer]:
+                  - /url: /websites/colorful/
+            - listitem [ref=e278]:
+              - strong [ref=e279]:
+                - link "Scrolling" [ref=e280] [cursor=pointer]:
+                  - /url: /websites/scrolling/
+            - listitem [ref=e281]:
+              - strong [ref=e282]:
+                - link "Illustration" [ref=e283] [cursor=pointer]:
+                  - /url: /websites/illustration/
+            - listitem [ref=e284]:
+              - strong [ref=e285]:
+                - link "Data Visualization" [ref=e286] [cursor=pointer]:
+                  - /url: /websites/data-visualization/
+            - listitem [ref=e287]:
+              - strong [ref=e288]:
+                - link "Storytelling" [ref=e289] [cursor=pointer]:
+                  - /url: /websites/storytelling/
+        - generic [ref=e291]:
+          - heading "Description" [level=2] [ref=e293]
+          - heading "Navigate is the first Web3 data platform to gamify and decentralize data collection. Its mission is to build a community-based platform that lets users earn from the data they generate." [level=3] [ref=e295]
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - heading "Inside look" [level=2] [ref=e299]
+            - heading "Discover more details of this SOTD." [level=3] [ref=e301]:
+              - text: Discover more
+              - text: details of this SOTD.
+          - list [ref=e302]:
+            - listitem [ref=e303]:
+              - generic [ref=e304]:
+                - figure [ref=e305]:
+                  - link [ref=e306] [cursor=pointer]:
+                    - /url: /inspiration/mobile-navigate
+                - generic [ref=e308]:
+                  - heading "Great element" [level=3] [ref=e309]:
+                    - link "Great element" [ref=e310] [cursor=pointer]:
+                      - /url: /inspiration/mobile-navigate
+                  - generic [ref=e311]:
+                    - generic [ref=e312]: from
+                    - link "Mobile thumbnail" [ref=e313] [cursor=pointer]:
+                      - /url: /elements/mobile_thumbnail/
+            - listitem [ref=e314]:
+              - generic [ref=e315]:
+                - figure [ref=e316]:
+                  - link [ref=e317] [cursor=pointer]:
+                    - /url: /inspiration/desktop-navigate
+                - generic [ref=e319]:
+                  - heading "Great element" [level=3] [ref=e320]:
+                    - link "Great element" [ref=e321] [cursor=pointer]:
+                      - /url: /inspiration/desktop-navigate
+                  - generic [ref=e322]:
+                    - generic [ref=e323]: from
+                    - link "Desktop thumbnail" [ref=e324] [cursor=pointer]:
+                      - /url: /elements/thumbnail/
+      - generic [ref=e325]:
+        - generic [ref=e326]:
+          - heading "SOTD / SCORE → 7.93/ 10" [level=2] [ref=e328]:
+            - text: SOTD / SCORE
+            - generic [ref=e329]:
+              - text: → 7.93
+              - superscript [ref=e330]: / 10
+          - generic [ref=e331]:
+            - generic [ref=e333]:
+              - heading "Votes" [level=2] [ref=e334]
+              - list [ref=e335]:
+                - listitem [ref=e336] [cursor=pointer]: Jury
+                - listitem [ref=e337] [cursor=pointer]: Community Members
+            - list [ref=e340]:
+              - listitem [ref=e341]:
+                - generic [ref=e342]:
+                  - figure [ref=e343]:
+                    - link "Maria Vargas" [ref=e344] [cursor=pointer]:
+                      - /url: /paix-mv/
+                      - img "Maria Vargas" [ref=e345]
+                  - generic [ref=e347]:
+                    - link "Maria Vargas" [ref=e348] [cursor=pointer]:
+                      - /url: /paix-mv/
+                      - strong [ref=e349]: Maria Vargas
+                    - generic [ref=e350]:
+                      - text: from
+                      - strong [ref=e351]: Spain
+                - generic [ref=e354]: "7.30"
+              - listitem [ref=e355]:
+                - generic [ref=e356]:
+                  - figure [ref=e357]:
+                    - link "Ruslan Siiz" [ref=e358] [cursor=pointer]:
+                      - /url: /ruslan.siiz/
+                      - img "Ruslan Siiz" [ref=e359]
+                  - generic [ref=e361]:
+                    - link "Ruslan Siiz" [ref=e362] [cursor=pointer]:
+                      - /url: /ruslan.siiz/
+                      - strong [ref=e363]: Ruslan Siiz
+                    - generic [ref=e364]:
+                      - text: from
+                      - strong [ref=e365]: Poland
+                - generic [ref=e368]: "8.30"
+              - listitem [ref=e369]:
+                - generic [ref=e370]:
+                  - figure [ref=e371]:
+                    - link "Frederik Hansen" [ref=e372] [cursor=pointer]:
+                      - /url: /nyance/
+                      - img "Frederik Hansen" [ref=e373]
+                  - generic [ref=e375]:
+                    - link "Frederik Hansen" [ref=e376] [cursor=pointer]:
+                      - /url: /nyance/
+                      - strong [ref=e377]: Frederik Hansen
+                    - generic [ref=e378]:
+                      - text: from
+                      - strong [ref=e379]: Denmark
+                - generic [ref=e382]: "8.00"
+              - listitem [ref=e383]:
+                - generic [ref=e384]:
+                  - figure [ref=e385]:
+                    - link "Paula Šobat" [ref=e386] [cursor=pointer]:
+                      - /url: /paulasobat/
+                      - img "Paula Šobat" [ref=e387]
+                  - generic [ref=e389]:
+                    - link "Paula Šobat" [ref=e390] [cursor=pointer]:
+                      - /url: /paulasobat/
+                      - strong [ref=e391]: Paula Šobat
+                    - generic [ref=e392]:
+                      - text: from
+                      - strong [ref=e393]: Croatia
+                - generic [ref=e396]: "7.70"
+              - listitem [ref=e397]:
+                - generic [ref=e398]:
+                  - figure [ref=e399]:
+                    - link "Marija Vitasovic" [ref=e400] [cursor=pointer]:
+                      - /url: /MarijaVitasovic/
+                      - img "Marija Vitasovic" [ref=e401]
+                  - generic [ref=e403]:
+                    - link "Marija Vitasovic" [ref=e404] [cursor=pointer]:
+                      - /url: /MarijaVitasovic/
+                      - strong [ref=e405]: Marija Vitasovic
+                    - generic [ref=e406]:
+                      - text: from
+                      - strong [ref=e407]: Sweden
+                - generic [ref=e410]: "7.30"
+                - generic [ref=e412] [cursor=pointer]: •••
+        - generic [ref=e413]:
+          - heading "DEV AWARD → 7.67/ 10" [level=2] [ref=e415]:
+            - text: DEV AWARD
+            - generic [ref=e416]:
+              - text: → 7.67
+              - superscript [ref=e417]: / 10
+          - generic [ref=e418]:
+            - generic [ref=e420]:
+              - heading "Votes" [level=2] [ref=e421]
+              - list [ref=e422]:
+                - listitem [ref=e423] [cursor=pointer]: Jury
+            - list [ref=e426]:
+              - listitem [ref=e427]:
+                - generic [ref=e428]:
+                  - figure [ref=e429]:
+                    - link "Cyd Stumpel" [ref=e430] [cursor=pointer]:
+                      - /url: /cyd-stumpel/
+                      - img "Cyd Stumpel" [ref=e431]
+                  - generic [ref=e433]:
+                    - link "Cyd Stumpel" [ref=e434] [cursor=pointer]:
+                      - /url: /cyd-stumpel/
+                      - strong [ref=e435]: Cyd Stumpel
+                    - generic [ref=e436]:
+                      - text: from
+                      - strong [ref=e437]: Netherlands
+                - generic [ref=e440]: "5.80"
+              - listitem [ref=e441]:
+                - generic [ref=e442]:
+                  - figure [ref=e443]:
+                    - link "Florent BOLO" [ref=e444] [cursor=pointer]:
+                      - /url: /FlorentBOLO/
+                      - img "Florent BOLO" [ref=e445]
+                  - generic [ref=e447]:
+                    - link "Florent BOLO" [ref=e448] [cursor=pointer]:
+                      - /url: /FlorentBOLO/
+                      - strong [ref=e449]: Florent BOLO
+                    - generic [ref=e450]:
+                      - text: from
+                      - strong [ref=e451]: France
+                - generic [ref=e454]: "9.25"
+              - listitem [ref=e455]:
+                - generic [ref=e456]:
+                  - figure [ref=e457]:
+                    - link "Vincent Saïsset" [ref=e458] [cursor=pointer]:
+                      - /url: /vaince/
+                      - img "Vincent Saïsset" [ref=e459]
+                  - generic [ref=e461]:
+                    - link "Vincent Saïsset" [ref=e462] [cursor=pointer]:
+                      - /url: /vaince/
+                      - strong [ref=e463]: Vincent Saïsset
+                    - generic [ref=e464]:
+                      - text: from
+                      - strong [ref=e465]: France
+                - generic [ref=e468]: "8.55"
+              - listitem [ref=e469]:
+                - generic [ref=e470]:
+                  - figure [ref=e471]:
+                    - link "Federico Pian" [ref=e472] [cursor=pointer]:
+                      - /url: /federico.pian/
+                      - img "Federico Pian" [ref=e473]
+                  - generic [ref=e475]:
+                    - link "Federico Pian" [ref=e476] [cursor=pointer]:
+                      - /url: /federico.pian/
+                      - strong [ref=e477]: Federico Pian
+                    - generic [ref=e478]:
+                      - text: from
+                      - strong [ref=e479]: Italy
+                - generic [ref=e482]: "7.70"
+              - listitem [ref=e483]:
+                - generic [ref=e484]:
+                  - figure [ref=e485]:
+                    - link "Michele Giorgi" [ref=e486] [cursor=pointer]:
+                      - /url: /giorgi/
+                      - img "Michele Giorgi" [ref=e487]
+                  - generic [ref=e489]:
+                    - link "Michele Giorgi" [ref=e490] [cursor=pointer]:
+                      - /url: /giorgi/
+                      - strong [ref=e491]: Michele Giorgi
+                    - generic [ref=e492]:
+                      - text: from
+                      - strong [ref=e493]: Italy
+                - generic [ref=e496]: "7.05"
+        - generic [ref=e497]:
+          - generic [ref=e498]:
+            - heading "Collections" [level=2] [ref=e500]
+            - heading "Explore more great collections." [level=3] [ref=e502]:
+              - text: Explore more
+              - text: great collections.
+          - generic [ref=e503]:
+            - generic [ref=e504]:
+              - generic [ref=e506]:
+                - figure [ref=e507]:
+                  - link "View Collection" [ref=e508] [cursor=pointer]:
+                    - /url: /Mixallo/collections/pastel-colors/
+                    - img "Pastel colors" [ref=e509]
+                - generic [ref=e511]:
+                  - heading "Pastel colors" [level=3] [ref=e512]:
+                    - link "Pastel colors" [ref=e513] [cursor=pointer]:
+                      - /url: /Mixallo/collections/pastel-colors/
+                  - generic [ref=e514]:
+                    - generic [ref=e515]: followed by
+                    - generic [ref=e516]:
+                      - list [ref=e517]:
+                        - listitem [ref=e518]:
+                          - figure [ref=e519]:
+                            - img "marc-alesna" [ref=e520]
+                        - listitem [ref=e521]:
+                          - figure [ref=e522]:
+                            - img "kajal-pramanik" [ref=e523]
+                        - listitem [ref=e524]:
+                          - figure [ref=e525]:
+                            - img "wu-chen" [ref=e526]
+                      - strong [ref=e528]: "+167"
+              - generic [ref=e530]:
+                - figure [ref=e531]:
+                  - link "View Collection" [ref=e532] [cursor=pointer]:
+                    - /url: /awwwards/collections/tools-apps-platforms-worth-trying/
+                    - img "Handy Tools and Apps for Designers" [ref=e533]
+                - generic [ref=e535]:
+                  - heading "Handy Tools and Apps for De..." [level=3] [ref=e536]:
+                    - link "Handy Tools and Apps for De..." [ref=e537] [cursor=pointer]:
+                      - /url: /awwwards/collections/tools-apps-platforms-worth-trying/
+                  - generic [ref=e538]:
+                    - generic [ref=e539]: followed by
+                    - generic [ref=e540]:
+                      - list [ref=e541]:
+                        - listitem [ref=e542]:
+                          - figure [ref=e543]:
+                            - img "Marius Tanef" [ref=e544]
+                        - listitem [ref=e545]:
+                          - figure [ref=e546]:
+                            - img "ssakyolataol-com" [ref=e547]
+                        - listitem [ref=e548]:
+                          - figure [ref=e549]:
+                            - img "artem-alekseev-1" [ref=e550]
+                      - strong [ref=e552]: "+1045"
+              - generic [ref=e554]:
+                - figure [ref=e555]:
+                  - link "View Collection" [ref=e556] [cursor=pointer]:
+                    - /url: /bryansaftler/collections/webgl-html5-games/
+                    - img "WebGL / HTML5 Games" [ref=e557]
+                - generic [ref=e559]:
+                  - heading "WebGL / HTML5 Games" [level=3] [ref=e560]:
+                    - link "WebGL / HTML5 Games" [ref=e561] [cursor=pointer]:
+                      - /url: /bryansaftler/collections/webgl-html5-games/
+                  - generic [ref=e562]:
+                    - generic [ref=e563]: followed by
+                    - generic [ref=e564]:
+                      - list [ref=e565]:
+                        - listitem [ref=e566]:
+                          - figure [ref=e567]:
+                            - img "kewei" [ref=e568]
+                        - listitem [ref=e569]:
+                          - figure [ref=e570]:
+                            - img "The Cardboard Samurai" [ref=e571]
+                        - listitem [ref=e572]:
+                          - figure [ref=e573]:
+                            - img "ryunosuke tamada" [ref=e574]
+                      - strong [ref=e576]: "+74"
+              - generic [ref=e578]:
+                - figure [ref=e579]:
+                  - link "View Collection" [ref=e580] [cursor=pointer]:
+                    - /url: /mireia_ortega/collections/color-palettes-websites/
+                    - img "Color Palettes Websites" [ref=e581]
+                - generic [ref=e583]:
+                  - heading "Color Palettes Websites" [level=3] [ref=e584]:
+                    - link "Color Palettes Websites" [ref=e585] [cursor=pointer]:
+                      - /url: /mireia_ortega/collections/color-palettes-websites/
+                  - generic [ref=e586]:
+                    - generic [ref=e587]: followed by
+                    - generic [ref=e588]:
+                      - list [ref=e589]:
+                        - listitem [ref=e590]:
+                          - figure [ref=e591]:
+                            - img "puma-conversational" [ref=e592]
+                        - listitem [ref=e593]:
+                          - figure [ref=e594]:
+                            - img "kris-3" [ref=e595]
+                        - listitem [ref=e596]:
+                          - figure [ref=e597]:
+                            - img "mariana-cristofaro" [ref=e598]
+                      - strong [ref=e600]: "+221"
+              - generic [ref=e602]:
+                - figure [ref=e603]:
+                  - link "View Collection" [ref=e604] [cursor=pointer]:
+                    - /url: /awwwards_collections/collections/horizontal-layout-websites/
+                    - img "Horizontal Layout Websites" [ref=e605]
+                - generic [ref=e607]:
+                  - heading "Horizontal Layout Websites" [level=3] [ref=e608]:
+                    - link "Horizontal Layout Websites" [ref=e609] [cursor=pointer]:
+                      - /url: /awwwards_collections/collections/horizontal-layout-websites/
+                  - generic [ref=e610]:
+                    - generic [ref=e611]: followed by
+                    - generic [ref=e612]:
+                      - list [ref=e613]:
+                        - listitem [ref=e614]:
+                          - figure [ref=e615]:
+                            - img "empi" [ref=e616]
+                        - listitem [ref=e617]:
+                          - figure [ref=e618]:
+                            - img "Adesko24" [ref=e619]
+                        - listitem [ref=e620]:
+                          - figure [ref=e621]:
+                            - img "mariana-cristofaro" [ref=e622]
+                      - strong [ref=e624]: "+52"
+              - generic [ref=e626]:
+                - figure [ref=e627]:
+                  - link "View Collection" [ref=e628] [cursor=pointer]:
+                    - /url: /du-haihang/collections/css-animations/
+                    - img "CSS Animations" [ref=e629]
+                - generic [ref=e631]:
+                  - heading "CSS Animations" [level=3] [ref=e632]:
+                    - link "CSS Animations" [ref=e633] [cursor=pointer]:
+                      - /url: /du-haihang/collections/css-animations/
+                  - generic [ref=e634]:
+                    - generic [ref=e635]: followed by
+                    - generic [ref=e636]:
+                      - list [ref=e637]:
+                        - listitem [ref=e638]:
+                          - figure [ref=e639]:
+                            - img "kristina-ryndina" [ref=e640]
+                        - listitem [ref=e641]:
+                          - figure [ref=e642]:
+                            - img "mwanda-chipongo" [ref=e643]
+                        - listitem [ref=e644]:
+                          - figure [ref=e645]:
+                            - img "777-3" [ref=e646]
+                      - strong [ref=e648]: "+471"
+              - generic [ref=e650]:
+                - figure [ref=e651]:
+                  - link "View Collection" [ref=e652] [cursor=pointer]:
+                    - /url: /awwwards_collections/collections/text-marquee-effect/
+                    - img "Text Marquee animation" [ref=e653]
+                - generic [ref=e655]:
+                  - heading "Text Marquee animation" [level=3] [ref=e656]:
+                    - link "Text Marquee animation" [ref=e657] [cursor=pointer]:
+                      - /url: /awwwards_collections/collections/text-marquee-effect/
+                  - generic [ref=e658]:
+                    - generic [ref=e659]: followed by
+                    - generic [ref=e660]:
+                      - list [ref=e661]:
+                        - listitem [ref=e662]:
+                          - figure [ref=e663]:
+                            - img "CrlCarnevali" [ref=e664]
+                        - listitem [ref=e665]:
+                          - figure [ref=e666]:
+                            - img "Zalak Patel" [ref=e667]
+                        - listitem [ref=e668]:
+                          - figure [ref=e669]:
+                            - img "777-3" [ref=e670]
+                      - strong [ref=e672]: "+34"
+              - generic [ref=e674]:
+                - figure [ref=e675]:
+                  - link "View Collection" [ref=e676] [cursor=pointer]:
+                    - /url: /xaviercusso/collections/story-telling-websites/
+                    - img "Storytelling Websites" [ref=e677]
+                - generic [ref=e679]:
+                  - heading "Storytelling Websites" [level=3] [ref=e680]:
+                    - link "Storytelling Websites" [ref=e681] [cursor=pointer]:
+                      - /url: /xaviercusso/collections/story-telling-websites/
+                  - generic [ref=e682]:
+                    - generic [ref=e683]: followed by
+                    - generic [ref=e684]:
+                      - list [ref=e685]:
+                        - listitem [ref=e686]:
+                          - figure [ref=e687]:
+                            - img "yijinyao" [ref=e688]
+                        - listitem [ref=e689]:
+                          - figure [ref=e690]:
+                            - img "sarjil-napit" [ref=e691]
+                        - listitem [ref=e692]:
+                          - figure [ref=e693]:
+                            - img "777-3" [ref=e694]
+                      - strong [ref=e696]: "+217"
+            - img [ref=e699] [cursor=pointer]
+  - contentinfo [ref=e701]:
+    - generic [ref=e702]:
+      - generic [ref=e703]:
+        - paragraph [ref=e704]:
+          - img [ref=e705]
+        - generic [ref=e708]:
+          - list [ref=e709]:
+            - listitem [ref=e710]:
+              - link "Websites" [ref=e711] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e712]:
+              - link "Collections" [ref=e713] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e714]:
+              - link "Elements" [ref=e715] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e716]:
+            - listitem [ref=e717]:
+              - link "Academy" [ref=e718] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e719]:
+              - link "Jobs" [ref=e720] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e721]:
+              - link "Market" [ref=e722] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e723]:
+            - listitem [ref=e724]:
+              - link "Directory" [ref=e725] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e726]:
+              - link "Conferences" [ref=e727] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e728]:
+            - listitem [ref=e729]:
+              - link "FAQs" [ref=e730] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e731]:
+              - link "About Us" [ref=e732] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e733]:
+              - link "Contact Us" [ref=e734] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e735]:
+        - list [ref=e737]:
+          - listitem [ref=e738]:
+            - link "Cookies Policy" [ref=e739] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e740]:
+            - link "Legal Terms" [ref=e741] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e742]:
+            - link "Privacy Policy" [ref=e743] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e745]:
+          - listitem [ref=e746]:
+            - strong [ref=e747]: "Connect:"
+          - listitem [ref=e748]:
+            - link "Instagram" [ref=e749] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e750]:
+            - link "LinkedIn" [ref=e751] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e752]:
+            - link "Twitter" [ref=e753] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e754]:
+            - link "Facebook" [ref=e755] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e756]:
+            - link "YouTube" [ref=e757] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e758]:
+            - link "TikTok" [ref=e759] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e760]:
+            - link "Pinterest" [ref=e761] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

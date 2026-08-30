@@ -1,0 +1,311 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://saffron-griflan.netlify.app/
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Nominee - Aug 20, 2026" [level=2] [ref=e151]
+            - heading "Saffron" [level=1] [ref=e153]:
+              - link "Saffron" [ref=e154] [cursor=pointer]:
+                - /url: https://saffron-griflan.netlify.app/
+            - list [ref=e158]:
+              - listitem [ref=e159]:
+                - figure [ref=e161]:
+                  - link "Griflan" [ref=e162] [cursor=pointer]:
+                    - /url: /Griflan/
+              - listitem [ref=e163]:
+                - figure [ref=e165]:
+                  - link "Jesper Landberg" [ref=e166] [cursor=pointer]:
+                    - /url: /jesperlandberg/
+              - listitem [ref=e167]:
+                - figure [ref=e169]:
+                  - link "Robert Borghesi" [ref=e170] [cursor=pointer]:
+                    - /url: /dghez/
+        - list [ref=e172]:
+          - listitem [ref=e173]:
+            - link [ref=e174] [cursor=pointer]:
+              - /url: https://saffron-griflan.netlify.app/
+      - heading "Fixes rates for Defi Yield." [level=3] [ref=e179]
+    - generic [ref=e182]:
+      - generic [ref=e183]:
+        - heading "Elements" [level=2] [ref=e185]
+        - heading "See the highlights of this website." [level=3] [ref=e187]:
+          - text: See the highlights
+          - text: of this website.
+      - generic [ref=e188]:
+        - figure [ref=e189]:
+          - link [ref=e190] [cursor=pointer]:
+            - /url: /inspiration/desktop-saffron
+        - figure [ref=e191]:
+          - link [ref=e192] [cursor=pointer]:
+            - /url: /inspiration/mobile-saffron
+        - figure [ref=e193]:
+          - link "Header Animation Background" [ref=e194] [cursor=pointer]:
+            - /url: /inspiration/header-animation-background-saffron
+          - generic:
+            - generic: video
+        - figure [ref=e196]:
+          - link "Scroll triggered Animation" [ref=e197] [cursor=pointer]:
+            - /url: /inspiration/scroll-triggered-animation-saffron
+          - generic:
+            - generic: video
+        - figure [ref=e199]:
+          - link "Gallery/Slider" [ref=e200] [cursor=pointer]:
+            - /url: /inspiration/gallery-slider-saffron
+          - generic:
+            - generic: video
+        - figure [ref=e202]:
+          - link "FAQ" [ref=e203] [cursor=pointer]:
+            - /url: /inspiration/faq-saffron
+          - generic:
+            - generic: video
+        - figure [ref=e205]:
+          - link "Hover Text Reveal" [ref=e206] [cursor=pointer]:
+            - /url: /inspiration/hover-text-reveal-saffron
+          - generic:
+            - generic: video
+    - generic [ref=e209]:
+      - paragraph [ref=e210]: This website was built with...
+      - list [ref=e212]:
+        - listitem [ref=e213]
+        - listitem [ref=e215]
+        - listitem [ref=e217]:
+          - strong [ref=e218]:
+            - link "Business & Corporate" [ref=e219] [cursor=pointer]:
+              - /url: /websites/business-corporate/
+        - listitem [ref=e220]:
+          - strong [ref=e221]:
+            - link "Technology" [ref=e222] [cursor=pointer]:
+              - /url: /websites/technology/
+        - listitem [ref=e223]:
+          - strong [ref=e224]:
+            - link "Animation" [ref=e225] [cursor=pointer]:
+              - /url: /websites/animation/
+        - listitem [ref=e226]:
+          - strong [ref=e227]:
+            - link "Illustration" [ref=e228] [cursor=pointer]:
+              - /url: /websites/illustration/
+        - listitem [ref=e229]:
+          - strong [ref=e230]:
+            - link "3D" [ref=e231] [cursor=pointer]:
+              - /url: /websites/3d/
+        - listitem [ref=e232]:
+          - strong [ref=e233]:
+            - link "WebGL" [ref=e234] [cursor=pointer]:
+              - /url: /websites/webgl/
+        - listitem [ref=e235]:
+          - strong [ref=e236]:
+            - link "DatoCMS" [ref=e237] [cursor=pointer]:
+              - /url: /websites/datocms/
+    - generic [ref=e240]:
+      - generic [ref=e242]:
+        - heading "Votes" [level=2] [ref=e243]
+        - list [ref=e244]:
+          - listitem [ref=e245] [cursor=pointer]: Community Members
+      - list [ref=e248]:
+        - listitem [ref=e249]:
+          - generic [ref=e250]:
+            - figure [ref=e251]:
+              - link "gianluca-lomarco" [ref=e252] [cursor=pointer]:
+                - /url: /gianluca-lomarco/
+                - img "gianluca-lomarco" [ref=e253]
+            - generic [ref=e254]:
+              - generic [ref=e255]:
+                - strong [ref=e256]: gianluca-lomarco
+                - text: from
+                - strong [ref=e257]: Italy
+              - generic [ref=e258]: gianluca-lomarco.web.app
+          - generic [ref=e261]: "7.50"
+        - listitem [ref=e262]:
+          - generic [ref=e263]:
+            - figure [ref=e264]:
+              - link "Cristina Tarquini" [ref=e265] [cursor=pointer]:
+                - /url: /crtq/
+                - img "Cristina Tarquini" [ref=e266]
+            - generic [ref=e267]:
+              - strong [ref=e269]: Cristina Tarquini
+              - generic [ref=e270]: studiocrtq.com
+          - generic [ref=e273]: "10.00"
+        - listitem [ref=e274]:
+          - generic [ref=e275]:
+            - figure [ref=e276]:
+              - link "Iqbal Muthahhary" [ref=e277] [cursor=pointer]:
+                - /url: /iqbal-muthahhary/
+                - img "Iqbal Muthahhary" [ref=e278]
+            - generic [ref=e280]:
+              - strong [ref=e281]: Iqbal Muthahhary
+              - text: "* from"
+              - strong [ref=e282]: Indonesia
+          - generic [ref=e285]: "7.00"
+        - listitem [ref=e286]:
+          - generic [ref=e287]:
+            - figure [ref=e288]:
+              - link "Faheem" [ref=e289] [cursor=pointer]:
+                - /url: /Faheemmeehaf/
+                - img "Faheem" [ref=e290]
+            - generic [ref=e291]:
+              - generic [ref=e292]:
+                - strong [ref=e293]: Faheem
+                - text: "* from"
+                - strong [ref=e294]: India
+              - generic [ref=e295]: faheem.work
+          - generic [ref=e298]: "7.30"
+        - listitem [ref=e299]:
+          - generic [ref=e300]:
+            - figure [ref=e301]:
+              - link "romain-gelb" [ref=e302] [cursor=pointer]:
+                - /url: /romain-gelb/
+                - img "romain-gelb" [ref=e303]
+            - generic [ref=e304]:
+              - generic [ref=e305]:
+                - strong [ref=e306]: romain-gelb
+                - text: "* from"
+                - strong [ref=e307]: France
+              - generic [ref=e308]: studiofief.com
+          - generic [ref=e311]: "8.20"
+          - generic [ref=e313] [cursor=pointer]: •••
+  - contentinfo [ref=e314]:
+    - generic [ref=e315]:
+      - generic [ref=e316]:
+        - paragraph [ref=e317]:
+          - img [ref=e318]
+        - generic [ref=e321]:
+          - list [ref=e322]:
+            - listitem [ref=e323]:
+              - link "Websites" [ref=e324] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e325]:
+              - link "Collections" [ref=e326] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e327]:
+              - link "Elements" [ref=e328] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e329]:
+            - listitem [ref=e330]:
+              - link "Academy" [ref=e331] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e332]:
+              - link "Jobs" [ref=e333] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e334]:
+              - link "Market" [ref=e335] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e336]:
+            - listitem [ref=e337]:
+              - link "Directory" [ref=e338] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e339]:
+              - link "Conferences" [ref=e340] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e341]:
+            - listitem [ref=e342]:
+              - link "FAQs" [ref=e343] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e344]:
+              - link "About Us" [ref=e345] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e346]:
+              - link "Contact Us" [ref=e347] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e348]:
+        - list [ref=e350]:
+          - listitem [ref=e351]:
+            - link "Cookies Policy" [ref=e352] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e353]:
+            - link "Legal Terms" [ref=e354] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e355]:
+            - link "Privacy Policy" [ref=e356] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e358]:
+          - listitem [ref=e359]:
+            - strong [ref=e360]: "Connect:"
+          - listitem [ref=e361]:
+            - link "Instagram" [ref=e362] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e363]:
+            - link "LinkedIn" [ref=e364] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e365]:
+            - link "Twitter" [ref=e366] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e367]:
+            - link "Facebook" [ref=e368] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e369]:
+            - link "YouTube" [ref=e370] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e371]:
+            - link "TikTok" [ref=e372] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e373]:
+            - link "Pinterest" [ref=e374] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

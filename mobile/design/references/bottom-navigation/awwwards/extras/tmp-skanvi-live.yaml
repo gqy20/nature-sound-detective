@@ -1,0 +1,440 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - link "Skanvi Startseite" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - img "Skanvi" [ref=e4]
+    - search [ref=e5]:
+      - button "Suche öffnen" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+      - img
+      - textbox "Suche"
+    - generic [ref=e10]:
+      - button "Warenkorb öffnen" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+        - generic [ref=e15]: "0"
+      - button "Menü öffnen" [ref=e16] [cursor=pointer]:
+        - img [ref=e17]
+  - main [ref=e18]:
+    - generic [ref=e19]:
+      - img "Warmer Essbereich mit ausgewählten Skanvi-Möbeln" [ref=e21]
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: Skanvi Living
+        - heading "Räume, die sich nach dir anfühlen." [level=1] [ref=e24]
+        - paragraph [ref=e25]: Besondere Möbel, Leuchten und Accessoires – kuratiert für ein Zuhause mit Persönlichkeit.
+        - generic [ref=e26]:
+          - link "Spiegel entdecken" [ref=e27] [cursor=pointer]:
+            - /url: /spiegel/
+            - text: Spiegel entdecken
+            - img [ref=e28]
+          - link "Teppiche entdecken" [ref=e30] [cursor=pointer]:
+            - /url: /kategorie/teppiche/
+            - text: Teppiche entdecken
+            - img [ref=e31]
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - paragraph [ref=e35]: Direkt entdecken
+        - heading "Wonach suchst du?" [level=2] [ref=e36]
+      - generic [ref=e37]:
+        - button "Vorherige Kategorien" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+        - generic [ref=e42]:
+          - link "Aufbewahrung Aufbewahrung" [ref=e44] [cursor=pointer]:
+            - /url: /kategorie/aufbewahrung/
+            - img "Aufbewahrung" [ref=e46]
+            - strong [ref=e48]: Aufbewahrung
+          - link "Betten Betten" [ref=e50] [cursor=pointer]:
+            - /url: /kategorie/betten/
+            - img "Betten" [ref=e52]
+            - strong [ref=e54]: Betten
+          - link "Esstisch-Sets Esstisch-Sets" [ref=e56] [cursor=pointer]:
+            - /url: /kategorie/esstisch-sets/
+            - img "Esstisch-Sets" [ref=e58]
+            - strong [ref=e60]: Esstisch-Sets
+          - link "Sessel Sessel" [ref=e62] [cursor=pointer]:
+            - /url: /kategorie/sessel/
+            - img "Sessel" [ref=e64]
+            - strong [ref=e66]: Sessel
+          - link "Sofas Sofas" [ref=e68] [cursor=pointer]:
+            - /url: /kategorie/sofas/
+            - img "Sofas" [ref=e70]
+            - strong [ref=e72]: Sofas
+          - link "Stühle Stühle" [ref=e74] [cursor=pointer]:
+            - /url: /kategorie/stuehle/
+            - img "Stühle" [ref=e76]
+            - strong [ref=e78]: Stühle
+          - link "Teppiche Teppiche" [ref=e80] [cursor=pointer]:
+            - /url: /kategorie/teppiche/
+            - img "Teppiche" [ref=e82]
+            - strong [ref=e84]: Teppiche
+          - link "Textilien Textilien" [ref=e86] [cursor=pointer]:
+            - /url: /kategorie/textilien/
+            - img "Textilien" [ref=e88]
+            - strong [ref=e90]: Textilien
+          - link "Outdoor Outdoor" [ref=e92] [cursor=pointer]:
+            - /url: /kategorie/outdoor/
+            - img "Outdoor" [ref=e94]
+            - strong [ref=e96]: Outdoor
+          - link "Aufbewahrung Aufbewahrung" [ref=e98] [cursor=pointer]:
+            - /url: /kategorie/aufbewahrung/
+            - img "Aufbewahrung" [ref=e100]
+            - strong [ref=e102]: Aufbewahrung
+          - link "Betten Betten" [ref=e104] [cursor=pointer]:
+            - /url: /kategorie/betten/
+            - img "Betten" [ref=e106]
+            - strong [ref=e108]: Betten
+          - link "Esstisch-Sets Esstisch-Sets" [ref=e110] [cursor=pointer]:
+            - /url: /kategorie/esstisch-sets/
+            - img "Esstisch-Sets" [ref=e112]
+            - strong [ref=e114]: Esstisch-Sets
+          - link "Sessel Sessel" [ref=e116] [cursor=pointer]:
+            - /url: /kategorie/sessel/
+            - img "Sessel" [ref=e118]
+            - strong [ref=e120]: Sessel
+          - link "Sofas Sofas" [ref=e122] [cursor=pointer]:
+            - /url: /kategorie/sofas/
+            - img "Sofas" [ref=e124]
+            - strong [ref=e126]: Sofas
+          - link "Stühle Stühle" [ref=e128] [cursor=pointer]:
+            - /url: /kategorie/stuehle/
+            - img "Stühle" [ref=e130]
+            - strong [ref=e132]: Stühle
+          - link "Teppiche Teppiche" [ref=e134] [cursor=pointer]:
+            - /url: /kategorie/teppiche/
+            - img "Teppiche" [ref=e136]
+            - strong [ref=e138]: Teppiche
+          - link "Textilien Textilien" [ref=e140] [cursor=pointer]:
+            - /url: /kategorie/textilien/
+            - img "Textilien" [ref=e142]
+            - strong [ref=e144]: Textilien
+          - link "Outdoor Outdoor" [ref=e146] [cursor=pointer]:
+            - /url: /kategorie/outdoor/
+            - img "Outdoor" [ref=e148]
+            - strong [ref=e150]: Outdoor
+        - button "Nächste Kategorien" [ref=e151] [cursor=pointer]:
+          - img [ref=e152]
+    - generic [ref=e154]:
+      - link "Sofas Der Mittelpunkt zum Ankommen Sofas mit klarer Form, wohnlichen Stoffen und Platz für lange Abende. Jetzt entdecken" [ref=e155] [cursor=pointer]:
+        - /url: /kategorie/moebel/sofas/
+        - generic [ref=e156]:
+          - generic [ref=e157]: Sofas
+          - strong [ref=e158]: Der Mittelpunkt zum Ankommen
+          - emphasis [ref=e159]: Sofas mit klarer Form, wohnlichen Stoffen und Platz für lange Abende.
+          - generic [ref=e160]:
+            - text: Jetzt entdecken
+            - img [ref=e161]
+      - link "Stühle Gutes Design nimmt Platz Bequeme Stühle, die am Esstisch und im ganzen Zuhause Akzente setzen. Jetzt entdecken" [ref=e163] [cursor=pointer]:
+        - /url: /kategorie/moebel/stuehle/
+        - generic [ref=e164]:
+          - generic [ref=e165]: Stühle
+          - strong [ref=e166]: Gutes Design nimmt Platz
+          - emphasis [ref=e167]: Bequeme Stühle, die am Esstisch und im ganzen Zuhause Akzente setzen.
+          - generic [ref=e168]:
+            - text: Jetzt entdecken
+            - img [ref=e169]
+      - link "Esstische Für alles, was zusammenbringt Esstische als ruhiger Mittelpunkt für Alltag, Gäste und besondere Momente. Jetzt entdecken" [ref=e171] [cursor=pointer]:
+        - /url: /kategorie/moebel/tische/esstische/
+        - generic [ref=e172]:
+          - generic [ref=e173]: Esstische
+          - strong [ref=e174]: Für alles, was zusammenbringt
+          - emphasis [ref=e175]: Esstische als ruhiger Mittelpunkt für Alltag, Gäste und besondere Momente.
+          - generic [ref=e176]:
+            - text: Jetzt entdecken
+            - img [ref=e177]
+    - region "Marken" [ref=e179]:
+      - generic [ref=e180]:
+        - generic [ref=e181]:
+          - img "Hanse Home" [ref=e183]
+          - img "Jesper Home" [ref=e185]
+          - img "Modeus" [ref=e187]
+          - img "myfelt" [ref=e189]
+          - img "Deknudt Mirrors" [ref=e191]
+          - img "Villeroy & Boch" [ref=e193]
+          - img "Vind" [ref=e195]
+        - generic [ref=e196]:
+          - img [ref=e198]
+          - img [ref=e200]
+          - img [ref=e202]
+          - img [ref=e204]
+          - img [ref=e206]
+          - img [ref=e208]
+          - img [ref=e210]
+    - generic [ref=e211]:
+      - generic [ref=e212]:
+        - generic [ref=e213]:
+          - paragraph [ref=e214]: Handverlesen
+          - heading "Unsere Lieblinge" [level=2] [ref=e215]
+          - paragraph [ref=e216]: Von uns ausgewählte Produkte, direkt über WooCommerce gepflegt.
+        - link "Alle ansehen" [ref=e217] [cursor=pointer]:
+          - /url: /shop/
+      - generic [ref=e218]:
+        - generic [ref=e219]:
+          - article [ref=e221]:
+            - generic [ref=e222]:
+              - button "Wiggle zur Wunschliste hinzufügen" [ref=e223] [cursor=pointer]:
+                - img [ref=e224]
+              - link "Wiggle" [ref=e226] [cursor=pointer]:
+                - /url: /produkt/wiggle-2912-201/
+                - img "Wiggle" [ref=e228]
+            - generic [ref=e230]:
+              - heading "Wiggle" [level=3] [ref=e231]:
+                - link "Wiggle" [ref=e232] [cursor=pointer]:
+                  - /url: /produkt/wiggle-2912-201/
+              - generic [ref=e233]: 648,00 €
+          - article [ref=e235]:
+            - generic [ref=e236]:
+              - button "Villeroy & Boch 1906 Wollteppich Wilhelmine Creme zur Wunschliste hinzufügen" [ref=e237] [cursor=pointer]:
+                - img [ref=e238]
+              - link "Villeroy & Boch 1906 Wollteppich Wilhelmine Creme" [ref=e240] [cursor=pointer]:
+                - /url: /produkt/villeroy-boch-1906-wollteppich-wilhelmine-creme/
+                - img "Villeroy & Boch 1906 Wollteppich Wilhelmine Creme" [ref=e242]
+            - generic [ref=e244]:
+              - heading "Villeroy & Boch 1906 Wollteppich Wilhelmine Creme" [level=3] [ref=e245]:
+                - link "Villeroy & Boch 1906 Wollteppich Wilhelmine Creme" [ref=e246] [cursor=pointer]:
+                  - /url: /produkt/villeroy-boch-1906-wollteppich-wilhelmine-creme/
+              - generic [ref=e247]: Ab 99,90 €
+          - article [ref=e249]:
+            - generic [ref=e250]:
+              - button "Villeroy & Boch 1812 Wollteppich Organic Shape Kari Natur Creme zur Wunschliste hinzufügen" [ref=e251] [cursor=pointer]:
+                - img [ref=e252]
+              - link "Villeroy & Boch 1812 Wollteppich Organic Shape Kari Natur Creme" [ref=e254] [cursor=pointer]:
+                - /url: /produkt/villeroy-boch-1812-wollteppich-organic-shape-kari-natur-creme-106289-125x200-organic-shape/
+                - img "Villeroy & Boch 1812 Wollteppich Organic Shape Kari Natur Creme" [ref=e256]
+            - generic [ref=e258]:
+              - heading "Villeroy & Boch 1812 Wollteppich Organic Shape Kari Natur Creme" [level=3] [ref=e259]:
+                - link "Villeroy & Boch 1812 Wollteppich Organic Shape Kari Natur Creme" [ref=e260] [cursor=pointer]:
+                  - /url: /produkt/villeroy-boch-1812-wollteppich-organic-shape-kari-natur-creme-106289-125x200-organic-shape/
+              - generic [ref=e261]: 179,90 €
+          - article [ref=e263]:
+            - generic [ref=e264]:
+              - button "Kabinett-Linien zur Wunschliste hinzufügen" [ref=e265] [cursor=pointer]:
+                - img [ref=e266]
+              - link "Kabinett-Linien" [ref=e268] [cursor=pointer]:
+                - /url: /produkt/kabinett-linien-15632-208/
+                - img "Kabinett-Linien" [ref=e270]
+            - generic [ref=e272]:
+              - heading "Kabinett-Linien" [level=3] [ref=e273]:
+                - link "Kabinett-Linien" [ref=e274] [cursor=pointer]:
+                  - /url: /produkt/kabinett-linien-15632-208/
+              - generic [ref=e275]: 369,00 €
+          - article [ref=e277]:
+            - generic [ref=e278]:
+              - button "Polly Esszimmerstuhl zur Wunschliste hinzufügen" [ref=e279] [cursor=pointer]:
+                - img [ref=e280]
+              - link "Polly Esszimmerstuhl" [ref=e282] [cursor=pointer]:
+                - /url: /produkt/polly-esszimmerstuhl-61824-104/
+                - img "Polly Esszimmerstuhl" [ref=e284]
+            - generic [ref=e286]:
+              - heading "Polly Esszimmerstuhl" [level=3] [ref=e287]:
+                - link "Polly Esszimmerstuhl" [ref=e288] [cursor=pointer]:
+                  - /url: /produkt/polly-esszimmerstuhl-61824-104/
+              - generic [ref=e289]: 159,00 €
+          - article [ref=e291]:
+            - generic [ref=e292]:
+              - button "Lenox Runder Esstisch zur Wunschliste hinzufügen" [ref=e293] [cursor=pointer]:
+                - img [ref=e294]
+              - link "Lenox Runder Esstisch" [ref=e296] [cursor=pointer]:
+                - /url: /produkt/lenox-runder-esstisch-61292-152/
+                - img "Lenox Runder Esstisch" [ref=e298]
+            - generic [ref=e300]:
+              - heading "Lenox Runder Esstisch" [level=3] [ref=e301]:
+                - link "Lenox Runder Esstisch" [ref=e302] [cursor=pointer]:
+                  - /url: /produkt/lenox-runder-esstisch-61292-152/
+              - generic [ref=e303]: 799,00 €
+          - article [ref=e305]:
+            - generic [ref=e306]:
+              - button "Runder Esstisch Gilda zur Wunschliste hinzufügen" [ref=e307] [cursor=pointer]:
+                - img [ref=e308]
+              - link "Runder Esstisch Gilda" [ref=e310] [cursor=pointer]:
+                - /url: /produkt/runder-esstisch-gilda-61901-130/
+                - img "Runder Esstisch Gilda" [ref=e312]
+            - generic [ref=e314]:
+              - heading "Runder Esstisch Gilda" [level=3] [ref=e315]:
+                - link "Runder Esstisch Gilda" [ref=e316] [cursor=pointer]:
+                  - /url: /produkt/runder-esstisch-gilda-61901-130/
+              - generic [ref=e317]: 549,00 €
+          - article [ref=e319]:
+            - generic [ref=e320]:
+              - button "Amalfi Ecksofa zur Wunschliste hinzufügen" [ref=e321] [cursor=pointer]:
+                - img [ref=e322]
+              - link "Amalfi Ecksofa" [ref=e324] [cursor=pointer]:
+                - /url: /produkt/amalfi-ecksofa/
+                - img "Amalfi Ecksofa" [ref=e326]
+            - generic [ref=e328]:
+              - heading "Amalfi Ecksofa" [level=3] [ref=e329]:
+                - link "Amalfi Ecksofa" [ref=e330] [cursor=pointer]:
+                  - /url: /produkt/amalfi-ecksofa/
+              - generic [ref=e331]: Ab 1.959,00 €
+          - article [ref=e333]:
+            - generic [ref=e334]:
+              - button "Cielo 3-Sitz Sofa zur Wunschliste hinzufügen" [ref=e335] [cursor=pointer]:
+                - img [ref=e336]
+              - link "Cielo 3-Sitz Sofa" [ref=e338] [cursor=pointer]:
+                - /url: /produkt/cielo-3-sitz-sofa/
+                - img "Cielo 3-Sitz Sofa" [ref=e340]
+            - generic [ref=e342]:
+              - heading "Cielo 3-Sitz Sofa" [level=3] [ref=e343]:
+                - link "Cielo 3-Sitz Sofa" [ref=e344] [cursor=pointer]:
+                  - /url: /produkt/cielo-3-sitz-sofa/
+              - generic [ref=e345]: Ab 1.819,00 €
+          - article [ref=e347]:
+            - generic [ref=e348]:
+              - button "Lindön Tischleuchte zur Wunschliste hinzufügen" [ref=e349] [cursor=pointer]:
+                - img [ref=e350]
+              - generic [ref=e352]: Ausverkauft
+              - link "Lindön Tischleuchte" [ref=e353] [cursor=pointer]:
+                - /url: /produkt/lindoen-tischleuchte-61811-111/
+                - img "Lindön Tischleuchte" [ref=e355]
+            - generic [ref=e357]:
+              - heading "Lindön Tischleuchte" [level=3] [ref=e358]:
+                - link "Lindön Tischleuchte" [ref=e359] [cursor=pointer]:
+                  - /url: /produkt/lindoen-tischleuchte-61811-111/
+              - generic [ref=e360]: 269,00 €
+          - article [ref=e362]:
+            - generic [ref=e363]:
+              - button "Flauschiger Sessel zur Wunschliste hinzufügen" [ref=e364] [cursor=pointer]:
+                - img [ref=e365]
+              - link "Flauschiger Sessel" [ref=e367] [cursor=pointer]:
+                - /url: /produkt/flauschiger-sessel/
+                - img "Flauschiger Sessel" [ref=e369]
+            - generic [ref=e371]:
+              - heading "Flauschiger Sessel" [level=3] [ref=e372]:
+                - link "Flauschiger Sessel" [ref=e373] [cursor=pointer]:
+                  - /url: /produkt/flauschiger-sessel/
+              - generic [ref=e374]: Ab 299,00 €
+          - article [ref=e376]:
+            - generic [ref=e377]:
+              - button "Stjärnö Oval Esstisch zur Wunschliste hinzufügen" [ref=e378] [cursor=pointer]:
+                - img [ref=e379]
+              - generic [ref=e381]: Ausverkauft
+              - link "Stjärnö Oval Esstisch" [ref=e382] [cursor=pointer]:
+                - /url: /produkt/stjaernoe-oval-esstisch-61939-107/
+                - img "Stjärnö Oval Esstisch" [ref=e384]
+            - generic [ref=e386]:
+              - heading "Stjärnö Oval Esstisch" [level=3] [ref=e387]:
+                - link "Stjärnö Oval Esstisch" [ref=e388] [cursor=pointer]:
+                  - /url: /produkt/stjaernoe-oval-esstisch-61939-107/
+              - generic [ref=e389]: 889,00 €
+        - generic "Empfohlene Produkte":
+          - button "Vorherige Produkte" [ref=e390] [cursor=pointer]:
+            - img [ref=e391]
+          - button "Nächste Produkte" [ref=e393] [cursor=pointer]:
+            - img [ref=e394]
+    - region "Skanvi Service" [ref=e396]:
+      - generic [ref=e397]:
+        - strong [ref=e398]: Persönlich kuratiert
+        - generic [ref=e399]: Designauswahl statt unübersichtlicher Masse
+      - generic [ref=e400]:
+        - strong [ref=e401]: Sicher einkaufen
+        - generic [ref=e402]: Verlässliche Zahlarten und verschlüsselte Zahlung
+      - generic [ref=e403]:
+        - strong [ref=e404]: Transparent geliefert
+        - generic [ref=e405]: Lieferzeit direkt am jeweiligen Produkt
+  - contentinfo [ref=e406]:
+    - generic [ref=e408]:
+      - region "Newsletter Anmeldung" [ref=e409]:
+        - generic [ref=e411]:
+          - paragraph [ref=e412]: Skanvi Newsletter
+          - heading "15% auf deine erste Bestellung sichern." [level=2] [ref=e413]
+          - paragraph [ref=e414]: Neue Wohnideen, frische Kollektionen und ausgewählte Angebote direkt in dein Postfach.
+          - generic [ref=e416]:
+            - img [ref=e417]
+            - textbox "E-Mail-Adresse" [ref=e420]
+            - button "Newsletter abonnieren" [ref=e421] [cursor=pointer]: Anmelden
+          - generic [ref=e422]: Nach erfolgreicher Bestätigung erhältst du deinen persönlichen 15%-Coupon per E-Mail.
+      - generic [ref=e423]:
+        - link "Skanvi Startseite" [ref=e424] [cursor=pointer]:
+          - /url: /
+          - img "Skanvi" [ref=e425]
+        - heading "Pure design, pure comfort." [level=2] [ref=e426]
+      - generic [ref=e427]:
+        - generic [ref=e428]:
+          - paragraph [ref=e429]: Kontakt
+          - link "support@skanvi.com" [ref=e430] [cursor=pointer]:
+            - /url: mailto:support@skanvi.com
+          - link "+49 221 29246424" [ref=e431] [cursor=pointer]:
+            - /url: tel:+4922129246424
+          - link "Kontakt & FAQ" [ref=e432] [cursor=pointer]:
+            - /url: /seiten/kontakt/
+          - generic [ref=e433]: Mo-Fr, 12-18 Uhr
+          - generic "Social Media" [ref=e434]:
+            - link "Skanvi auf Instagram" [ref=e435] [cursor=pointer]:
+              - /url: https://www.instagram.com/skanvidesign/
+            - link "Skanvi auf TikTok" [ref=e437] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@skanvi
+            - link "Skanvi auf Pinterest" [ref=e439] [cursor=pointer]:
+              - /url: https://de.pinterest.com/skanvi/
+        - navigation "Produktkategorien" [ref=e441]:
+          - paragraph [ref=e442]: Produkte
+          - link "Möbel" [ref=e443] [cursor=pointer]:
+            - /url: /kategorie/moebel/
+          - link "Outdoor" [ref=e444] [cursor=pointer]:
+            - /url: /kategorie/outdoor/
+          - link "Teppiche" [ref=e445] [cursor=pointer]:
+            - /url: /kategorie/teppiche/
+          - link "Leuchten" [ref=e446] [cursor=pointer]:
+            - /url: /kategorie/leuchten/
+          - link "Spiegel" [ref=e447] [cursor=pointer]:
+            - /url: /spiegel/
+          - link "Accessoires" [ref=e448] [cursor=pointer]:
+            - /url: /kategorie/accessoires/
+          - link "Textilien" [ref=e449] [cursor=pointer]:
+            - /url: /kategorie/textilien/
+        - navigation "Footer Navigation" [ref=e450]:
+          - paragraph [ref=e451]: Skanvi
+          - link "Über uns" [ref=e452] [cursor=pointer]:
+            - /url: /seiten/ueber-uns/
+          - link "Räume" [ref=e453] [cursor=pointer]:
+            - /url: /raeume/
+          - link "Kontakt & FAQ" [ref=e454] [cursor=pointer]:
+            - /url: /seiten/kontakt/
+        - navigation "Hilfe" [ref=e455]:
+          - paragraph [ref=e456]: Hilfe
+          - link "Sendungsverfolgung" [ref=e457] [cursor=pointer]:
+            - /url: /mein-konto/bestellungen/
+          - link "Vertrag widerrufen" [ref=e458] [cursor=pointer]:
+            - /url: /seiten/vertrag-widerrufen/
+          - link "Lieferzeiten" [ref=e459] [cursor=pointer]:
+            - /url: /seiten/kontakt/#lieferzeiten
+          - link "Retoure" [ref=e460] [cursor=pointer]:
+            - /url: /widerruf/
+      - region "Sichere Bezahlung und sicherer Versand" [ref=e461]:
+        - heading "Sichere Bezahlung und sicherer Versand" [level=2] [ref=e462]
+        - list [ref=e465]:
+          - listitem "PayPal" [ref=e466]
+          - listitem "Klarna" [ref=e467]
+          - listitem "Visa" [ref=e468]
+          - listitem "Mastercard" [ref=e469]
+          - listitem "American Express" [ref=e470]
+          - listitem "Maestro" [ref=e471]
+          - listitem "Apple Pay" [ref=e472]
+          - listitem "Google Pay" [ref=e473]
+          - listitem "SEPA" [ref=e474]
+          - listitem "DHL" [ref=e475]
+          - listitem "GLS" [ref=e476]
+          - listitem "DPD" [ref=e477]
+      - generic [ref=e478]:
+        - generic [ref=e479]: © 2026 Skanvi. Alle Rechte vorbehalten.
+        - navigation "Rechtliches" [ref=e480]:
+          - link "Impressum" [ref=e481] [cursor=pointer]:
+            - /url: /seiten/impressum/
+          - link "Datenschutz" [ref=e482] [cursor=pointer]:
+            - /url: /seiten/datenschutz/
+          - link "AGB" [ref=e483] [cursor=pointer]:
+            - /url: /seiten/agb/
+          - button "Cookie-Einstellungen" [ref=e484] [cursor=pointer]
+  - alert [ref=e485]
+  - dialog "Cookies bei Skanvi" [ref=e486]:
+    - generic [ref=e487]:
+      - generic [ref=e488]:
+        - heading "Cookies bei Skanvi" [level=2] [ref=e489]
+        - paragraph [ref=e490]: Wir nutzen notwendige Cookies für Warenkorb, Login und Sicherheit. Statistik, Marketing und den Support-Chat aktivieren wir nur, wenn du zustimmst.
+      - generic [ref=e491]:
+        - generic [ref=e492]:
+          - button "Alle akzeptieren" [ref=e493] [cursor=pointer]
+          - button "Nur notwendige" [ref=e494] [cursor=pointer]
+        - button "Einstellungen" [ref=e496] [cursor=pointer]
+    - generic [ref=e499]:
+      - link "Datenschutz" [ref=e500] [cursor=pointer]:
+        - /url: /seiten/datenschutz/
+      - link "Impressum" [ref=e501] [cursor=pointer]:
+        - /url: /seiten/impressum/

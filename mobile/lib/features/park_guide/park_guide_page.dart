@@ -221,13 +221,20 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               : null,
           titleSpacing: 16,
           title: const Text('亲子游园指南'),
-          actions: const [
+          actions: [
             Padding(
-              padding: EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  '今天去哪听？',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  switch (_step) {
+                    _ParkGuideStep.parkSelection => '1/3 · 选择公园',
+                    _ParkGuideStep.criteria => '2/3 · 选择偏好',
+                    _ParkGuideStep.recommendations => '3/3 · 路线建议',
+                  },
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -320,8 +327,8 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
   Widget _buildCriteriaPage(List<ParkRecommendation> recommendations) =>
       LayoutBuilder(
         key: const Key('park-guide-criteria-page'),
-        builder: (context, constraints) {
-          final textScale = MediaQuery.textScalerOf(context).scale(1);
+        builder: (context, _) {
+          final navigationInset = MediaQuery.paddingOf(context).bottom;
           final panel = KeyedSubtree(
             key: const Key('park-preference-journal'),
             child: Column(
@@ -365,39 +372,32 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
                     : () => setState(() {
                         _step = _ParkGuideStep.recommendations;
                       }),
-                icon: const Icon(Icons.eco_outlined),
+                icon: const Icon(Icons.route_rounded),
                 label: Text(
                   _loading
-                      ? '正在整理推荐'
+                      ? '正在生成路线'
                       : recommendations.isEmpty
                       ? '暂无完整匹配'
-                      : '查看这条路线建议',
+                      : '生成路线',
                 ),
               ),
             ],
           );
-          if (textScale > 1.4) {
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 20),
-              children: [panel, const SizedBox(height: 12), footer],
-            );
-          }
           return Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+            padding: EdgeInsets.fromLTRB(14, 8, 14, navigationInset + 12),
             child: Column(
               children: [
                 Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.topCenter,
-                    child: SizedBox(
-                      width: constraints.maxWidth - 28,
-                      child: panel,
-                    ),
+                  child: SingleChildScrollView(
+                    key: const Key('park-guide-criteria-scroll'),
+                    child: panel,
                   ),
                 ),
-                const SizedBox(height: 8),
-                footer,
+                const SizedBox(height: 12),
+                KeyedSubtree(
+                  key: const Key('park-guide-sticky-action'),
+                  child: footer,
+                ),
               ],
             ),
           );

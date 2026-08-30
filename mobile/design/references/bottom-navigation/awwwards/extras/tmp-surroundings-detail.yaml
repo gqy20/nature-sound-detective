@@ -1,0 +1,335 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://surroundings.site/
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Honorable Mention - Feb 2, 2026" [level=2] [ref=e151]
+            - heading "Surroundings" [level=1] [ref=e153]
+            - list [ref=e157]:
+              - listitem [ref=e158]:
+                - figure [ref=e160]:
+                  - link "Group Dynamics" [ref=e161] [cursor=pointer]:
+                    - /url: /groupd/
+                    - strong [ref=e163]: Group Dynamics
+        - list [ref=e165]:
+          - listitem [ref=e166]
+      - heading "A photo blog and small archive with a shop built in.Surroundings keep things clean and simple. Look around, explore the photos, and buy a few things if they make sense to you." [level=3] [ref=e171]
+    - generic [ref=e174]:
+      - generic [ref=e175]:
+        - heading "Elements" [level=2] [ref=e177]
+        - heading "Keep the focus in these elements." [level=3] [ref=e179]:
+          - text: Keep the focus in
+          - text: these elements.
+      - list [ref=e180]:
+        - listitem [ref=e181]:
+          - generic [ref=e182]:
+            - figure [ref=e183]:
+              - link "SURROUNDINGS" [ref=e184] [cursor=pointer]:
+                - /url: /inspiration/surroundings-surroundings
+                - img "SURROUNDINGS" [ref=e185]
+            - generic [ref=e187]:
+              - heading "SURROUNDINGS" [level=3] [ref=e188]:
+                - link "SURROUNDINGS" [ref=e189] [cursor=pointer]:
+                  - /url: /inspiration/surroundings-surroundings
+              - generic [ref=e190]:
+                - generic [ref=e191]: from
+                - link "Branding (Logo, Design Systems)" [ref=e192] [cursor=pointer]:
+                  - /url: /elements/branding/
+        - listitem [ref=e193]:
+          - generic [ref=e194]:
+            - figure [ref=e195]:
+              - link "MOBILE LAYOUT" [ref=e196] [cursor=pointer]:
+                - /url: /inspiration/mobile-layout-surroundings
+                - img "MOBILE LAYOUT" [ref=e197]
+            - generic [ref=e199]:
+              - heading "MOBILE LAYOUT" [level=3] [ref=e200]:
+                - link "MOBILE LAYOUT" [ref=e201] [cursor=pointer]:
+                  - /url: /inspiration/mobile-layout-surroundings
+              - generic [ref=e202]:
+                - generic [ref=e203]: from
+                - link "Other Element" [ref=e204] [cursor=pointer]:
+                  - /url: /elements/other/
+        - listitem [ref=e205]:
+          - generic [ref=e206]:
+            - figure [ref=e207]:
+              - link [ref=e208] [cursor=pointer]:
+                - /url: /inspiration/desktop-surroundings
+            - generic [ref=e210]:
+              - heading "Great element" [level=3] [ref=e211]:
+                - link "Great element" [ref=e212] [cursor=pointer]:
+                  - /url: /inspiration/desktop-surroundings
+              - generic [ref=e213]:
+                - generic [ref=e214]: from
+                - link "Desktop thumbnail" [ref=e215] [cursor=pointer]:
+                  - /url: /elements/thumbnail/
+        - listitem [ref=e216]:
+          - generic [ref=e217]:
+            - figure [ref=e218]:
+              - link [ref=e219] [cursor=pointer]:
+                - /url: /inspiration/mobile-surroundings
+            - generic [ref=e221]:
+              - heading "Great element" [level=3] [ref=e222]:
+                - link "Great element" [ref=e223] [cursor=pointer]:
+                  - /url: /inspiration/mobile-surroundings
+              - generic [ref=e224]:
+                - generic [ref=e225]: from
+                - link "Mobile thumbnail" [ref=e226] [cursor=pointer]:
+                  - /url: /elements/mobile_thumbnail/
+    - generic [ref=e231]:
+      - heading "Color Palette" [level=2] [ref=e234]
+      - list [ref=e237]:
+        - listitem [ref=e238]:
+          - generic [ref=e241]:
+            - generic [ref=e242]:
+              - strong [ref=e243]: HEX
+              - text: "#FFFFFF"
+            - link [ref=e245] [cursor=pointer]:
+              - /url: /websites/%23FFFFFF/
+              - img [ref=e247]
+    - generic [ref=e251]:
+      - paragraph [ref=e252]: This website has been created using...
+      - list [ref=e254]:
+        - listitem [ref=e255]:
+          - strong [ref=e256]:
+            - link "Fashion" [ref=e257] [cursor=pointer]:
+              - /url: /websites/fashion/
+        - listitem [ref=e258]:
+          - strong [ref=e259]:
+            - link "Minimal" [ref=e260] [cursor=pointer]:
+              - /url: /websites/minimal/
+        - listitem [ref=e261]:
+          - strong [ref=e262]:
+            - link "Navigation Menu" [ref=e263] [cursor=pointer]:
+              - /url: /websites/navigation/
+        - listitem [ref=e264]:
+          - strong [ref=e265]:
+            - link "Unusual Navigation" [ref=e266] [cursor=pointer]:
+              - /url: /websites/unusual-navigation/
+        - listitem [ref=e267]:
+          - strong [ref=e268]:
+            - link "Gestures / Interaction" [ref=e269] [cursor=pointer]:
+              - /url: /websites/gestures-interaction/
+        - listitem [ref=e270]:
+          - strong [ref=e271]:
+            - link "Header Design" [ref=e272] [cursor=pointer]:
+              - /url: /websites/header-design/
+        - listitem [ref=e273]:
+          - strong [ref=e274]:
+            - link "Shopify" [ref=e275] [cursor=pointer]:
+              - /url: /websites/shopify/
+    - generic [ref=e278]:
+      - generic [ref=e280]:
+        - heading "Votes (15/21)" [level=2] [ref=e281]
+        - list [ref=e282]:
+          - listitem [ref=e283] [cursor=pointer]: Community Members
+      - list [ref=e286]:
+        - listitem [ref=e287]:
+          - generic [ref=e288]:
+            - figure [ref=e289]:
+              - link "Sukumar Swain" [ref=e290] [cursor=pointer]:
+                - /url: /sukumarswain/
+                - img "Sukumar Swain" [ref=e291]
+            - generic [ref=e292]:
+              - generic [ref=e293]:
+                - strong [ref=e294]: Sukumar Swain
+                - text: "* from"
+                - strong [ref=e295]: India
+              - generic [ref=e296]: sukumarswain.com
+          - generic [ref=e299]: "7.30"
+        - listitem [ref=e300]:
+          - generic [ref=e301]:
+            - figure [ref=e302]:
+              - link "Mattia Rinaudo" [ref=e303] [cursor=pointer]:
+                - /url: /mattiarinaudo/
+                - img "Mattia Rinaudo" [ref=e304]
+            - generic [ref=e305]:
+              - generic [ref=e306]:
+                - strong [ref=e307]: Mattia Rinaudo
+                - text: "* from"
+                - strong [ref=e308]: Italy
+              - generic [ref=e309]: linktr.ee
+          - generic [ref=e312]: "6.40"
+        - listitem [ref=e313]:
+          - generic [ref=e314]:
+            - figure [ref=e315]:
+              - link "Serhii Polyvanyi" [ref=e316] [cursor=pointer]:
+                - /url: /panpolevan/
+                - img "Serhii Polyvanyi" [ref=e317]
+            - generic [ref=e318]:
+              - generic [ref=e319]:
+                - strong [ref=e320]: Serhii Polyvanyi
+                - text: from
+                - strong [ref=e321]: Ukraine
+              - generic [ref=e322]: serhii-art.com
+          - generic [ref=e325]: "7.70"
+        - listitem [ref=e326]:
+          - generic [ref=e327]:
+            - figure [ref=e328]:
+              - link "PopArt Studio" [ref=e329] [cursor=pointer]:
+                - /url: /popartstudio/
+                - img "PopArt Studio" [ref=e330]
+            - generic [ref=e331]:
+              - generic [ref=e332]:
+                - strong [ref=e333]: PopArt Studio
+                - text: from
+                - strong [ref=e334]: United States
+              - generic [ref=e335]: popwebdesign.net
+          - generic [ref=e338]: "7.50"
+        - listitem [ref=e339]:
+          - generic [ref=e340]:
+            - figure [ref=e341]:
+              - link "raybump" [ref=e342] [cursor=pointer]:
+                - /url: /ray-bump/
+                - img "raybump" [ref=e343]
+            - generic [ref=e345]:
+              - strong [ref=e346]: raybump
+              - text: from
+              - strong [ref=e347]: United States
+          - generic [ref=e350]: "8.00"
+          - generic [ref=e352] [cursor=pointer]: •••
+  - contentinfo [ref=e353]:
+    - generic [ref=e354]:
+      - generic [ref=e355]:
+        - paragraph [ref=e356]:
+          - img [ref=e357]
+        - generic [ref=e360]:
+          - list [ref=e361]:
+            - listitem [ref=e362]:
+              - link "Websites" [ref=e363] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e364]:
+              - link "Collections" [ref=e365] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e366]:
+              - link "Elements" [ref=e367] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e368]:
+            - listitem [ref=e369]:
+              - link "Academy" [ref=e370] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e371]:
+              - link "Jobs" [ref=e372] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e373]:
+              - link "Market" [ref=e374] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e375]:
+            - listitem [ref=e376]:
+              - link "Directory" [ref=e377] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e378]:
+              - link "Conferences" [ref=e379] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e380]:
+            - listitem [ref=e381]:
+              - link "FAQs" [ref=e382] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e383]:
+              - link "About Us" [ref=e384] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e385]:
+              - link "Contact Us" [ref=e386] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e387]:
+        - list [ref=e389]:
+          - listitem [ref=e390]:
+            - link "Cookies Policy" [ref=e391] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e392]:
+            - link "Legal Terms" [ref=e393] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e394]:
+            - link "Privacy Policy" [ref=e395] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e397]:
+          - listitem [ref=e398]:
+            - strong [ref=e399]: "Connect:"
+          - listitem [ref=e400]:
+            - link "Instagram" [ref=e401] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e402]:
+            - link "LinkedIn" [ref=e403] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e404]:
+            - link "Twitter" [ref=e405] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e406]:
+            - link "Facebook" [ref=e407] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e408]:
+            - link "YouTube" [ref=e409] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e410]:
+            - link "TikTok" [ref=e411] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e412]:
+            - link "Pinterest" [ref=e413] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

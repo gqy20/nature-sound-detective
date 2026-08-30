@@ -921,6 +921,7 @@ function renderCreation(job) {
     $("download-video").href = creation.video_url;
     $("video-provider").textContent = ({
       "wan2.7-t2v": "通义万相 Wan 2.7 · 竖屏",
+      "wan3.0-video": "通义万相 Wan 3.0 · 竖屏",
       "reused-demo-video": "演示画面 · 竖屏",
       "local-mock-video": "开发占位 · 竖屏",
     })[creation.video_provider] || "竖屏";
@@ -936,7 +937,9 @@ function renderCreation(job) {
       ? "配乐由 AI 生成"
       : "音乐使用本次自然原声制作";
     const narrationLabel = hasNarration ? "科普语音由 AI 生成" : "本次未生成科普语音";
-    const videoLabel = creation.video_provider === "wan2.7-t2v"
+    const videoLabel = creation.video_provider === "wan3.0-video"
+      ? "画面由通义万相 Wan 3.0 生成"
+      : creation.video_provider === "wan2.7-t2v"
       ? "画面由通义万相 Wan 2.7 生成"
       : creation.video_provider === "reused-demo-video" ? "画面使用演示素材" : "画面为开发占位素材";
     $("creation-status").textContent = `${musicLabel}，${narrationLabel}；${videoLabel}。`;

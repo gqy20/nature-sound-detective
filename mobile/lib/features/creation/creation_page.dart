@@ -19,8 +19,10 @@ class CreationPage extends StatefulWidget {
     this.sourceAudioPath = '',
     this.existingRecord,
     this.location = '杭州',
+    this.visualMode = CreationVisualMode.environment,
     this.service,
     this.settingsStore,
+    this.activeCreationStore,
     this.playback,
   });
 
@@ -28,8 +30,10 @@ class CreationPage extends StatefulWidget {
   final String sourceAudioPath;
   final CreationRecord? existingRecord;
   final String location;
+  final CreationVisualMode visualMode;
   final CreationService? service;
   final CreationSettingsStore? settingsStore;
+  final ActiveCreationStore? activeCreationStore;
   final AudioPlayback? playback;
 
   @override
@@ -41,6 +45,7 @@ class _CreationPageState extends State<CreationPage>
   late final CreationService _service;
   late final CreationSettingsStore _settingsStore;
   late final CreationStore _creationStore;
+  late final ActiveCreationStore _activeCreationStore;
   final _background = const CreationBackgroundScheduler();
   late final AudioPlayback _playback;
   CreationSettings _settings = const CreationSettings();
@@ -54,6 +59,7 @@ class _CreationPageState extends State<CreationPage>
   VideoPlayerController? _videoController;
   String _pendingRecordId = '';
   String _pendingDirectoryPath = '';
+  bool _automaticResumeStarted = false;
 
   bool get _creating => {
     CreationStage.generatingMusic,
@@ -71,6 +77,7 @@ class _CreationPageState extends State<CreationPage>
     _service = widget.service ?? DirectCreationService();
     _settingsStore = widget.settingsStore ?? FileCreationSettingsStore();
     _creationStore = CreationStore();
+    _activeCreationStore = widget.activeCreationStore ?? ActiveCreationStore();
     _playback = widget.playback ?? DeviceFileAudioPlayback();
     _playbackSubscription = _playback.playing.listen((playing) {
       if (mounted) setState(() => _playingMusic = playing);
@@ -105,6 +112,18 @@ class _CreationPageState extends State<CreationPage>
         }
       });
       await _initializeVideo();
+      final record = widget.existingRecord;
+      if (record != null && _isActiveCreationStage(record.stage)) {
+        _pendingRecordId = record.id;
+        _pendingDirectoryPath = record.directoryPath;
+        await _activeCreationStore.save(record.id);
+        await _background.cancel(record.id);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || _automaticResumeStarted) return;
+          _automaticResumeStarted = true;
+          unawaited(_startCreation(skipConfirmation: true));
+        });
+      }
     } catch (error, stackTrace) {
       AppLog.error(
         'creation_ui',
@@ -151,25 +170,27 @@ class _CreationPageState extends State<CreationPage>
     if (changed == true) await _loadSettings();
   }
 
-  Future<void> _startCreation() async {
-    if (!_settings.canCreate || _creating) return;
-    final agreed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('开始生成音乐和视频？'),
-        content: const Text('将调用阿里云百炼生成音乐、旁白和视频，可能消耗账户额度。原始录音不会上传。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认生成'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _startCreation({bool skipConfirmation = false}) async {
+    if (!_settings.canCreate || (_creating && !skipConfirmation)) return;
+    final agreed = skipConfirmation
+        ? true
+        : await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('开始生成音乐和视频？'),
+              content: const Text('将调用阿里云百炼生成音乐、旁白和视频，可能消耗账户额度。原始录音不会上传。'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('确认生成'),
+                ),
+              ],
+            ),
+          );
     if (agreed != true || !mounted) return;
     AppLog.info(
       'creation_ui',
@@ -189,6 +210,9 @@ class _CreationPageState extends State<CreationPage>
     try {
       void report(CreationUpdate update) {
         if (!mounted) return;
+        if (_isActiveCreationStage(update.stage)) {
+          unawaited(_activeCreationStore.save(update.recordId));
+        }
         if (update.stage == CreationStage.waitingForVideo) {
           _pendingRecordId = update.recordId;
           _pendingDirectoryPath = update.directoryPath;
@@ -204,6 +228,7 @@ class _CreationPageState extends State<CreationPage>
           CreationStage.failed,
         }.contains(update.stage)) {
           unawaited(_background.cancel(update.recordId));
+          unawaited(_activeCreationStore.clear());
           _pendingRecordId = '';
           _pendingDirectoryPath = '';
         }
@@ -220,6 +245,7 @@ class _CreationPageState extends State<CreationPage>
               location: widget.location,
               sourceAudioPath: widget.sourceAudioPath,
               onProgress: report,
+              visualMode: widget.visualMode,
             )
           : await _service.resume(
               settings: _settings,
@@ -230,6 +256,7 @@ class _CreationPageState extends State<CreationPage>
             );
       if (!mounted) return;
       setState(() => _artifacts = artifacts);
+      await _activeCreationStore.clear();
       await _initializeVideo();
     } on CreationException catch (error, stackTrace) {
       AppLog.warning(
@@ -240,6 +267,7 @@ class _CreationPageState extends State<CreationPage>
         stackTrace: stackTrace,
       );
       if (mounted) {
+        await _activeCreationStore.clear();
         setState(() {
           _stage = CreationStage.failed;
           _stageMessage = '生成没有完成';
@@ -255,6 +283,7 @@ class _CreationPageState extends State<CreationPage>
         stackTrace: stackTrace,
       );
       if (mounted) {
+        await _activeCreationStore.clear();
         setState(() {
           _stage = CreationStage.failed;
           _stageMessage = '生成没有完成';
@@ -263,6 +292,15 @@ class _CreationPageState extends State<CreationPage>
       }
     }
   }
+
+  bool _isActiveCreationStage(CreationStage stage) => {
+    CreationStage.generatingMusic,
+    CreationStage.generatingNarration,
+    CreationStage.submittingVideo,
+    CreationStage.waitingForVideo,
+    CreationStage.downloadingVideo,
+    CreationStage.composing,
+  }.contains(stage);
 
   Future<void> _initializeVideo() async {
     final artifacts = _artifacts;
@@ -492,7 +530,7 @@ class _CreationPageState extends State<CreationPage>
                   const SizedBox(height: 20),
                   FilledButton.icon(
                     key: const Key('start-creation'),
-                    onPressed: _creating ? null : _startCreation,
+                    onPressed: _creating ? null : () => _startCreation(),
                     icon: _creating
                         ? const SizedBox.square(
                             dimension: 18,

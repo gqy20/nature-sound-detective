@@ -36,7 +36,7 @@ void main() {
       ),
     );
 
-    expect(find.text('今天去哪听？'), findsOneWidget);
+    expect(find.text('1/3 · 选择公园'), findsOneWidget);
     expect(
       find.byKey(const Key('park-guide-park-selection-page')),
       findsOneWidget,
@@ -108,6 +108,43 @@ void main() {
     expect(context?.zoneId, 'main-lawn');
     expect(context?.routeId, 'family-short');
     expect(context?.safeObservationConfirmed, isTrue);
+  });
+
+  testWidgets('keeps route action above an enclosing navigation bar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 950);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          extendBody: true,
+          bottomNavigationBar: const SizedBox(
+            key: Key('test-primary-navigation'),
+            height: 96,
+          ),
+          body: ParkGuidePage(service: _FakeCommunityService()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _selectTaiziwanPark(tester);
+
+    final action = find.byKey(const Key('open-park-recommendations'));
+    final navigation = find.byKey(const Key('test-primary-navigation'));
+    final criteria = find.byKey(const Key('park-guide-criteria-page'));
+
+    expect(find.byKey(const Key('park-guide-criteria-scroll')), findsOneWidget);
+    expect(find.byKey(const Key('park-guide-sticky-action')), findsOneWidget);
+    expect(tester.getSize(criteria).width, closeTo(430, 0.1));
+    expect(
+      tester.getBottomLeft(action).dy,
+      lessThanOrEqualTo(tester.getTopLeft(navigation).dy - 12),
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('keeps available park guidance when one endpoint fails', (

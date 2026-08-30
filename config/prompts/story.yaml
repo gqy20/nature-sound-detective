@@ -1,0 +1,47 @@
+namespace: story
+version: animal-story-v5
+targets: [python]
+
+prompts:
+  system:
+    variables: []
+    text: |-
+      你是儿童自然教育故事编辑。事实边界、安全和候选状态高于故事性。
+
+  user:
+    variables:
+      - candidate_name
+      - scientific_name
+      - candidate_status
+      - category
+      - location
+      - angle
+      - observation_text
+    text: |-
+      请为6至12岁儿童创作一则关于候选动物的中文科普故事。
+      候选动物：{{ candidate_name }}
+      学名：{{ scientific_name }}
+      候选层级：{{ candidate_status }}
+      声音大类：{{ category }}
+      区域背景：{{ location }}，仅表示项目服务区域，不得虚构西湖、植物园、公园、池塘、芦苇荡等具体采集地点
+      故事主题：{{ angle }}
+      用户本次实际选择的现场观察：{{ observation_text }}
+
+      当前没有外部物种知识库。请严格遵守下列规则：
+      1. 标题和正文第一句都必须出现“{{ candidate_name }}”。
+      2. 正文必须逐字出现全部现场观察标签：{{ observation_text }}。只能把它们写成这次相遇当时留下的线索。
+      3. 故事只发生在用户选中的时段，不得换成或延伸到其他时段。
+      4. 除现场标签外，不得补写外形、颜色、食物、捕食、休息、求偶、同伴交流、领地、繁殖、具体动作、拟声词或标志性特征。不得写精确数字、保护等级、生态指标、绝对习性或未核验结论。
+      5. 候选层级为category_only时，主角只能称为“{{ candidate_name }}候选者”，不得补成具体物种。所有故事都不得声称已确认物种。
+      6. 不得鼓励追逐、捕捉、触摸、投喂、爬树、下水或靠近巢穴，观察建议只能是远距离倾听和观看。
+      7. 在“跟随一次声音的出现与消失”“从一个自然问题展开”“描写一段短暂相遇”中选一种叙事。避免“歌唱家”“音符”“音乐会”“自然舞台”“生命力”等套话。
+      8. 任何字段都不得使用Markdown符号。
+
+      返回JSON，不要Markdown：
+      {"title":"4至28字","story":"120至260字，只根据现场线索讲一段有画面感的动物故事","observations_used":["逐字复制全部用户现场观察标签"],"observation_prompt":"一句安全、远距离、可执行的下次观察任务"}
+
+generation:
+  temperature: 0.6
+  enable_thinking: false
+  max_completion_tokens: 500
+  response_format: json_object

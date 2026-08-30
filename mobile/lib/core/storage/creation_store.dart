@@ -83,3 +83,41 @@ class CreationStore {
     return null;
   }
 }
+
+class ActiveCreationStore {
+  ActiveCreationStore({Future<Directory> Function()? directoryProvider})
+    : _directoryProvider =
+          directoryProvider ?? getApplicationDocumentsDirectory;
+
+  final Future<Directory> Function() _directoryProvider;
+
+  Future<String?> load() async {
+    try {
+      final file = await _file();
+      if (!await file.exists()) return null;
+      final value = jsonDecode(await file.readAsString());
+      if (value is! Map<Object?, Object?>) return null;
+      final recordId = value['record_id'] as String?;
+      return recordId == null || recordId.isEmpty ? null : recordId;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> save(String recordId) async {
+    if (recordId.isEmpty) return;
+    final file = await _file();
+    await file.parent.create(recursive: true);
+    await file.writeAsString(jsonEncode({'record_id': recordId}), flush: true);
+  }
+
+  Future<void> clear() async {
+    final file = await _file();
+    if (await file.exists()) await file.delete();
+  }
+
+  Future<File> _file() async {
+    final base = await _directoryProvider();
+    return File(p.join(base.path, 'creations', 'active_task.json'));
+  }
+}

@@ -170,6 +170,13 @@ class FamilyCommand {
         DateTime.tryParse(json['created_at'] as String? ?? '') ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
   );
+
+  Map<String, Object?> toJson() => {
+    'command_id': commandId,
+    'template_id': templateId,
+    'sequence': sequence,
+    'created_at': createdAt.toUtc().toIso8601String(),
+  };
 }
 
 class CompanionCue {

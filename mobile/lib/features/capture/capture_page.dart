@@ -12,6 +12,7 @@ import 'package:nature_sound_detective/core/diagnostics/debug_export_service.dar
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
+import 'package:nature_sound_detective/core/creation/creation_visual_policy.dart';
 import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
@@ -22,7 +23,6 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
 import 'package:nature_sound_detective/features/capture/sound_waveform.dart';
-import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/navigation/primary_feature.dart';
 import 'package:nature_sound_detective/features/parent/parent_companion_sheet.dart';
@@ -49,7 +49,6 @@ class CapturePage extends StatefulWidget {
     this.mode = ExplorationMode.child,
     this.onModeChanged,
     this.familySessionCoordinator,
-    this.primaryPagePosition,
     this.onPrimaryFeatureSelected,
     this.onPrimarySwipeLockChanged,
   });
@@ -64,7 +63,6 @@ class CapturePage extends StatefulWidget {
   final ExplorationMode mode;
   final ValueChanged<ExplorationMode>? onModeChanged;
   final FamilySessionCoordinator? familySessionCoordinator;
-  final ValueListenable<double>? primaryPagePosition;
   final ValueChanged<PrimaryFeature>? onPrimaryFeatureSelected;
   final ValueChanged<bool>? onPrimarySwipeLockChanged;
 
@@ -890,6 +888,7 @@ class _CapturePageState extends State<CapturePage> {
 
   void _openCreation() {
     final primary = _detections.firstOrNull;
+    final visualMode = selectCreationVisualMode(primary);
     final subject = primary?.tentative == true
         ? primary?.nameZh ?? '自然环境声'
         : primary?.specificSpecies?.nameZh ?? primary?.nameZh ?? '自然环境声';
@@ -898,6 +897,7 @@ class _CapturePageState extends State<CapturePage> {
         builder: (_) => CreationPage(
           subject: subject,
           sourceAudioPath: _recording?.path ?? '',
+          visualMode: visualMode,
         ),
       ),
     );
@@ -910,18 +910,6 @@ class _CapturePageState extends State<CapturePage> {
     }
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => NatureBookPage(store: _store)),
-    );
-  }
-
-  void _openSoundscape() {
-    if (widget.onPrimaryFeatureSelected case final select?) {
-      select(PrimaryFeature.soundscape);
-      return;
-    }
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SoundscapePage(explorationStore: _store),
-      ),
     );
   }
 
@@ -1052,7 +1040,7 @@ class _CapturePageState extends State<CapturePage> {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/hangzhou_mist.webp',
+            'assets/images/hangzhou_mist_home_v2.webp',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
           ),
@@ -1114,6 +1102,12 @@ class _CapturePageState extends State<CapturePage> {
                     : Column(
                         children: [
                           Spacer(flex: compact ? 2 : 3),
+                          if (!_isRecording &&
+                              widget.mode == ExplorationMode.child &&
+                              _routeContext == null) ...[
+                            const _CaptureLocationLabel(),
+                            SizedBox(height: compact ? 8 : 10),
+                          ],
                           if (_routeContext case final route?) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -1207,7 +1201,7 @@ class _CapturePageState extends State<CapturePage> {
       padding: EdgeInsets.fromLTRB(0, compact ? 22 : 42, 0, 22),
       children: [
         Text(
-          activeParent ? '孩子在探索，你来陪伴' : '陪孩子一起探索',
+          activeParent ? '孩子正在探索' : '家长陪伴',
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontSize: compact ? 27 : 31,
@@ -1215,7 +1209,7 @@ class _CapturePageState extends State<CapturePage> {
         ),
         const SizedBox(height: 8),
         Text(
-          activeParent ? '这里会显示孩子的探索进度和现在可以说的话' : '先连接孩子的设备，或者为今天选择一条亲子路线',
+          activeParent ? '跟着孩子的进度，给出恰到好处的回应' : '和孩子保持在同一次探索里',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyLarge,
         ),
@@ -1269,37 +1263,75 @@ class _CapturePageState extends State<CapturePage> {
           ),
         ] else ...[
           Container(
+            key: const Key('parent-connection-card'),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xE6E4F0E7),
+              color: const Color(0xEDF1F4EE),
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFD8E1D8)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.devices_other_rounded,
-                  color: Color(0xFF174936),
-                  size: 38,
+                const Row(
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFDDEADF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.devices_other_rounded,
+                          color: Color(0xFF174936),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '还没有连接儿童端',
+                        style: TextStyle(
+                          color: Color(0xFF203C31),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Text('连接孩子的探索设备', style: theme.textTheme.titleLarge),
+                const SizedBox(height: 14),
+                const Text('连接后，可以看到孩子的探索进度和现在适合说的话。'),
                 const SizedBox(height: 16),
-                FilledButton.icon(
-                  key: const Key('parent-connect-family-primary'),
-                  onPressed: _openFamilyLink,
-                  icon: const Icon(Icons.link_rounded),
-                  label: const Text('开始连接'),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    key: const Key('parent-connect-family-primary'),
+                    onPressed: _openFamilyLink,
+                    icon: const Icon(Icons.link_rounded),
+                    label: const Text('连接孩子的设备'),
+                  ),
                 ),
               ],
             ),
           ),
         ],
-        const SizedBox(height: 14),
+        const SizedBox(height: 18),
+        Text(
+          activeParent ? '计划下一次探索' : '还没准备出发？',
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: const Color(0xFF52615A),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
         OutlinedButton.icon(
           key: const Key('parent-park-guide-cta'),
           onPressed: _openParkGuide,
           icon: const Icon(Icons.map_outlined),
-          label: const Text('看看今天适合去哪听'),
+          label: Text(activeParent ? '看看新的亲子路线' : '先看看今天适合去哪听'),
         ),
         const SizedBox(height: 8),
         TextButton.icon(
@@ -1315,190 +1347,126 @@ class _CapturePageState extends State<CapturePage> {
   Widget _buildHeader(ThemeData theme) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact =
-            constraints.maxWidth < 430 ||
-            MediaQuery.textScalerOf(context).scale(1) > 1.4;
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final compact = constraints.maxWidth < 430 || textScale > 1.4;
         return Row(
           children: [
-            if (!compact)
-              Expanded(
-                child: GestureDetector(
-                  onLongPress: diagnosticsEnabled ? _showDebugActions : null,
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/logo_mark.png',
-                        width: 28,
-                        height: 28,
-                        filterQuality: FilterQuality.medium,
-                        excludeFromSemantics: true,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '自然声探员',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontSize: 16,
-                          letterSpacing: 0.2,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Semantics(
+                  container: true,
+                  label: '自然声探员',
+                  child: GestureDetector(
+                    key: const Key('app-brand'),
+                    behavior: HitTestBehavior.opaque,
+                    onLongPress: diagnosticsEnabled ? _showDebugActions : null,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_mark.png',
+                          key: const Key('app-brand-mark'),
+                          width: 28,
+                          height: 28,
+                          filterQuality: FilterQuality.medium,
+                          excludeFromSemantics: true,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            if (widget.familySessionCoordinator case final coordinator?)
-              ListenableBuilder(
-                listenable: coordinator,
-                builder: (context, _) => coordinator.connection?.active == true
-                    ? _LinkedFamilyRoleChip(
-                        role: coordinator.connection!.role,
-                        compact: compact,
-                      )
-                    : _ModeMenu(
-                        mode: widget.mode,
-                        onChanged: widget.onModeChanged,
-                      ),
-              )
-            else
-              _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
-            const SizedBox(width: 4),
-            if (widget.familySessionCoordinator case final coordinator?)
-              ListenableBuilder(
-                listenable: coordinator,
-                builder: (context, _) => Badge(
-                  isLabelVisible: coordinator.hasUnseenCue,
-                  smallSize: 8,
-                  child: IconButton(
-                    key: const Key('family-link-button'),
-                    tooltip: coordinator.connection?.active == true
-                        ? '家庭设备已连接'
-                        : '连接家庭设备',
-                    visualDensity: VisualDensity.compact,
-                    onPressed: _openFamilyLink,
-                    icon: Icon(
-                      coordinator.connection?.active == true
-                          ? Icons.devices_rounded
-                          : Icons.devices_other_outlined,
-                      size: 20,
+                        if (!compact) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '自然声探员',
+                              maxLines: 1,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontSize: 16,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
               ),
-            if (widget.mode == ExplorationMode.child && !compact) ...[
-              const Icon(
-                Icons.location_on_outlined,
-                size: 17,
-                color: Color(0xFF52615A),
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                '杭州',
-                style: TextStyle(
-                  color: Color(0xFF52615A),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(width: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.familySessionCoordinator case final coordinator?)
+                  ListenableBuilder(
+                    listenable: coordinator,
+                    builder: (context, _) =>
+                        coordinator.connection?.active == true
+                        ? _LinkedFamilyRoleChip(
+                            role: coordinator.connection!.role,
+                            compact: compact,
+                          )
+                        : _ModeMenu(
+                            mode: widget.mode,
+                            onChanged: widget.onModeChanged,
+                          ),
+                  )
+                else
+                  _ModeMenu(mode: widget.mode, onChanged: widget.onModeChanged),
+                const SizedBox(width: 4),
+                if (widget.familySessionCoordinator case final coordinator?)
+                  ListenableBuilder(
+                    listenable: coordinator,
+                    builder: (context, _) => Badge(
+                      isLabelVisible: coordinator.hasUnseenCue,
+                      smallSize: 8,
+                      child: IconButton(
+                        key: const Key('family-link-button'),
+                        tooltip: coordinator.connection?.active == true
+                            ? '家庭设备已连接'
+                            : '连接家庭设备',
+                        visualDensity: VisualDensity.compact,
+                        style: _headerToolButtonStyle(),
+                        onPressed: _openFamilyLink,
+                        icon: Icon(
+                          coordinator.connection?.active == true
+                              ? Icons.devices_rounded
+                              : Icons.devices_other_outlined,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (diagnosticsEnabled) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: const Key('debug-export-button'),
+                    tooltip: '导出诊断包',
+                    visualDensity: VisualDensity.compact,
+                    style: _headerToolButtonStyle(),
+                    onPressed: _exportingDiagnostics
+                        ? null
+                        : _exportDiagnostics,
+                    icon: _exportingDiagnostics
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.bug_report_outlined, size: 20),
+                  ),
+                ],
+                const SizedBox(width: 4),
+                IconButton(
+                  key: const Key('creation-settings-button'),
+                  tooltip: 'AI 创作设置',
+                  visualDensity: VisualDensity.compact,
+                  style: _headerToolButtonStyle(),
+                  onPressed: _openCreationSettings,
+                  icon: const Icon(Icons.tune_rounded, size: 20),
                 ),
-              ),
-              const SizedBox(width: 6),
-            ],
-            if (diagnosticsEnabled)
-              IconButton(
-                key: const Key('debug-export-button'),
-                tooltip: '导出诊断包',
-                visualDensity: VisualDensity.compact,
-                onPressed: _exportingDiagnostics ? null : _exportDiagnostics,
-                icon: _exportingDiagnostics
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.bug_report_outlined, size: 20),
-              ),
-            _primaryFeatureButton(
-              key: const Key('soundscape-button'),
-              tooltip: '共听杭州',
-              onPressed: _openSoundscape,
-              feature: PrimaryFeature.soundscape,
-            ),
-            if (widget.mode == ExplorationMode.parent)
-              _primaryFeatureButton(
-                key: const Key('park-guide-button'),
-                tooltip: '亲子游园指南',
-                onPressed: _openParkGuide,
-                feature: PrimaryFeature.parkGuide,
-              ),
-            _primaryFeatureButton(
-              key: const Key('works-button'),
-              tooltip: '自然册',
-              onPressed: _openNatureBook,
-              feature: PrimaryFeature.natureBook,
-            ),
-            IconButton(
-              key: const Key('creation-settings-button'),
-              tooltip: 'AI 创作设置',
-              visualDensity: VisualDensity.compact,
-              onPressed: _openCreationSettings,
-              icon: const Icon(Icons.tune_rounded, size: 20),
+              ],
             ),
           ],
-        );
-      },
-    );
-  }
-
-  Widget _primaryFeatureButton({
-    required Key key,
-    required String tooltip,
-    required VoidCallback onPressed,
-    required PrimaryFeature feature,
-  }) {
-    final pagePosition = widget.primaryPagePosition;
-    if (pagePosition == null) {
-      return IconButton(
-        key: key,
-        tooltip: tooltip,
-        visualDensity: VisualDensity.compact,
-        onPressed: onPressed,
-        icon: Icon(feature.icon, size: 20),
-      );
-    }
-    return AnimatedBuilder(
-      animation: pagePosition,
-      builder: (context, _) {
-        final page = pagePosition.value;
-        final targetPage =
-            widget.mode == ExplorationMode.child &&
-                feature == PrimaryFeature.natureBook
-            ? 2
-            : feature.index;
-        final emphasis = (1 - (page - targetPage).abs()).clamp(0.0, 1.0);
-        return Container(
-          key: Key('primary-nav-state-${feature.name}'),
-          decoration: BoxDecoration(
-            color: Color.lerp(
-              Colors.transparent,
-              const Color(0xFFD8EEE1),
-              emphasis,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            key: key,
-            tooltip: tooltip,
-            visualDensity: VisualDensity.compact,
-            onPressed: onPressed,
-            icon: Transform.scale(
-              scale: .92 + emphasis * .08,
-              child: Icon(
-                feature.icon,
-                size: 20,
-                color: Color.lerp(
-                  const Color(0xFF52615A),
-                  const Color(0xFF174936),
-                  emphasis,
-                ),
-              ),
-            ),
-          ),
         );
       },
     );
@@ -2096,6 +2064,32 @@ class _CapturePageState extends State<CapturePage> {
   }
 }
 
+class _CaptureLocationLabel extends StatelessWidget {
+  const _CaptureLocationLabel();
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: '当前位置，杭州',
+    child: const Row(
+      key: Key('capture-location-label'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF657269)),
+        SizedBox(width: 4),
+        Text(
+          '杭州 · 自然声探索',
+          style: TextStyle(
+            color: Color(0xFF657269),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _LinkedFamilyRoleChip extends StatelessWidget {
   const _LinkedFamilyRoleChip({required this.role, this.compact = false});
   final FamilyDeviceRole role;
@@ -2169,13 +2163,26 @@ class _ModeMenu extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE2DDCF)),
         ),
         child: Text(
-          mode == ExplorationMode.child ? '儿童' : '家长',
+          compact
+              ? (mode == ExplorationMode.child ? '儿童' : '家长')
+              : (mode == ExplorationMode.child ? '儿童模式' : '家长模式'),
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
         ),
       ),
     );
   }
 }
+
+ButtonStyle _headerToolButtonStyle() => IconButton.styleFrom(
+  minimumSize: const Size.square(40),
+  maximumSize: const Size.square(40),
+  padding: EdgeInsets.zero,
+  backgroundColor: const Color(0xCFFFFDF7),
+  foregroundColor: const Color(0xFF34483F),
+  disabledBackgroundColor: const Color(0x99FFFDF7),
+  side: const BorderSide(color: Color(0xFFE2DDCF)),
+  shape: const CircleBorder(),
+);
 
 ButtonStyle _compactActionStyle() => ButtonStyle(
   minimumSize: const WidgetStatePropertyAll(Size(0, 52)),

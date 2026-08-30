@@ -27,6 +27,7 @@ void main() {
     expect(store.saved?.dashscopeApiKey, 'dashscope-valid-key');
     expect(store.saved?.dashscopeMusicModel, 'fun-music-v1');
     expect(store.saved?.dashscopeSpeechModel, 'qwen-audio-3.0-tts-plus');
+    expect(store.saved?.wanVideoModel, 'wan3.0-video');
   });
 }
 

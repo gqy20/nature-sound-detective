@@ -13,12 +13,14 @@ FLUTTER ?= flutter
 DART ?= dart
 endif
 
-.PHONY: help sdk get format format-check analyze test verify build debug release clean
+.PHONY: help sdk get prompts prompts-check format format-check analyze test verify build debug release clean
 
 help:
 	@echo Mobile commands:
 	@echo   make sdk          Show the Flutter SDK selected by this repository
 	@echo   make get          Restore locked Flutter dependencies
+	@echo   make prompts      Generate Python and Dart prompt catalogs from YAML
+	@echo   make prompts-check Verify generated prompt catalogs are current
 	@echo   make format       Format mobile source and tests
 	@echo   make format-check Report mobile files that need formatting
 	@echo   make analyze      Run Flutter static analysis
@@ -36,21 +38,27 @@ sdk:
 get:
 	@cd $(MOBILE_DIR) && "$(FLUTTER)" pub get --enforce-lockfile
 
+prompts:
+	@uv run --frozen python scripts/generate_prompt_catalog.py
+
+prompts-check:
+	@uv run --frozen python scripts/generate_prompt_catalog.py --check
+
 format:
 	@cd $(MOBILE_DIR) && "$(DART)" format lib test integration_test
 
 format-check:
 	@cd $(MOBILE_DIR) && "$(DART)" format --output=none --set-exit-if-changed lib test integration_test
 
-analyze: get
+analyze: prompts-check get
 	@cd $(MOBILE_DIR) && "$(FLUTTER)" analyze --no-pub
 
-test: get
+test: prompts-check get
 	@cd $(MOBILE_DIR) && "$(FLUTTER)" test --no-pub
 
-verify: get analyze test
+verify: prompts-check get analyze test
 
-build: get
+build: prompts-check get
 	@cd $(MOBILE_DIR) && "$(FLUTTER)" build apk --debug --no-pub
 
 debug: build

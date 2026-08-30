@@ -1,0 +1,702 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Elements" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - navigation [ref=e131]:
+        - list [ref=e134]:
+          - listitem [ref=e135]:
+            - generic [ref=e136] [cursor=pointer]:
+              - generic [ref=e137]: Category
+              - img [ref=e138]
+          - listitem [ref=e140]:
+            - generic [ref=e141] [cursor=pointer]:
+              - generic [ref=e142]: Color
+              - img [ref=e143]
+              - img [ref=e145]
+      - heading "Elements10336" [level=1] [ref=e151]
+      - generic [ref=e153]:
+        - generic [ref=e154]:
+          - text: Best selection of
+          - strong [ref=e155]: Elements
+          - text: for your inspiration...
+        - generic [ref=e156] [cursor=pointer]: Read more
+      - paragraph [ref=e158]: Find inspiration for your projects, featuring 100s of examples of forms, great UX/UI, footers, transitions and much more.
+    - list [ref=e161]:
+      - listitem [ref=e162]:
+        - generic [ref=e163]:
+          - figure [ref=e164]:
+            - link "Animation" [ref=e165] [cursor=pointer]:
+              - /url: /inspiration/what-we-do-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e169]:
+            - strong [ref=e170]:
+              - link "What We Do" [ref=e171] [cursor=pointer]:
+                - /url: /inspiration/what-we-do-hobro-digital
+            - generic [ref=e172]: by
+            - figure [ref=e173]:
+              - link "Hobro Digital PRO" [ref=e174] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e175]
+                - superscript [ref=e177]: PRO
+      - listitem [ref=e179]:
+        - generic [ref=e180]:
+          - figure [ref=e181]:
+            - link "Scroll" [ref=e182] [cursor=pointer]:
+              - /url: /inspiration/decathlon-yestalgia-scroll-decathlon-yestalgia
+            - generic:
+              - generic: video
+          - generic [ref=e186]:
+            - strong [ref=e187]:
+              - link "Decathlon Yestalgia Scroll" [ref=e188] [cursor=pointer]:
+                - /url: /inspiration/decathlon-yestalgia-scroll-decathlon-yestalgia
+            - generic [ref=e189]: by
+            - figure [ref=e190]:
+              - link "index PRO" [ref=e191] [cursor=pointer]:
+                - /url: /by_index/
+                - img "index" [ref=e192]
+                - superscript [ref=e194]: PRO
+      - listitem [ref=e196]:
+        - generic [ref=e197]:
+          - figure [ref=e198]:
+            - link "Branding (Logo, Design Systems)" [ref=e199] [cursor=pointer]:
+              - /url: /inspiration/logo-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e203]:
+            - strong [ref=e204]:
+              - link "Logo" [ref=e205] [cursor=pointer]:
+                - /url: /inspiration/logo-hobro-digital
+            - generic [ref=e206]: by
+            - figure [ref=e207]:
+              - link "Hobro Digital PRO" [ref=e208] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e209]
+                - superscript [ref=e211]: PRO
+      - listitem [ref=e213]:
+        - generic [ref=e214]:
+          - figure [ref=e215]:
+            - link "Animation" [ref=e216] [cursor=pointer]:
+              - /url: /inspiration/home-page-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e220]:
+            - strong [ref=e221]:
+              - link "Homepage" [ref=e222] [cursor=pointer]:
+                - /url: /inspiration/home-page-hobro-digital
+            - generic [ref=e223]: by
+            - figure [ref=e224]:
+              - link "Hobro Digital PRO" [ref=e225] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e226]
+                - superscript [ref=e228]: PRO
+      - listitem [ref=e230]:
+        - generic [ref=e231]:
+          - figure [ref=e232]:
+            - link "Animation" [ref=e233] [cursor=pointer]:
+              - /url: /inspiration/cases-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e237]:
+            - strong [ref=e238]:
+              - link "Cases" [ref=e239] [cursor=pointer]:
+                - /url: /inspiration/cases-hobro-digital
+            - generic [ref=e240]: by
+            - figure [ref=e241]:
+              - link "Hobro Digital PRO" [ref=e242] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e243]
+                - superscript [ref=e245]: PRO
+      - listitem [ref=e247]:
+        - generic [ref=e248]:
+          - figure [ref=e249]:
+            - link "Animation" [ref=e250] [cursor=pointer]:
+              - /url: /inspiration/services-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e254]:
+            - strong [ref=e255]:
+              - link "Core Vision" [ref=e256] [cursor=pointer]:
+                - /url: /inspiration/services-hobro-digital
+            - generic [ref=e257]: by
+            - figure [ref=e258]:
+              - link "Hobro Digital PRO" [ref=e259] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e260]
+                - superscript [ref=e262]: PRO
+      - listitem [ref=e264]:
+        - generic [ref=e265]:
+          - figure [ref=e266]:
+            - link "Animation" [ref=e267] [cursor=pointer]:
+              - /url: /inspiration/core-vision-hobro-digital-1
+            - generic:
+              - generic: video
+          - generic [ref=e271]:
+            - strong [ref=e272]:
+              - link "Services" [ref=e273] [cursor=pointer]:
+                - /url: /inspiration/core-vision-hobro-digital-1
+            - generic [ref=e274]: by
+            - figure [ref=e275]:
+              - link "Hobro Digital PRO" [ref=e276] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e277]
+                - superscript [ref=e279]: PRO
+      - listitem [ref=e281]:
+        - generic [ref=e282]:
+          - figure [ref=e283]:
+            - link "Streamline - Variant C" [ref=e284] [cursor=pointer]:
+              - /url: https://go.streamlinehq.com/guidance-elegant-wayfinding-icons
+              - img "Streamline - Variant C" [ref=e285]
+          - generic [ref=e290]: PROMOTED
+      - listitem [ref=e291]:
+        - generic [ref=e292]:
+          - figure [ref=e293]:
+            - link "Forms" [ref=e294] [cursor=pointer]:
+              - /url: /inspiration/contact-us-hobro-digital
+            - generic:
+              - generic: video
+          - generic [ref=e298]:
+            - strong [ref=e299]:
+              - link "Contact Us" [ref=e300] [cursor=pointer]:
+                - /url: /inspiration/contact-us-hobro-digital
+            - generic [ref=e301]: by
+            - figure [ref=e302]:
+              - link "Hobro Digital PRO" [ref=e303] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e304]
+                - superscript [ref=e306]: PRO
+      - listitem [ref=e308]:
+        - generic [ref=e309]:
+          - figure [ref=e310]:
+            - link "Illustration" [ref=e311] [cursor=pointer]:
+              - /url: /inspiration/manifest-hobro-digital-1
+            - generic:
+              - generic: video
+          - generic [ref=e315]:
+            - strong [ref=e316]:
+              - link "Manifest" [ref=e317] [cursor=pointer]:
+                - /url: /inspiration/manifest-hobro-digital-1
+            - generic [ref=e318]: by
+            - figure [ref=e319]:
+              - link "Hobro Digital PRO" [ref=e320] [cursor=pointer]:
+                - /url: /hobro.digital/
+                - img "Hobro Digital" [ref=e321]
+                - superscript [ref=e323]: PRO
+      - listitem [ref=e325]:
+        - generic [ref=e326]:
+          - figure [ref=e327]:
+            - link "About Us" [ref=e328] [cursor=pointer]:
+              - /url: /inspiration/about-page-tamas-olajos-al-filmmaker
+              - img "About Page" [ref=e329]
+          - generic [ref=e332]:
+            - strong [ref=e333]:
+              - link "About Page" [ref=e334] [cursor=pointer]:
+                - /url: /inspiration/about-page-tamas-olajos-al-filmmaker
+            - generic [ref=e335]: by
+            - figure [ref=e336]:
+              - link "Ginrin PRO" [ref=e337] [cursor=pointer]:
+                - /url: /ginrin/
+                - img "Ginrin" [ref=e338]
+                - superscript [ref=e340]: PRO
+      - listitem [ref=e342]:
+        - generic [ref=e343]:
+          - figure [ref=e344]:
+            - link "Contact" [ref=e345] [cursor=pointer]:
+              - /url: /inspiration/contact-page-tamas-olajos-al-filmmaker
+              - img "Contact Page" [ref=e346]
+          - generic [ref=e349]:
+            - strong [ref=e350]:
+              - link "Contact Page" [ref=e351] [cursor=pointer]:
+                - /url: /inspiration/contact-page-tamas-olajos-al-filmmaker
+            - generic [ref=e352]: by
+            - figure [ref=e353]:
+              - link "Ginrin PRO" [ref=e354] [cursor=pointer]:
+                - /url: /ginrin/
+                - img "Ginrin" [ref=e355]
+                - superscript [ref=e357]: PRO
+      - listitem [ref=e359]:
+        - generic [ref=e360]:
+          - figure [ref=e361]:
+            - link "Video" [ref=e362] [cursor=pointer]:
+              - /url: /inspiration/work-tamas-olajos-al-filmmaker
+              - img "Work" [ref=e363]
+          - generic [ref=e366]:
+            - strong [ref=e367]:
+              - link "Work" [ref=e368] [cursor=pointer]:
+                - /url: /inspiration/work-tamas-olajos-al-filmmaker
+            - generic [ref=e369]: by
+            - figure [ref=e370]:
+              - link "Ginrin PRO" [ref=e371] [cursor=pointer]:
+                - /url: /ginrin/
+                - img "Ginrin" [ref=e372]
+                - superscript [ref=e374]: PRO
+      - listitem [ref=e376]:
+        - generic [ref=e377]:
+          - figure [ref=e378]:
+            - link "Hero Image" [ref=e379] [cursor=pointer]:
+              - /url: /inspiration/home-page-hero-animation-riangle-v5
+            - generic:
+              - generic: video
+          - generic [ref=e383]:
+            - strong [ref=e384]:
+              - link "Home page hero animation" [ref=e385] [cursor=pointer]:
+                - /url: /inspiration/home-page-hero-animation-riangle-v5
+            - generic [ref=e386]: by
+            - figure [ref=e387]:
+              - link "Luan Gjokaj" [ref=e388] [cursor=pointer]:
+                - /url: /luangjokaj/
+                - img "Luan Gjokaj" [ref=e389]
+      - listitem [ref=e391]:
+        - generic [ref=e392]:
+          - figure [ref=e393]:
+            - link "404 pages" [ref=e394] [cursor=pointer]:
+              - /url: /inspiration/404-animated-interation-riangle-v5
+            - generic:
+              - generic: video
+              - generic:
+                - text: "2"
+                - img
+          - generic [ref=e398]:
+            - strong [ref=e399]:
+              - link "404 Animated Interation" [ref=e400] [cursor=pointer]:
+                - /url: /inspiration/404-animated-interation-riangle-v5
+            - generic [ref=e401]: by
+            - figure [ref=e402]:
+              - link "Luan Gjokaj" [ref=e403] [cursor=pointer]:
+                - /url: /luangjokaj/
+                - img "Luan Gjokaj" [ref=e404]
+      - listitem [ref=e406]:
+        - generic [ref=e407]:
+          - figure [ref=e408]:
+            - link "404 pages" [ref=e409] [cursor=pointer]:
+              - /url: /inspiration/404-abhay-singh
+            - generic:
+              - generic: video
+              - generic:
+                - text: "2"
+                - img
+          - generic [ref=e413]:
+            - strong [ref=e414]:
+              - link "404" [ref=e415] [cursor=pointer]:
+                - /url: /inspiration/404-abhay-singh
+            - generic [ref=e416]: by
+            - figure [ref=e417]:
+              - link "Abhay Singh" [ref=e418] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e419]
+      - listitem [ref=e421]:
+        - generic [ref=e422]:
+          - figure [ref=e423]:
+            - link "Menu" [ref=e424] [cursor=pointer]:
+              - /url: /inspiration/landing-abhay-singh
+            - generic:
+              - generic: video
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e428]:
+            - strong [ref=e429]:
+              - link "Landing" [ref=e430] [cursor=pointer]:
+                - /url: /inspiration/landing-abhay-singh
+            - generic [ref=e431]: by
+            - figure [ref=e432]:
+              - link "Abhay Singh" [ref=e433] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e434]
+      - listitem [ref=e436]:
+        - generic [ref=e437]:
+          - figure [ref=e438]:
+            - link "Branding (Logo, Design Systems)" [ref=e439] [cursor=pointer]:
+              - /url: /inspiration/project-abhay-singh
+            - generic:
+              - generic: video
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e443]:
+            - strong [ref=e444]:
+              - link "Project" [ref=e445] [cursor=pointer]:
+                - /url: /inspiration/project-abhay-singh
+            - generic [ref=e446]: by
+            - figure [ref=e447]:
+              - link "Abhay Singh" [ref=e448] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e449]
+      - listitem [ref=e451]:
+        - generic [ref=e452]:
+          - figure [ref=e453]:
+            - link "Content" [ref=e454] [cursor=pointer]:
+              - /url: /inspiration/project-abhay-singh-1
+            - generic:
+              - generic: video
+              - generic:
+                - text: "2"
+                - img
+          - generic [ref=e458]:
+            - strong [ref=e459]:
+              - link "Project" [ref=e460] [cursor=pointer]:
+                - /url: /inspiration/project-abhay-singh-1
+            - generic [ref=e461]: by
+            - figure [ref=e462]:
+              - link "Abhay Singh" [ref=e463] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e464]
+      - listitem [ref=e466]:
+        - generic [ref=e467]:
+          - figure [ref=e468]:
+            - link "Content" [ref=e469] [cursor=pointer]:
+              - /url: /inspiration/project-abhay-singh-2
+            - generic:
+              - generic: video
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e473]:
+            - strong [ref=e474]:
+              - link "Project" [ref=e475] [cursor=pointer]:
+                - /url: /inspiration/project-abhay-singh-2
+            - generic [ref=e476]: by
+            - figure [ref=e477]:
+              - link "Abhay Singh" [ref=e478] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e479]
+      - listitem [ref=e481]:
+        - generic [ref=e482]:
+          - figure [ref=e483]:
+            - link "Desktop thumbnail" [ref=e484] [cursor=pointer]:
+              - /url: /inspiration/desktop-abhay-singh
+          - generic [ref=e487]:
+            - strong:
+              - link:
+                - /url: /inspiration/desktop-abhay-singh
+            - generic [ref=e488]: by
+            - figure [ref=e489]:
+              - link "Abhay Singh" [ref=e490] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e491]
+      - listitem [ref=e493]:
+        - generic [ref=e494]:
+          - figure [ref=e495]:
+            - link "Mobile thumbnail" [ref=e496] [cursor=pointer]:
+              - /url: /inspiration/mobile-abhay-singh
+          - generic [ref=e499]:
+            - strong:
+              - link:
+                - /url: /inspiration/mobile-abhay-singh
+            - generic [ref=e500]: by
+            - figure [ref=e501]:
+              - link "Abhay Singh" [ref=e502] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e503]
+      - listitem [ref=e505]:
+        - generic [ref=e506]:
+          - figure [ref=e507]:
+            - link "Animation" [ref=e508] [cursor=pointer]:
+              - /url: /inspiration/handmade-animations-abhay-singh
+            - generic:
+              - generic: video
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e512]:
+            - strong [ref=e513]:
+              - link "Handmade Animations" [ref=e514] [cursor=pointer]:
+                - /url: /inspiration/handmade-animations-abhay-singh
+            - generic [ref=e515]: by
+            - figure [ref=e516]:
+              - link "Abhay Singh" [ref=e517] [cursor=pointer]:
+                - /url: /abhaykun/
+                - img "Abhay Singh" [ref=e518]
+      - listitem [ref=e520]:
+        - generic [ref=e521]:
+          - figure [ref=e522]:
+            - link "About Us" [ref=e523] [cursor=pointer]:
+              - /url: /inspiration/about-page-sokolovski-pro
+              - img "About page" [ref=e524]
+            - generic:
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e527]:
+            - strong [ref=e528]:
+              - link "About page" [ref=e529] [cursor=pointer]:
+                - /url: /inspiration/about-page-sokolovski-pro
+            - generic [ref=e530]: by
+            - figure [ref=e531]:
+              - link "Eugene Sokolovski" [ref=e532] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e533]
+      - listitem [ref=e535]:
+        - generic [ref=e536]:
+          - figure [ref=e537]:
+            - link "Other Element" [ref=e538] [cursor=pointer]:
+              - /url: /inspiration/main-sokolovski-pro
+              - img "Main" [ref=e539]
+            - generic:
+              - generic:
+                - text: "2"
+                - img
+          - generic [ref=e542]:
+            - strong [ref=e543]:
+              - link "Main" [ref=e544] [cursor=pointer]:
+                - /url: /inspiration/main-sokolovski-pro
+            - generic [ref=e545]: by
+            - figure [ref=e546]:
+              - link "Eugene Sokolovski" [ref=e547] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e548]
+      - listitem [ref=e550]:
+        - generic [ref=e551]:
+          - figure [ref=e552]:
+            - link "Other Element" [ref=e553] [cursor=pointer]:
+              - /url: /inspiration/branding-page-sokolovski-pro
+              - img "Branding page" [ref=e554]
+            - generic:
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e557]:
+            - strong [ref=e558]:
+              - link "Branding page" [ref=e559] [cursor=pointer]:
+                - /url: /inspiration/branding-page-sokolovski-pro
+            - generic [ref=e560]: by
+            - figure [ref=e561]:
+              - link "Eugene Sokolovski" [ref=e562] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e563]
+      - listitem [ref=e565]:
+        - generic [ref=e566]:
+          - figure [ref=e567]:
+            - link "Contact" [ref=e568] [cursor=pointer]:
+              - /url: /inspiration/contacts-sokolovski-pro
+              - img "Contacts" [ref=e569]
+          - generic [ref=e572]:
+            - strong [ref=e573]:
+              - link "Contacts" [ref=e574] [cursor=pointer]:
+                - /url: /inspiration/contacts-sokolovski-pro
+            - generic [ref=e575]: by
+            - figure [ref=e576]:
+              - link "Eugene Sokolovski" [ref=e577] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e578]
+      - listitem [ref=e580]:
+        - generic [ref=e581]:
+          - figure [ref=e582]:
+            - link "Other Element" [ref=e583] [cursor=pointer]:
+              - /url: /inspiration/approach-page-sokolovski-pro
+              - img "Approach page" [ref=e584]
+            - generic:
+              - generic:
+                - text: "2"
+                - img
+          - generic [ref=e587]:
+            - strong [ref=e588]:
+              - link "Approach page" [ref=e589] [cursor=pointer]:
+                - /url: /inspiration/approach-page-sokolovski-pro
+            - generic [ref=e590]: by
+            - figure [ref=e591]:
+              - link "Eugene Sokolovski" [ref=e592] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e593]
+      - listitem [ref=e595]:
+        - generic [ref=e596]:
+          - figure [ref=e597]:
+            - link "Other Element" [ref=e598] [cursor=pointer]:
+              - /url: /inspiration/website-dev-page-sokolovski-pro
+              - img "Website dev page" [ref=e599]
+            - generic:
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e602]:
+            - strong [ref=e603]:
+              - link "Website dev page" [ref=e604] [cursor=pointer]:
+                - /url: /inspiration/website-dev-page-sokolovski-pro
+            - generic [ref=e605]: by
+            - figure [ref=e606]:
+              - link "Eugene Sokolovski" [ref=e607] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e608]
+      - listitem [ref=e610]:
+        - generic [ref=e611]:
+          - figure [ref=e612]:
+            - link "Mobile thumbnail" [ref=e613] [cursor=pointer]:
+              - /url: /inspiration/mobile-sokolovski-pro
+          - generic [ref=e616]:
+            - strong:
+              - link:
+                - /url: /inspiration/mobile-sokolovski-pro
+            - generic [ref=e617]: by
+            - figure [ref=e618]:
+              - link "Eugene Sokolovski" [ref=e619] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e620]
+      - listitem [ref=e622]:
+        - generic [ref=e623]:
+          - figure [ref=e624]:
+            - link "Desktop thumbnail" [ref=e625] [cursor=pointer]:
+              - /url: /inspiration/desktop-sokolovski-pro
+          - generic [ref=e628]:
+            - strong:
+              - link:
+                - /url: /inspiration/desktop-sokolovski-pro
+            - generic [ref=e629]: by
+            - figure [ref=e630]:
+              - link "Eugene Sokolovski" [ref=e631] [cursor=pointer]:
+                - /url: /eugenesokolovski/
+                - img "Eugene Sokolovski" [ref=e632]
+      - listitem [ref=e634]:
+        - generic [ref=e635]:
+          - figure [ref=e636]:
+            - link "Content" [ref=e637] [cursor=pointer]:
+              - /url: /inspiration/bios-leonardo-moreira
+              - img "BIOS" [ref=e638]
+            - generic:
+              - generic:
+                - text: "3"
+                - img
+          - generic [ref=e641]:
+            - strong [ref=e642]:
+              - link "BIOS" [ref=e643] [cursor=pointer]:
+                - /url: /inspiration/bios-leonardo-moreira
+            - generic [ref=e644]: by
+            - figure [ref=e645]:
+              - link "Leonardo Moreira PRO" [ref=e646] [cursor=pointer]:
+                - /url: /leonardomoreira/
+                - img "Leonardo Moreira" [ref=e647]
+                - superscript [ref=e649]: PRO
+  - contentinfo [ref=e652]:
+    - generic [ref=e653]:
+      - generic [ref=e654]:
+        - paragraph [ref=e655]:
+          - img [ref=e656]
+        - generic [ref=e659]:
+          - list [ref=e660]:
+            - listitem [ref=e661]:
+              - link "Websites" [ref=e662] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e663]:
+              - link "Collections" [ref=e664] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e665]:
+              - link "Elements" [ref=e666] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e667]:
+            - listitem [ref=e668]:
+              - link "Academy" [ref=e669] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e670]:
+              - link "Jobs" [ref=e671] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e672]:
+              - link "Market" [ref=e673] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e674]:
+            - listitem [ref=e675]:
+              - link "Directory" [ref=e676] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e677]:
+              - link "Conferences" [ref=e678] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e679]:
+            - listitem [ref=e680]:
+              - link "FAQs" [ref=e681] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e682]:
+              - link "About Us" [ref=e683] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e684]:
+              - link "Contact Us" [ref=e685] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e686]:
+        - list [ref=e688]:
+          - listitem [ref=e689]:
+            - link "Cookies Policy" [ref=e690] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e691]:
+            - link "Legal Terms" [ref=e692] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e693]:
+            - link "Privacy Policy" [ref=e694] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e696]:
+          - listitem [ref=e697]:
+            - strong [ref=e698]: "Connect:"
+          - listitem [ref=e699]:
+            - link "Instagram" [ref=e700] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e701]:
+            - link "LinkedIn" [ref=e702] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e703]:
+            - link "Twitter" [ref=e704] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e705]:
+            - link "Facebook" [ref=e706] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e707]:
+            - link "YouTube" [ref=e708] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e709]:
+            - link "TikTok" [ref=e710] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e711]:
+            - link "Pinterest" [ref=e712] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

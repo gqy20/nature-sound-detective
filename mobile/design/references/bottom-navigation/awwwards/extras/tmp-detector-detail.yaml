@@ -1,0 +1,292 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://detector.io/
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Nominee - May 28, 2026" [level=2] [ref=e151]
+            - heading "Detector.io" [level=1] [ref=e153]:
+              - link "Detector.io" [ref=e154] [cursor=pointer]:
+                - /url: https://detector.io/
+            - list [ref=e158]:
+              - listitem [ref=e159]:
+                - figure [ref=e161]:
+                  - link "Detector.io" [ref=e162] [cursor=pointer]:
+                    - /url: /Detector/
+                    - strong [ref=e164]: Detector.io
+        - list [ref=e166]:
+          - listitem [ref=e167]:
+            - link [ref=e168] [cursor=pointer]:
+              - /url: https://detector.io/
+      - heading "Detector.io is an AI detection tool that scans text for AI-generated patterns, helping students, writers, and professionals ensure originality and authenticity." [level=3] [ref=e173]
+    - generic [ref=e176]:
+      - generic [ref=e177]:
+        - heading "Elements" [level=2] [ref=e179]
+        - heading "See the highlights of this website." [level=3] [ref=e181]:
+          - text: See the highlights
+          - text: of this website.
+      - generic [ref=e182]:
+        - figure [ref=e183]:
+          - link "AI Humanizer" [ref=e184] [cursor=pointer]:
+            - /url: /inspiration/ai-humanizer-detector-io
+            - img "AI Humanizer" [ref=e185]
+        - figure [ref=e186]:
+          - link "AI paraphrasing tool" [ref=e187] [cursor=pointer]:
+            - /url: /inspiration/ai-paraphrasing-tool-detector-io
+            - img "AI paraphrasing tool" [ref=e188]
+        - figure [ref=e189]:
+          - link "Plagiarism checker" [ref=e190] [cursor=pointer]:
+            - /url: /inspiration/plagiarism-checker-detector-io
+            - img "Plagiarism checker" [ref=e191]
+        - figure [ref=e192]:
+          - link "Blog" [ref=e193] [cursor=pointer]:
+            - /url: /inspiration/blog-detector-io
+            - img "Blog" [ref=e194]
+        - figure [ref=e195]:
+          - link [ref=e196] [cursor=pointer]:
+            - /url: /inspiration/desktop-detector-io
+    - generic [ref=e198]:
+      - paragraph [ref=e199]: This website was built with...
+      - list [ref=e201]:
+        - listitem [ref=e202]
+        - listitem [ref=e204]:
+          - strong [ref=e205]:
+            - link "Technology" [ref=e206] [cursor=pointer]:
+              - /url: /websites/technology/
+        - listitem [ref=e207]:
+          - strong [ref=e208]:
+            - link "Web & Interactive" [ref=e209] [cursor=pointer]:
+              - /url: /websites/web-interactive/
+        - listitem [ref=e210]:
+          - strong [ref=e211]:
+            - link "Startups" [ref=e212] [cursor=pointer]:
+              - /url: /websites/startups/
+        - listitem [ref=e213]:
+          - strong [ref=e214]:
+            - link "Navigation Menu" [ref=e215] [cursor=pointer]:
+              - /url: /websites/navigation/
+        - listitem [ref=e216]:
+          - strong [ref=e217]:
+            - link "Menu - Horizontal" [ref=e218] [cursor=pointer]:
+              - /url: /websites/menu-horizontal/
+        - listitem [ref=e219]:
+          - strong [ref=e220]:
+            - link "Next.js" [ref=e221] [cursor=pointer]:
+              - /url: /websites/next-js/
+    - generic [ref=e224]:
+      - generic [ref=e226]:
+        - heading "Votes" [level=2] [ref=e227]
+        - list [ref=e228]:
+          - listitem [ref=e229] [cursor=pointer]: Community Members
+      - list [ref=e232]:
+        - listitem [ref=e233]:
+          - generic [ref=e234]:
+            - figure [ref=e235]:
+              - link "Sukumar Swain" [ref=e236] [cursor=pointer]:
+                - /url: /sukumarswain/
+                - img "Sukumar Swain" [ref=e237]
+            - generic [ref=e238]:
+              - generic [ref=e239]:
+                - strong [ref=e240]: Sukumar Swain
+                - text: "* from"
+                - strong [ref=e241]: India
+              - generic [ref=e242]: sukumarswain.com
+          - generic [ref=e245]: "6.40"
+        - listitem [ref=e246]:
+          - generic [ref=e247]:
+            - figure [ref=e248]:
+              - link "PopArt Studio" [ref=e249] [cursor=pointer]:
+                - /url: /popartstudio/
+                - img "PopArt Studio" [ref=e250]
+            - generic [ref=e251]:
+              - generic [ref=e252]:
+                - strong [ref=e253]: PopArt Studio
+                - text: from
+                - strong [ref=e254]: United States
+              - generic [ref=e255]: popwebdesign.net
+          - generic [ref=e258]: "7.10"
+        - listitem [ref=e259]:
+          - generic [ref=e260]:
+            - figure [ref=e261]:
+              - link "romain-gelb" [ref=e262] [cursor=pointer]:
+                - /url: /romain-gelb/
+                - img "romain-gelb" [ref=e263]
+            - generic [ref=e264]:
+              - generic [ref=e265]:
+                - strong [ref=e266]: romain-gelb
+                - text: "* from"
+                - strong [ref=e267]: France
+              - generic [ref=e268]: studiofief.com
+          - generic [ref=e271]: "5.00"
+        - listitem [ref=e272]:
+          - generic [ref=e273]:
+            - figure [ref=e274]:
+              - link "Andrianjaka Tony" [ref=e275] [cursor=pointer]:
+                - /url: /andrianjaka.tony/
+                - img "Andrianjaka Tony" [ref=e276]
+            - generic [ref=e277]:
+              - generic [ref=e278]:
+                - strong [ref=e279]: Andrianjaka Tony
+                - text: "* from"
+                - strong [ref=e280]: Madagascar
+              - generic [ref=e281]: tonyandrianjaka.vercel.app
+          - generic [ref=e284]: "6.40"
+        - listitem [ref=e285]:
+          - generic [ref=e286]:
+            - figure [ref=e287]:
+              - link "ClickON" [ref=e288] [cursor=pointer]:
+                - /url: /clickon/
+                - img "ClickON" [ref=e289]
+            - generic [ref=e290]:
+              - generic [ref=e291]:
+                - strong [ref=e292]: ClickON
+                - text: from
+                - strong [ref=e293]: Spain
+              - generic [ref=e294]: clickon.pro
+          - generic [ref=e297]: "7.60"
+          - generic [ref=e299] [cursor=pointer]: •••
+  - contentinfo [ref=e300]:
+    - generic [ref=e301]:
+      - generic [ref=e302]:
+        - paragraph [ref=e303]:
+          - img [ref=e304]
+        - generic [ref=e307]:
+          - list [ref=e308]:
+            - listitem [ref=e309]:
+              - link "Websites" [ref=e310] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e311]:
+              - link "Collections" [ref=e312] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e313]:
+              - link "Elements" [ref=e314] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e315]:
+            - listitem [ref=e316]:
+              - link "Academy" [ref=e317] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e318]:
+              - link "Jobs" [ref=e319] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e320]:
+              - link "Market" [ref=e321] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e322]:
+            - listitem [ref=e323]:
+              - link "Directory" [ref=e324] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e325]:
+              - link "Conferences" [ref=e326] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e327]:
+            - listitem [ref=e328]:
+              - link "FAQs" [ref=e329] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e330]:
+              - link "About Us" [ref=e331] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e332]:
+              - link "Contact Us" [ref=e333] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e334]:
+        - list [ref=e336]:
+          - listitem [ref=e337]:
+            - link "Cookies Policy" [ref=e338] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e339]:
+            - link "Legal Terms" [ref=e340] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e341]:
+            - link "Privacy Policy" [ref=e342] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e344]:
+          - listitem [ref=e345]:
+            - strong [ref=e346]: "Connect:"
+          - listitem [ref=e347]:
+            - link "Instagram" [ref=e348] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e349]:
+            - link "LinkedIn" [ref=e350] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e351]:
+            - link "Twitter" [ref=e352] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e353]:
+            - link "Facebook" [ref=e354] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e355]:
+            - link "YouTube" [ref=e356] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e357]:
+            - link "TikTok" [ref=e358] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e359]:
+            - link "Pinterest" [ref=e360] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

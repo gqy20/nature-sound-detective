@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/services.dart';
@@ -14,6 +13,7 @@ import 'package:nature_sound_detective/features/capture/capture_page.dart';
 import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/navigation/primary_feature.dart';
+import 'package:nature_sound_detective/features/navigation/primary_feature_store.dart';
 import 'package:nature_sound_detective/features/park_guide/park_guide_page.dart';
 
 class PrimaryFeatureShell extends StatefulWidget {
@@ -24,6 +24,7 @@ class PrimaryFeatureShell extends StatefulWidget {
     required this.onModeChanged,
     required this.familySessionCoordinator,
     this.preloadSoundscape = true,
+    this.featureStore,
   });
 
   final RecordingAnalyzer? analyzer;
@@ -31,17 +32,19 @@ class PrimaryFeatureShell extends StatefulWidget {
   final ValueChanged<ExplorationMode> onModeChanged;
   final FamilySessionCoordinator familySessionCoordinator;
   final bool preloadSoundscape;
+  final PrimaryFeatureStore? featureStore;
 
   @override
   State<PrimaryFeatureShell> createState() => _PrimaryFeatureShellState();
 }
 
 class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final PageController _controller = PageController();
   final ValueNotifier<double> _pagePositionNotifier = ValueNotifier(0);
   final ExplorationStore _store = FileExplorationStore();
   late final AnimationController _directTransitionController;
+  late final PrimaryFeatureStore _featureStore;
   SoundscapePreloader? _soundscapePreloader;
   int _selectedIndex = 0;
   int _settledIndex = 0;
@@ -53,9 +56,10 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   String? _activeNavigationTrigger;
   Timer? _navigationSettleTimer;
   bool _soundscapeMapPrecacheStarted = false;
+  int _restoreRevision = 0;
 
-  List<PrimaryFeature> get _availableFeatures =>
-      widget.mode == ExplorationMode.parent
+  List<PrimaryFeature> _featuresFor(ExplorationMode mode) =>
+      mode == ExplorationMode.parent
       ? PrimaryFeature.values
       : const [
           PrimaryFeature.capture,
@@ -63,12 +67,16 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           PrimaryFeature.natureBook,
         ];
 
+  List<PrimaryFeature> get _availableFeatures => _featuresFor(widget.mode);
+
   int _pageIndexOf(PrimaryFeature feature) =>
       _availableFeatures.indexOf(feature);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _featureStore = widget.featureStore ?? PrimaryFeatureStore();
     _directTransitionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 240),
@@ -78,6 +86,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
       unawaited(_startSoundscapePreload());
     }
     _controller.addListener(_trackPagePosition);
+    unawaited(_restoreSelectedFeature());
   }
 
   @override
@@ -92,6 +101,14 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   void didUpdateWidget(covariant PrimaryFeatureShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.mode == widget.mode) return;
+    final oldFeatures = _featuresFor(oldWidget.mode);
+    if (_selectedIndex >= 0 && _selectedIndex < oldFeatures.length) {
+      unawaited(
+        _featureStore
+            .save(oldWidget.mode, oldFeatures[_selectedIndex])
+            .catchError((_) {}),
+      );
+    }
     _selectedIndex = 0;
     _settledIndex = 0;
     _gestureStartIndex = 0;
@@ -99,6 +116,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _controller.hasClients) _controller.jumpToPage(0);
     });
+    unawaited(_restoreSelectedFeature());
   }
 
   Future<void> _precacheSoundscapeMap() async {
@@ -127,6 +145,8 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_persistSelectedFeature());
     _controller
       ..removeListener(_trackPagePosition)
       ..dispose();
@@ -135,6 +155,46 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     _navigationSettleTimer?.cancel();
     _soundscapePreloader?.close();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if ({
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.detached,
+    }.contains(state)) {
+      unawaited(_persistSelectedFeature());
+    }
+  }
+
+  Future<void> _restoreSelectedFeature() async {
+    final revision = ++_restoreRevision;
+    final mode = widget.mode;
+    final feature = await _featureStore.load(mode);
+    if (!mounted || revision != _restoreRevision || mode != widget.mode) return;
+    final available = _availableFeatures;
+    final targetIndex = feature == null ? -1 : available.indexOf(feature);
+    if (targetIndex <= 0) return;
+    setState(() {
+      _selectedIndex = targetIndex;
+      _settledIndex = targetIndex;
+      _gestureStartIndex = targetIndex;
+      _pagePositionNotifier.value = targetIndex.toDouble();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _controller.hasClients) {
+        _controller.jumpToPage(targetIndex);
+      }
+    });
+  }
+
+  Future<void> _persistSelectedFeature() async {
+    final available = _availableFeatures;
+    if (_selectedIndex < 0 || _selectedIndex >= available.length) return;
+    try {
+      await _featureStore.save(widget.mode, available[_selectedIndex]);
+    } catch (_) {}
   }
 
   void _trackPagePosition() {
@@ -380,7 +440,6 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           mode: widget.mode,
           onModeChanged: widget.onModeChanged,
           familySessionCoordinator: widget.familySessionCoordinator,
-          primaryPagePosition: _pagePositionNotifier,
           onPrimaryFeatureSelected: (feature) =>
               _selectFeature(feature, trigger: 'button'),
           onPrimarySwipeLockChanged: _setSwipeLocked,
@@ -414,16 +473,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         ),
       ),
     ];
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final pages = <Widget>[
-      for (var index = 0; index < rawPages.length; index++)
-        _PrimaryPageMotion(
-          index: index,
-          pagePosition: _pagePositionNotifier,
-          enabled: !reduceMotion,
-          child: rawPages[index],
-        ),
-    ];
+    final pages = rawPages;
 
     return PopScope(
       canPop: _selectedIndex == 0,
@@ -435,6 +485,15 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         }
       },
       child: Scaffold(
+        extendBody: true,
+        bottomNavigationBar: _FloatingPrimaryNavigationBar(
+          mode: widget.mode,
+          features: available,
+          selectedIndex: _selectedIndex,
+          navigationLocked: _swipeLocked,
+          onSelected: (index) =>
+              _selectFeature(available[index], trigger: 'bottom_navigation'),
+        ),
         body: Stack(
           children: [
             AnimatedBuilder(
@@ -444,14 +503,11 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
                 final opacity = progress <= .35
                     ? 1 - progress / .35
                     : (progress - .35) / .65;
-                final scale = progress <= .35
-                    ? 1 - progress / .35 * .015
-                    : .985 + (progress - .35) / .65 * .015;
                 return ColoredBox(
                   color: const Color(0xFFE5EDE7),
                   child: Opacity(
                     opacity: opacity.clamp(0.0, 1.0),
-                    child: Transform.scale(scale: scale, child: child),
+                    child: child,
                   ),
                 );
               },
@@ -488,38 +544,127 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   }
 }
 
-class _PrimaryPageMotion extends StatelessWidget {
-  const _PrimaryPageMotion({
-    required this.index,
-    required this.pagePosition,
-    required this.enabled,
-    required this.child,
+class _FloatingPrimaryNavigationBar extends StatelessWidget {
+  const _FloatingPrimaryNavigationBar({
+    required this.mode,
+    required this.features,
+    required this.selectedIndex,
+    required this.navigationLocked,
+    required this.onSelected,
   });
 
-  final int index;
-  final ValueListenable<double> pagePosition;
-  final bool enabled;
-  final Widget child;
+  final ExplorationMode mode;
+  final List<PrimaryFeature> features;
+  final int selectedIndex;
+  final bool navigationLocked;
+  final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    if (!enabled) return child;
-    return AnimatedBuilder(
-      animation: pagePosition,
-      child: child,
-      builder: (context, child) {
-        final distance = (pagePosition.value - index).abs().clamp(0.0, 1.0);
-        final scale = 1 - distance * .014;
-        final radius = distance * 18;
-        return Transform.scale(
-          scale: scale,
+    const radius = 28.0;
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Semantics(
+        label: '主功能导航',
+        enabled: !navigationLocked,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xF8FFFDF7),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(color: const Color(0xFFD7DED4)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1F183629),
+                blurRadius: 22,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(radius),
-            child: child,
+            child: NavigationBarTheme(
+              data: NavigationBarThemeData(
+                height: 72,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                surfaceTintColor: Colors.transparent,
+                indicatorColor: const Color(0xFFDCEBDD),
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                iconTheme: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return IconThemeData(
+                    size: selected ? 25 : 23,
+                    color: selected
+                        ? const Color(0xFF174936)
+                        : const Color(0xFF69766F),
+                  );
+                }),
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return TextStyle(
+                    color: selected
+                        ? const Color(0xFF174936)
+                        : const Color(0xFF69766F),
+                    fontSize: 12.5,
+                    height: 1.1,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  );
+                }),
+              ),
+              child: NavigationBar(
+                key: const Key('primary-feature-navigation-bar'),
+                selectedIndex: selectedIndex,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                onDestinationSelected: onSelected,
+                destinations: [
+                  for (final feature in features)
+                    NavigationDestination(
+                      key: _destinationKey(feature),
+                      icon: Icon(_destinationIcon(feature, selected: false)),
+                      selectedIcon: Icon(
+                        _destinationIcon(feature, selected: true),
+                      ),
+                      label: _destinationLabel(feature),
+                      tooltip: _destinationTooltip(feature),
+                    ),
+                ],
+              ),
+            ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  }
+
+  static Key _destinationKey(PrimaryFeature feature) => switch (feature) {
+    PrimaryFeature.capture => const Key('capture-button'),
+    PrimaryFeature.soundscape => const Key('soundscape-button'),
+    PrimaryFeature.parkGuide => const Key('park-guide-button'),
+    PrimaryFeature.natureBook => const Key('works-button'),
+  };
+
+  IconData _destinationIcon(PrimaryFeature feature, {required bool selected}) {
+    if (mode == ExplorationMode.parent && feature == PrimaryFeature.capture) {
+      return selected ? Icons.favorite_rounded : Icons.favorite_outline_rounded;
+    }
+    return selected ? feature.selectedIcon : feature.icon;
+  }
+
+  String _destinationLabel(PrimaryFeature feature) {
+    if (mode == ExplorationMode.parent && feature == PrimaryFeature.capture) {
+      return '陪伴';
+    }
+    return feature.navigationLabel;
+  }
+
+  String _destinationTooltip(PrimaryFeature feature) {
+    if (mode == ExplorationMode.parent && feature == PrimaryFeature.capture) {
+      return '家长陪伴';
+    }
+    return feature.label;
   }
 }
 

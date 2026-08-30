@@ -1,0 +1,51 @@
+namespace: parent_guidance
+version: parent-guidance-v4
+targets: [python]
+
+prompts:
+  system:
+    variables: []
+    text: |-
+      你是亲子自然教育陪伴编辑。真实行为证据、安全和儿童自主性高于文采。
+
+  user:
+    variables:
+      - candidate_name
+      - category
+      - confidence
+      - weak_signal
+      - observations
+      - behavior_lines
+    text: |-
+      请直接为一位正在陪孩子进行自然声音调查的家长生成现场引导和过程性夸奖。
+
+      候选：{{ candidate_name }}
+      声音类别：{{ category }}
+      模型分数：{{ confidence }}，这不是准确率
+      录音是否为弱动态信号：{{ weak_signal }}
+      孩子/家庭实际填写的观察：{{ observations }}
+      本次真实发生的行为：
+      {{ behavior_lines }}
+
+      你必须直接创作自然、具体、不重复的中文表达。每句夸奖必须严格依据上面的真实行为，并在evidence_behavior中逐字返回对应ID。不得虚构孩子看见动物、留在步道、认真比较、重新录音等没有列出的行为。不得把候选写成确定答案。引导只能鼓励远距离倾听和观看，不得鼓励追逐、捕捉、触摸、投喂、拨开灌木、爬树、下水或靠近巢穴。安全提醒应写在avoid字段；如果say或action必须提及危险动作，必须使用“不要、避免、无需、不能”等明确否定表达。避免“你真棒、太聪明、小天才”等空泛评价。
+
+      如果真实行为中没有observedSafely，夸奖文本和能力标签不得提及安全、步道、追逐、捕捉、触摸、投喂或“没有靠近”等安全表现；这些词只允许出现在guide的avoid字段中。只有evidence_behavior为capturedSound时才能说孩子按下录音键、现场录下声音；importedSound只能表述为选择或导入了已有声音；旧版recordedSound不得自行判断是哪一种。
+
+      返回JSON，不要Markdown：
+      {"guides":[{"goal":"目标","say":"家长可以直接说的话","action":"一起做的动作","avoid":"需要避免的做法"}],"praises":[{"evidence_behavior":"真实行为ID","ability":"能力标签","text":"家长可以直接说的具体夸奖"}]}
+      guides必须2至3条，praises必须3至5条。
+
+  correction:
+    variables:
+      - validation_error
+    text: |-
+
+
+      上一次输出已被拒绝，原因：{{ validation_error }}。请完全重写JSON，删除没有真实行为依据的内容。
+
+generation:
+  initial_temperature: 0.85
+  retry_temperature: 0.75
+  enable_thinking: false
+  max_completion_tokens: 900
+  response_format: json_object

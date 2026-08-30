@@ -1,0 +1,302 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://www.robertoizquierdo.com
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Nominee - Aug 21, 2026" [level=2] [ref=e151]
+            - heading "RI/OS" [level=1] [ref=e153]:
+              - link "RI/OS" [ref=e154] [cursor=pointer]:
+                - /url: https://www.robertoizquierdo.com
+            - list [ref=e158]:
+              - listitem [ref=e159]:
+                - figure [ref=e161]:
+                  - link "Roberto Izquierdo" [ref=e162] [cursor=pointer]:
+                    - /url: /roberto.izquierdo/
+                    - strong [ref=e164]: Roberto Izquierdo
+        - list [ref=e166]:
+          - listitem [ref=e167]:
+            - link [ref=e168] [cursor=pointer]:
+              - /url: https://www.robertoizquierdo.com
+      - heading "RI/OS turns Roberto Izquierdo's portfolio into a working desktop OS with real apps, a dock, Spotlight-style search, and hidden easter eggs, replacing a static resume site." [level=3] [ref=e173]
+    - generic [ref=e176]:
+      - generic [ref=e177]:
+        - heading "Elements" [level=2] [ref=e179]
+        - heading "See the highlights of this website." [level=3] [ref=e181]:
+          - text: See the highlights
+          - text: of this website.
+      - generic [ref=e182]:
+        - figure [ref=e183]:
+          - link [ref=e184] [cursor=pointer]:
+            - /url: /inspiration/mobile-ri-os
+        - figure [ref=e185]:
+          - link [ref=e186] [cursor=pointer]:
+            - /url: /inspiration/desktop-ri-os
+        - figure [ref=e187]:
+          - link "About me" [ref=e188] [cursor=pointer]:
+            - /url: /inspiration/about-me-ri-os
+            - img "About me" [ref=e189]
+        - figure [ref=e190]:
+          - link "RI Code" [ref=e191] [cursor=pointer]:
+            - /url: /inspiration/ri-code-ri-os
+            - img "RI Code" [ref=e192]
+        - figure [ref=e193]:
+          - link "RI Resident" [ref=e194] [cursor=pointer]:
+            - /url: /inspiration/ri-resident-ri-os
+            - img "RI Resident" [ref=e195]
+        - figure [ref=e196]:
+          - link "Terminal" [ref=e197] [cursor=pointer]:
+            - /url: /inspiration/terminal-ri-os
+            - img "Terminal" [ref=e198]
+    - generic [ref=e200]:
+      - paragraph [ref=e201]: This website was built with...
+      - list [ref=e203]:
+        - listitem [ref=e204]
+        - listitem [ref=e206]
+        - listitem [ref=e208]:
+          - strong [ref=e209]:
+            - link "Technology" [ref=e210] [cursor=pointer]:
+              - /url: /websites/technology/
+        - listitem [ref=e211]:
+          - strong [ref=e212]:
+            - link "Web & Interactive" [ref=e213] [cursor=pointer]:
+              - /url: /websites/web-interactive/
+        - listitem [ref=e214]:
+          - strong [ref=e215]:
+            - link "Portfolio" [ref=e216] [cursor=pointer]:
+              - /url: /websites/portfolio/
+        - listitem [ref=e217]:
+          - strong [ref=e218]:
+            - link "Responsive Design" [ref=e219] [cursor=pointer]:
+              - /url: /websites/responsive-design/
+        - listitem [ref=e220]:
+          - strong [ref=e221]:
+            - link "Unusual Navigation" [ref=e222] [cursor=pointer]:
+              - /url: /websites/unusual-navigation/
+        - listitem [ref=e223]:
+          - strong [ref=e224]:
+            - link "UI design" [ref=e225] [cursor=pointer]:
+              - /url: /websites/ui-design/
+        - listitem [ref=e226]:
+          - strong [ref=e227]:
+            - link "About Page" [ref=e228] [cursor=pointer]:
+              - /url: /websites/about-page/
+        - listitem [ref=e229]:
+          - strong [ref=e230]:
+            - link "Project Page" [ref=e231] [cursor=pointer]:
+              - /url: /websites/project-page/
+        - listitem [ref=e232]:
+          - strong [ref=e233]:
+            - link "CSS" [ref=e234] [cursor=pointer]:
+              - /url: /websites/css3/
+        - listitem [ref=e235]:
+          - strong [ref=e236]:
+            - link "HTML5" [ref=e237] [cursor=pointer]:
+              - /url: /websites/html5/
+        - listitem [ref=e238]:
+          - strong [ref=e239]:
+            - link "Javascript" [ref=e240] [cursor=pointer]:
+              - /url: /websites/javascript/
+    - generic [ref=e243]:
+      - generic [ref=e245]:
+        - heading "Votes" [level=2] [ref=e246]
+        - list [ref=e247]:
+          - listitem [ref=e248] [cursor=pointer]: Community Members
+      - list [ref=e251]:
+        - listitem [ref=e252]:
+          - generic [ref=e253]:
+            - figure [ref=e254]:
+              - link "SwarajSingh" [ref=e255] [cursor=pointer]:
+                - /url: /swaraj-singh/
+                - img "SwarajSingh" [ref=e256]
+            - generic [ref=e257]:
+              - generic [ref=e258]:
+                - strong [ref=e259]: SwarajSingh
+                - text: "* from"
+                - strong [ref=e260]: India
+              - generic [ref=e261]: portfolio-25-phi.vercel.app
+          - generic [ref=e264]: "7.00"
+        - listitem [ref=e265]:
+          - generic [ref=e266]:
+            - figure [ref=e267]:
+              - link "juulvrasdonk" [ref=e268] [cursor=pointer]:
+                - /url: /juulvrasdonk/
+                - img "juulvrasdonk" [ref=e269]
+            - generic [ref=e270]:
+              - generic [ref=e271]:
+                - strong [ref=e272]: juulvrasdonk
+                - text: "* from"
+                - strong [ref=e273]: Netherlands
+              - generic [ref=e274]: juulvrasdonk.nl
+          - generic [ref=e277]: "6.60"
+        - listitem [ref=e278]:
+          - generic [ref=e279]:
+            - figure [ref=e280]:
+              - link "romain-gelb" [ref=e281] [cursor=pointer]:
+                - /url: /romain-gelb/
+                - img "romain-gelb" [ref=e282]
+            - generic [ref=e283]:
+              - generic [ref=e284]:
+                - strong [ref=e285]: romain-gelb
+                - text: "* from"
+                - strong [ref=e286]: France
+              - generic [ref=e287]: studiofief.com
+          - generic [ref=e290]: "7.00"
+        - listitem [ref=e291]:
+          - generic [ref=e292]:
+            - figure [ref=e293]:
+              - link "Andrianjaka Tony" [ref=e294] [cursor=pointer]:
+                - /url: /andrianjaka.tony/
+                - img "Andrianjaka Tony" [ref=e295]
+            - generic [ref=e296]:
+              - generic [ref=e297]:
+                - strong [ref=e298]: Andrianjaka Tony
+                - text: "* from"
+                - strong [ref=e299]: Madagascar
+              - generic [ref=e300]: tonyandrianjaka.vercel.app
+          - generic [ref=e303]: "6.70"
+  - contentinfo [ref=e304]:
+    - generic [ref=e305]:
+      - generic [ref=e306]:
+        - paragraph [ref=e307]:
+          - img [ref=e308]
+        - generic [ref=e311]:
+          - list [ref=e312]:
+            - listitem [ref=e313]:
+              - link "Websites" [ref=e314] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e315]:
+              - link "Collections" [ref=e316] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e317]:
+              - link "Elements" [ref=e318] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e319]:
+            - listitem [ref=e320]:
+              - link "Academy" [ref=e321] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e322]:
+              - link "Jobs" [ref=e323] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e324]:
+              - link "Market" [ref=e325] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e326]:
+            - listitem [ref=e327]:
+              - link "Directory" [ref=e328] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e329]:
+              - link "Conferences" [ref=e330] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e331]:
+            - listitem [ref=e332]:
+              - link "FAQs" [ref=e333] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e334]:
+              - link "About Us" [ref=e335] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e336]:
+              - link "Contact Us" [ref=e337] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e338]:
+        - list [ref=e340]:
+          - listitem [ref=e341]:
+            - link "Cookies Policy" [ref=e342] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e343]:
+            - link "Legal Terms" [ref=e344] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e345]:
+            - link "Privacy Policy" [ref=e346] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e348]:
+          - listitem [ref=e349]:
+            - strong [ref=e350]: "Connect:"
+          - listitem [ref=e351]:
+            - link "Instagram" [ref=e352] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e353]:
+            - link "LinkedIn" [ref=e354] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e355]:
+            - link "Twitter" [ref=e356] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e357]:
+            - link "Facebook" [ref=e358] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e359]:
+            - link "YouTube" [ref=e360] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e361]:
+            - link "TikTok" [ref=e362] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e363]:
+            - link "Pinterest" [ref=e364] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

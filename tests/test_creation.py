@@ -32,6 +32,7 @@ def test_creation_plan_stays_within_identified_sound_type():
     assert plan["investigation_status"] == "completed"
     assert "现场观察" in plan["observation_summary"]
     assert "不是最终鉴定" in plan["narration"]
+    assert plan["prompt_version"] == "creation-v2"
 
 
 def test_public_job_never_exposes_server_media_paths():
@@ -127,7 +128,7 @@ def test_live_video_mode_defaults_to_wan_2_7(tmp_path, monkeypatch):
         lambda *args, **kwargs: "wan-3-task",
     )
     provider, task_id = prepare_video("prompt", destination, 10)
-    assert provider == "wan2.7-t2v"
+    assert provider == "wan3.0-video"
     assert task_id == "wan-3-task"
 
 

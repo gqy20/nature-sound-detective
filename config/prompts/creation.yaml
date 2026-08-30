@@ -1,0 +1,59 @@
+namespace: creation
+version: creation-v2
+targets: [python, dart]
+
+prompts:
+  server_music:
+    variables: [primary]
+    text: |-
+      纯音乐，无人声，以{{ primary }}为灵感，自然、轻盈、好奇的儿童探索氛围，柔和木琴、钢琴、轻打击乐，简单原创旋律，舒缓中速，适合作为亲子自然观察短片背景音乐，避免宏大、紧张、悲伤和密集鼓点。
+
+  server_narration:
+    variables: [location, primary, short_fact, observation_summary]
+    text: |-
+      在{{ location }}，我们听见了{{ primary }}。{{ short_fact }}。{{ observation_summary }}。这是一条调查线索，不是最终鉴定。
+
+  server_video:
+    variables: [title, primary, status, observation_summary, uncertainty, explanation]
+    text: |-
+      生成一支9:16竖屏、无字幕、无文字、无人物特写的儿童自然科普短片。地点氛围：中国杭州城市公园。主题：{{ title }}，主要声音线索：{{ primary }}。调查状态：{{ status }}；现场观察摘要：{{ observation_summary }}；不确定性：{{ uncertainty }}。画面表达：{{ explanation }} 镜头缓慢、真实自然、柔和日光、纪录片质感，不捕捉、不触摸、不追逐动物；如无法确定具体物种，只表现环境线索，不出现具体动物近景。
+
+  server_video_timed:
+    variables: [duration_seconds, video_prompt]
+    text: |-
+      生成一支{{ duration_seconds }}秒短片。{{ video_prompt }}
+
+  server_video_negative:
+    variables: []
+    text: |-
+      字幕，文字，水印以外的标识，儿童正脸，捕捉动物，触摸动物，畸形，低清晰度
+
+  mobile_music:
+    variables: [location, subject]
+    text: |-
+      为儿童自然观察创作一段温柔、清澈、富有呼吸感的纯音乐。地点是{{ location }}，声音主题是{{ subject }}。以木琴、轻柔弦乐、原声打击乐和空气感铺底，不要人声，不要歌词，不要戏剧化高潮，给自然原声留出空间。
+
+  mobile_video_bird:
+    variables: [location, subject]
+    text: |-
+      生成单镜头。清晨的中国{{ location }}城市公园，一只{{ subject }}侧身站在横向树枝上，轻轻转头一次。固定机位，中长焦中景，浅景深，柔和自然光，真实野生动物纪录片，动作缓慢自然，身体和脚爪结构准确，画面稳定。
+
+  mobile_video_frog:
+    variables: [location, subject]
+    text: |-
+      生成单镜头。雨后的中国{{ location }}城市公园湿地，一只{{ subject }}安静伏在浅水边，缓慢眨眼一次，附近水面出现一圈轻微涟漪。固定机位，贴近水面的低机位中景，柔和阴天自然光，真实野生动物纪录片，四肢和身体结构准确，动作缓慢自然，画面稳定。
+
+  mobile_video_environment:
+    variables: [location]
+    text: |-
+      生成单镜头。雨后清晨的中国{{ location }}城市公园自然环境，低机位看向安静的草地和浅水岸边。水面出现轻微涟漪，草叶和树叶随微风缓慢摆动，远处树影柔和虚化。固定机位，柔和自然光，真实自然纪录片，画面稳定，环境中没有可见动物。
+
+  mobile_narration:
+    variables: [location, subject]
+    text: |-
+      在{{ location }}，我们听见了{{ subject }}。每一种自然声音，都在告诉我们环境正在发生什么。再安静听一听，它的节奏有没有变化？
+
+  mobile_video_negative:
+    variables: []
+    text: |-
+      字幕，水印以外的文字和标志，人物，儿童正脸，笼养，捕捉动物，触摸动物，多只重复动物，额外肢体，额外翅膀，肢体融合，畸形，身体闪烁，形态突变，低清晰度

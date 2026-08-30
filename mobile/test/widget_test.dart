@@ -19,10 +19,24 @@ void main() {
     await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
 
     expect(find.text('自然声探员'), findsOneWidget);
+    expect(find.byKey(const Key('app-brand-mark')), findsOneWidget);
+    expect(find.byKey(const Key('capture-location-label')), findsOneWidget);
     expect(find.text('听听，谁在附近？'), findsOneWidget);
     expect(find.byKey(const Key('record-button')), findsOneWidget);
     expect(find.byKey(const Key('import-audio-button')), findsOneWidget);
     expect(find.byKey(const Key('family-link-button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('primary-feature-navigation-bar')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('capture-button')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('primary-feature-navigation-bar')),
+        matching: find.text('录音'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('soundscape-button')), findsOneWidget);
     expect(find.byKey(const Key('works-button')), findsOneWidget);
     expect(find.byKey(const Key('creation-settings-button')), findsOneWidget);
@@ -32,6 +46,16 @@ void main() {
       diagnosticsEnabled ? findsOneWidget : findsNothing,
     );
     expect(find.byKey(const Key('primary-feature-page-view')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/hangzhou_mist_home_v2.webp',
+      ),
+      findsOneWidget,
+    );
     expect(
       tester.getTopLeft(find.text('把手机靠近想听的方向')).dy -
           tester.getBottomLeft(find.text('听听，谁在附近？')).dy,
@@ -55,13 +79,11 @@ void main() {
     await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
     await tester.pump();
 
-    final gesture = await tester.startGesture(
-      tester.getCenter(find.byKey(const Key('primary-feature-page-view'))),
+    await tester.fling(
+      find.byKey(const Key('primary-feature-page-view')),
+      const Offset(-650, 0),
+      1200,
     );
-    await gesture.moveBy(const Offset(-520, 0));
-    await tester.pump();
-    expect(find.byKey(const Key('primary-swipe-indicator')), findsNothing);
-    await gesture.up();
     await _pumpFrames(tester);
     expect(
       find.byKey(const Key('current-primary-feature-soundscape')),
@@ -98,7 +120,7 @@ void main() {
     await tester.pump(const Duration(seconds: 13));
   });
 
-  testWidgets('existing header button uses the same primary pager', (
+  testWidgets('floating navigation uses the existing primary pager', (
     tester,
   ) async {
     await tester.pumpWidget(const NatureSoundApp(preloadSoundscape: false));
@@ -127,7 +149,9 @@ void main() {
     final capture = find.byKey(const ValueKey('primary-capture-content'));
     final startX = tester.getTopLeft(capture).dx;
     final gesture = await tester.startGesture(tester.getCenter(capture));
-    await gesture.moveBy(const Offset(-100, 0));
+    await gesture.moveBy(const Offset(-24, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(-76, 0));
     await tester.pump();
 
     expect(tester.getTopLeft(capture).dx, lessThan(startX - 40));

@@ -94,6 +94,7 @@ def test_live_ai_directly_generates_guidance_and_praise(monkeypatch):
     )
     assert result["ai_generated"] is True
     assert result["provider"] == "qwen3.7-flash"
+    assert result["prompt_version"] == "parent-guidance-v4"
     assert result["praises"][0]["text"].startswith("你把这段声音")
 
 

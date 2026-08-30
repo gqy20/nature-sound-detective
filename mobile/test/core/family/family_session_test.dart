@@ -93,6 +93,9 @@ void main() {
       service: service,
       store: store,
       eventQueue: queue,
+      timelineStore: FamilyTimelineStore(
+        directoryProvider: () async => directory,
+      ),
     );
     await coordinator.initialize();
 
@@ -122,6 +125,9 @@ void main() {
       service: service,
       store: store,
       eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+      timelineStore: FamilyTimelineStore(
+        directoryProvider: () async => directory,
+      ),
     );
 
     await coordinator.initialize();
@@ -149,6 +155,9 @@ void main() {
       service: service,
       store: store,
       eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+      timelineStore: FamilyTimelineStore(
+        directoryProvider: () async => directory,
+      ),
     );
 
     await coordinator.initialize();
@@ -156,6 +165,52 @@ void main() {
 
     expect(coordinator.commands.single.templateId, 'compare_high_low_sound');
     coordinator.dispose();
+  });
+
+  test('parent restores local timeline without repeating seen cues', () async {
+    final directory = await Directory.systemTemp.createTemp('family-timeline-');
+    addTearDown(() => directory.delete(recursive: true));
+    final connection = _connection(
+      FamilyDeviceRole.parent,
+    ).copyWith(lastEventSequence: 1);
+    final store = _MemoryFamilySessionStore()..value = connection;
+    final timelineStore = FamilyTimelineStore(
+      directoryProvider: () async => directory,
+    );
+    final event = FamilyExplorationEvent(
+      eventId: 'evt_replay_000001',
+      sequence: 1,
+      type: 'replayed_audio',
+      occurredAt: DateTime.utc(2026, 8, 29, 9),
+    );
+    await timelineStore.save(
+      FamilyTimelineSnapshot(sessionId: connection.sessionId, events: [event]),
+    );
+
+    final first = FamilySessionCoordinator(
+      service: _FakeFamilyService(connection: connection),
+      store: store,
+      eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+      timelineStore: timelineStore,
+    );
+    await first.initialize();
+
+    expect(first.events.single.eventId, event.eventId);
+    expect(first.latestCue?.title, '孩子主动回听了声音');
+    await first.markCueSeen();
+    first.dispose();
+
+    final restored = FamilySessionCoordinator(
+      service: _FakeFamilyService(connection: connection),
+      store: store,
+      eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+      timelineStore: timelineStore,
+    );
+    await restored.initialize();
+
+    expect(restored.events.single.eventId, event.eventId);
+    expect(restored.latestCue, isNull);
+    restored.dispose();
   });
 }
 

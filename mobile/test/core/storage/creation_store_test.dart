@@ -17,6 +17,7 @@ void main() {
     await store.save(newer);
 
     expect((await store.load('older'))?.wanTaskId, 'task-older');
+    expect((await store.load('older'))?.visualMode, CreationVisualMode.bird);
     expect((await store.list()).map((record) => record.id), ['newer', 'older']);
 
     await store.delete(newer);
@@ -48,6 +49,18 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('persists and clears the active creation pointer', () async {
+    final directory = await Directory.systemTemp.createTemp('active_creation_');
+    addTearDown(() => directory.delete(recursive: true));
+    final store = ActiveCreationStore(directoryProvider: () async => directory);
+
+    expect(await store.load(), isNull);
+    await store.save('record-42');
+    expect(await store.load(), 'record-42');
+    await store.clear();
+    expect(await store.load(), isNull);
+  });
 }
 
 CreationRecord _record(Directory root, String id, DateTime createdAt) {
@@ -62,6 +75,7 @@ CreationRecord _record(Directory root, String id, DateTime createdAt) {
     message: '等待视频',
     directoryPath: path,
     sourceAudioPath: p.join(path, 'nature_original.wav'),
+    visualMode: CreationVisualMode.bird,
     wanTaskId: 'task-$id',
   );
 }

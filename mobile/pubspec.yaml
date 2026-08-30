@@ -73,7 +73,7 @@ flutter:
     - assets/config/
     - assets/models/
     - assets/labels/
-    - assets/images/hangzhou_mist.webp
+    - assets/images/hangzhou_mist_home_v2.webp
     - assets/images/logo_mark.png
     - assets/images/park_guide/
     - assets/maps/hangzhou_osm.png

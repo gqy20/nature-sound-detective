@@ -1,0 +1,303 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - link "Courses" [ref=e5] [cursor=pointer]:
+      - /url: /academy-plan?utm_source=alert
+    - generic [ref=e6]:
+      - strong [ref=e7]: The Creative Pass
+      - img [ref=e8]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e15]:
+      - strong [ref=e16]: The Creative Pass
+      - img [ref=e17]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e24]:
+      - strong [ref=e25]: The Creative Pass
+      - img [ref=e26]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e33]:
+      - strong [ref=e34]: The Creative Pass
+      - img [ref=e35]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e42]:
+      - strong [ref=e43]: The Creative Pass
+      - img [ref=e44]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e51]:
+      - strong [ref=e52]: The Creative Pass
+      - img [ref=e53]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e60]:
+      - strong [ref=e61]: The Creative Pass
+      - img [ref=e62]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e69]:
+      - strong [ref=e70]: The Creative Pass
+      - img [ref=e71]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e78]:
+      - strong [ref=e79]: The Creative Pass
+      - img [ref=e80]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e87]:
+      - strong [ref=e88]: The Creative Pass
+      - img [ref=e89]
+      - text: Watch all courses for just $12/month
+    - generic [ref=e96]:
+      - strong [ref=e97]: The Creative Pass
+      - img [ref=e98]
+      - text: Watch all courses for just $12/month
+  - banner [ref=e105]:
+    - generic [ref=e109]:
+      - img [ref=e111] [cursor=pointer]
+      - link "Awwwards" [ref=e113] [cursor=pointer]:
+        - /url: /
+        - img [ref=e114]
+      - generic [ref=e118]:
+        - button "Search" [ref=e119] [cursor=pointer]:
+          - img [ref=e120]
+        - textbox "Search by Inspiration" [ref=e122]
+      - img [ref=e126] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e130]:
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - img [ref=e139] [cursor=pointer]
+            - listitem [ref=e141]:
+              - img [ref=e143] [cursor=pointer]
+            - listitem [ref=e145]:
+              - link [ref=e146] [cursor=pointer]:
+                - /url: https://skanvi.com
+                - img [ref=e147]
+          - generic [ref=e149]:
+            - heading "Nominee - Aug 15, 2026" [level=2] [ref=e151]
+            - heading "Skanvi" [level=1] [ref=e153]:
+              - link "Skanvi" [ref=e154] [cursor=pointer]:
+                - /url: https://skanvi.com
+            - list [ref=e158]:
+              - listitem [ref=e159]:
+                - figure [ref=e161]:
+                  - link "FEWTURE®" [ref=e162] [cursor=pointer]:
+                    - /url: /fewture/
+                    - strong [ref=e164]: FEWTURE®
+        - list [ref=e166]:
+          - listitem [ref=e167]:
+            - link [ref=e168] [cursor=pointer]:
+              - /url: https://skanvi.com
+      - heading "Skanvi is a curated furniture store blending Scandinavian calm with a warm editorial shopping experience that helps people discover and shape distinctive interiors." [level=3] [ref=e173]
+    - generic [ref=e176]:
+      - generic [ref=e177]:
+        - heading "Elements" [level=2] [ref=e179]
+        - heading "See the highlights of this website." [level=3] [ref=e181]:
+          - text: See the highlights
+          - text: of this website.
+      - generic [ref=e182]:
+        - figure [ref=e183]:
+          - link "First-Order Newsletter Experience" [ref=e184] [cursor=pointer]:
+            - /url: /inspiration/first-order-newsletter-experience-skanvi
+            - img "First-Order Newsletter Experience" [ref=e185]
+        - figure [ref=e186]:
+          - link "Immersive Product Story" [ref=e187] [cursor=pointer]:
+            - /url: /inspiration/immersive-product-story-skanvi
+            - img "Immersive Product Story" [ref=e188]
+        - figure [ref=e189]:
+          - link [ref=e190] [cursor=pointer]:
+            - /url: /inspiration/desktop-skanvi
+    - generic [ref=e192]:
+      - paragraph [ref=e193]: This website was built with...
+      - list [ref=e195]:
+        - listitem [ref=e196]
+        - listitem [ref=e198]
+        - listitem [ref=e200]:
+          - strong [ref=e201]:
+            - link "E-Commerce" [ref=e202] [cursor=pointer]:
+              - /url: /websites/e-commerce/
+        - listitem [ref=e203]:
+          - strong [ref=e204]:
+            - link "Startups" [ref=e205] [cursor=pointer]:
+              - /url: /websites/startups/
+        - listitem [ref=e206]:
+          - strong [ref=e207]:
+            - link "Clean" [ref=e208] [cursor=pointer]:
+              - /url: /websites/clean/
+        - listitem [ref=e209]:
+          - strong [ref=e210]:
+            - link "Minimal" [ref=e211] [cursor=pointer]:
+              - /url: /websites/minimal/
+        - listitem [ref=e212]:
+          - strong [ref=e213]:
+            - link "Responsive Design" [ref=e214] [cursor=pointer]:
+              - /url: /websites/responsive-design/
+        - listitem [ref=e215]:
+          - strong [ref=e216]:
+            - link "Menu - Horizontal" [ref=e217] [cursor=pointer]:
+              - /url: /websites/menu-horizontal/
+        - listitem [ref=e218]:
+          - strong [ref=e219]:
+            - link "Menu - Vertical" [ref=e220] [cursor=pointer]:
+              - /url: /websites/menu-vertical/
+        - listitem [ref=e221]:
+          - strong [ref=e222]:
+            - link "next.js" [ref=e223] [cursor=pointer]:
+              - /url: /websites/next-js/
+        - listitem [ref=e224]:
+          - strong [ref=e225]:
+            - link "WooCommerce" [ref=e226] [cursor=pointer]:
+              - /url: /websites/woocommerce/
+        - listitem [ref=e227]:
+          - strong [ref=e228]:
+            - link "Next.js" [ref=e229] [cursor=pointer]:
+              - /url: /websites/next-js/
+        - listitem [ref=e230]:
+          - strong [ref=e231]:
+            - link "Adobe Illustrator" [ref=e232] [cursor=pointer]:
+              - /url: /websites/illustrator/
+    - generic [ref=e235]:
+      - generic [ref=e237]:
+        - heading "Votes" [level=2] [ref=e238]
+        - list [ref=e239]:
+          - listitem [ref=e240] [cursor=pointer]: Community Members
+      - list [ref=e243]:
+        - listitem [ref=e244]:
+          - generic [ref=e245]:
+            - figure [ref=e246]:
+              - link "Sukumar Swain" [ref=e247] [cursor=pointer]:
+                - /url: /sukumarswain/
+                - img "Sukumar Swain" [ref=e248]
+            - generic [ref=e249]:
+              - generic [ref=e250]:
+                - strong [ref=e251]: Sukumar Swain
+                - text: "* from"
+                - strong [ref=e252]: India
+              - generic [ref=e253]: sukumarswain.com
+          - generic [ref=e256]: "6.70"
+        - listitem [ref=e257]:
+          - generic [ref=e258]:
+            - figure [ref=e259]:
+              - link "PopArt Studio" [ref=e260] [cursor=pointer]:
+                - /url: /popartstudio/
+                - img "PopArt Studio" [ref=e261]
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - strong [ref=e264]: PopArt Studio
+                - text: from
+                - strong [ref=e265]: United States
+              - generic [ref=e266]: popwebdesign.net
+          - generic [ref=e269]: "9.00"
+        - listitem [ref=e270]:
+          - generic [ref=e271]:
+            - figure [ref=e272]:
+              - link "Liubomyr Ulytskyi" [ref=e273] [cursor=pointer]:
+                - /url: /LiubomyrUlytskyi/
+                - img "Liubomyr Ulytskyi" [ref=e274]
+            - generic [ref=e275]:
+              - generic [ref=e276]:
+                - strong [ref=e277]: Liubomyr Ulytskyi
+                - text: "* from"
+                - strong [ref=e278]: Ukraine
+              - generic [ref=e279]: dribbble.com
+          - generic [ref=e282]: "6.00"
+        - listitem [ref=e283]:
+          - generic [ref=e284]:
+            - figure [ref=e285]:
+              - link "Toqir Chatha" [ref=e286] [cursor=pointer]:
+                - /url: /Toqirchatha/
+                - img "Toqir Chatha" [ref=e287]
+            - generic [ref=e288]:
+              - generic [ref=e289]:
+                - strong [ref=e290]: Toqir Chatha
+                - text: "* from"
+                - strong [ref=e291]: Pakistan
+              - generic [ref=e292]: toqirchatha.com
+          - generic [ref=e295]: "6.60"
+        - listitem [ref=e296]:
+          - generic [ref=e297]:
+            - figure [ref=e298]:
+              - link "Iqbal Muthahhary" [ref=e299] [cursor=pointer]:
+                - /url: /iqbal-muthahhary/
+                - img "Iqbal Muthahhary" [ref=e300]
+            - generic [ref=e302]:
+              - strong [ref=e303]: Iqbal Muthahhary
+              - text: "* from"
+              - strong [ref=e304]: Indonesia
+          - generic [ref=e307]: "7.00"
+          - generic [ref=e309] [cursor=pointer]: •••
+  - contentinfo [ref=e310]:
+    - generic [ref=e311]:
+      - generic [ref=e312]:
+        - paragraph [ref=e313]:
+          - img [ref=e314]
+        - generic [ref=e317]:
+          - list [ref=e318]:
+            - listitem [ref=e319]:
+              - link "Websites" [ref=e320] [cursor=pointer]:
+                - /url: /websites/
+            - listitem [ref=e321]:
+              - link "Collections" [ref=e322] [cursor=pointer]:
+                - /url: /collections/search/
+            - listitem [ref=e323]:
+              - link "Elements" [ref=e324] [cursor=pointer]:
+                - /url: /elements/
+          - list [ref=e325]:
+            - listitem [ref=e326]:
+              - link "Academy" [ref=e327] [cursor=pointer]:
+                - /url: /academy/
+            - listitem [ref=e328]:
+              - link "Jobs" [ref=e329] [cursor=pointer]:
+                - /url: /jobs/search/
+            - listitem [ref=e330]:
+              - link "Market" [ref=e331] [cursor=pointer]:
+                - /url: /market/
+          - list [ref=e332]:
+            - listitem [ref=e333]:
+              - link "Directory" [ref=e334] [cursor=pointer]:
+                - /url: /directory/search/
+            - listitem [ref=e335]:
+              - link "Conferences" [ref=e336] [cursor=pointer]:
+                - /url: https://conference.awwwards.com
+          - list [ref=e337]:
+            - listitem [ref=e338]:
+              - link "FAQs" [ref=e339] [cursor=pointer]:
+                - /url: /faqs/
+            - listitem [ref=e340]:
+              - link "About Us" [ref=e341] [cursor=pointer]:
+                - /url: /about-us/
+            - listitem [ref=e342]:
+              - link "Contact Us" [ref=e343] [cursor=pointer]:
+                - /url: /contact-us/
+      - generic [ref=e344]:
+        - list [ref=e346]:
+          - listitem [ref=e347]:
+            - link "Cookies Policy" [ref=e348] [cursor=pointer]:
+              - /url: /cookies-policy/
+          - listitem [ref=e349]:
+            - link "Legal Terms" [ref=e350] [cursor=pointer]:
+              - /url: /terms/
+          - listitem [ref=e351]:
+            - link "Privacy Policy" [ref=e352] [cursor=pointer]:
+              - /url: /privacy-policy/
+        - list [ref=e354]:
+          - listitem [ref=e355]:
+            - strong [ref=e356]: "Connect:"
+          - listitem [ref=e357]:
+            - link "Instagram" [ref=e358] [cursor=pointer]:
+              - /url: https://www.instagram.com/awwwards
+          - listitem [ref=e359]:
+            - link "LinkedIn" [ref=e360] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/awwwards
+          - listitem [ref=e361]:
+            - link "Twitter" [ref=e362] [cursor=pointer]:
+              - /url: https://twitter.com/awwwards
+          - listitem [ref=e363]:
+            - link "Facebook" [ref=e364] [cursor=pointer]:
+              - /url: https://www.facebook.com/awwwards
+          - listitem [ref=e365]:
+            - link "YouTube" [ref=e366] [cursor=pointer]:
+              - /url: https://www.youtube.com/awwwardstv
+          - listitem [ref=e367]:
+            - link "TikTok" [ref=e368] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@awwwards.com
+          - listitem [ref=e369]:
+            - link "Pinterest" [ref=e370] [cursor=pointer]:
+              - /url: https://www.pinterest.es/awwwards/

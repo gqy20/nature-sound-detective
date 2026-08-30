@@ -27,6 +27,7 @@ void main() {
     expect(restored.dashscopeMusicModel, 'fun-music-preview');
     expect(restored.dashscopeSpeechModel, 'qwen-audio-3.0-tts-flash');
     expect(restored.dashscopeSpeechVoice, 'longanfengyue');
+    expect(restored.wanVideoModel, 'wan3.0-video');
     expect(
       restored.dashscopeBaseUrl,
       'https://workspace-1.cn-beijing.maas.aliyuncs.com',
@@ -55,6 +56,7 @@ void main() {
         'minimax_music_model': 'music-2.6',
         'dashscope_region': 'singapore',
         'dashscope_api_key': 'dashscope-key',
+        'wan_video_model': 'wan2.7-t2v',
       }),
     );
     final store = FileCreationSettingsStore(
@@ -68,5 +70,7 @@ void main() {
     expect(loaded.dashscopeApiKey, 'dashscope-key');
     expect(cleaned.keys.where((key) => key.startsWith('minimax_')), isEmpty);
     expect(cleaned.containsKey('dashscope_region'), isFalse);
+    expect(loaded.wanVideoModel, 'wan3.0-video');
+    expect(cleaned['wan_video_model'], 'wan3.0-video');
   });
 }

@@ -68,7 +68,11 @@ private class AmapSoundscapeView(
         if (!accepted) {
             showMessage(context, "请先在应用中同意地图隐私说明")
         } else {
-            initializeMap(context, args.orEmpty())
+            try {
+                initializeMap(context, args.orEmpty())
+            } catch (error: Throwable) {
+                handleMapFailure(context, "高德动态地图初始化失败", error)
+            }
         }
     }
 
@@ -113,15 +117,19 @@ private class AmapSoundscapeView(
         addFeatures(activeMap, args["parks"] as? List<*>, "park")
         activeMap.setOnMarkerClickListener(::onMarkerClicked)
         activeMap.setOnMapLoadedListener {
-            val approvalNumber = activeMap.mapContentApprovalNumber?.trim().orEmpty()
-            if (approvalNumber.isEmpty()) {
-                channel.invokeMethod("error", mapOf("message" to "地图鉴权未完成"))
-                return@setOnMapLoadedListener
+            try {
+                val approvalNumber = activeMap.mapContentApprovalNumber?.trim().orEmpty()
+                if (approvalNumber.isEmpty()) {
+                    channel.invokeMethod("error", mapOf("message" to "地图鉴权未完成"))
+                    return@setOnMapLoadedListener
+                }
+                channel.invokeMethod(
+                    "ready",
+                    mapOf("approval_number" to approvalNumber),
+                )
+            } catch (error: Throwable) {
+                handleMapFailure(context, "高德动态地图加载失败", error)
             }
-            channel.invokeMethod(
-                "ready",
-                mapOf("approval_number" to approvalNumber),
-            )
         }
     }
 
@@ -269,38 +277,70 @@ private class AmapSoundscapeView(
             result.error("map_unavailable", "地图尚未准备好", null)
             return
         }
-        when (call.method) {
-            "zoomIn" -> activeMap.animateCamera(CameraUpdateFactory.zoomIn())
-            "zoomOut" -> activeMap.animateCamera(CameraUpdateFactory.zoomOut())
-            "reset" -> activeMap.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(HANGZHOU_CENTER, INITIAL_ZOOM),
-            )
-            else -> {
-                result.notImplemented()
-                return
+        try {
+            when (call.method) {
+                "zoomIn" -> activeMap.animateCamera(CameraUpdateFactory.zoomIn())
+                "zoomOut" -> activeMap.animateCamera(CameraUpdateFactory.zoomOut())
+                "reset" -> activeMap.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(HANGZHOU_CENTER, INITIAL_ZOOM),
+                )
+                else -> {
+                    result.notImplemented()
+                    return
+                }
             }
+            result.success(null)
+        } catch (error: Throwable) {
+            logMapFailure(root.context, "native_map_command_failed", error)
+            result.error("map_command_failed", "地图操作暂时不可用", null)
         }
-        result.success(null)
     }
 
     override fun getView(): View = root
 
     override fun dispose() {
         channel.setMethodCallHandler(null)
-        map?.setOnMarkerClickListener(null)
-        map?.setOnMapLoadedListener(null)
-        map?.setInfoWindowAdapter(null)
+        releaseMapResources()
+    }
+
+    private fun handleMapFailure(context: Context, message: String, error: Throwable) {
+        logMapFailure(context, "native_map_failed", error)
+        releaseMapResources()
+        showMessage(context, message)
+        runCatching {
+            channel.invokeMethod("error", mapOf("message" to message))
+        }
+    }
+
+    private fun releaseMapResources() {
+        runCatching { map?.setOnMarkerClickListener(null) }
+        runCatching { map?.setOnMapLoadedListener(null) }
+        runCatching { map?.setInfoWindowAdapter(null) }
         selectedMarker = null
         map = null
-        mapView?.onPause()
-        mapView?.onDestroy()
+        val activeMapView = mapView
         mapView = null
-        root.removeAllViews()
+        runCatching { activeMapView?.onPause() }
+        runCatching { activeMapView?.onDestroy() }
         if (lifecycleRegistered) {
-            (root.context.applicationContext as Application)
-                .unregisterActivityLifecycleCallbacks(lifecycleCallbacks)
             lifecycleRegistered = false
+            runCatching {
+                (root.context.applicationContext as Application)
+                    .unregisterActivityLifecycleCallbacks(lifecycleCallbacks)
+            }
         }
+        root.removeAllViews()
+    }
+
+    private fun logMapFailure(context: Context, event: String, error: Throwable) {
+        NativeDiagnosticLog.emit(
+            context.applicationContext,
+            level = "error",
+            component = "amap",
+            event = event,
+            fields = mapOf("release_build" to !BuildConfig.DEBUG),
+            error = error,
+        )
     }
 
     private fun showMessage(context: Context, message: String) {
@@ -327,16 +367,23 @@ private class AmapSoundscapeView(
 
     private val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
         override fun onActivityResumed(activity: Activity) {
-            if (activity === ownerActivity) mapView?.onResume()
+            if (activity === ownerActivity) {
+                runCatching { mapView?.onResume() }
+                    .onFailure { logMapFailure(root.context, "native_map_resume_failed", it) }
+            }
         }
 
         override fun onActivityPaused(activity: Activity) {
-            if (activity === ownerActivity) mapView?.onPause()
+            if (activity === ownerActivity) {
+                runCatching { mapView?.onPause() }
+                    .onFailure { logMapFailure(root.context, "native_map_pause_failed", it) }
+            }
         }
 
         override fun onActivityDestroyed(activity: Activity) {
             if (activity === ownerActivity) {
-                mapView?.onDestroy()
+                runCatching { mapView?.onDestroy() }
+                    .onFailure { logMapFailure(root.context, "native_map_destroy_failed", it) }
                 mapView = null
                 map = null
             }

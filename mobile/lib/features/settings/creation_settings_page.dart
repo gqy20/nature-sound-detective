@@ -164,8 +164,19 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                       color: const Color(0xFFE7F1E9),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      '创作固定使用北京地域的 Fun-Music、Qwen-Audio-TTS 和 Wan。请使用北京地域的百炼 Key。',
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '创作固定使用北京地域的 Fun-Music、Qwen-Audio-TTS 和 Wan。'
+                          '请使用北京地域的百炼 Key。',
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Fun-Music 目前为邀测模型。若 API Key 没有推理权限，'
+                          '应用会跳过配乐，继续生成旁白和视频。',
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 20),

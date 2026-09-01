@@ -13,6 +13,15 @@ enum CreationStage {
 
 enum CreationVisualMode { bird, frog, environment }
 
+const funMusicApplicationUrl =
+    'https://bailian.console.aliyun.com/cn-beijing/?tab=model';
+const funMusicPermissionDeniedMessage =
+    '当前 API Key 未获得 Fun-Music 邀测权限，本次已跳过音乐生成。'
+    '请前往阿里云百炼模型广场申请开通：$funMusicApplicationUrl';
+
+bool isFunMusicPermissionDenied(String? message) =>
+    message?.contains('Fun-Music 邀测权限') ?? false;
+
 class CreationSettings {
   const CreationSettings({
     this.dashscopeApiKey = '',
@@ -113,7 +122,7 @@ class CreationArtifacts {
   bool get hasMusic => musicPath != null;
   bool get hasVideo => videoPath != null;
   bool get hasFinalVideo => finalVideoPath != null;
-  bool get isComplete => hasMusic && hasVideo && hasFinalVideo;
+  bool get isComplete => hasVideo && hasFinalVideo;
 }
 
 class CreationRecord {

@@ -150,7 +150,10 @@ class MainActivity : FlutterActivity() {
             return
         }
         val video = requiredFile(call, "video_path", result) ?: return
-        val music = requiredFile(call, "music_path", result) ?: return
+        val musicValue = call.argument<String>("music_path").orEmpty()
+        val music = musicValue.takeIf { it.isNotBlank() }
+            ?.let(::File)
+            ?.takeIf { it.isFile && it.length() > 0L }
         val nature = requiredFile(call, "nature_path", result) ?: return
         val narrationValue = call.argument<String>("narration_path").orEmpty()
         val narration = narrationValue.takeIf { it.isNotBlank() }?.let(::File)
@@ -179,10 +182,13 @@ class MainActivity : FlutterActivity() {
             .build()
         val sequences = mutableListOf(
             EditedMediaItemSequence.withAudioAndVideoFrom(listOf(videoItem)),
-            EditedMediaItemSequence.withAudioFrom(listOf(audioItem(music, 0.24f)))
-                .buildUpon().setIsLooping(true).build(),
             EditedMediaItemSequence.withAudioFrom(listOf(audioItem(nature, 0.20f))),
         )
+        if (music != null) {
+            sequences += EditedMediaItemSequence.withAudioFrom(
+                listOf(audioItem(music, 0.24f)),
+            ).buildUpon().setIsLooping(true).build()
+        }
         if (narration?.isFile == true && narration.length() > 0L) {
             sequences += EditedMediaItemSequence.withAudioFrom(
                 listOf(audioItem(narration, 1.0f)),

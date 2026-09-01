@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/background/creation_background.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
@@ -514,7 +515,24 @@ class _CreationPageState extends State<CreationPage>
                   ],
                   if (_artifacts?.musicError case final message?) ...[
                     const SizedBox(height: 12),
-                    _WarningText(label: '音乐', message: message),
+                    _WarningText(
+                      label: '音乐',
+                      message: message,
+                      onCopyApplicationUrl: isFunMusicPermissionDenied(message)
+                          ? () {
+                              unawaited(
+                                Clipboard.setData(
+                                  const ClipboardData(
+                                    text: funMusicApplicationUrl,
+                                  ),
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('申请网址已复制')),
+                              );
+                            }
+                          : null,
+                    ),
                   ],
                   if (_artifacts?.videoError case final message?) ...[
                     const SizedBox(height: 12),
@@ -650,16 +668,32 @@ class _ArtifactCard extends StatelessWidget {
 }
 
 class _WarningText extends StatelessWidget {
-  const _WarningText({required this.label, required this.message});
+  const _WarningText({
+    required this.label,
+    required this.message,
+    this.onCopyApplicationUrl,
+  });
 
   final String label;
   final String message;
+  final VoidCallback? onCopyApplicationUrl;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '$label：$message',
-      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$label：$message',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+        if (onCopyApplicationUrl != null)
+          TextButton(
+            key: const Key('copy-fun-music-application-url'),
+            onPressed: onCopyApplicationUrl,
+            child: const Text('复制官网申请地址'),
+          ),
+      ],
     );
   }
 }

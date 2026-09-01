@@ -370,7 +370,7 @@ class CreationService:
         video_path = GENERATED_DIR / f"{job_id}_postcard.mp4"
         music_provider = "dashscope-fun-music"
         music_warning = ""
-        progress("generating_music", "正在把自然声音变成音乐", {"plan": plan})
+        progress("generating_music", "正在检查音乐模型权限", {"plan": plan})
         if music_path.exists():
             music_warning = "复用上一次已完成的百炼音乐"
             excerpt_seconds = int(os.getenv("DASHSCOPE_MUSIC_EXCERPT_SECONDS", "20"))

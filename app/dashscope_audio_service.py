@@ -12,6 +12,16 @@ from app.observability import get_logger, log_event, log_exception
 
 
 logger = get_logger("dashscope_audio")
+FUN_MUSIC_APPLICATION_URL = "https://bailian.console.aliyun.com/cn-beijing/?tab=model"
+FUN_MUSIC_PERMISSION_DENIED_MESSAGE = (
+    "当前 API Key 未获得 Fun-Music 邀测权限，本次已跳过音乐生成。"
+    "请前往阿里云百炼模型广场申请开通："
+    f"{FUN_MUSIC_APPLICATION_URL}"
+)
+
+
+class MusicPermissionDenied(RuntimeError):
+    pass
 
 
 def _api_key() -> str:
@@ -65,22 +75,89 @@ def _client(timeout_seconds: float) -> httpx.Client:
     )
 
 
+def _music_permission(
+    client: httpx.Client,
+    *,
+    api_key: str,
+    model: str,
+) -> bool | None:
+    started = time.perf_counter()
+    try:
+        response = client.get(
+            f"{_api_base()}/models/permissions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            params={"model": model},
+        )
+        if response.is_error:
+            log_event(
+                logger,
+                logging.WARNING,
+                "music_permission_check_unavailable",
+                model=model,
+                status_code=response.status_code,
+                duration_ms=round((time.perf_counter() - started) * 1000),
+            )
+            return None
+        payload = _payload(response, "百炼模型权限")
+        output = payload.get("output") or {}
+        entries = output.get("permissions") if isinstance(output, dict) else []
+        matched = next(
+            (
+                item
+                for item in entries or []
+                if isinstance(item, dict) and str(item.get("model") or "") == model
+            ),
+            None,
+        )
+        permissions = matched.get("permissions") if isinstance(matched, dict) else {}
+        allowed = bool(
+            isinstance(permissions, dict) and permissions.get("inference") is True
+        )
+        log_event(
+            logger,
+            logging.INFO,
+            "music_permission_checked",
+            model=model,
+            allowed=allowed,
+            duration_ms=round((time.perf_counter() - started) * 1000),
+        )
+        return allowed
+    except Exception as exc:
+        log_exception(
+            logger,
+            "music_permission_check_unavailable",
+            model=model,
+            error_type=type(exc).__name__,
+            duration_ms=round((time.perf_counter() - started) * 1000),
+        )
+        return None
+
+
 def generate_music(prompt: str, destination: Path) -> None:
     model = os.getenv("DASHSCOPE_MUSIC_MODEL", "fun-music-v1")
     started = time.perf_counter()
-    log_event(
-        logger,
-        logging.INFO,
-        "music_request_started",
-        model=model,
-        input_chars=len(prompt),
-    )
     try:
         with _client(300) as client:
+            api_key = _api_key()
+            permission = _music_permission(
+                client,
+                api_key=api_key,
+                model=model,
+            )
+            if permission is False:
+                raise MusicPermissionDenied(FUN_MUSIC_PERMISSION_DENIED_MESSAGE)
+            log_event(
+                logger,
+                logging.INFO,
+                "music_request_started",
+                model=model,
+                input_chars=len(prompt),
+                permission_checked=permission is not None,
+            )
             response = client.post(
                 f"{_api_base()}/services/audio/music/generation",
                 headers={
-                    "Authorization": f"Bearer {_api_key()}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
                 json={
@@ -106,6 +183,16 @@ def generate_music(prompt: str, destination: Path) -> None:
             duration_ms=round((time.perf_counter() - started) * 1000),
             output_bytes=destination.stat().st_size,
         )
+    except MusicPermissionDenied:
+        log_event(
+            logger,
+            logging.WARNING,
+            "music_request_skipped",
+            model=model,
+            reason="model_permission_denied",
+            duration_ms=round((time.perf_counter() - started) * 1000),
+        )
+        raise
     except Exception:
         log_exception(
             logger,

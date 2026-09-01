@@ -15,6 +15,22 @@ void main() {
     final requests = <http.Request>[];
     final client = MockClient((request) async {
       requests.add(request);
+      if (request.url.path.endsWith('/models/permissions')) {
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'output': {
+              'permissions': [
+                {
+                  'model': 'fun-music-v1',
+                  'permissions': {'inference': true},
+                },
+              ],
+            },
+          }),
+          200,
+        );
+      }
       if (request.url.path.endsWith('/audio/music/generation')) {
         return http.Response(
           jsonEncode({
@@ -151,69 +167,91 @@ void main() {
     );
   });
 
-  test('keeps a completed video when music generation fails', () async {
-    final directory = await Directory.systemTemp.createTemp(
-      'creation_partial_',
-    );
-    addTearDown(() => directory.delete(recursive: true));
-    final client = MockClient((request) async {
-      if (request.url.path.endsWith('/audio/music/generation')) {
-        return http.Response(
-          jsonEncode({
-            'code': 'AccessDenied',
-            'message': 'Access denied.',
-            'request_id': 'request-music-denied',
-          }),
-          403,
-        );
-      }
-      if (request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
-        return http.Response(jsonEncode({'message': 'invalid key'}), 403);
-      }
-      if (request.url.path.endsWith('/video-synthesis')) {
-        return http.Response(
-          jsonEncode({
-            'output': {'task_id': 'wan_task_2'},
-          }),
-          200,
-        );
-      }
-      if (request.url.path.endsWith('/tasks/wan_task_2')) {
-        return http.Response(
-          jsonEncode({
-            'output': {
-              'task_status': 'SUCCEEDED',
-              'video_url': 'https://download.example/video.mp4',
-            },
-          }),
-          200,
-        );
-      }
-      return http.Response.bytes([1, 2, 3], 200);
-    });
-    final service = DirectCreationService(
-      client: client,
-      directoryProvider: () async => directory,
-      composer: const _FakeComposer(),
-      pollInterval: Duration.zero,
-      videoTimeout: const Duration(seconds: 1),
-    );
+  test(
+    'skips music without permission and still completes the video',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'creation_partial_',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final requests = <http.Request>[];
+      final client = MockClient((request) async {
+        requests.add(request);
+        if (request.url.path.endsWith('/models/permissions')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'output': {
+                'permissions': [
+                  {
+                    'model': 'fun-music-v1',
+                    'permissions': {'inference': false},
+                  },
+                ],
+              },
+            }),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/audio/music/generation')) {
+          return http.Response('music generation must be skipped', 500);
+        }
+        if (request.url.path.endsWith('/audio/tts/SpeechSynthesizer')) {
+          return http.Response(jsonEncode({'message': 'invalid key'}), 403);
+        }
+        if (request.url.path.endsWith('/video-synthesis')) {
+          return http.Response(
+            jsonEncode({
+              'output': {'task_id': 'wan_task_2'},
+            }),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/tasks/wan_task_2')) {
+          return http.Response(
+            jsonEncode({
+              'output': {
+                'task_status': 'SUCCEEDED',
+                'video_url': 'https://download.example/video.mp4',
+              },
+            }),
+            200,
+          );
+        }
+        return http.Response.bytes([1, 2, 3], 200);
+      });
+      final service = DirectCreationService(
+        client: client,
+        directoryProvider: () async => directory,
+        composer: const _FakeComposer(),
+        pollInterval: Duration.zero,
+        videoTimeout: const Duration(seconds: 1),
+      );
 
-    final source = File('${directory.path}/source.wav')
-      ..writeAsBytesSync([1, 2]);
-    final result = await service.create(
-      settings: const CreationSettings(dashscopeApiKey: 'dashscope-test-key'),
-      subject: '流水',
-      location: '杭州',
-      sourceAudioPath: source.path,
-      onProgress: (_) {},
-    );
+      final source = File('${directory.path}/source.wav')
+        ..writeAsBytesSync([1, 2]);
+      final result = await service.create(
+        settings: const CreationSettings(dashscopeApiKey: 'dashscope-test-key'),
+        subject: '流水',
+        location: '杭州',
+        sourceAudioPath: source.path,
+        onProgress: (_) {},
+      );
 
-    expect(result.hasMusic, isFalse);
-    expect(result.hasVideo, isTrue);
-    expect(result.musicError, contains('尚未开通 Fun-Music'));
-    expect(result.musicError, contains('request-music-denied'));
-  });
+      expect(result.hasMusic, isFalse);
+      expect(result.hasVideo, isTrue);
+      expect(result.hasFinalVideo, isTrue);
+      expect(result.isComplete, isTrue);
+      expect(result.musicError, contains('Fun-Music 邀测权限'));
+      expect(result.musicError, contains('bailian.console.aliyun.com'));
+      expect(
+        requests.where(
+          (request) => request.url.path.endsWith('/audio/music/generation'),
+        ),
+        isEmpty,
+      );
+    },
+  );
 }
 
 class _FakeComposer implements MediaComposer {

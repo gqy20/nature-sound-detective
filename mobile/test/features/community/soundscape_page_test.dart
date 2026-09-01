@@ -85,7 +85,12 @@ void main() {
     expect(find.byKey(const Key('community-audio-loading')), findsOneWidget);
     started.complete();
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.stop_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+    expect(
+      find.byKey(const Key('community-audio-progress-audio-post')),
+      findsOneWidget,
+    );
+    expect(find.text('0:00 / 0:12'), findsOneWidget);
   });
 
   testWidgets('returns to the city map when the primary page is re-entered', (

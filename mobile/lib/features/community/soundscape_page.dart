@@ -72,6 +72,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
   String? _playingPostId;
   String? _loadingAudioPostId;
   String? _requestedAudioPostId;
+  Duration _audioPosition = Duration.zero;
+  Duration _audioDuration = Duration.zero;
   String? _recentAreaId;
   String? _error;
   bool _loading = true;
@@ -79,6 +81,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
   _SoundscapeView _view = _SoundscapeView.recent;
   _DemoFilter _demoFilter = _DemoFilter.real;
   StreamSubscription<PlayerState>? _playerSubscription;
+  StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<Duration>? _durationSubscription;
   Timer? _highlightTimer;
   bool _wasPrimaryVisible = false;
 
@@ -99,6 +103,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
     widget.primaryPagePosition?.removeListener(_handlePrimaryPagePosition);
     _scrollController.dispose();
     unawaited(_playerSubscription?.cancel());
+    unawaited(_positionSubscription?.cancel());
+    unawaited(_durationSubscription?.cancel());
     if (_player case final player?) unawaited(player.dispose());
     super.dispose();
   }
@@ -223,6 +229,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
         setState(() {
           _playingPostId = null;
           _requestedAudioPostId = null;
+          _audioPosition = Duration.zero;
+          _audioDuration = Duration.zero;
         });
         return;
       }
@@ -230,6 +238,8 @@ class _SoundscapePageState extends State<SoundscapePage> {
         _requestedAudioPostId = post.id;
         _loadingAudioPostId = post.id;
         _playingPostId = null;
+        _audioPosition = Duration.zero;
+        _audioDuration = Duration.zero;
       });
       try {
         await start(post.audioUrl);
@@ -251,30 +261,52 @@ class _SoundscapePageState extends State<SoundscapePage> {
         if (state == PlayerState.playing) {
           _playingPostId = _requestedAudioPostId;
           _loadingAudioPostId = null;
-        } else if (state == PlayerState.stopped ||
-            state == PlayerState.completed) {
+        } else if (state == PlayerState.paused) {
           _playingPostId = null;
-          if (_loadingAudioPostId == null) _requestedAudioPostId = null;
+          _loadingAudioPostId = null;
+        } else if (state == PlayerState.completed ||
+            (state == PlayerState.stopped && _loadingAudioPostId == null)) {
+          _resetAudioState();
         }
       });
     });
+    _positionSubscription ??= player.onPositionChanged.listen((position) {
+      if (!mounted || _requestedAudioPostId == null) return;
+      setState(() => _audioPosition = position);
+    });
+    _durationSubscription ??= player.onDurationChanged.listen((duration) {
+      if (!mounted || _requestedAudioPostId == null) return;
+      setState(() => _audioDuration = duration);
+    });
     if (_loadingAudioPostId == post.id) return;
-    if (_playingPostId == post.id) {
-      await player.stop();
+    if (_requestedAudioPostId == post.id) {
+      if (player.state == PlayerState.playing) {
+        await player.pause();
+      } else if (player.state == PlayerState.paused) {
+        await player.resume();
+      }
       return;
     }
     try {
+      await player.stop();
+      await player.setReleaseMode(ReleaseMode.stop);
+      if (!mounted) return;
       setState(() {
         _requestedAudioPostId = post.id;
         _loadingAudioPostId = post.id;
         _playingPostId = null;
+        _audioPosition = Duration.zero;
+        _audioDuration = Duration.zero;
       });
-      await player.stop();
       await player.play(UrlSource(post.audioUrl));
+      final duration = await player.getDuration();
       if (mounted && player.state == PlayerState.playing) {
         setState(() {
           _playingPostId = post.id;
           _loadingAudioPostId = null;
+          if (duration != null && duration > Duration.zero) {
+            _audioDuration = duration;
+          }
         });
       }
     } catch (_) {
@@ -284,13 +316,33 @@ class _SoundscapePageState extends State<SoundscapePage> {
 
   void _handleAudioFailure() {
     setState(() {
-      _requestedAudioPostId = null;
-      _loadingAudioPostId = null;
-      _playingPostId = null;
+      _resetAudioState();
     });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('这段声音暂时无法播放。')));
+  }
+
+  void _resetAudioState() {
+    _requestedAudioPostId = null;
+    _loadingAudioPostId = null;
+    _playingPostId = null;
+    _audioPosition = Duration.zero;
+    _audioDuration = Duration.zero;
+  }
+
+  Future<void> _seekAudio(CommunityPost post, double progress) async {
+    final player = _player;
+    if (player == null ||
+        _requestedAudioPostId != post.id ||
+        _audioDuration <= Duration.zero) {
+      return;
+    }
+    final target = Duration(
+      milliseconds: (_audioDuration.inMilliseconds * progress).round(),
+    );
+    await player.seek(target);
+    if (mounted) setState(() => _audioPosition = target);
   }
 
   Future<void> _assist(CommunityPost post, String choice) async {
@@ -615,10 +667,20 @@ class _SoundscapePageState extends State<SoundscapePage> {
             for (final post in visible) ...[
               _CommunitySoundCard(
                 post: post,
+                activeAudio: _requestedAudioPostId == post.id,
                 playing: _playingPostId == post.id,
                 loadingAudio: _loadingAudioPostId == post.id,
+                audioPosition: _requestedAudioPostId == post.id
+                    ? _audioPosition
+                    : Duration.zero,
+                audioDuration:
+                    _requestedAudioPostId == post.id &&
+                        _audioDuration > Duration.zero
+                    ? _audioDuration
+                    : post.duration,
                 acting: _acting,
                 onPlay: () => _toggleAudio(post),
+                onSeek: (progress) => _seekAudio(post, progress),
                 onAssist: (choice) => _assist(post, choice),
                 onWithdraw: post.ownedByRequester
                     ? () => _withdraw(post)
@@ -1957,18 +2019,26 @@ class _AreaRipple extends StatelessWidget {
 class _CommunitySoundCard extends StatelessWidget {
   const _CommunitySoundCard({
     required this.post,
+    required this.activeAudio,
     required this.playing,
     required this.loadingAudio,
+    required this.audioPosition,
+    required this.audioDuration,
     required this.acting,
     required this.onPlay,
+    required this.onSeek,
     required this.onAssist,
     this.onWithdraw,
   });
   final CommunityPost post;
+  final bool activeAudio;
   final bool playing;
   final bool loadingAudio;
+  final Duration audioPosition;
+  final Duration audioDuration;
   final bool acting;
   final VoidCallback onPlay;
+  final ValueChanged<double> onSeek;
   final ValueChanged<String> onAssist;
   final VoidCallback? onWithdraw;
 
@@ -1983,6 +2053,12 @@ class _CommunitySoundCard extends StatelessWidget {
         ? <String>[post.subject, '暂时无法判断']
         : <String>[...candidates, '暂时无法判断'];
     final isDemo = post.isDemo;
+    final durationMilliseconds = audioDuration.inMilliseconds;
+    final progress = durationMilliseconds <= 0
+        ? 0.0
+        : (audioPosition.inMilliseconds / durationMilliseconds)
+              .clamp(0.0, 1.0)
+              .toDouble();
     return Card(
       key: Key('community-post-${post.id}'),
       child: Padding(
@@ -2053,10 +2129,13 @@ class _CommunitySoundCard extends StatelessWidget {
             ],
             const SizedBox(height: 10),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton.filled(
                   key: Key('play-community-${post.id}'),
-                  tooltip: loadingAudio ? '正在加载声音' : (playing ? '停止' : '先听声音'),
+                  tooltip: loadingAudio
+                      ? '正在加载声音'
+                      : (playing ? '暂停' : (activeAudio ? '继续播放' : '先听声音')),
                   onPressed: post.audioUrl.isEmpty || loadingAudio
                       ? null
                       : onPlay,
@@ -2074,15 +2153,70 @@ class _CommunitySoundCard extends StatelessWidget {
                         : Icon(
                             key: ValueKey(playing),
                             playing
-                                ? Icons.stop_rounded
+                                ? Icons.pause_rounded
                                 : Icons.play_arrow_rounded,
                           ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: _Waveform(active: playing)),
-                const SizedBox(width: 10),
-                Text('${post.duration.inSeconds}s'),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              loadingAudio
+                                  ? '正在读取声音…'
+                                  : (playing
+                                        ? '正在播放'
+                                        : (activeAudio ? '已暂停' : '播放声音')),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: const Color(0xFF466157),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                          Text(
+                            '${_formatAudioDuration(audioPosition)} / ${_formatAudioDuration(audioDuration)}',
+                            key: Key('community-audio-time-${post.id}'),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: const Color(0xFF60756D)),
+                          ),
+                        ],
+                      ),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 3,
+                          activeTrackColor: const Color(0xFF1D6B50),
+                          inactiveTrackColor: const Color(0xFFD6E2DB),
+                          disabledActiveTrackColor: const Color(0xFF8EAAA0),
+                          disabledInactiveTrackColor: const Color(0xFFD6E2DB),
+                          thumbColor: const Color(0xFF1D6B50),
+                          overlayColor: const Color(0x221D6B50),
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 6,
+                            disabledThumbRadius: 0,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 15,
+                          ),
+                        ),
+                        child: Slider(
+                          key: Key('community-audio-progress-${post.id}'),
+                          value: progress,
+                          onChanged: activeAudio && durationMilliseconds > 0
+                              ? onSeek
+                              : null,
+                          semanticFormatterCallback: (value) =>
+                              '播放进度 ${(value * 100).round()}%',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -2224,30 +2358,11 @@ class _PostMediaPreview extends StatelessWidget {
   }
 }
 
-class _Waveform extends StatelessWidget {
-  const _Waveform({required this.active});
-  final bool active;
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 42,
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: List.generate(22, (index) {
-        final height = 8.0 + ((index * 17) % 29);
-        return Expanded(
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300 + index * 10),
-            margin: const EdgeInsets.symmetric(horizontal: 1.2),
-            height: active ? height : height * .65,
-            decoration: BoxDecoration(
-              color: active ? const Color(0xFF174936) : const Color(0x667FA5A2),
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-        );
-      }),
-    ),
-  );
+String _formatAudioDuration(Duration duration) {
+  final totalSeconds = duration.inSeconds.clamp(0, 359999).toInt();
+  final minutes = totalSeconds ~/ 60;
+  final seconds = totalSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$minutes:$seconds';
 }
 
 class _EmptySoundscape extends StatelessWidget {

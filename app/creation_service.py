@@ -18,11 +18,8 @@ from dotenv import load_dotenv
 from app.audio import duration_seconds
 from app.config import GENERATED_DIR, ROOT
 from app.dashscope_audio_service import (
-    ModelPermissionDenied,
-    check_model_permission,
     generate_music,
     generate_narration,
-    model_permission_denied_message,
 )
 from app.generated_prompts import prompt_version, render_prompt
 from app.observability import get_logger, log_event, log_exception
@@ -232,10 +229,6 @@ def generate_wan_video(
     api_key = os.environ["DASHSCOPE_API_KEY"]
     base = _api_base()
     model = os.getenv("WAN_VIDEO_MODEL", "wan3.0-video")
-    if check_model_permission(model) is False:
-        raise ModelPermissionDenied(
-            model_permission_denied_message("自然短片", model)
-        )
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",

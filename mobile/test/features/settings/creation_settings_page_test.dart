@@ -33,14 +33,16 @@ void main() {
       find.byKey(const Key('creation-capability-results')),
       findsOneWidget,
     );
-    expect(find.text('已授权'), findsOneWidget);
-    expect(find.text('未授权'), findsNWidgets(2));
+    expect(find.text('未授权'), findsOneWidget);
+    expect(find.textContaining('按实际调用结果'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.byKey(const Key('save-creation-settings')),
       300,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(find.byKey(const Key('save-creation-settings')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('save-creation-settings')));
     await tester.pumpAndSettle();
 

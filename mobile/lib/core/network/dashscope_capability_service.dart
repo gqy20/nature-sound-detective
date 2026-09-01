@@ -8,6 +8,10 @@ import 'package:nature_sound_detective/core/models/creation.dart';
 
 enum DashscopeCapabilityStatus { allowed, denied, unknown }
 
+// `denied` is only a reliable execution gate for explicitly permission-gated
+// models such as Fun-Music. Standard models may remain callable even when this
+// authorization-management endpoint reports inference=false.
+
 class DashscopeCapabilityReport {
   const DashscopeCapabilityReport(this.statuses);
 

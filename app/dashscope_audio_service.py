@@ -13,7 +13,6 @@ from app.observability import get_logger, log_event, log_exception
 
 logger = get_logger("dashscope_audio")
 FUN_MUSIC_APPLICATION_URL = "https://bailian.console.aliyun.com/cn-beijing/?tab=model"
-MODEL_PERMISSION_URL = FUN_MUSIC_APPLICATION_URL
 FUN_MUSIC_PERMISSION_DENIED_MESSAGE = (
     "当前 API Key 未获得 Fun-Music 邀测权限，本次已跳过音乐生成。"
     "请前往阿里云百炼模型广场申请开通："
@@ -21,20 +20,8 @@ FUN_MUSIC_PERMISSION_DENIED_MESSAGE = (
 )
 
 
-class ModelPermissionDenied(RuntimeError):
+class MusicPermissionDenied(RuntimeError):
     pass
-
-
-class MusicPermissionDenied(ModelPermissionDenied):
-    pass
-
-
-def model_permission_denied_message(label: str, model: str) -> str:
-    return (
-        f"当前 API Key 没有{label}（{model}）的推理权限。"
-        "请前往阿里云百炼模型广场检查业务空间与模型授权："
-        f"{MODEL_PERMISSION_URL}"
-    )
 
 
 def _api_key() -> str:
@@ -88,7 +75,7 @@ def _client(timeout_seconds: float) -> httpx.Client:
     )
 
 
-def _model_permission(
+def _fun_music_permission(
     client: httpx.Client,
     *,
     api_key: str,
@@ -105,7 +92,7 @@ def _model_permission(
             log_event(
                 logger,
                 logging.WARNING,
-                "model_permission_check_unavailable",
+                "fun_music_permission_check_unavailable",
                 model=model,
                 status_code=response.status_code,
                 duration_ms=round((time.perf_counter() - started) * 1000),
@@ -129,7 +116,7 @@ def _model_permission(
         log_event(
             logger,
             logging.INFO,
-            "model_permission_checked",
+            "fun_music_permission_checked",
             model=model,
             allowed=allowed,
             duration_ms=round((time.perf_counter() - started) * 1000),
@@ -138,17 +125,12 @@ def _model_permission(
     except Exception as exc:
         log_exception(
             logger,
-            "model_permission_check_unavailable",
+            "fun_music_permission_check_unavailable",
             model=model,
             error_type=type(exc).__name__,
             duration_ms=round((time.perf_counter() - started) * 1000),
         )
         return None
-
-
-def check_model_permission(model: str) -> bool | None:
-    with _client(30) as client:
-        return _model_permission(client, api_key=_api_key(), model=model)
 
 
 def generate_music(prompt: str, destination: Path) -> None:
@@ -157,7 +139,7 @@ def generate_music(prompt: str, destination: Path) -> None:
     try:
         with _client(300) as client:
             api_key = _api_key()
-            permission = _model_permission(
+            permission = _fun_music_permission(
                 client,
                 api_key=api_key,
                 model=model,
@@ -225,26 +207,16 @@ def generate_narration(text: str, destination: Path) -> None:
     model = os.getenv("DASHSCOPE_SPEECH_MODEL", "qwen-audio-3.0-tts-plus")
     voice = os.getenv("DASHSCOPE_SPEECH_VOICE", "longanlingxin")
     started = time.perf_counter()
+    log_event(
+        logger,
+        logging.INFO,
+        "speech_request_started",
+        model=model,
+        input_chars=len(text),
+    )
     try:
         with _client(90) as client:
             api_key = _api_key()
-            permission = _model_permission(
-                client,
-                api_key=api_key,
-                model=model,
-            )
-            if permission is False:
-                raise ModelPermissionDenied(
-                    model_permission_denied_message("自然科普旁白", model)
-                )
-            log_event(
-                logger,
-                logging.INFO,
-                "speech_request_started",
-                model=model,
-                input_chars=len(text),
-                permission_checked=permission is not None,
-            )
             response = client.post(
                 f"{_api_base()}/services/audio/tts/SpeechSynthesizer",
                 headers={
@@ -276,16 +248,6 @@ def generate_narration(text: str, destination: Path) -> None:
             duration_ms=round((time.perf_counter() - started) * 1000),
             output_bytes=destination.stat().st_size,
         )
-    except ModelPermissionDenied:
-        log_event(
-            logger,
-            logging.WARNING,
-            "speech_request_skipped",
-            model=model,
-            reason="model_permission_denied",
-            duration_ms=round((time.perf_counter() - started) * 1000),
-        )
-        raise
     except Exception:
         log_exception(
             logger,

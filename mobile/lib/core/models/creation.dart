@@ -13,18 +13,12 @@ enum CreationStage {
 
 enum CreationVisualMode { bird, frog, environment }
 
-const funMusicApplicationUrl =
-    'https://bailian.console.aliyun.com/cn-beijing/?tab=model';
 const dashscopeModelPermissionUrl =
     'https://bailian.console.aliyun.com/cn-beijing/?tab=model';
+const funMusicApplicationUrl = dashscopeModelPermissionUrl;
 const funMusicPermissionDeniedMessage =
     '当前 API Key 未获得 Fun-Music 邀测权限，本次已跳过音乐生成。'
     '请前往阿里云百炼模型广场申请开通：$funMusicApplicationUrl';
-
-String dashscopeModelPermissionDeniedMessage(String label, String model) =>
-    '当前 API Key 没有 $label（$model）的推理权限。'
-    '请前往阿里云百炼模型广场检查业务空间与模型授权：'
-    '$dashscopeModelPermissionUrl';
 
 String creationMediaSummary({
   required bool hasMusic,

@@ -168,42 +168,15 @@ class DirectCreationService implements CreationService {
     final needsMusic = !await musicFile.exists();
     final needsNarration = !await narrationFile.exists();
     final needsVideo = !await videoFile.exists();
-    await progress(CreationStage.generatingMusic, '正在检查创作模型权限');
+    await progress(CreationStage.generatingMusic, '正在检查音乐模型权限');
     final capabilities = await _capabilityChecker.check(settings, [
       if (needsMusic) settings.dashscopeMusicModel,
-      if (needsNarration) settings.dashscopeSpeechModel,
-      if (needsVideo) settings.wanVideoModel,
     ], traceId: current.id);
     final musicPermission = capabilities.statusOf(
       settings.dashscopeMusicModel.trim(),
     );
-    final narrationPermission = capabilities.statusOf(
-      settings.dashscopeSpeechModel.trim(),
-    );
-    final videoPermission = capabilities.statusOf(
-      settings.wanVideoModel.trim(),
-    );
     if (needsMusic && musicPermission == DashscopeCapabilityStatus.denied) {
       current = current.copyWith(musicError: funMusicPermissionDeniedMessage);
-    }
-    if (needsNarration &&
-        narrationPermission == DashscopeCapabilityStatus.denied) {
-      current = current.copyWith(
-        narrationError: dashscopeModelPermissionDeniedMessage(
-          '自然科普旁白',
-          settings.dashscopeSpeechModel.trim(),
-        ),
-      );
-    }
-    if (needsVideo && videoPermission == DashscopeCapabilityStatus.denied) {
-      final message = dashscopeModelPermissionDeniedMessage(
-        '自然短片',
-        settings.wanVideoModel.trim(),
-      );
-      current = current.copyWith(videoError: message);
-      await _store.save(current);
-      await progress(CreationStage.failed, '视频模型未授权');
-      throw CreationException(message);
     }
     await _store.save(current);
 
@@ -256,52 +229,40 @@ class DirectCreationService implements CreationService {
     }
 
     if (needsNarration) {
-      if (narrationPermission == DashscopeCapabilityStatus.denied) {
-        AppLog.warning(
+      await progress(CreationStage.generatingNarration, '正在生成自然科普旁白');
+      final stopwatch = Stopwatch()..start();
+      try {
+        await _generateNarration(
+          settings: settings,
+          text: _narrationText(current.subject, current.location),
+          destination: narrationFile,
+          traceId: current.id,
+        );
+        current = current.copyWith(
+          narrationPath: narrationFile.path,
+          narrationError: '',
+        );
+        await _store.save(current);
+        AppLog.info(
           'creation',
-          'narration_generation_skipped',
+          'narration_generation_succeeded',
           traceId: current.id,
           fields: {
-            'reason': 'model_permission_denied',
-            'model': settings.dashscopeSpeechModel.trim(),
+            'duration_ms': stopwatch.elapsedMilliseconds,
+            'byte_length': await narrationFile.length(),
           },
         );
-      } else {
-        await progress(CreationStage.generatingNarration, '正在生成自然科普旁白');
-        final stopwatch = Stopwatch()..start();
-        try {
-          await _generateNarration(
-            settings: settings,
-            text: _narrationText(current.subject, current.location),
-            destination: narrationFile,
-            traceId: current.id,
-          );
-          current = current.copyWith(
-            narrationPath: narrationFile.path,
-            narrationError: '',
-          );
-          await _store.save(current);
-          AppLog.info(
-            'creation',
-            'narration_generation_succeeded',
-            traceId: current.id,
-            fields: {
-              'duration_ms': stopwatch.elapsedMilliseconds,
-              'byte_length': await narrationFile.length(),
-            },
-          );
-        } catch (error, stackTrace) {
-          AppLog.warning(
-            'creation',
-            'narration_generation_failed',
-            traceId: current.id,
-            fields: {'duration_ms': stopwatch.elapsedMilliseconds},
-            error: error,
-            stackTrace: stackTrace,
-          );
-          current = current.copyWith(narrationError: _message(error));
-          await _store.save(current);
-        }
+      } catch (error, stackTrace) {
+        AppLog.warning(
+          'creation',
+          'narration_generation_failed',
+          traceId: current.id,
+          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+          error: error,
+          stackTrace: stackTrace,
+        );
+        current = current.copyWith(narrationError: _message(error));
+        await _store.save(current);
       }
     }
 

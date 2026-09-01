@@ -122,8 +122,6 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
     try {
       final report = await _capabilityChecker.check(settings, [
         settings.dashscopeMusicModel,
-        settings.dashscopeSpeechModel,
-        settings.wanVideoModel,
       ]);
       if (mounted) setState(() => _capabilityReport = report);
     } catch (error, stackTrace) {
@@ -228,7 +226,11 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                     onPressed: _checkingCapabilities
                         ? null
                         : _checkCapabilities,
-                    child: Text(_checkingCapabilities ? '正在检测模型权限' : '检测模型权限'),
+                    child: Text(
+                      _checkingCapabilities
+                          ? '正在检测 Fun-Music 权限'
+                          : '检测 Fun-Music 权限',
+                    ),
                   ),
                   if (_capabilityReport case final report?) ...[
                     const SizedBox(height: 10),
@@ -247,15 +249,10 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                               _dashscopeMusicModel.text.trim(),
                             ),
                           ),
-                          _CapabilityRow(
-                            label: '自然科普旁白',
-                            status: report.statusOf(
-                              _dashscopeSpeechModel.text.trim(),
-                            ),
-                          ),
-                          _CapabilityRow(
-                            label: '自然短片',
-                            status: report.statusOf(_wanModel.text.trim()),
+                          const SizedBox(height: 6),
+                          const Text(
+                            '旁白和视频不使用这个邀测授权标志判断，'
+                            '将按实际调用结果处理。',
                           ),
                         ],
                       ),

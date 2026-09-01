@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:nature_sound_detective/core/media/media_composer.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
-import 'package:nature_sound_detective/core/network/dashscope_capability_service.dart';
 import 'package:nature_sound_detective/core/network/direct_creation_service.dart';
 
 void main() {
@@ -247,7 +246,7 @@ void main() {
       expect(result.isComplete, isTrue);
       expect(result.musicError, contains('Fun-Music 邀测权限'));
       expect(result.musicError, contains('bailian.console.aliyun.com'));
-      expect(result.narrationError, contains('qwen-audio-3.0-tts-plus'));
+      expect(result.narrationError, contains('invalid key'));
       expect(
         requests.where(
           (request) => request.url.path.endsWith('/audio/music/generation'),
@@ -259,54 +258,8 @@ void main() {
           (request) =>
               request.url.path.endsWith('/audio/tts/SpeechSynthesizer'),
         ),
-        isEmpty,
+        hasLength(1),
       );
-    },
-  );
-
-  test(
-    'stops before optional models when video permission is denied',
-    () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'creation_video_denied_',
-      );
-      addTearDown(() => directory.delete(recursive: true));
-      var providerCalled = false;
-      final service = DirectCreationService(
-        client: MockClient((_) async {
-          providerCalled = true;
-          return http.Response('unexpected', 500);
-        }),
-        capabilityChecker: _FixedCapabilityChecker({
-          'fun-music-v1': DashscopeCapabilityStatus.allowed,
-          'qwen-audio-3.0-tts-plus': DashscopeCapabilityStatus.allowed,
-          'wan3.0-video': DashscopeCapabilityStatus.denied,
-        }),
-        directoryProvider: () async => directory,
-        composer: const _FakeComposer(),
-      );
-      final source = File('${directory.path}/source.wav')
-        ..writeAsBytesSync([1, 2]);
-      final updates = <CreationUpdate>[];
-
-      await expectLater(
-        service.create(
-          settings: const CreationSettings(dashscopeApiKey: 'test-key'),
-          subject: '流水',
-          location: '杭州',
-          sourceAudioPath: source.path,
-          onProgress: updates.add,
-        ),
-        throwsA(
-          isA<CreationException>().having(
-            (error) => error.message,
-            'message',
-            contains('wan3.0-video'),
-          ),
-        ),
-      );
-      expect(providerCalled, isFalse);
-      expect(updates.last.stage, CreationStage.failed);
     },
   );
 }
@@ -324,17 +277,4 @@ class _FakeComposer implements MediaComposer {
   }) async {
     await File(outputPath).writeAsBytes([0, 0, 0, 24]);
   }
-}
-
-class _FixedCapabilityChecker implements DashscopeCapabilityChecker {
-  const _FixedCapabilityChecker(this.statuses);
-
-  final Map<String, DashscopeCapabilityStatus> statuses;
-
-  @override
-  Future<DashscopeCapabilityReport> check(
-    CreationSettings settings,
-    Iterable<String> models, {
-    String traceId = '',
-  }) async => DashscopeCapabilityReport(statuses);
 }

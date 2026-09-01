@@ -132,16 +132,6 @@ def test_live_video_mode_defaults_to_wan_2_7(tmp_path, monkeypatch):
     assert task_id == "wan-3-task"
 
 
-def test_wan_generation_stops_before_submission_without_model_permission(
-    tmp_path, monkeypatch
-):
-    monkeypatch.setenv("DASHSCOPE_API_KEY", "dashscope-test-key")
-    monkeypatch.setattr(creation_module, "check_model_permission", lambda _model: False)
-
-    with pytest.raises(creation_module.ModelPermissionDenied, match="wan3.0-video"):
-        creation_module.generate_wan_video("prompt", tmp_path / "wan.mp4")
-
-
 def test_retry_preserves_persisted_wan_task_id(tmp_path, monkeypatch):
     audio = tmp_path / "recording.wav"
     music = tmp_path / "music.mp3"

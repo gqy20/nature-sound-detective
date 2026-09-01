@@ -23,6 +23,8 @@ class ParkGuidePage extends StatefulWidget {
     this.service,
     this.routeProgressStore,
     this.listeningContextStore,
+    this.onStartRouteListening,
+    this.initialParkId,
     this.parkListTimeout = const Duration(seconds: 12),
     this.parkDetailTimeout = const Duration(seconds: 10),
   });
@@ -30,6 +32,8 @@ class ParkGuidePage extends StatefulWidget {
   final CommunityService? service;
   final RouteProgressStore? routeProgressStore;
   final RouteListeningContextStore? listeningContextStore;
+  final Future<void> Function()? onStartRouteListening;
+  final String? initialParkId;
   final Duration parkListTimeout;
   final Duration parkDetailTimeout;
 
@@ -80,7 +84,10 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
           final value = await _loadPark(park);
           if (!mounted || generation != _loadGeneration) return;
           values.add(value);
-          setState(() => _parks = List.unmodifiable(values));
+          setState(() {
+            _parks = List.unmodifiable(values);
+            _applyInitialParkSelection();
+          });
         }),
       );
     } catch (_) {
@@ -96,6 +103,24 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
         setState(() => _loading = false);
       }
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant ParkGuidePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialParkId != widget.initialParkId) {
+      setState(_applyInitialParkSelection);
+    }
+  }
+
+  void _applyInitialParkSelection() {
+    final initialParkId = widget.initialParkId;
+    if (initialParkId == null ||
+        !_parks.any((item) => item.park.id == initialParkId)) {
+      return;
+    }
+    _selectedParkId = initialParkId;
+    _step = _ParkGuideStep.criteria;
   }
 
   Future<ParkGuideData> _loadPark(CommunityPark park) async {
@@ -506,6 +531,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
           recommendation: recommendation,
           routeProgressStore: _routeProgressStore,
           listeningContextStore: _listeningContextStore,
+          onStartRouteListening: widget.onStartRouteListening,
         ),
       ),
     );
@@ -1341,10 +1367,12 @@ class ParkGuideDetailPage extends StatelessWidget {
     required this.recommendation,
     required this.routeProgressStore,
     required this.listeningContextStore,
+    this.onStartRouteListening,
   });
   final ParkRecommendation recommendation;
   final RouteProgressStore routeProgressStore;
   final RouteListeningContextStore listeningContextStore;
+  final Future<void> Function()? onStartRouteListening;
 
   @override
   Widget build(BuildContext context) {
@@ -1433,11 +1461,11 @@ class ParkGuideDetailPage extends StatelessWidget {
                                       safeObservationConfirmed,
                                 ),
                               );
-                              if (context.mounted) {
-                                Navigator.of(
-                                  context,
-                                ).popUntil((item) => item.isFirst);
-                              }
+                              if (!context.mounted) return;
+                              final navigator = Navigator.of(context);
+                              navigator.popUntil((item) => item.isFirst);
+                              await Future<void>.delayed(Duration.zero);
+                              await onStartRouteListening?.call();
                             },
                       ),
                     ),

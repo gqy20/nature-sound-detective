@@ -7,8 +7,12 @@ import 'package:nature_sound_detective/core/audio/audio_playback.dart';
 import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
+import 'package:nature_sound_detective/core/community/community_activity_guide.dart';
+import 'package:nature_sound_detective/core/community/community_models.dart';
+import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
+import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/features/capture/capture_page.dart';
@@ -66,6 +70,90 @@ void main() {
           tester.getBottomLeft(find.byKey(const Key('record-button'))).dy,
       greaterThanOrEqualTo(12),
     );
+  });
+
+  testWidgets('refreshes the active route stop when capture becomes visible', (
+    tester,
+  ) async {
+    final routeStore = _MemoryRouteListeningContextStore();
+    final position = ValueNotifier<double>(0);
+    addTearDown(position.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: _FakeRecorder(),
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: const _FakeAnalyzer(),
+          routeContextStore: routeStore,
+          primaryPagePosition: position,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('第2站'), findsNothing);
+
+    position.value = 1;
+    await tester.pump();
+    await routeStore.save(
+      const RouteListeningContext(
+        parkId: 'taiziwan-park',
+        parkName: '太子湾公园',
+        zoneId: 'stream-trail',
+        zoneName: '溪流步道',
+        siteId: 'taiziwan-park:stream-trail',
+        routeId: 'taiziwan-family-short',
+        routeName: '城市公园亲子短路线',
+        stopIndex: 1,
+      ),
+    );
+    position.value = 0;
+    await tester.pumpAndSettle();
+
+    expect(find.text('太子湾公园 · 第2站 · 溪流步道'), findsOneWidget);
+  });
+
+  testWidgets('guides the next exploration from matching community records', (
+    tester,
+  ) async {
+    String? suggestedParkId;
+    String? suggestedSpecies;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          recorder: _FakeRecorder(),
+          qualityAnalyzer: const _FakeQualityAnalyzer(usable: true),
+          playback: const _FakePlayback(),
+          analyzer: const _ImmediateAnalyzer(),
+          mode: ExplorationMode.parent,
+          onGenerateRouteForPark: (value) => suggestedParkId = value,
+          onViewCommunitySpecies: (value) => suggestedSpecies = value,
+          communityActivityGuide: _matchingCommunityGuide(),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('record-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('附近可能还有白头鹎活动点'), findsOneWidget);
+    expect(find.textContaining('杭州植物园 · 林下步道'), findsWidgets);
+    expect(find.byKey(const Key('generate-community-route')), findsOneWidget);
+    expect(find.byKey(const Key('view-community-points')), findsOneWidget);
+
+    await tester.ensureVisible(
+      find.byKey(const Key('generate-community-route')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('generate-community-route')));
+    await tester.ensureVisible(find.byKey(const Key('view-community-points')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('view-community-points')));
+    expect(suggestedParkId, 'botanical');
+    expect(suggestedSpecies, '白头鹎');
   });
 
   testWidgets('swipes between primary features and shows its destination', (
@@ -491,6 +579,65 @@ Future<void> _pumpFrames(WidgetTester tester, {int count = 40}) async {
   for (var index = 0; index < count; index++) {
     await tester.pump(const Duration(milliseconds: 16));
   }
+}
+
+CommunityActivityGuide _matchingCommunityGuide() => CommunityActivityGuide(
+  postsLoader: () async => [
+    CommunityPost(
+      id: 'community-bulbul',
+      alias: '湖畔听者',
+      areaId: 'xihu',
+      areaName: '西湖区',
+      subject: '白头鹎',
+      soundType: '鸟鸣',
+      observedAt: DateTime.utc(2026, 8, 30),
+      createdAt: DateTime.utc(2026, 8, 30),
+      audioUrl: 'https://example.test/bulbul.mp3',
+      duration: const Duration(seconds: 9),
+      candidateNames: const ['白头鹎'],
+      fieldObservations: const [],
+      status: 'published_unverified',
+      reviewStatus: 'not_requested',
+      responseCount: 0,
+      responseSummary: const {},
+      ownedByRequester: false,
+      parkId: 'botanical',
+      siteId: 'botanical:forest',
+    ),
+  ],
+  parksLoader: () async => const [
+    CommunityPark(
+      id: 'botanical',
+      name: '杭州植物园',
+      areaId: 'xihu',
+      areaName: '西湖区',
+      habitatTags: ['林地'],
+      zoneCount: 1,
+    ),
+  ],
+  sitesLoader: () async => const [
+    CommunitySite(
+      id: 'botanical:forest',
+      parkId: 'botanical',
+      parkName: '杭州植物园',
+      zoneId: 'forest',
+      zoneName: '林下步道',
+      habitatTags: ['林地'],
+    ),
+  ],
+);
+
+class _MemoryRouteListeningContextStore extends RouteListeningContextStore {
+  RouteListeningContext? value;
+
+  @override
+  Future<RouteListeningContext?> load() async => value;
+
+  @override
+  Future<void> save(RouteListeningContext context) async => value = context;
+
+  @override
+  Future<void> clear() async => value = null;
 }
 
 class _FakeRecorder implements AudioRecorder {

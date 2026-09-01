@@ -20,9 +20,14 @@ void main() {
   ) async {
     final store = _MemoryStore();
     final playback = _FakePlayback();
+    var openedParkGuide = false;
     await tester.pumpWidget(
       MaterialApp(
-        home: NatureBookPage(store: store, playback: playback),
+        home: NatureBookPage(
+          store: store,
+          playback: playback,
+          onOpenParkGuide: (_) => openedParkGuide = true,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -32,6 +37,10 @@ void main() {
     expect(find.text('作品'), findsOneWidget);
     expect(find.text('乌鸫'), findsOneWidget);
     expect(find.textContaining('清晨树冠声音路线 · 第2站 · 林下步道'), findsOneWidget);
+    expect(find.text('寻找下一个声音点'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sound-records-next-step')));
+    expect(openedParkGuide, isTrue);
 
     await tester.tap(find.byKey(const Key('play-sound-1')));
     await tester.pump();

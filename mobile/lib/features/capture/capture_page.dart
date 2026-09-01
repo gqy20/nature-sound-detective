@@ -8,6 +8,7 @@ import 'package:nature_sound_detective/core/audio/audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/audio_waveform.dart';
 import 'package:nature_sound_detective/core/audio/method_channel_audio_recorder.dart';
 import 'package:nature_sound_detective/core/audio/wav_quality_analyzer.dart';
+import 'package:nature_sound_detective/core/community/community_activity_guide.dart';
 import 'package:nature_sound_detective/core/diagnostics/debug_export_service.dart';
 import 'package:nature_sound_detective/core/diagnostics/diagnostics_config.dart';
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
@@ -23,6 +24,7 @@ import 'package:nature_sound_detective/core/models/detection.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
 import 'package:nature_sound_detective/features/capture/sound_waveform.dart';
+import 'package:nature_sound_detective/features/community/soundscape_page.dart';
 import 'package:nature_sound_detective/features/library/nature_book_page.dart';
 import 'package:nature_sound_detective/features/navigation/primary_feature.dart';
 import 'package:nature_sound_detective/features/parent/parent_companion_sheet.dart';
@@ -45,12 +47,16 @@ class CapturePage extends StatefulWidget {
     this.analyzer,
     this.store,
     this.routeContextStore,
+    this.communityActivityGuide,
     this.parentGuidanceService,
     this.mode = ExplorationMode.child,
     this.onModeChanged,
     this.familySessionCoordinator,
     this.onPrimaryFeatureSelected,
     this.onPrimarySwipeLockChanged,
+    this.primaryPagePosition,
+    this.onGenerateRouteForPark,
+    this.onViewCommunitySpecies,
   });
 
   final AudioRecorder? recorder;
@@ -59,12 +65,16 @@ class CapturePage extends StatefulWidget {
   final RecordingAnalyzer? analyzer;
   final ExplorationStore? store;
   final RouteListeningContextStore? routeContextStore;
+  final CommunityActivityGuide? communityActivityGuide;
   final ParentGuidanceNetworkService? parentGuidanceService;
   final ExplorationMode mode;
   final ValueChanged<ExplorationMode>? onModeChanged;
   final FamilySessionCoordinator? familySessionCoordinator;
   final ValueChanged<PrimaryFeature>? onPrimaryFeatureSelected;
   final ValueChanged<bool>? onPrimarySwipeLockChanged;
+  final ValueListenable<double>? primaryPagePosition;
+  final ValueChanged<String?>? onGenerateRouteForPark;
+  final ValueChanged<String>? onViewCommunitySpecies;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -115,6 +125,11 @@ class _CapturePageState extends State<CapturePage> {
   RouteListeningContext? _routeContext;
   ParentGuidanceQuota? _parentGuidanceQuota;
   bool? _reportedPrimarySwipeLock;
+  bool _wasPrimaryVisible = false;
+  CommunityActivityHint? _communityActivityHint;
+  String? _communityActivitySpecies;
+  String? _communityActivityError;
+  bool _communityActivityLoading = false;
 
   bool get _isRecording => _startedAt != null;
   bool get _canImport => _recorder is AudioImporter;
@@ -132,7 +147,12 @@ class _CapturePageState extends State<CapturePage> {
         widget.routeContextStore ?? RouteListeningContextStore();
     _parentGuidanceService =
         widget.parentGuidanceService ?? ParentGuidanceNetworkService();
-    unawaited(_restoreRouteContext());
+    widget.primaryPagePosition?.addListener(_handlePrimaryPagePosition);
+    if (widget.primaryPagePosition == null) {
+      unawaited(_restoreRouteContext());
+    } else {
+      _handlePrimaryPagePosition();
+    }
     if (widget.mode == ExplorationMode.parent) unawaited(_loadParentQuota());
     _playbackSubscription = _playback.playing.listen((playing) {
       if (!mounted) return;
@@ -155,6 +175,12 @@ class _CapturePageState extends State<CapturePage> {
   @override
   void didUpdateWidget(covariant CapturePage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.primaryPagePosition != widget.primaryPagePosition) {
+      oldWidget.primaryPagePosition?.removeListener(_handlePrimaryPagePosition);
+      widget.primaryPagePosition?.addListener(_handlePrimaryPagePosition);
+      _wasPrimaryVisible = false;
+      _handlePrimaryPagePosition();
+    }
     if (oldWidget.mode != ExplorationMode.parent &&
         widget.mode == ExplorationMode.parent) {
       unawaited(_loadParentQuota());
@@ -164,6 +190,7 @@ class _CapturePageState extends State<CapturePage> {
   @override
   void dispose() {
     _timer?.cancel();
+    widget.primaryPagePosition?.removeListener(_handlePrimaryPagePosition);
     unawaited(_playbackSubscription?.cancel());
     unawaited(_playbackPositionSubscription?.cancel());
     unawaited(_playback.dispose());
@@ -194,6 +221,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _resetCommunityActivityState();
       _fieldChecks.clear();
       _fieldObservations.clear();
       _hasAnalyzed = false;
@@ -274,7 +302,15 @@ class _CapturePageState extends State<CapturePage> {
 
   Future<void> _restoreRouteContext() async {
     final context = await _routeContextStore.load();
-    if (mounted && context != null) setState(() => _routeContext = context);
+    if (mounted && !_isRecording) setState(() => _routeContext = context);
+  }
+
+  void _handlePrimaryPagePosition() {
+    final position = widget.primaryPagePosition?.value;
+    if (position == null) return;
+    final visible = position.abs() < .04;
+    if (visible && !_wasPrimaryVisible) unawaited(_restoreRouteContext());
+    _wasPrimaryVisible = visible;
   }
 
   Future<void> _loadParentQuota() async {
@@ -420,6 +456,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _resetCommunityActivityState();
       _fieldChecks.clear();
       _fieldObservations.clear();
       _hasAnalyzed = false;
@@ -552,6 +589,7 @@ class _CapturePageState extends State<CapturePage> {
       _recording = null;
       _quality = null;
       _detections = const [];
+      _resetCommunityActivityState();
       _fieldChecks.clear();
       _fieldObservations.clear();
       _hasAnalyzed = false;
@@ -615,6 +653,7 @@ class _CapturePageState extends State<CapturePage> {
       _analyzing = true;
       _error = null;
       _detections = const [];
+      _resetCommunityActivityState();
       _hasAnalyzed = false;
       _analysisProcessedWindows = 0;
       _analysisTotalWindows = 0;
@@ -642,6 +681,12 @@ class _CapturePageState extends State<CapturePage> {
           _detections = detections;
           _hasAnalyzed = true;
         });
+        final speciesDetection = detections
+            .where((item) => item.specificSpecies != null)
+            .firstOrNull;
+        if (speciesDetection != null) {
+          unawaited(_loadCommunityActivity(speciesDetection));
+        }
       }
     } catch (error, stackTrace) {
       AppLog.error(
@@ -654,6 +699,61 @@ class _CapturePageState extends State<CapturePage> {
       if (mounted) setState(() => _error = '本地声音模型加载失败，请稍后再试。');
     } finally {
       if (mounted) setState(() => _analyzing = false);
+    }
+  }
+
+  void _resetCommunityActivityState() {
+    _communityActivityHint = null;
+    _communityActivitySpecies = null;
+    _communityActivityError = null;
+    _communityActivityLoading = false;
+  }
+
+  Future<void> _loadCommunityActivity(SoundDetection detection) async {
+    final guide = widget.communityActivityGuide;
+    final recordingId = _recording?.id;
+    final speciesName = detection.specificSpecies?.nameZh.trim() ?? '';
+    if (guide == null || recordingId == null || speciesName.isEmpty) return;
+    setState(() {
+      _communityActivitySpecies = speciesName;
+      _communityActivityLoading = true;
+      _communityActivityError = null;
+      _communityActivityHint = null;
+    });
+    try {
+      final hint = await guide.load(
+        speciesName,
+        preferredParkId: _routeContext?.parkId,
+      );
+      if (!mounted || _recording?.id != recordingId) return;
+      setState(() {
+        _communityActivityHint = hint;
+        _communityActivityLoading = false;
+      });
+      AppLog.info(
+        'community',
+        'recording_activity_hint_loaded',
+        traceId: recordingId,
+        fields: {
+          'species': speciesName,
+          'matching_record_count': hint?.matchingRecordCount ?? 0,
+          'point_count': hint?.points.length ?? 0,
+        },
+      );
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'community',
+        'recording_activity_hint_failed',
+        traceId: recordingId,
+        fields: {'species': speciesName},
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (!mounted || _recording?.id != recordingId) return;
+      setState(() {
+        _communityActivityLoading = false;
+        _communityActivityError = '社区线索暂时没有连上';
+      });
     }
   }
 
@@ -914,14 +1014,49 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   void _openParkGuide() {
-    if (widget.mode != ExplorationMode.parent) return;
+    if (widget.mode == ExplorationMode.parent) {
+      if (widget.onPrimaryFeatureSelected case final select?) {
+        select(PrimaryFeature.parkGuide);
+        return;
+      }
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            ParkGuidePage(onStartRouteListening: _restoreRouteContext),
+      ),
+    );
+  }
+
+  void _openSoundscape() {
     if (widget.onPrimaryFeatureSelected case final select?) {
-      select(PrimaryFeature.parkGuide);
+      select(PrimaryFeature.soundscape);
       return;
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const ParkGuidePage()));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SoundscapePage(explorationStore: _store),
+      ),
+    );
+  }
+
+  void _openSuggestedParkGuide() {
+    final callback = widget.onGenerateRouteForPark;
+    if (callback != null) {
+      callback(_communityActivityHint?.points.firstOrNull?.parkId);
+      return;
+    }
+    _openParkGuide();
+  }
+
+  void _openSuggestedSpeciesPoints() {
+    final species = _communityActivitySpecies;
+    final callback = widget.onViewCommunitySpecies;
+    if (species != null && callback != null) {
+      callback(species);
+      return;
+    }
+    _openSoundscape();
   }
 
   void _openFamilyLink() {
@@ -1082,7 +1217,8 @@ class _CapturePageState extends State<CapturePage> {
         final showParentHome =
             !_isRecording &&
             widget.mode == ExplorationMode.parent &&
-            familyCoordinator != null;
+            familyCoordinator != null &&
+            _routeContext == null;
 
         final content = Padding(
           padding: EdgeInsets.fromLTRB(24, compact ? 12 : 16, 24, 20),
@@ -1922,6 +2058,22 @@ class _CapturePageState extends State<CapturePage> {
                             ),
                           ),
                     ),
+                    if (_communityActivitySpecies case final species?) ...[
+                      const SizedBox(height: 14),
+                      _CommunityExplorationSuggestion(
+                        speciesName: species,
+                        hint: _communityActivityHint,
+                        loading: _communityActivityLoading,
+                        error: _communityActivityError,
+                        onRetry: () => _loadCommunityActivity(
+                          _detections
+                              .where((item) => item.specificSpecies != null)
+                              .first,
+                        ),
+                        onGenerateRoute: _openSuggestedParkGuide,
+                        onViewPoints: _openSuggestedSpeciesPoints,
+                      ),
+                    ],
                   ] else if (_hasAnalyzed && !_analyzing) ...[
                     const SizedBox(height: 20),
                     Container(
@@ -2168,6 +2320,175 @@ class _ModeMenu extends StatelessWidget {
               : (mode == ExplorationMode.child ? '儿童模式' : '家长模式'),
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
         ),
+      ),
+    );
+  }
+}
+
+class _CommunityExplorationSuggestion extends StatelessWidget {
+  const _CommunityExplorationSuggestion({
+    required this.speciesName,
+    required this.hint,
+    required this.loading,
+    required this.error,
+    required this.onRetry,
+    required this.onGenerateRoute,
+    required this.onViewPoints,
+  });
+
+  final String speciesName;
+  final CommunityActivityHint? hint;
+  final bool loading;
+  final String? error;
+  final VoidCallback onRetry;
+  final VoidCallback onGenerateRoute;
+  final VoidCallback onViewPoints;
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return Container(
+        key: const Key('community-activity-loading'),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE6EFE8),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: const Row(
+          children: [
+            SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Expanded(child: Text('正在查找社区里的相关声音记录…')),
+          ],
+        ),
+      );
+    }
+
+    if (error != null) {
+      return Container(
+        key: const Key('community-activity-error'),
+        padding: const EdgeInsets.fromLTRB(16, 12, 10, 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1EEE4),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_outlined, size: 20),
+            const SizedBox(width: 10),
+            Expanded(child: Text(error!)),
+            TextButton(onPressed: onRetry, child: const Text('重试')),
+          ],
+        ),
+      );
+    }
+
+    final points = hint?.points ?? const <CommunityActivityPoint>[];
+    final pointNames = points.map((point) => point.label).take(2).join('、');
+    final hasEvidence = hint != null && points.isNotEmpty;
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final routeButton = FilledButton.icon(
+      key: const Key('generate-community-route'),
+      onPressed: onGenerateRoute,
+      icon: const Icon(Icons.route_rounded),
+      label: const Text('生成游玩路线'),
+    );
+    final pointsButton = OutlinedButton.icon(
+      key: const Key('view-community-points'),
+      onPressed: onViewPoints,
+      icon: const Icon(Icons.map_outlined),
+      label: const Text('查看更多位点'),
+    );
+    return Container(
+      key: const Key('community-activity-suggestion'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE2EEE5),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.near_me_outlined, size: 18, color: Color(0xFF1C644B)),
+              SizedBox(width: 7),
+              Text(
+                '社区声音线索',
+                style: TextStyle(
+                  color: Color(0xFF1C644B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: .4,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 9),
+          Text(
+            hasEvidence ? '附近可能还有$speciesName活动点' : '暂时没有找到$speciesName的同类记录',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: const Color(0xFF183C2E),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasEvidence
+                ? '杭州社区已有 ${hint!.matchingRecordCount} 条相关声音记录，曾在$pointNames出现。可以带孩子换一个安静位置继续找找。'
+                : '社区数据里暂时没有足够的同类线索，也可以查看其他声音位点或规划一次新的探索。',
+            style: const TextStyle(color: Color(0xFF486158), height: 1.45),
+          ),
+          if (hasEvidence) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 7,
+              runSpacing: 7,
+              children: [
+                for (final point in points.take(3))
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xB3FFFDF7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${point.label} · ${point.recordCount}条',
+                      style: const TextStyle(
+                        color: Color(0xFF38564A),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 9),
+          const Text(
+            '公开记录只提供寻找方向，不代表此刻一定能听到。',
+            style: TextStyle(color: Color(0xFF6A7B74), fontSize: 11.5),
+          ),
+          const SizedBox(height: 13),
+          if (textScale > 1.25) ...[
+            SizedBox(width: double.infinity, child: routeButton),
+            const SizedBox(height: 8),
+            SizedBox(width: double.infinity, child: pointsButton),
+          ] else
+            Row(
+              children: [
+                Expanded(child: routeButton),
+                const SizedBox(width: 8),
+                Expanded(child: pointsButton),
+              ],
+            ),
+        ],
       ),
     );
   }

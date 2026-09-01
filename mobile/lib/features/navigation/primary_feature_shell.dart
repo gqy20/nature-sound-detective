@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
+import 'package:nature_sound_detective/core/community/community_activity_guide.dart';
 import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
 import 'package:nature_sound_detective/core/inference/recording_analyzer.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
@@ -42,10 +43,12 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final PageController _controller = PageController();
   final ValueNotifier<double> _pagePositionNotifier = ValueNotifier(0);
+  final ValueNotifier<String?> _soundscapeSpeciesFilter = ValueNotifier(null);
   final ExplorationStore _store = FileExplorationStore();
   late final AnimationController _directTransitionController;
   late final PrimaryFeatureStore _featureStore;
   SoundscapePreloader? _soundscapePreloader;
+  CommunityActivityGuide? _communityActivityGuide;
   int _selectedIndex = 0;
   int _settledIndex = 0;
   bool _swipeLocked = false;
@@ -57,6 +60,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   Timer? _navigationSettleTimer;
   bool _soundscapeMapPrecacheStarted = false;
   int _restoreRevision = 0;
+  String? _preferredParkId;
 
   List<PrimaryFeature> _featuresFor(ExplorationMode mode) =>
       mode == ExplorationMode.parent
@@ -83,6 +87,12 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     );
     if (widget.preloadSoundscape) {
       _soundscapePreloader = SoundscapePreloader();
+      final preloader = _soundscapePreloader!;
+      _communityActivityGuide = CommunityActivityGuide(
+        postsLoader: () async => (await preloader.load()).posts,
+        parksLoader: () async => (await preloader.load()).parks,
+        sitesLoader: preloader.service.listSites,
+      );
       unawaited(_startSoundscapePreload());
     }
     _controller.addListener(_trackPagePosition);
@@ -151,6 +161,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
       ..removeListener(_trackPagePosition)
       ..dispose();
     _pagePositionNotifier.dispose();
+    _soundscapeSpeciesFilter.dispose();
     _directTransitionController.dispose();
     _navigationSettleTimer?.cancel();
     _soundscapePreloader?.close();
@@ -427,6 +438,22 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     setState(() => _swipeLocked = value);
   }
 
+  void _openSuggestedPark(String? parkId) {
+    if (_preferredParkId != parkId) {
+      setState(() => _preferredParkId = parkId);
+    }
+    unawaited(
+      _selectFeature(PrimaryFeature.parkGuide, trigger: 'community_route'),
+    );
+  }
+
+  void _openSpeciesPoints(String speciesName) {
+    _soundscapeSpeciesFilter.value = speciesName;
+    unawaited(
+      _selectFeature(PrimaryFeature.soundscape, trigger: 'species_points'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final available = _availableFeatures;
@@ -436,10 +463,14 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         child: CapturePage(
           key: const ValueKey('primary-capture-content'),
           analyzer: widget.analyzer,
+          communityActivityGuide: _communityActivityGuide,
           store: _store,
           mode: widget.mode,
           onModeChanged: widget.onModeChanged,
           familySessionCoordinator: widget.familySessionCoordinator,
+          primaryPagePosition: _pagePositionNotifier,
+          onGenerateRouteForPark: _openSuggestedPark,
+          onViewCommunitySpecies: _openSpeciesPoints,
           onPrimaryFeatureSelected: (feature) =>
               _selectFeature(feature, trigger: 'button'),
           onPrimarySwipeLockChanged: _setSwipeLocked,
@@ -452,6 +483,8 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           explorationStore: _store,
           preloader: _soundscapePreloader,
           primaryPagePosition: _pagePositionNotifier,
+          speciesFilter: _soundscapeSpeciesFilter,
+          onClearSpeciesFilter: () => _soundscapeSpeciesFilter.value = null,
           onOpenParkGuide: widget.mode == ExplorationMode.parent
               ? () =>
                     _selectFeature(PrimaryFeature.parkGuide, trigger: 'button')
@@ -459,9 +492,14 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
         ),
       ),
       if (widget.mode == ExplorationMode.parent)
-        const _KeepAlivePage(
-          key: ValueKey(PrimaryFeature.parkGuide),
-          child: ParkGuidePage(key: ValueKey('primary-park-guide-content')),
+        _KeepAlivePage(
+          key: const ValueKey(PrimaryFeature.parkGuide),
+          child: ParkGuidePage(
+            key: const ValueKey('primary-park-guide-content'),
+            initialParkId: _preferredParkId,
+            onStartRouteListening: () =>
+                _selectFeature(PrimaryFeature.capture, trigger: 'route_stop'),
+          ),
         ),
       _KeepAlivePage(
         key: const ValueKey(PrimaryFeature.natureBook),
@@ -470,6 +508,9 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           store: _store,
           onOpenSoundscape: () =>
               _selectFeature(PrimaryFeature.soundscape, trigger: 'button'),
+          onOpenParkGuide: widget.mode == ExplorationMode.parent
+              ? _openSuggestedPark
+              : null,
         ),
       ),
     ];

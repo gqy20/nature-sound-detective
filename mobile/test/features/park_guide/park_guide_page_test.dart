@@ -18,12 +18,14 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final listeningStore = _MemoryListeningContextStore();
+    var openedCapture = false;
     await tester.pumpWidget(
       MaterialApp(
         home: ParkGuidePage(
           service: _FakeCommunityService(),
           routeProgressStore: _MemoryRouteProgressStore(),
           listeningContextStore: listeningStore,
+          onStartRouteListening: () async => openedCapture = true,
         ),
       ),
     );
@@ -108,6 +110,7 @@ void main() {
     expect(context?.zoneId, 'main-lawn');
     expect(context?.routeId, 'family-short');
     expect(context?.safeObservationConfirmed, isTrue);
+    expect(openedCapture, isTrue);
   });
 
   testWidgets('keeps route action above an enclosing navigation bar', (
@@ -145,6 +148,29 @@ void main() {
       lessThanOrEqualTo(tester.getTopLeft(navigation).dy - 12),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('opens the community suggested park at the criteria step', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ParkGuidePage(
+          service: _FakeCommunityService(),
+          initialParkId: 'taiziwan-park',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('park-guide-criteria-page')), findsOneWidget);
+    expect(find.text('1/3 · 选择公园'), findsNothing);
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('park-recommendation-taiziwan-park')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('keeps available park guidance when one endpoint fails', (

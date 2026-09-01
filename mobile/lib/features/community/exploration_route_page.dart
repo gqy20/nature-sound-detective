@@ -149,7 +149,7 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
                           ),
                           if (widget.onStartListening != null) ...[
                             const SizedBox(height: 10),
-                            OutlinedButton.icon(
+                            FilledButton.icon(
                               key: Key('route-listen-${stop.siteId}'),
                               onPressed: () async {
                                 await widget.onStartListening!(
@@ -160,8 +160,17 @@ class _ExplorationRoutePageState extends State<ExplorationRoutePage> {
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.mic_none_rounded),
-                              label: const Text('到这里开始聆听'),
+                              icon: const Icon(Icons.mic_rounded),
+                              label: const Text('到这里开始录音'),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              '会回到首页，并把这一站带入声音记录。',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF62736B),
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ],

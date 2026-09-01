@@ -24,11 +24,13 @@ class NatureBookPage extends StatefulWidget {
     this.store,
     this.playback,
     this.onOpenSoundscape,
+    this.onOpenParkGuide,
   });
 
   final ExplorationStore? store;
   final AudioPlayback? playback;
   final VoidCallback? onOpenSoundscape;
+  final ValueChanged<String?>? onOpenParkGuide;
 
   @override
   State<NatureBookPage> createState() => _NatureBookPageState();
@@ -166,6 +168,27 @@ class _NatureBookPageState extends State<NatureBookPage> {
     }
   }
 
+  void _openSoundscape() {
+    final callback = widget.onOpenSoundscape;
+    if (callback != null) {
+      callback();
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SoundscapePage(explorationStore: _store),
+      ),
+    );
+  }
+
+  void _openNextStep(ExplorationRecord record) {
+    if (record.routeContext != null && widget.onOpenParkGuide != null) {
+      widget.onOpenParkGuide!(record.routeContext?.parkId);
+      return;
+    }
+    _openSoundscape();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -173,13 +196,7 @@ class _NatureBookPageState extends State<NatureBookPage> {
       actions: [
         IconButton(
           tooltip: '共听杭州',
-          onPressed:
-              widget.onOpenSoundscape ??
-              () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => SoundscapePage(explorationStore: _store),
-                ),
-              ),
+          onPressed: _openSoundscape,
           icon: const Icon(Icons.radar_rounded),
         ),
       ],
@@ -208,6 +225,16 @@ class _NatureBookPageState extends State<NatureBookPage> {
                 ],
                 const SizedBox(height: 14),
                 if (_records.isEmpty) const _EmptySounds(),
+                if (_records.isNotEmpty) ...[
+                  _ListeningNextStepCard(
+                    record: _records.first,
+                    continuesRoute:
+                        _records.first.routeContext != null &&
+                        widget.onOpenParkGuide != null,
+                    onTap: () => _openNextStep(_records.first),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 for (final record in _records) ...[
                   _SoundRecordCard(
                     record: record,
@@ -255,6 +282,79 @@ class _EmptySounds extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _ListeningNextStepCard extends StatelessWidget {
+  const _ListeningNextStepCard({
+    required this.record,
+    required this.continuesRoute,
+    required this.onTap,
+  });
+
+  final ExplorationRecord record;
+  final bool continuesRoute;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final route = record.routeContext;
+    return Material(
+      color: const Color(0xFFE4EFE7),
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const Key('sound-records-next-step'),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D654C),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  continuesRoute ? Icons.route_rounded : Icons.radar_rounded,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      continuesRoute ? '寻找下一个声音点' : '去共听杭州找新线索',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFF183C2E),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      continuesRoute && route != null
+                          ? '${route.routeName} · 已记录第${route.stopIndex + 1}站'
+                          : '听听附近的新记录，继续下一次自然调查',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF536C61),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.arrow_forward_rounded, color: Color(0xFF1D654C)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _SoundRecordCard extends StatelessWidget {

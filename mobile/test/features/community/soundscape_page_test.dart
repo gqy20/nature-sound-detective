@@ -93,6 +93,53 @@ void main() {
     expect(find.text('0:00 / 0:12'), findsOneWidget);
   });
 
+  testWidgets(
+    'filters community points by the species carried from recording',
+    (tester) async {
+      tester.view.physicalSize = const Size(430, 950);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final species = ValueNotifier<String?>('林间鸟鸣');
+      addTearDown(species.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SoundscapePage(
+            service: _AudioCommunityService(),
+            recordsLoader: () async => const [],
+            speciesFilter: species,
+            onClearSpeciesFilter: () => species.value = null,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('soundscape-species-filter')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('community-post-audio-post')),
+        findsOneWidget,
+      );
+
+      species.value = '不存在的物种';
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.textContaining('暂时没有更多“不存在的物种”记录'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.textContaining('暂时没有更多“不存在的物种”记录'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const Key('clear-soundscape-species-filter')),
+      );
+      await tester.pumpAndSettle();
+      expect(species.value, isNull);
+    },
+  );
+
   testWidgets('returns to the city map when the primary page is re-entered', (
     tester,
   ) async {

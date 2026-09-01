@@ -68,7 +68,14 @@ jobs:
       - name: Reset generated Android plugins for release
         run: flutter clean
 
+      - name: Verify AMap Android key
+        env:
+          AMAP_ANDROID_KEY: ${{ secrets.AMAP_ANDROID_KEY }}
+        run: test -n "$AMAP_ANDROID_KEY"
+
       - name: Build Android arm64 release APK
+        env:
+          AMAP_ANDROID_KEY: ${{ secrets.AMAP_ANDROID_KEY }}
         run: >-
           flutter build apk
           --release

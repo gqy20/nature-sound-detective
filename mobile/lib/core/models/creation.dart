@@ -15,12 +15,27 @@ enum CreationVisualMode { bird, frog, environment }
 
 const funMusicApplicationUrl =
     'https://bailian.console.aliyun.com/cn-beijing/?tab=model';
+const dashscopeModelPermissionUrl =
+    'https://bailian.console.aliyun.com/cn-beijing/?tab=model';
 const funMusicPermissionDeniedMessage =
     '当前 API Key 未获得 Fun-Music 邀测权限，本次已跳过音乐生成。'
     '请前往阿里云百炼模型广场申请开通：$funMusicApplicationUrl';
 
-bool isFunMusicPermissionDenied(String? message) =>
-    message?.contains('Fun-Music 邀测权限') ?? false;
+String dashscopeModelPermissionDeniedMessage(String label, String model) =>
+    '当前 API Key 没有 $label（$model）的推理权限。'
+    '请前往阿里云百炼模型广场检查业务空间与模型授权：'
+    '$dashscopeModelPermissionUrl';
+
+String creationMediaSummary({
+  required bool hasMusic,
+  required bool hasNarration,
+  required bool hasVideo,
+}) => [
+  if (hasMusic) '配乐',
+  if (hasNarration) '旁白',
+  '自然原声',
+  if (hasVideo) '短片',
+].join(' · ');
 
 class CreationSettings {
   const CreationSettings({
@@ -70,8 +85,16 @@ class CreationSettings {
         : 'https://$workspace.cn-beijing.maas.aliyuncs.com';
   }
 
+  CreationSettings withApiKey(String value) => CreationSettings(
+    dashscopeApiKey: value,
+    dashscopeWorkspaceId: dashscopeWorkspaceId,
+    dashscopeMusicModel: dashscopeMusicModel,
+    dashscopeSpeechModel: dashscopeSpeechModel,
+    dashscopeSpeechVoice: dashscopeSpeechVoice,
+    wanVideoModel: wanVideoModel,
+  );
+
   Map<String, Object?> toJson() => {
-    'dashscope_api_key': dashscopeApiKey.trim(),
     'dashscope_workspace_id': dashscopeWorkspaceId.trim(),
     'dashscope_music_model': dashscopeMusicModel.trim(),
     'dashscope_speech_model': dashscopeSpeechModel.trim(),
@@ -105,7 +128,9 @@ class CreationArtifacts {
     this.videoPath,
     this.finalVideoPath,
     this.musicError,
+    this.narrationError,
     this.videoError,
+    this.compositionError,
     this.wanTaskId = '',
   });
 
@@ -116,10 +141,13 @@ class CreationArtifacts {
   final String? videoPath;
   final String? finalVideoPath;
   final String? musicError;
+  final String? narrationError;
   final String? videoError;
+  final String? compositionError;
   final String wanTaskId;
 
   bool get hasMusic => musicPath != null;
+  bool get hasNarration => narrationPath != null;
   bool get hasVideo => videoPath != null;
   bool get hasFinalVideo => finalVideoPath != null;
   bool get isComplete => hasVideo && hasFinalVideo;
@@ -143,6 +171,7 @@ class CreationRecord {
     this.finalVideoPath = '',
     this.wanTaskId = '',
     this.musicError = '',
+    this.narrationError = '',
     this.videoError = '',
     this.compositionError = '',
   });
@@ -178,6 +207,7 @@ class CreationRecord {
       finalVideoPath: json['final_video_path'] as String? ?? '',
       wanTaskId: json['wan_task_id'] as String? ?? '',
       musicError: json['music_error'] as String? ?? '',
+      narrationError: json['narration_error'] as String? ?? '',
       videoError: json['video_error'] as String? ?? '',
       compositionError: json['composition_error'] as String? ?? '',
     );
@@ -199,6 +229,7 @@ class CreationRecord {
   final String finalVideoPath;
   final String wanTaskId;
   final String musicError;
+  final String narrationError;
   final String videoError;
   final String compositionError;
 
@@ -218,6 +249,7 @@ class CreationRecord {
     String? finalVideoPath,
     String? wanTaskId,
     String? musicError,
+    String? narrationError,
     String? videoError,
     String? compositionError,
     CreationVisualMode? visualMode,
@@ -238,6 +270,7 @@ class CreationRecord {
     finalVideoPath: finalVideoPath ?? this.finalVideoPath,
     wanTaskId: wanTaskId ?? this.wanTaskId,
     musicError: musicError ?? this.musicError,
+    narrationError: narrationError ?? this.narrationError,
     videoError: videoError ?? this.videoError,
     compositionError: compositionError ?? this.compositionError,
   );
@@ -259,6 +292,7 @@ class CreationRecord {
     'final_video_path': finalVideoPath,
     'wan_task_id': wanTaskId,
     'music_error': musicError,
+    'narration_error': narrationError,
     'video_error': videoError,
     'composition_error': compositionError,
   };

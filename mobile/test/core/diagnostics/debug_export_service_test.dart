@@ -27,6 +27,7 @@ void main() {
       );
       final settingsStore = FileCreationSettingsStore(
         directoryProvider: () async => Directory(p.join(root.path, 'support')),
+        secretStore: _MemoryCreationSecretStore(),
       );
       await settingsStore.save(
         const CreationSettings(
@@ -128,6 +129,7 @@ void main() {
       ),
       settingsStore: FileCreationSettingsStore(
         directoryProvider: () async => Directory(p.join(root.path, 'support')),
+        secretStore: _MemoryCreationSecretStore(),
       ),
       cacheDirectoryProvider: () async => Directory(p.join(root.path, 'cache')),
       appInfoProvider: () async => const {},
@@ -145,4 +147,21 @@ void main() {
         .toList();
     expect(outputs, isEmpty);
   });
+}
+
+class _MemoryCreationSecretStore implements CreationSecretStore {
+  String value = '';
+
+  @override
+  Future<String> load() async => value;
+
+  @override
+  Future<void> save(String value) async {
+    this.value = value;
+  }
+
+  @override
+  Future<void> clear() async {
+    value = '';
+  }
 }

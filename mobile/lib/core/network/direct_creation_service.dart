@@ -7,6 +7,7 @@ import 'package:nature_sound_detective/core/ai/generated_prompts.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/media/media_composer.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/network/dashscope_capability_service.dart';
 import 'package:nature_sound_detective/core/storage/creation_store.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -35,18 +36,23 @@ class DirectCreationService implements CreationService {
     Future<Directory> Function()? directoryProvider,
     CreationStore? store,
     MediaComposer? composer,
+    DashscopeCapabilityChecker? capabilityChecker,
     this.pollInterval = const Duration(seconds: 15),
     this.videoTimeout = const Duration(minutes: 7),
   }) : _client = client ?? http.Client(),
        _directoryProvider =
            directoryProvider ?? getApplicationDocumentsDirectory,
        _store = store ?? CreationStore(directoryProvider: directoryProvider),
-       _composer = composer ?? const AndroidMediaComposer();
+       _composer = composer ?? const AndroidMediaComposer() {
+    _capabilityChecker =
+        capabilityChecker ?? DashscopeCapabilityService(client: _client);
+  }
 
   final http.Client _client;
   final Future<Directory> Function() _directoryProvider;
   final CreationStore _store;
   final MediaComposer _composer;
+  late final DashscopeCapabilityChecker _capabilityChecker;
   static const _videoDurationSeconds = 5;
   final Duration pollInterval;
   final Duration videoTimeout;
@@ -159,16 +165,51 @@ class DirectCreationService implements CreationService {
       );
     }
 
-    if (!await musicFile.exists()) {
-      await progress(CreationStage.generatingMusic, '正在检查音乐模型权限');
-      final stopwatch = Stopwatch()..start();
-      final permission = await _checkMusicPermission(
-        settings: settings,
-        traceId: current.id,
+    final needsMusic = !await musicFile.exists();
+    final needsNarration = !await narrationFile.exists();
+    final needsVideo = !await videoFile.exists();
+    await progress(CreationStage.generatingMusic, '正在检查创作模型权限');
+    final capabilities = await _capabilityChecker.check(settings, [
+      if (needsMusic) settings.dashscopeMusicModel,
+      if (needsNarration) settings.dashscopeSpeechModel,
+      if (needsVideo) settings.wanVideoModel,
+    ], traceId: current.id);
+    final musicPermission = capabilities.statusOf(
+      settings.dashscopeMusicModel.trim(),
+    );
+    final narrationPermission = capabilities.statusOf(
+      settings.dashscopeSpeechModel.trim(),
+    );
+    final videoPermission = capabilities.statusOf(
+      settings.wanVideoModel.trim(),
+    );
+    if (needsMusic && musicPermission == DashscopeCapabilityStatus.denied) {
+      current = current.copyWith(musicError: funMusicPermissionDeniedMessage);
+    }
+    if (needsNarration &&
+        narrationPermission == DashscopeCapabilityStatus.denied) {
+      current = current.copyWith(
+        narrationError: dashscopeModelPermissionDeniedMessage(
+          '自然科普旁白',
+          settings.dashscopeSpeechModel.trim(),
+        ),
       );
-      if (permission == _MusicPermission.denied) {
-        current = current.copyWith(musicError: funMusicPermissionDeniedMessage);
-        await _store.save(current);
+    }
+    if (needsVideo && videoPermission == DashscopeCapabilityStatus.denied) {
+      final message = dashscopeModelPermissionDeniedMessage(
+        '自然短片',
+        settings.wanVideoModel.trim(),
+      );
+      current = current.copyWith(videoError: message);
+      await _store.save(current);
+      await progress(CreationStage.failed, '视频模型未授权');
+      throw CreationException(message);
+    }
+    await _store.save(current);
+
+    if (needsMusic) {
+      final stopwatch = Stopwatch()..start();
+      if (musicPermission == DashscopeCapabilityStatus.denied) {
         AppLog.warning(
           'creation',
           'music_generation_skipped',
@@ -214,41 +255,57 @@ class DirectCreationService implements CreationService {
       }
     }
 
-    if (!await narrationFile.exists()) {
-      await progress(CreationStage.generatingNarration, '正在生成自然科普旁白');
-      final stopwatch = Stopwatch()..start();
-      try {
-        await _generateNarration(
-          settings: settings,
-          text: _narrationText(current.subject, current.location),
-          destination: narrationFile,
-          traceId: current.id,
-        );
-        current = current.copyWith(narrationPath: narrationFile.path);
-        await _store.save(current);
-        AppLog.info(
-          'creation',
-          'narration_generation_succeeded',
-          traceId: current.id,
-          fields: {
-            'duration_ms': stopwatch.elapsedMilliseconds,
-            'byte_length': await narrationFile.length(),
-          },
-        );
-      } catch (error, stackTrace) {
+    if (needsNarration) {
+      if (narrationPermission == DashscopeCapabilityStatus.denied) {
         AppLog.warning(
           'creation',
-          'narration_generation_failed',
+          'narration_generation_skipped',
           traceId: current.id,
-          fields: {'duration_ms': stopwatch.elapsedMilliseconds},
-          error: error,
-          stackTrace: stackTrace,
+          fields: {
+            'reason': 'model_permission_denied',
+            'model': settings.dashscopeSpeechModel.trim(),
+          },
         );
-        // Narration is optional; a music-and-nature mix is still a valid work.
+      } else {
+        await progress(CreationStage.generatingNarration, '正在生成自然科普旁白');
+        final stopwatch = Stopwatch()..start();
+        try {
+          await _generateNarration(
+            settings: settings,
+            text: _narrationText(current.subject, current.location),
+            destination: narrationFile,
+            traceId: current.id,
+          );
+          current = current.copyWith(
+            narrationPath: narrationFile.path,
+            narrationError: '',
+          );
+          await _store.save(current);
+          AppLog.info(
+            'creation',
+            'narration_generation_succeeded',
+            traceId: current.id,
+            fields: {
+              'duration_ms': stopwatch.elapsedMilliseconds,
+              'byte_length': await narrationFile.length(),
+            },
+          );
+        } catch (error, stackTrace) {
+          AppLog.warning(
+            'creation',
+            'narration_generation_failed',
+            traceId: current.id,
+            fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+            error: error,
+            stackTrace: stackTrace,
+          );
+          current = current.copyWith(narrationError: _message(error));
+          await _store.save(current);
+        }
       }
     }
 
-    if (!await videoFile.exists()) {
+    if (needsVideo) {
       final stopwatch = Stopwatch()..start();
       try {
         var taskId = current.wanTaskId;
@@ -354,7 +411,13 @@ class DirectCreationService implements CreationService {
           ? finalVideoFile.path
           : null,
       musicError: current.musicError.isEmpty ? null : current.musicError,
+      narrationError: current.narrationError.isEmpty
+          ? null
+          : current.narrationError,
       videoError: current.videoError.isEmpty ? null : current.videoError,
+      compositionError: current.compositionError.isEmpty
+          ? null
+          : current.compositionError,
       wanTaskId: current.wanTaskId,
     );
     if (!artifacts.hasMusic && !artifacts.hasVideo) {
@@ -391,83 +454,6 @@ class DirectCreationService implements CreationService {
       },
     );
     return artifacts;
-  }
-
-  Future<_MusicPermission> _checkMusicPermission({
-    required CreationSettings settings,
-    required String traceId,
-  }) async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      final uri =
-          Uri.parse(
-            '${settings.dashscopeBaseUrl}/api/v1/models/permissions',
-          ).replace(
-            queryParameters: {'model': settings.dashscopeMusicModel.trim()},
-          );
-      final response = await _client
-          .get(
-            uri,
-            headers: {
-              HttpHeaders.authorizationHeader:
-                  'Bearer ${settings.dashscopeApiKey.trim()}',
-            },
-          )
-          .timeout(const Duration(seconds: 20));
-      final payload = _jsonObject(response.body, '百炼模型权限');
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        AppLog.warning(
-          'creation',
-          'music_permission_check_unavailable',
-          traceId: traceId,
-          fields: {
-            'status_code': response.statusCode,
-            'duration_ms': stopwatch.elapsedMilliseconds,
-          },
-        );
-        return _MusicPermission.unknown;
-      }
-      final output = payload['output'];
-      final rawPermissions = output is Map<Object?, Object?>
-          ? output['permissions']
-          : null;
-      final entries = rawPermissions is List<Object?>
-          ? rawPermissions.whereType<Map<Object?, Object?>>()
-          : const Iterable<Map<Object?, Object?>>.empty();
-      final model = settings.dashscopeMusicModel.trim();
-      Map<Object?, Object?>? matched;
-      for (final entry in entries) {
-        if (entry['model']?.toString() == model) {
-          matched = entry;
-          break;
-        }
-      }
-      final permissionValue = matched?['permissions'];
-      final inference = permissionValue is Map<Object?, Object?>
-          ? permissionValue['inference'] == true
-          : false;
-      AppLog.info(
-        'creation',
-        'music_permission_checked',
-        traceId: traceId,
-        fields: {
-          'model': model,
-          'allowed': inference,
-          'duration_ms': stopwatch.elapsedMilliseconds,
-        },
-      );
-      return inference ? _MusicPermission.allowed : _MusicPermission.denied;
-    } catch (error, stackTrace) {
-      AppLog.warning(
-        'creation',
-        'music_permission_check_unavailable',
-        traceId: traceId,
-        fields: {'duration_ms': stopwatch.elapsedMilliseconds},
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return _MusicPermission.unknown;
-    }
   }
 
   Future<void> _generateMusic({
@@ -825,8 +811,6 @@ class DirectCreationService implements CreationService {
     _ => '生成失败：$error',
   };
 }
-
-enum _MusicPermission { allowed, denied, unknown }
 
 class CreationException implements Exception {
   const CreationException(this.message);

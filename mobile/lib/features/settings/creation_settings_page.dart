@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/network/dashscope_capability_service.dart';
 import 'package:nature_sound_detective/core/storage/creation_settings_store.dart';
 
 class CreationSettingsPage extends StatefulWidget {
-  const CreationSettingsPage({super.key, this.store});
+  const CreationSettingsPage({super.key, this.store, this.capabilityChecker});
 
   final CreationSettingsStore? store;
+  final DashscopeCapabilityChecker? capabilityChecker;
 
   @override
   State<CreationSettingsPage> createState() => _CreationSettingsPageState();
@@ -14,6 +16,7 @@ class CreationSettingsPage extends StatefulWidget {
 
 class _CreationSettingsPageState extends State<CreationSettingsPage> {
   late final CreationSettingsStore _store;
+  late final DashscopeCapabilityChecker _capabilityChecker;
   final _formKey = GlobalKey<FormState>();
   final _dashscopeKey = TextEditingController();
   final _workspaceId = TextEditingController();
@@ -23,12 +26,16 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
   final _wanModel = TextEditingController();
   bool _loading = true;
   bool _saving = false;
+  bool _checkingCapabilities = false;
   bool _showDashScopeKey = false;
+  DashscopeCapabilityReport? _capabilityReport;
 
   @override
   void initState() {
     super.initState();
     _store = widget.store ?? FileCreationSettingsStore();
+    _capabilityChecker =
+        widget.capabilityChecker ?? DashscopeCapabilityService();
     _load();
   }
 
@@ -93,6 +100,42 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
       if (mounted) _showMessage('配置保存失败，请检查存储空间后重试。');
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  CreationSettings _currentSettings() => CreationSettings(
+    dashscopeApiKey: _dashscopeKey.text,
+    dashscopeWorkspaceId: _workspaceId.text,
+    dashscopeMusicModel: _dashscopeMusicModel.text,
+    dashscopeSpeechModel: _dashscopeSpeechModel.text,
+    dashscopeSpeechVoice: _dashscopeSpeechVoice.text,
+    wanVideoModel: _wanModel.text,
+  );
+
+  Future<void> _checkCapabilities() async {
+    if (!_formKey.currentState!.validate() || _checkingCapabilities) return;
+    setState(() {
+      _checkingCapabilities = true;
+      _capabilityReport = null;
+    });
+    final settings = _currentSettings();
+    try {
+      final report = await _capabilityChecker.check(settings, [
+        settings.dashscopeMusicModel,
+        settings.dashscopeSpeechModel,
+        settings.wanVideoModel,
+      ]);
+      if (mounted) setState(() => _capabilityReport = report);
+    } catch (error, stackTrace) {
+      AppLog.warning(
+        'settings',
+        'creation_capability_check_failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage('权限检测失败，请检查网络和 Workspace ID。');
+    } finally {
+      if (mounted) setState(() => _checkingCapabilities = false);
     }
   }
 
@@ -179,6 +222,45 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    key: const Key('check-creation-capabilities'),
+                    onPressed: _checkingCapabilities
+                        ? null
+                        : _checkCapabilities,
+                    child: Text(_checkingCapabilities ? '正在检测模型权限' : '检测模型权限'),
+                  ),
+                  if (_capabilityReport case final report?) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      key: const Key('creation-capability-results'),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4F2EA),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          _CapabilityRow(
+                            label: 'Fun-Music',
+                            status: report.statusOf(
+                              _dashscopeMusicModel.text.trim(),
+                            ),
+                          ),
+                          _CapabilityRow(
+                            label: '自然科普旁白',
+                            status: report.statusOf(
+                              _dashscopeSpeechModel.text.trim(),
+                            ),
+                          ),
+                          _CapabilityRow(
+                            label: '自然短片',
+                            status: report.statusOf(_wanModel.text.trim()),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   ExpansionTile(
                     tilePadding: EdgeInsets.zero,
@@ -266,5 +348,33 @@ class _CreationSettingsPageState extends State<CreationSettingsPage> {
     if (value == null || value.trim().isEmpty) return '请填写 API Key';
     if (value.trim().length < 8) return 'API Key 看起来不完整';
     return null;
+  }
+}
+
+class _CapabilityRow extends StatelessWidget {
+  const _CapabilityRow({required this.label, required this.status});
+
+  final String label;
+  final DashscopeCapabilityStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (text, color) = switch (status) {
+      DashscopeCapabilityStatus.allowed => ('已授权', const Color(0xFF216B4D)),
+      DashscopeCapabilityStatus.denied => ('未授权', const Color(0xFFA14E2C)),
+      DashscopeCapabilityStatus.unknown => ('无法确认', const Color(0xFF6D6B63)),
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(
+            text,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }

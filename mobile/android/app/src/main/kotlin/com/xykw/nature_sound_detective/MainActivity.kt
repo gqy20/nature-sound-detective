@@ -15,6 +15,9 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
 import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.NonNull
@@ -39,7 +42,12 @@ import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.security.KeyStore
 import java.util.concurrent.Executors
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -48,6 +56,7 @@ class MainActivity : FlutterActivity() {
         private const val CHANNEL = "com.xykw.nature_sound/audio_recorder"
         private const val MEDIA_CHANNEL = "com.xykw.nature_sound/media_composer"
         private const val BACKGROUND_CHANNEL = "com.xykw.nature_sound/creation_background"
+        private const val CREATION_SECRETS_CHANNEL = "com.xykw.nature_sound/creation_secrets"
         private const val MAP_PRIVACY_CHANNEL = AMAP_PRIVACY_CHANNEL
         private const val TAG = "NatureAudio"
         private const val PERMISSION_REQUEST = 7301
@@ -57,6 +66,10 @@ class MainActivity : FlutterActivity() {
         private const val BYTES_PER_SAMPLE = 2
         private const val MAX_IMPORT_BYTES = 150L * 1024 * 1024
         private const val MAX_IMPORT_DURATION_SECONDS = 600L
+        private const val CREATION_SECRET_ALIAS = "xykw_creation_dashscope_key"
+        private const val CREATION_SECRET_PREFERENCES = "creation_secrets"
+        private const val CREATION_SECRET_CIPHERTEXT = "dashscope_ciphertext"
+        private const val CREATION_SECRET_IV = "dashscope_iv"
     }
 
     private val worker = Executors.newSingleThreadExecutor()
@@ -106,6 +119,36 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CREATION_SECRETS_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                try {
+                    when (call.method) {
+                        "readDashscopeKey" -> result.success(readDashscopeKey())
+                        "writeDashscopeKey" -> {
+                            writeDashscopeKey(call.argument<String>("value").orEmpty())
+                            result.success(null)
+                        }
+                        "clearDashscopeKey" -> {
+                            clearDashscopeKey()
+                            result.success(null)
+                        }
+                        else -> result.notImplemented()
+                    }
+                } catch (error: Exception) {
+                    NativeDiagnosticLog.emit(
+                        this,
+                        level = "error",
+                        component = "settings",
+                        event = "creation_secret_operation_failed",
+                        error = error,
+                    )
+                    result.error(
+                        "creation_secret_failed",
+                        "创作密钥安全存储失败。",
+                        null,
+                    )
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MAP_PRIVACY_CHANNEL)
             .setMethodCallHandler { call, result ->
                 val preferences = getSharedPreferences(
@@ -141,6 +184,90 @@ class MainActivity : FlutterActivity() {
             AMAP_VIEW_TYPE,
             AmapSoundscapeViewFactory(flutterEngine.dartExecutor.binaryMessenger),
         )
+    }
+
+    private fun readDashscopeKey(): String {
+        val preferences = getSharedPreferences(
+            CREATION_SECRET_PREFERENCES,
+            MODE_PRIVATE,
+        )
+        val encrypted = preferences.getString(CREATION_SECRET_CIPHERTEXT, null)
+            ?: return ""
+        val iv = preferences.getString(CREATION_SECRET_IV, null) ?: return ""
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val entry = keyStore.getEntry(CREATION_SECRET_ALIAS, null)
+            as? KeyStore.SecretKeyEntry
+            ?: return ""
+        return try {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                entry.secretKey,
+                GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP)),
+            )
+            String(
+                cipher.doFinal(Base64.decode(encrypted, Base64.NO_WRAP)),
+                Charsets.UTF_8,
+            )
+        } catch (error: Exception) {
+            clearDashscopeKey()
+            NativeDiagnosticLog.emit(
+                this,
+                level = "warning",
+                component = "settings",
+                event = "creation_secret_reset",
+                error = error,
+            )
+            ""
+        }
+    }
+
+    private fun writeDashscopeKey(value: String) {
+        if (value.isBlank()) {
+            clearDashscopeKey()
+            return
+        }
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateCreationSecretKey())
+        val encrypted = cipher.doFinal(value.trim().toByteArray(Charsets.UTF_8))
+        getSharedPreferences(CREATION_SECRET_PREFERENCES, MODE_PRIVATE)
+            .edit()
+            .putString(
+                CREATION_SECRET_CIPHERTEXT,
+                Base64.encodeToString(encrypted, Base64.NO_WRAP),
+            )
+            .putString(
+                CREATION_SECRET_IV,
+                Base64.encodeToString(cipher.iv, Base64.NO_WRAP),
+            )
+            .apply()
+    }
+
+    private fun clearDashscopeKey() {
+        getSharedPreferences(CREATION_SECRET_PREFERENCES, MODE_PRIVATE)
+            .edit()
+            .remove(CREATION_SECRET_CIPHERTEXT)
+            .remove(CREATION_SECRET_IV)
+            .apply()
+    }
+
+    private fun getOrCreateCreationSecretKey(): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+        val existing = keyStore.getKey(CREATION_SECRET_ALIAS, null) as? SecretKey
+        if (existing != null) return existing
+        return KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES,
+            "AndroidKeyStore",
+        ).apply {
+            init(
+                KeyGenParameterSpec.Builder(
+                    CREATION_SECRET_ALIAS,
+                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+                ).setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .build(),
+            )
+        }.generateKey()
     }
 
     @UnstableApi

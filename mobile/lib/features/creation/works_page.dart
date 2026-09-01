@@ -231,7 +231,11 @@ class _WorksPageState extends State<WorksPage> {
   };
 
   String _statusText(CreationRecord record) => switch (record.stage) {
-    CreationStage.completed => '音乐、原声与旁白已合成',
+    CreationStage.completed => creationMediaSummary(
+      hasMusic: record.musicPath.isNotEmpty,
+      hasNarration: record.narrationPath.isNotEmpty,
+      hasVideo: record.videoPath.isNotEmpty || record.finalVideoPath.isNotEmpty,
+    ),
     CreationStage.partial => '部分完成，点按继续',
     CreationStage.failed => '生成失败，点按查看',
     _ => record.message,

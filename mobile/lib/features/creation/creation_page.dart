@@ -107,7 +107,13 @@ class _CreationPageState extends State<CreationPage>
                 ? null
                 : record.finalVideoPath,
             musicError: record.musicError.isEmpty ? null : record.musicError,
+            narrationError: record.narrationError.isEmpty
+                ? null
+                : record.narrationError,
             videoError: record.videoError.isEmpty ? null : record.videoError,
+            compositionError: record.compositionError.isEmpty
+                ? null
+                : record.compositionError,
             wanTaskId: record.wanTaskId,
           );
         }
@@ -178,8 +184,11 @@ class _CreationPageState extends State<CreationPage>
         : await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('开始生成音乐和视频？'),
-              content: const Text('将调用阿里云百炼生成音乐、旁白和视频，可能消耗账户额度。原始录音不会上传。'),
+              title: const Text('开始生成自然作品？'),
+              content: const Text(
+                '应用会先检查模型权限，再调用已授权的音乐、旁白和视频模型。'
+                '可选模型未授权时会自动跳过，原始录音不会上传。',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -377,6 +386,14 @@ class _CreationPageState extends State<CreationPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final artifacts = _artifacts;
+    final mediaSummary = artifacts == null
+        ? '配乐 · 旁白 · 自然原声 · 短片'
+        : creationMediaSummary(
+            hasMusic: artifacts.hasMusic,
+            hasNarration: artifacts.hasNarration,
+            hasVideo: artifacts.hasVideo || artifacts.hasFinalVideo,
+          );
     return Scaffold(
       appBar: AppBar(
         title: const Text('自然创作'),
@@ -405,7 +422,7 @@ class _CreationPageState extends State<CreationPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '音乐 · 旁白 · 短片',
+                        mediaSummary,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -515,28 +532,19 @@ class _CreationPageState extends State<CreationPage>
                   ],
                   if (_artifacts?.musicError case final message?) ...[
                     const SizedBox(height: 12),
-                    _WarningText(
-                      label: '音乐',
-                      message: message,
-                      onCopyApplicationUrl: isFunMusicPermissionDenied(message)
-                          ? () {
-                              unawaited(
-                                Clipboard.setData(
-                                  const ClipboardData(
-                                    text: funMusicApplicationUrl,
-                                  ),
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('申请网址已复制')),
-                              );
-                            }
-                          : null,
-                    ),
+                    _WarningText(label: '音乐', message: message),
                   ],
                   if (_artifacts?.videoError case final message?) ...[
                     const SizedBox(height: 12),
                     _WarningText(label: '视频', message: message),
+                  ],
+                  if (_artifacts?.narrationError case final message?) ...[
+                    const SizedBox(height: 12),
+                    _WarningText(label: '旁白', message: message),
+                  ],
+                  if (_artifacts?.compositionError case final message?) ...[
+                    const SizedBox(height: 12),
+                    _WarningText(label: '合成', message: message),
                   ],
                   if (_error case final message?) ...[
                     const SizedBox(height: 12),
@@ -668,15 +676,10 @@ class _ArtifactCard extends StatelessWidget {
 }
 
 class _WarningText extends StatelessWidget {
-  const _WarningText({
-    required this.label,
-    required this.message,
-    this.onCopyApplicationUrl,
-  });
+  const _WarningText({required this.label, required this.message});
 
   final String label;
   final String message;
-  final VoidCallback? onCopyApplicationUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -687,10 +690,19 @@ class _WarningText extends StatelessWidget {
           '$label：$message',
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
-        if (onCopyApplicationUrl != null)
+        if (message.contains(dashscopeModelPermissionUrl))
           TextButton(
-            key: const Key('copy-fun-music-application-url'),
-            onPressed: onCopyApplicationUrl,
+            key: const Key('copy-model-permission-url'),
+            onPressed: () {
+              unawaited(
+                Clipboard.setData(
+                  const ClipboardData(text: dashscopeModelPermissionUrl),
+                ),
+              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('申请网址已复制')));
+            },
             child: const Text('复制官网申请地址'),
           ),
       ],

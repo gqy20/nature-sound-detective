@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/models/creation.dart';
+import 'package:nature_sound_detective/core/network/dashscope_capability_service.dart';
 import 'package:nature_sound_detective/core/storage/creation_settings_store.dart';
 import 'package:nature_sound_detective/features/settings/creation_settings_page.dart';
 
@@ -8,7 +9,12 @@ void main() {
   testWidgets('DashScope is the only creation provider', (tester) async {
     final store = _MemorySettingsStore();
     await tester.pumpWidget(
-      MaterialApp(home: CreationSettingsPage(store: store)),
+      MaterialApp(
+        home: CreationSettingsPage(
+          store: store,
+          capabilityChecker: const _FakeCapabilityChecker(),
+        ),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -21,6 +27,20 @@ void main() {
       find.byKey(const Key('dashscope-api-key-field')),
       'dashscope-valid-key',
     );
+    await tester.tap(find.byKey(const Key('check-creation-capabilities')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const Key('creation-capability-results')),
+      findsOneWidget,
+    );
+    expect(find.text('已授权'), findsOneWidget);
+    expect(find.text('未授权'), findsNWidgets(2));
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('save-creation-settings')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byKey(const Key('save-creation-settings')));
     await tester.pumpAndSettle();
 
@@ -28,6 +48,21 @@ void main() {
     expect(store.saved?.dashscopeMusicModel, 'fun-music-v1');
     expect(store.saved?.dashscopeSpeechModel, 'qwen-audio-3.0-tts-plus');
     expect(store.saved?.wanVideoModel, 'wan3.0-video');
+  });
+}
+
+class _FakeCapabilityChecker implements DashscopeCapabilityChecker {
+  const _FakeCapabilityChecker();
+
+  @override
+  Future<DashscopeCapabilityReport> check(
+    CreationSettings settings,
+    Iterable<String> models, {
+    String traceId = '',
+  }) async => const DashscopeCapabilityReport({
+    'fun-music-v1': DashscopeCapabilityStatus.denied,
+    'qwen-audio-3.0-tts-plus': DashscopeCapabilityStatus.denied,
+    'wan3.0-video': DashscopeCapabilityStatus.allowed,
   });
 }
 

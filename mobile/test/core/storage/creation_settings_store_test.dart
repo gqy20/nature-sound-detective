@@ -9,8 +9,10 @@ void main() {
   test('persists and clears local creation settings', () async {
     final directory = await Directory.systemTemp.createTemp('settings_test_');
     addTearDown(() => directory.delete(recursive: true));
+    final secretStore = _MemoryCreationSecretStore();
     final store = FileCreationSettingsStore(
       directoryProvider: () async => directory,
+      secretStore: secretStore,
     );
     const settings = CreationSettings(
       dashscopeApiKey: 'dashscope-key',
@@ -32,6 +34,12 @@ void main() {
       restored.dashscopeBaseUrl,
       'https://workspace-1.cn-beijing.maas.aliyuncs.com',
     );
+    final settingsFile = File(
+      '${directory.path}/config/creation_settings.json',
+    );
+    final persisted = await settingsFile.readAsString();
+    expect(persisted, isNot(contains('dashscope-key')));
+    expect(persisted, isNot(contains('dashscope_api_key')));
 
     await store.clear();
     expect((await store.load()).canCreate, isFalse);
@@ -61,6 +69,7 @@ void main() {
     );
     final store = FileCreationSettingsStore(
       directoryProvider: () async => directory,
+      secretStore: _MemoryCreationSecretStore(),
     );
 
     final loaded = await store.load();
@@ -70,7 +79,25 @@ void main() {
     expect(loaded.dashscopeApiKey, 'dashscope-key');
     expect(cleaned.keys.where((key) => key.startsWith('minimax_')), isEmpty);
     expect(cleaned.containsKey('dashscope_region'), isFalse);
+    expect(cleaned.containsKey('dashscope_api_key'), isFalse);
     expect(loaded.wanVideoModel, 'wan3.0-video');
     expect(cleaned['wan_video_model'], 'wan3.0-video');
   });
+}
+
+class _MemoryCreationSecretStore implements CreationSecretStore {
+  String value = '';
+
+  @override
+  Future<String> load() async => value;
+
+  @override
+  Future<void> save(String value) async {
+    this.value = value;
+  }
+
+  @override
+  Future<void> clear() async {
+    value = '';
+  }
 }

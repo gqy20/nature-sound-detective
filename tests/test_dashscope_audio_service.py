@@ -14,6 +14,7 @@ def test_generates_fun_music_and_qwen_narration_with_one_key(tmp_path, monkeypat
     def handler(request: httpx.Request) -> httpx.Response:
         requests.append(request)
         if request.url.path.endswith("/models/permissions"):
+            model = request.url.params.get("model")
             return httpx.Response(
                 200,
                 json={
@@ -21,7 +22,7 @@ def test_generates_fun_music_and_qwen_narration_with_one_key(tmp_path, monkeypat
                     "output": {
                         "permissions": [
                             {
-                                "model": "fun-music-v1",
+                                "model": model,
                                 "permissions": {"inference": True},
                             }
                         ]
@@ -129,3 +130,43 @@ def test_workspace_id_selects_beijing_dedicated_endpoint(monkeypatch):
         audio_service._api_base()
         == "https://workspace-123.cn-beijing.maas.aliyuncs.com/api/v1"
     )
+
+
+def test_skips_narration_when_inference_permission_is_denied(tmp_path, monkeypatch):
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.url.path.endswith("/models/permissions"):
+            model = request.url.params.get("model")
+            return httpx.Response(
+                200,
+                json={
+                    "success": True,
+                    "output": {
+                        "permissions": [
+                            {
+                                "model": model,
+                                "permissions": {"inference": False},
+                            }
+                        ]
+                    },
+                },
+            )
+        return httpx.Response(500, json={"message": "generation must be skipped"})
+
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "dashscope-test-key")
+    monkeypatch.setattr(
+        audio_service,
+        "_client",
+        lambda _timeout: httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+
+    destination = tmp_path / "narration.mp3"
+    with pytest.raises(audio_service.ModelPermissionDenied, match="旁白"):
+        audio_service.generate_narration("听听周围的声音。", destination)
+
+    assert not destination.exists()
+    assert [request.url.path for request in requests] == [
+        "/api/v1/models/permissions"
+    ]

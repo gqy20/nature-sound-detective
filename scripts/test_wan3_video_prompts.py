@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.generated_prompts import render_prompt
+from app.generated_prompts import PROMPT_CATALOG_DIGEST, prompt_version, render_prompt
 
 
 MODEL = "wan3.0-video"
@@ -33,9 +33,12 @@ class PromptCase:
     slug: str
     purpose: str
     prompt: str
+    seed: int | None = None
+    reference_image_url: str = ""
+    reference_attribution: str = ""
 
 
-DEFAULT_CASES = (
+EXPERIMENT_CASES = (
     PromptCase(
         slug="01-current-prompt",
         purpose="当前移动端通用提示词基线",
@@ -63,7 +66,114 @@ DEFAULT_CASES = (
     ),
 )
 
-NEGATIVE_PROMPT = render_prompt("wan3_experiments.negative")
+PRODUCTION_CURRENT_CASES = (
+    PromptCase(
+        slug="01-production-bird",
+        purpose="当前移动端鸟类展示效果（杭州树麻雀）",
+        prompt=render_prompt(
+            "creation.mobile_video_bird",
+            location="杭州",
+            subject="树麻雀",
+        ),
+    ),
+    PromptCase(
+        slug="02-production-frog",
+        purpose="当前移动端蛙类展示效果（杭州黑斑侧褶蛙）",
+        prompt=render_prompt(
+            "creation.mobile_video_frog",
+            location="杭州",
+            subject="黑斑侧褶蛙",
+        ),
+    ),
+    PromptCase(
+        slug="03-production-environment",
+        purpose="当前移动端不确定识别的纯环境展示效果",
+        prompt=render_prompt(
+            "creation.mobile_video_environment",
+            location="杭州",
+        ),
+    ),
+)
+
+SHOWCASE_PILOT_CASES = (
+    PromptCase(
+        slug="01-bird-current",
+        purpose="鸟类当前正式提示词基线",
+        prompt=render_prompt(
+            "creation.mobile_video_bird",
+            location="杭州",
+            subject="树麻雀",
+        ),
+        seed=2026090201,
+    ),
+    PromptCase(
+        slug="02-bird-showcase-dynamic",
+        purpose="鸟类展示级时间线与动态提示词",
+        prompt=render_prompt("wan3_experiments.showcase_bird_dynamic"),
+        seed=2026090201,
+    ),
+    PromptCase(
+        slug="03-environment-current",
+        purpose="无动物环境当前正式提示词基线",
+        prompt=render_prompt(
+            "creation.mobile_video_environment",
+            location="杭州",
+        ),
+        seed=2026090202,
+    ),
+    PromptCase(
+        slug="04-environment-showcase-dynamic",
+        purpose="无动物环境展示级时间线与动态提示词",
+        prompt=render_prompt("wan3_experiments.showcase_environment_dynamic"),
+        seed=2026090202,
+    ),
+)
+
+SHOWCASE_FIX_CASES = (
+    PromptCase(
+        slug="01-environment-showcase-fixed",
+        purpose="修正城市天际线误生成的纯自然湿地动态片",
+        prompt=render_prompt("wan3_experiments.showcase_environment_dynamic_v2"),
+        seed=2026090202,
+    ),
+    PromptCase(
+        slug="02-frog-showcase-text-only",
+        purpose="蛙类展示级动态提示词纯文字基线",
+        prompt=render_prompt("wan3_experiments.showcase_frog_dynamic"),
+        seed=2026090203,
+    ),
+    PromptCase(
+        slug="03-frog-showcase-reference",
+        purpose="蛙类展示级动态提示词加可信物种参考图",
+        prompt=render_prompt("wan3_experiments.showcase_frog_dynamic"),
+        seed=2026090203,
+        reference_image_url=(
+            "https://inaturalist-open-data.s3.amazonaws.com/"
+            "photos/47127806/original.jpg"
+        ),
+        reference_attribution=(
+            "Pelophylax nigromaculatus; Kim, Hyun-tae; "
+            "iNaturalist photo 47127806; CC BY 4.0"
+        ),
+    ),
+)
+
+SHOWCASE_FROG_FIX_CASES = (
+    PromptCase(
+        slug="01-frog-reference-low-motion",
+        purpose="参考图蛙类低幅度爬入浅水修正版",
+        prompt=render_prompt("wan3_experiments.showcase_frog_dynamic_v2"),
+        seed=2026090203,
+        reference_image_url=(
+            "https://inaturalist-open-data.s3.amazonaws.com/"
+            "photos/47127806/original.jpg"
+        ),
+        reference_attribution=(
+            "Pelophylax nigromaculatus; Kim, Hyun-tae; "
+            "iNaturalist photo 47127806; CC BY 4.0"
+        ),
+    ),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -71,20 +181,27 @@ def parse_args() -> argparse.Namespace:
         description="用 Wan 3.0 生成最多5个480P、5秒提示词测试视频。",
     )
     parser.add_argument(
+        "--suite",
+        choices=(
+            "experiments",
+            "production-current",
+            "showcase-pilot",
+            "showcase-fix",
+            "showcase-frog-fix",
+        ),
+        default="experiments",
+        help="提示词套件：历史实验或当前移动端正式提示词。",
+    )
+    parser.add_argument(
         "--count",
         type=int,
-        default=MAX_VIDEOS,
-        help="运行前几个内置用例，范围1-5，默认5。",
+        default=None,
+        help="运行套件中的前几个用例；默认运行所选套件的全部用例。",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=ROOT
-        / "mobile"
-        / "qa"
-        / "runs"
-        / datetime.now().strftime("%Y-%m-%d")
-        / "002-wan3-480p-prompt-test",
+        default=None,
         help="视频、任务状态和实验清单的输出目录。",
     )
     parser.add_argument(
@@ -144,16 +261,22 @@ def submit_case(
     base: str,
     headers: dict[str, str],
     case: PromptCase,
+    negative_prompt: str,
 ) -> str:
+    input_payload: dict[str, Any] = {
+        "prompt": case.prompt,
+        "negative_prompt": negative_prompt,
+    }
+    if case.reference_image_url:
+        input_payload["media"] = [
+            {"type": "reference_image", "url": case.reference_image_url}
+        ]
     response = client.post(
         f"{base}/services/aigc/video-generation/video-synthesis",
         headers={**headers, "X-DashScope-Async": "enable"},
         json={
             "model": MODEL,
-            "input": {
-                "prompt": case.prompt,
-                "negative_prompt": NEGATIVE_PROMPT,
-            },
+            "input": input_payload,
             "parameters": {
                 "resolution": RESOLUTION,
                 "ratio": RATIO,
@@ -161,6 +284,7 @@ def submit_case(
                 "audio": False,
                 "prompt_extend": True,
                 "watermark": True,
+                **({"seed": case.seed} if case.seed is not None else {}),
             },
         },
     )
@@ -193,21 +317,62 @@ def main() -> int:
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stderr.reconfigure(encoding="utf-8")
     args = parse_args()
-    if not 1 <= args.count <= MAX_VIDEOS:
-        raise SystemExit(f"--count 必须在1到{MAX_VIDEOS}之间")
+    if args.suite == "production-current":
+        available_cases = PRODUCTION_CURRENT_CASES
+        negative_prompt = render_prompt("creation.mobile_video_negative")
+        prompt_namespace = "creation"
+    elif args.suite == "showcase-pilot":
+        available_cases = SHOWCASE_PILOT_CASES
+        negative_prompt = render_prompt("creation.mobile_video_negative")
+        prompt_namespace = "wan3_experiments"
+    elif args.suite == "showcase-fix":
+        available_cases = SHOWCASE_FIX_CASES
+        negative_prompt = render_prompt("creation.mobile_video_negative")
+        prompt_namespace = "wan3_experiments"
+    elif args.suite == "showcase-frog-fix":
+        available_cases = SHOWCASE_FROG_FIX_CASES
+        negative_prompt = render_prompt("creation.mobile_video_negative")
+        prompt_namespace = "wan3_experiments"
+    else:
+        available_cases = EXPERIMENT_CASES
+        negative_prompt = render_prompt("wan3_experiments.negative")
+        prompt_namespace = "wan3_experiments"
+    count = len(available_cases) if args.count is None else args.count
+    if not 1 <= count <= len(available_cases):
+        raise SystemExit(f"--count 必须在1到{len(available_cases)}之间")
     if args.poll_interval < 2:
         raise SystemExit("--poll-interval 不能小于2秒")
     if args.timeout <= 0:
         raise SystemExit("--timeout 必须大于0")
 
     load_dotenv(ROOT / ".env")
-    cases = list(DEFAULT_CASES[: args.count])
-    output_dir = args.output_dir.resolve()
+    cases = list(available_cases[:count])
+    default_run_name = (
+        {
+            "production-current": "003-wan3-creation-v2",
+            "showcase-pilot": "004-wan3-showcase-pilot-v1",
+            "showcase-fix": "005-wan3-showcase-fix-v2",
+            "showcase-frog-fix": "006-wan3-showcase-frog-fix-v3",
+        }.get(args.suite, "002-wan3-480p-prompt-test")
+    )
+    output_dir = (
+        args.output_dir
+        or ROOT
+        / "mobile"
+        / "qa"
+        / "runs"
+        / datetime.now().strftime("%Y-%m-%d")
+        / default_run_name
+    ).resolve()
     plan = {
         "model": MODEL,
         "resolution": RESOLUTION,
         "ratio": RATIO,
         "duration_seconds": DURATION_SECONDS,
+        "suite": args.suite,
+        "prompt_namespace": prompt_namespace,
+        "prompt_version": prompt_version(prompt_namespace),
+        "prompt_catalog_digest": PROMPT_CATALOG_DIGEST,
         "count": len(cases),
         "output_dir": str(output_dir),
         "cases": [
@@ -215,6 +380,9 @@ def main() -> int:
                 "slug": case.slug,
                 "purpose": case.purpose,
                 "prompt_id": prompt_id(case.prompt),
+                "seed": case.seed,
+                "reference_image_url": case.reference_image_url,
+                "reference_attribution": case.reference_attribution,
                 "prompt": case.prompt,
             }
             for case in cases
@@ -251,6 +419,9 @@ def main() -> int:
                 "slug": case.slug,
                 "purpose": case.purpose,
                 "prompt_id": prompt_id(case.prompt),
+                "seed": case.seed,
+                "reference_image_url": case.reference_image_url,
+                "reference_attribution": case.reference_attribution,
                 "status": "submitting",
                 "task_id": "",
                 "file": f"{case.slug}.mp4",
@@ -258,7 +429,13 @@ def main() -> int:
             manifest["results"].append(result)
             write_manifest(manifest_path, manifest)
             try:
-                result["task_id"] = submit_case(client, api_base(), headers, case)
+                result["task_id"] = submit_case(
+                    client,
+                    api_base(),
+                    headers,
+                    case,
+                    negative_prompt,
+                )
                 result["status"] = "submitted"
                 print(f"[{case.slug}] submitted task={result['task_id']}")
             except Exception as error:  # noqa: BLE001 - keep later cases runnable

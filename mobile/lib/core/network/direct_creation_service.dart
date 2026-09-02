@@ -13,6 +13,10 @@ import 'package:path_provider/path_provider.dart';
 
 typedef CreationProgress = void Function(CreationUpdate update);
 
+const _blackSpottedPondFrogReferenceUrl =
+    'https://inaturalist-open-data.s3.amazonaws.com/'
+    'photos/47127806/original.jpg';
+
 abstract interface class CreationService {
   Future<CreationArtifacts> create({
     required CreationSettings settings,
@@ -275,6 +279,7 @@ class DirectCreationService implements CreationService {
           taskId = await _createWanTask(
             settings: settings,
             prompt: _videoPrompt(current),
+            referenceImageUrl: _videoReferenceImageUrl(current),
             traceId: current.id,
           );
           current = current.copyWith(wanTaskId: taskId, videoError: '');
@@ -536,9 +541,22 @@ class DirectCreationService implements CreationService {
   Future<String> _createWanTask({
     required CreationSettings settings,
     required String prompt,
+    required String? referenceImageUrl,
     required String traceId,
   }) async {
     final stopwatch = Stopwatch()..start();
+    final input = <String, Object?>{
+      'prompt': prompt,
+      'negative_prompt': AiPromptCatalog.render(
+        'creation.mobile_video_negative',
+        const {},
+      ),
+    };
+    if (referenceImageUrl != null) {
+      input['media'] = [
+        {'type': 'reference_image', 'url': referenceImageUrl},
+      ];
+    }
     final response = await _client
         .post(
           Uri.parse(
@@ -552,13 +570,7 @@ class DirectCreationService implements CreationService {
           },
           body: jsonEncode({
             'model': settings.wanVideoModel.trim(),
-            'input': {
-              'prompt': prompt,
-              'negative_prompt': AiPromptCatalog.render(
-                'creation.mobile_video_negative',
-                const {},
-              ),
-            },
+            'input': input,
             'parameters': {
               'resolution': '480P',
               'ratio': '9:16',
@@ -691,7 +703,9 @@ class DirectCreationService implements CreationService {
       {'subject': record.subject, 'location': record.location},
     ),
     CreationVisualMode.frog => AiPromptCatalog.render(
-      'creation.mobile_video_frog',
+      _videoReferenceImageUrl(record) == null
+          ? 'creation.mobile_video_frog'
+          : 'creation.mobile_video_frog_reference',
       {'subject': record.subject, 'location': record.location},
     ),
     CreationVisualMode.environment => AiPromptCatalog.render(
@@ -699,6 +713,12 @@ class DirectCreationService implements CreationService {
       {'location': record.location},
     ),
   };
+
+  String? _videoReferenceImageUrl(CreationRecord record) =>
+      record.visualMode == CreationVisualMode.frog &&
+          record.subject.trim() == '黑斑侧褶蛙'
+      ? _blackSpottedPondFrogReferenceUrl
+      : null;
 
   String _narrationText(String subject, String location) =>
       AiPromptCatalog.render('creation.mobile_narration', {

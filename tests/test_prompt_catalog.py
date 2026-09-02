@@ -27,7 +27,7 @@ def test_prompt_catalog_versions_and_generation_profiles_are_available():
     assert len(PROMPT_CATALOG_DIGEST) == 16
     assert PROMPT_VERSIONS["story"] == "animal-story-v5"
     assert PROMPT_VERSIONS["parent_guidance"] == "parent-guidance-v4"
-    assert PROMPT_VERSIONS["creation"] == "creation-v2"
+    assert PROMPT_VERSIONS["creation"] == "creation-v3"
     assert prompt_generation("story")["max_completion_tokens"] == 500
 
 
@@ -38,7 +38,8 @@ def test_prompt_rendering_requires_exact_variables():
         subject="树麻雀",
     )
     assert "树麻雀" in rendered
-    assert "生成单镜头" in rendered
+    assert "生成一支5秒" in rendered
+    assert "单镜头" in rendered
     assert "杭州" in rendered
     assert "{{" not in rendered
 

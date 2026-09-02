@@ -32,7 +32,7 @@ def test_creation_plan_stays_within_identified_sound_type():
     assert plan["investigation_status"] == "completed"
     assert "现场观察" in plan["observation_summary"]
     assert "不是最终鉴定" in plan["narration"]
-    assert plan["prompt_version"] == "creation-v2"
+    assert plan["prompt_version"] == "creation-v3"
 
 
 def test_public_job_never_exposes_server_media_paths():

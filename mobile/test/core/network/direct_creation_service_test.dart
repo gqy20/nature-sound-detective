@@ -156,6 +156,7 @@ void main() {
     expect(videoInput['prompt'], contains('一只珠颈斑鸠'));
     expect(videoInput['prompt'], contains('横向树枝'));
     expect(videoInput['prompt'], isNot(contains('只展示环境')));
+    expect(videoInput['media'], isNull);
     expect(videoInput['negative_prompt'], contains('儿童正脸'));
     expect(videoInput['negative_prompt'], contains('额外肢体'));
     expect(speechBody['model'], 'qwen-audio-3.0-tts-plus');
@@ -234,10 +235,11 @@ void main() {
         ..writeAsBytesSync([1, 2]);
       final result = await service.create(
         settings: const CreationSettings(dashscopeApiKey: 'dashscope-test-key'),
-        subject: '流水',
+        subject: '黑斑侧褶蛙',
         location: '杭州',
         sourceAudioPath: source.path,
         onProgress: (_) {},
+        visualMode: CreationVisualMode.frog,
       );
 
       expect(result.hasMusic, isFalse);
@@ -259,6 +261,26 @@ void main() {
               request.url.path.endsWith('/audio/tts/SpeechSynthesizer'),
         ),
         hasLength(1),
+      );
+      final videoBody =
+          jsonDecode(
+                requests
+                    .where(
+                      (request) =>
+                          request.url.path.endsWith('/video-synthesis'),
+                    )
+                    .single
+                    .body,
+              )
+              as Map<String, Object?>;
+      final videoInput = videoBody['input'] as Map<String, Object?>;
+      expect(videoInput['prompt'], contains('图片1'));
+      final media = videoInput['media'] as List<Object?>;
+      expect(media, hasLength(1));
+      expect((media.single as Map<String, Object?>)['type'], 'reference_image');
+      expect(
+        (media.single as Map<String, Object?>)['url'],
+        contains('/photos/47127806/original.jpg'),
       );
     },
   );

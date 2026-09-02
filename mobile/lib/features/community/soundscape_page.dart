@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
@@ -2299,32 +2300,14 @@ class _CommunitySoundCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 3,
-                          activeTrackColor: const Color(0xFF1D6B50),
-                          inactiveTrackColor: const Color(0xFFD6E2DB),
-                          disabledActiveTrackColor: const Color(0xFF8EAAA0),
-                          disabledInactiveTrackColor: const Color(0xFFD6E2DB),
-                          thumbColor: const Color(0xFF1D6B50),
-                          overlayColor: const Color(0x221D6B50),
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                            disabledThumbRadius: 0,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 15,
-                          ),
-                        ),
-                        child: Slider(
-                          key: Key('community-audio-progress-${post.id}'),
-                          value: progress,
-                          onChanged: activeAudio && durationMilliseconds > 0
-                              ? onSeek
-                              : null,
-                          semanticFormatterCallback: (value) =>
-                              '播放进度 ${(value * 100).round()}%',
-                        ),
+                      const SizedBox(height: 3),
+                      _AudioWaveformProgress(
+                        key: Key('community-audio-waveform-${post.id}'),
+                        sliderKey: Key('community-audio-progress-${post.id}'),
+                        progress: progress,
+                        seed: post.id.hashCode,
+                        enabled: activeAudio && durationMilliseconds > 0,
+                        onChanged: onSeek,
                       ),
                     ],
                   ),
@@ -2337,18 +2320,35 @@ class _CommunitySoundCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: choices
-                  .take(4)
-                  .map(
-                    (choice) => OutlinedButton(
+            Row(
+              children: [
+                for (final (index, choice) in choices.take(4).indexed) ...[
+                  if (index > 0) const SizedBox(width: 6),
+                  Expanded(
+                    child: OutlinedButton(
+                      key: Key('community-choice-${post.id}-$index'),
                       onPressed: acting ? null : () => onAssist(choice),
-                      child: Text(choice),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 40),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        textStyle: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(choice, maxLines: 1),
+                      ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 12),
             Row(
@@ -2380,6 +2380,117 @@ class _CommunitySoundCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AudioWaveformProgress extends StatelessWidget {
+  const _AudioWaveformProgress({
+    super.key,
+    required this.sliderKey,
+    required this.progress,
+    required this.seed,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final Key sliderKey;
+  final double progress;
+  final int seed;
+  final bool enabled;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 38,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Positioned.fill(
+          left: 8,
+          right: 8,
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _AudioProgressWaveformPainter(
+                progress: progress,
+                seed: seed,
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 0,
+              activeTrackColor: Colors.transparent,
+              inactiveTrackColor: Colors.transparent,
+              disabledActiveTrackColor: Colors.transparent,
+              disabledInactiveTrackColor: Colors.transparent,
+              thumbColor: const Color(0xFF1D6B50),
+              disabledThumbColor: Colors.transparent,
+              overlayColor: const Color(0x221D6B50),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            ),
+            child: Slider(
+              key: sliderKey,
+              value: progress,
+              onChanged: enabled ? onChanged : null,
+              semanticFormatterCallback: (value) =>
+                  '播放进度 ${(value * 100).round()}%',
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _AudioProgressWaveformPainter extends CustomPainter {
+  const _AudioProgressWaveformPainter({
+    required this.progress,
+    required this.seed,
+  });
+
+  final double progress;
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centerY = size.height / 2;
+    final activeWidth = size.width * progress;
+    final baseline = Paint()
+      ..color = const Color(0xFFD6E2DB)
+      ..strokeWidth = 1.2;
+    canvas.drawLine(Offset(0, centerY), Offset(size.width, centerY), baseline);
+
+    const barCount = 54;
+    final spacing = size.width / barCount;
+    final inactivePaint = Paint()
+      ..color = const Color(0xFFB9CCC3)
+      ..strokeWidth = math.max(1.4, spacing * .34)
+      ..strokeCap = StrokeCap.round;
+    final activePaint = Paint()
+      ..color = const Color(0xFF1D6B50)
+      ..strokeWidth = inactivePaint.strokeWidth
+      ..strokeCap = StrokeCap.round;
+    final phase = (seed.abs() % 29) / 13;
+
+    for (var index = 0; index < barCount; index++) {
+      final x = (index + .5) * spacing;
+      final primary = math.sin(index * .71 + phase).abs();
+      final detail = math.sin(index * 1.83 + phase * 2.2).abs();
+      final envelope = .2 + primary * .52 + detail * .28;
+      final height = 4 + envelope * (size.height - 12);
+      canvas.drawLine(
+        Offset(x, centerY - height / 2),
+        Offset(x, centerY + height / 2),
+        x <= activeWidth ? activePaint : inactivePaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AudioProgressWaveformPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.seed != seed;
 }
 
 class _PostBadge extends StatelessWidget {

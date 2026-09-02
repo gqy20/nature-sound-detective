@@ -5,6 +5,7 @@ import 'package:nature_sound_detective/core/community/route_progress_store.dart'
 import 'package:nature_sound_detective/core/community/route_listening_context.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation_engine.dart';
+import 'package:nature_sound_detective/core/park_guide/park_guide_availability.dart';
 import 'package:nature_sound_detective/core/logging/app_log.dart';
 import 'package:nature_sound_detective/features/community/exploration_route_page.dart';
 
@@ -139,7 +140,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
       if (routes == null) '探索路线暂时不可用',
       if (snapshot == null || brief == null) '近期社区数据暂时不可用',
     ];
-    return ParkGuideData(
+    final data = ParkGuideData(
       park: park,
       sites: sites ?? const [],
       routes: routes ?? const [],
@@ -168,6 +169,7 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
           ),
       loadWarnings: warnings,
     );
+    return const ParkGuideAvailability().ensureBaselineRoute(data);
   }
 
   Future<T?> _optional<T>(Future<T> Function() request) async {
@@ -219,8 +221,9 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
         .where((item) => item.park.id == _selectedParkId)
         .firstOrNull;
     final recommendations = const ParkRecommendationEngine().rank(
-      selectedPark == null ? const [] : [selectedPark],
+      selectedPark == null ? const [] : _parks,
       _preferences,
+      preferredParkId: _selectedParkId,
     );
     final onFirstStep = _step == _ParkGuideStep.parkSelection;
     final onResults = _step == _ParkGuideStep.recommendations;
@@ -451,6 +454,10 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
       );
     }
     final selected = recommendations.first;
+    final originallySelectedPark = _parks
+        .where((item) => item.park.id == _selectedParkId)
+        .firstOrNull;
+    final parkWasAdjusted = selected.data.park.id != _selectedParkId;
     return Padding(
       key: const Key('park-guide-recommendations-page'),
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
@@ -478,6 +485,26 @@ class _ParkGuidePageState extends State<ParkGuidePage> {
               ),
             ],
           ),
+          if (parkWasAdjusted && originallySelectedPark != null) ...[
+            Container(
+              key: const Key('park-recommendation-park-adjusted'),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF0CE),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                '为满足当前条件，已从${originallySelectedPark.park.name}调整为${selected.data.park.name}。',
+                style: const TextStyle(
+                  color: Color(0xFF76550E),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           const SizedBox(height: 14),
           Expanded(
             child: LayoutBuilder(

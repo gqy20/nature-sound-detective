@@ -212,7 +212,11 @@ void main() {
     await tester.tap(find.byKey(const Key('park-age-fiveAndUnder')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('暂无完整匹配'), findsOneWidget);
+    expect(find.text('暂无完整匹配'), findsNothing);
+    final routeAction = tester.widget<FilledButton>(
+      find.byKey(const Key('open-park-recommendations')),
+    );
+    expect(routeAction.onPressed, isNotNull);
 
     await tester.tap(find.byKey(const Key('park-age-sixToSeven')));
     await tester.pump();
@@ -228,6 +232,32 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('park-guide-criteria-page')), findsOneWidget);
+  });
+
+  testWidgets('offers a safe baseline route for low-age short visits', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ParkGuidePage(service: _FakeCommunityService())),
+    );
+    await tester.pumpAndSettle();
+
+    await _selectTaiziwanPark(tester);
+    await tester.tap(find.byKey(const Key('park-age-fiveAndUnder')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('park-duration-twentyMinutes')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('park-duration-twentyMinutes')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-park-recommendations')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-selected-park-route')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('亲子轻量倾听路线'), findsOneWidget);
+    expect(find.textContaining('15分钟'), findsWidgets);
   });
 
   testWidgets('stops loading and offers retry when park list hangs', (

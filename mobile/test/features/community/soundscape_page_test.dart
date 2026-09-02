@@ -76,6 +76,28 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
+      find.byKey(const Key('community-choice-audio-post-0')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final choices = List.generate(
+      4,
+      (index) => find.byKey(Key('community-choice-audio-post-$index')),
+    );
+    for (final choice in choices) {
+      expect(choice, findsOneWidget);
+      expect(tester.getSize(choice).height, lessThanOrEqualTo(40.5));
+    }
+    final choiceTops = choices
+        .map((choice) => tester.getTopLeft(choice).dy)
+        .toSet();
+    expect(choiceTops, hasLength(1));
+    expect(
+      find.byKey(const Key('community-audio-waveform-audio-post')),
+      findsOneWidget,
+    );
+
+    await tester.scrollUntilVisible(
       find.byKey(const Key('play-community-audio-post')),
       300,
       scrollable: find.byType(Scrollable).first,
@@ -622,7 +644,7 @@ class _AudioCommunityService extends _FakeCommunityService {
       createdAt: DateTime.utc(2026, 8, 29, 6),
       audioUrl: 'https://example.test/audio.wav',
       duration: const Duration(seconds: 12),
-      candidateNames: const ['鸟类'],
+      candidateNames: const ['昆虫鸣叫', '人声', '鹧鸪'],
       fieldObservations: const [],
       status: 'published_unverified',
       reviewStatus: 'not_requested',

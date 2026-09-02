@@ -8,10 +8,14 @@ class ParkRecommendationEngine {
 
   List<ParkRecommendation> rank(
     List<ParkGuideData> values,
-    ParkGuidePreferences preferences,
-  ) {
+    ParkGuidePreferences preferences, {
+    String? preferredParkId,
+  }) {
     final results = values
-        .map((value) => _score(value, preferences))
+        .map(
+          (value) =>
+              _score(value, preferences, preferredParkId: preferredParkId),
+        )
         .whereType<ParkRecommendation>()
         .toList(growable: false);
     return [...results]
@@ -20,8 +24,9 @@ class ParkRecommendationEngine {
 
   ParkRecommendation? _score(
     ParkGuideData data,
-    ParkGuidePreferences preferences,
-  ) {
+    ParkGuidePreferences preferences, {
+    String? preferredParkId,
+  }) {
     final accessible = _accessibleParkIds.contains(data.park.id);
     if (preferences.requiresAccessibleRoute && !accessible) return null;
     final eligibleRoutes = data.routes
@@ -42,6 +47,10 @@ class ParkRecommendationEngine {
               .first;
     var score = 30;
     final reasons = <String>[];
+    if (data.park.id == preferredParkId) {
+      score += 8;
+      reasons.add('优先保留已选公园');
+    }
     if (route != null) {
       final ageGap = preferences.childAge - route.ageMin;
       score += max(8, 20 - ageGap * 2);

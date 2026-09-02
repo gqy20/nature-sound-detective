@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
+import 'package:nature_sound_detective/core/park_guide/park_guide_availability.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation.dart';
 import 'package:nature_sound_detective/core/park_guide/park_recommendation_engine.dart';
 
@@ -169,6 +170,53 @@ void main() {
     expect(frogsAndFullRoute.first.data.park.id, 'xixi-wetland');
     expect(frogsAndFullRoute.first.matchNote, contains('蛙虫'));
     expect(relaxed.first.data.park.id, 'taiziwan-park');
+  });
+
+  test('keeps every current preference combination usable', () {
+    final configured = const ParkGuideAvailability().ensureBaselineRoute(
+      _data(
+        id: 'taiziwan-park',
+        name: '太子湾公园',
+        tags: const ['城市公园', '草地', '水岸'],
+        duration: 25,
+        age: 6,
+      ),
+    );
+
+    for (final ageBand in ChildAgeBand.values) {
+      for (final visitDuration in VisitDuration.values) {
+        for (final interest in ParkInterest.values) {
+          for (final walkPreference in WalkPreference.values) {
+            for (final requiresAccessibleRoute in [false, true]) {
+              final preferences = ParkGuidePreferences(
+                ageBand: ageBand,
+                visitDuration: visitDuration,
+                interest: interest,
+                walkPreference: walkPreference,
+                requiresAccessibleRoute: requiresAccessibleRoute,
+              );
+              final result = const ParkRecommendationEngine().rank(
+                [configured],
+                preferences,
+                preferredParkId: 'taiziwan-park',
+              );
+              expect(
+                result,
+                isNotEmpty,
+                reason: '应覆盖 ${preferences.signature}',
+              );
+            }
+          }
+        }
+      }
+    }
+    final baseline = configured.routes.singleWhere(
+      (route) => route.id.endsWith('family-baseline'),
+    );
+    expect(baseline.ageMin, 0);
+    expect(baseline.durationMinutes, lessThanOrEqualTo(20));
+    expect(baseline.disclaimer, contains('家长全程陪同'));
+    expect(baseline.stops.single.mission, contains('家长全程陪同'));
   });
 }
 

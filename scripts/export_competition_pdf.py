@@ -12,13 +12,16 @@ import math
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from PIL import Image as PILImage
 from reportlab.graphics.shapes import Drawing, Line, Polygon, Rect, String
+from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib import textsplit
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
@@ -26,8 +29,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     BaseDocTemplate,
+    CondPageBreak,
     Frame,
     Image,
+    KeepTogether,
     NextPageTemplate,
     PageBreak,
     PageTemplate,
@@ -37,11 +42,13 @@ from reportlab.platypus import (
     TableStyle,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
+import reportlab.platypus.paragraph as reportlab_paragraph
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SOURCE = ROOT / "docs/参赛项目说明书-自然声探员-v001.md"
-DEFAULT_OUTPUT = ROOT / "output/pdf/自然声探员-参赛项目说明书-v001.pdf"
+DEFAULT_SOURCE = ROOT / "docs/参赛项目说明书-自然声探员-v003.md"
+DEFAULT_OUTPUT = ROOT / "output/pdf/自然声探员-决赛参赛项目说明书-v003.pdf"
+FIGURE_WORK_DIR = ROOT / "tmp/pdfs/competition-assets"
 
 PAGE_W, PAGE_H = A4
 MARGIN_L = 22 * mm
@@ -59,6 +66,20 @@ WARM = colors.HexColor("#FBFAF6")
 RULE = colors.HexColor("#D7E2DD")
 TEXT = colors.HexColor("#263B35")
 MUTED = colors.HexColor("#667872")
+
+# ReportLab's built-in CJK table omits several Simplified Chinese full-width
+# marks. Extend it so closing punctuation stays with the preceding text instead
+# of appearing at the beginning of a line (中文标点避头规则).
+ZH_CANNOT_START_LINE = "，。！？；：、）》】〕〉」』’”％‰℃…—"
+
+
+def configure_chinese_line_breaks() -> None:
+    cannot_start = "".join(dict.fromkeys(
+        textsplit.ALL_CANNOT_START + ZH_CANNOT_START_LINE
+    ))
+    # paragraph.py imports this value directly, so both references must change.
+    textsplit.ALL_CANNOT_START = cannot_start
+    reportlab_paragraph.ALL_CANNOT_START = cannot_start
 
 
 def register_fonts() -> None:
@@ -101,8 +122,8 @@ def build_styles() -> dict[str, ParagraphStyle]:
             leading=14, textColor=MINT, alignment=TA_LEFT,
         ),
         "h2": ParagraphStyle(
-            "H2", fontName="Alibaba-SemiBold", fontSize=21, leading=25,
-            textColor=INK, spaceBefore=8 * mm, spaceAfter=4.5 * mm, keepWithNext=True,
+            "H2", fontName="Alibaba-SemiBold", fontSize=20.5, leading=25,
+            textColor=INK, spaceBefore=6 * mm, spaceAfter=4.5 * mm, keepWithNext=True,
         ),
         "h3": ParagraphStyle(
             "H3", fontName="Alibaba-SemiBold", fontSize=15.5, leading=20,
@@ -113,22 +134,21 @@ def build_styles() -> dict[str, ParagraphStyle]:
             textColor=INK_SOFT, spaceBefore=4.5 * mm, spaceAfter=2 * mm, keepWithNext=True,
         ),
         "body": ParagraphStyle(
-            "Body", fontName="Alibaba-Regular", fontSize=10.7, leading=17.1,
-            textColor=TEXT, alignment=TA_LEFT, spaceAfter=2.2 * mm,
+            "Body", fontName="Alibaba-Regular", fontSize=11.1, leading=17.8,
+            textColor=TEXT, alignment=TA_LEFT, firstLineIndent=22.2,
+            spaceAfter=1.6 * mm,
             wordWrap="CJK", allowWidows=0, allowOrphans=0,
         ),
         "quote": ParagraphStyle(
-            "Quote", fontName="Alibaba-Medium", fontSize=12.5, leading=20,
-            textColor=INK, leftIndent=7 * mm, rightIndent=5 * mm,
-            borderColor=MINT, borderWidth=0, borderPadding=(2 * mm, 4 * mm, 2 * mm, 5 * mm),
-            backColor=MINT_PALE, spaceBefore=2 * mm, spaceAfter=4 * mm,
+            "Quote", fontName="Alibaba-SemiBold", fontSize=12.3, leading=19,
+            textColor=INK, wordWrap="CJK",
         ),
         "caption": ParagraphStyle(
             "Caption", fontName="Alibaba-Regular", fontSize=8.7, leading=12,
             textColor=MUTED, alignment=TA_CENTER, spaceBefore=1.5 * mm, spaceAfter=3 * mm,
         ),
         "table": ParagraphStyle(
-            "TableText", fontName="Alibaba-Regular", fontSize=8.8, leading=12.3,
+            "TableText", fontName="Alibaba-Regular", fontSize=9.1, leading=12.8,
             textColor=TEXT, wordWrap="CJK",
         ),
         "table_head": ParagraphStyle(
@@ -136,12 +156,12 @@ def build_styles() -> dict[str, ParagraphStyle]:
             textColor=INK, wordWrap="CJK",
         ),
         "list": ParagraphStyle(
-            "ListText", fontName="Alibaba-Regular", fontSize=10.7, leading=17.1,
+            "ListText", fontName="Alibaba-Regular", fontSize=11.1, leading=17.8,
             textColor=TEXT, leftIndent=0, firstLineIndent=0, wordWrap="CJK",
         ),
         "list_mark": ParagraphStyle(
-            "ListMark", fontName="Alibaba-Medium", fontSize=9, leading=17.1,
-            textColor=MINT, alignment=TA_CENTER,
+            "ListMark", fontName="Alibaba-Regular", fontSize=11.1, leading=17.8,
+            textColor=MINT, alignment=TA_RIGHT,
         ),
         "toc": ParagraphStyle(
             "TOC", fontName="Alibaba-Medium", fontSize=12.2, leading=23,
@@ -162,7 +182,10 @@ def parse_mermaid(source: str) -> tuple[dict[str, MermaidNode], list[tuple[str, 
     for raw in source.splitlines():
         line = raw.strip()
         for ident, label in re.findall(r"([A-Za-z][A-Za-z0-9]*)\[([^]]+)]", line):
-            nodes.setdefault(ident, MermaidNode(ident, label.replace("<br/>", " / ")))
+            nodes.setdefault(
+                ident,
+                MermaidNode(ident, label.replace("<br/>", " / ").replace("\\n", " / ")),
+            )
         match = re.match(r"([A-Za-z][A-Za-z0-9]*)\s*-->\s*([A-Za-z][A-Za-z0-9]*)", line)
         if match:
             edges.append(match.groups())
@@ -300,8 +323,196 @@ def image_flowable(path: Path, max_width: float, max_height: float = 105 * mm) -
     return Image(str(path), width=width * scale, height=height * scale)
 
 
+@dataclass(frozen=True)
+class FigureSpec:
+    """Print-oriented treatment for a long mobile screenshot."""
+
+    mode: str = "phone"
+    crop_box: tuple[int, int, int, int] | None = None
+    width: float = 68 * mm
+    max_height: float = 125 * mm
+
+
+FIGURE_SPECS = {
+    "微信图片_20260902163835_2855_24.jpg": FigureSpec(
+        crop_box=(0, 0, 1260, 1900), width=84 * mm, max_height=126 * mm,
+    ),
+    "02-start-listening.png": FigureSpec(width=59 * mm, max_height=131 * mm),
+    "03-candidate-evidence.png": FigureSpec(mode="candidate_split"),
+    "04-field-observation.png": FigureSpec(
+        crop_box=(0, 650, 1080, 1900), width=76 * mm, max_height=84 * mm,
+    ),
+    "微信图片_20260902163524_2850_24.jpg": FigureSpec(
+        mode="paired", crop_box=(0, 0, 1260, 1850), width=58 * mm, max_height=92 * mm,
+    ),
+    "微信图片_20260902163717_2851_24.jpg": FigureSpec(
+        mode="paired", crop_box=(0, 350, 1440, 2250), width=58 * mm, max_height=92 * mm,
+    ),
+    "微信图片_20260902163802_2853_24.jpg": FigureSpec(mode="community_split_v2"),
+    "微信图片_20260902163803_2854_24.jpg": FigureSpec(
+        mode="paired", crop_box=(0, 0, 1260, 2050), width=58 * mm, max_height=92 * mm,
+    ),
+    "微信图片_20260902163453_2849_24.jpg": FigureSpec(
+        mode="paired", crop_box=(0, 0, 1260, 2500), width=58 * mm, max_height=92 * mm,
+    ),
+}
+
+
+def cropped_image(path: Path, crop_box: tuple[int, int, int, int] | None, suffix: str) -> Path:
+    """Create a non-destructive print crop under tmp/pdfs."""
+
+    if crop_box is None:
+        return path
+    FIGURE_WORK_DIR.mkdir(parents=True, exist_ok=True)
+    destination = FIGURE_WORK_DIR / f"{path.stem}-{suffix}.png"
+    with PILImage.open(path) as picture:
+        width, height = picture.size
+        left, top, right, bottom = crop_box
+        safe_box = (
+            max(0, min(left, width - 1)),
+            max(0, min(top, height - 1)),
+            max(1, min(right, width)),
+            max(1, min(bottom, height)),
+        )
+        if safe_box[2] <= safe_box[0] or safe_box[3] <= safe_box[1]:
+            raise ValueError(f"Invalid crop {crop_box} for {path} ({width}x{height})")
+        picture.crop(safe_box).convert("RGB").save(destination, "PNG", optimize=True)
+    return destination
+
+
+def figure_table(images: list[Image]) -> Table:
+    columns = len(images)
+    table = Table(
+        [images], colWidths=[CONTENT_W / columns] * columns,
+        hAlign="CENTER", splitByRow=0,
+    )
+    table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 2 * mm),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    return table
+
+
+def figure_group(
+    entries: list[tuple[str, str]],
+    caption: str,
+    source_dir: Path,
+    styles: dict[str, ParagraphStyle],
+) -> list[object]:
+    """Render one or two screenshots as a readable, indivisible figure block."""
+
+    resolved = [(alt, (source_dir / relative).resolve()) for alt, relative in entries]
+    if not all(path.exists() for _alt, path in resolved):
+        missing = [str(path) for _alt, path in resolved if not path.exists()]
+        raise FileNotFoundError("Missing figure assets: " + ", ".join(missing))
+
+    flowables: list[object] = []
+    required_height = 132 * mm
+    if len(resolved) == 2:
+        images: list[Image] = []
+        for index, (_alt, path) in enumerate(resolved, 1):
+            spec = FIGURE_SPECS.get(path.name, FigureSpec(mode="paired", width=58 * mm))
+            prepared = cropped_image(path, spec.crop_box, f"pair-{index}")
+            images.append(image_flowable(prepared, spec.width, spec.max_height))
+        flowables.append(figure_table(images))
+        required_height = 105 * mm
+    else:
+        _alt, path = resolved[0]
+        spec = FIGURE_SPECS.get(path.name, FigureSpec())
+        if spec.mode == "candidate_split":
+            evidence = cropped_image(path, (0, 300, 1080, 1370), "evidence")
+            candidates = cropped_image(path, (0, 1280, 1080, 2250), "candidates")
+            flowables.append(figure_table([
+                image_flowable(evidence, 77 * mm, 80 * mm),
+                image_flowable(candidates, 77 * mm, 80 * mm),
+            ]))
+            required_height = 92 * mm
+        elif spec.mode == "community_split":
+            top = cropped_image(path, (0, 0, 1080, 1120), "map")
+            lower = cropped_image(path, (0, 1030, 1080, 2020), "card")
+            flowables.append(figure_table([
+                image_flowable(top, 77 * mm, 80 * mm),
+                image_flowable(lower, 77 * mm, 80 * mm),
+            ]))
+            required_height = 92 * mm
+        elif spec.mode == "community_split_v2":
+            top = cropped_image(path, (0, 0, 1260, 1500), "map")
+            lower = cropped_image(path, (0, 1370, 1260, 2780), "card")
+            flowables.append(figure_table([
+                image_flowable(top, 77 * mm, 80 * mm),
+                image_flowable(lower, 77 * mm, 80 * mm),
+            ]))
+            required_height = 92 * mm
+        else:
+            prepared = cropped_image(path, spec.crop_box, "focus")
+            flowables.append(figure_table([
+                image_flowable(prepared, spec.width, spec.max_height),
+            ]))
+            required_height = spec.max_height + 13 * mm
+
+    if caption:
+        flowables.extend([
+            Spacer(1, 1.3 * mm),
+            Paragraph(clean_text(caption), styles["caption"]),
+        ])
+    return [CondPageBreak(required_height), KeepTogether(flowables), Spacer(1, 2.5 * mm)]
+
+
+def qr_code_drawing(url: str, label: str, short_url: str) -> Drawing:
+    width = 48 * mm
+    height = 50 * mm
+    drawing = Drawing(width, height)
+    widget = QrCodeWidget(url)
+    widget.barWidth = 31 * mm
+    widget.barHeight = 31 * mm
+    widget.x = 8.5 * mm
+    widget.y = 14 * mm
+    drawing.add(widget)
+    drawing.add(String(
+        width / 2, 8.5 * mm, label,
+        fontName="Alibaba-SemiBold", fontSize=8.8, fillColor=INK, textAnchor="middle",
+    ))
+    drawing.add(String(
+        width / 2, 3.2 * mm, short_url,
+        fontName="Alibaba-Regular", fontSize=6.4, fillColor=MUTED, textAnchor="middle",
+    ))
+    return drawing
+
+
+def experience_qr_table() -> Table:
+    drawings = [
+        qr_code_drawing(
+            "https://github.com/gqy20/nature-sound-detective",
+            "GitHub", "github.com/gqy20",
+        ),
+        qr_code_drawing(
+            "https://modelscope.cn/studios/gqy2025/nature-sound-detective",
+            "ModelScope", "modelscope.cn/studios",
+        ),
+        qr_code_drawing(
+            "https://listen.gqy20.top/",
+            "Web 展示", "listen.gqy20.top",
+        ),
+    ]
+    table = Table([drawings], colWidths=[CONTENT_W / 3] * 3, hAlign="CENTER")
+    table.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 1 * mm),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 1 * mm),
+        ("TOPPADDING", (0, 0), (-1, -1), 1 * mm),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+    ]))
+    return table
+
+
 def parse_table(lines: list[str], source_dir: Path, styles: dict[str, ParagraphStyle]) -> Table:
     is_image_gallery = any("![" in line for line in lines)
+    header_cells = [cell.strip() for cell in lines[0].strip().strip("|").split("|")]
     rows: list[list[object]] = []
     for row_index, line in enumerate(lines):
         cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
@@ -329,6 +540,10 @@ def parse_table(lines: list[str], source_dir: Path, styles: dict[str, ParagraphS
         col_widths = [CONTENT_W * 0.25, CONTENT_W * 0.25, CONTENT_W * 0.50]
         if is_image_gallery:
             col_widths = [CONTENT_W / 3] * 3
+        elif header_cells[0] == "优先级":
+            col_widths = [CONTENT_W * 0.12, CONTENT_W * 0.31, CONTENT_W * 0.57]
+        elif header_cells[-1] == "代表提交":
+            col_widths = [CONTENT_W * 0.31, CONTENT_W * 0.43, CONTENT_W * 0.26]
     elif columns == 4:
         col_widths = [CONTENT_W * 0.24, CONTENT_W * 0.14, CONTENT_W * 0.18, CONTENT_W * 0.44]
     else:
@@ -364,11 +579,12 @@ def list_table(items: list[str], ordered: bool, styles: dict[str, ParagraphStyle
             Paragraph(mark, styles["list_mark"]),
             Paragraph(clean_text(item), styles["list"]),
         ])
-    table = Table(rows, colWidths=[8 * mm, CONTENT_W - 8 * mm], hAlign="LEFT", splitByRow=1)
+    mark_width = 6 * mm
+    table = Table(rows, colWidths=[mark_width, CONTENT_W - mark_width], hAlign="LEFT", splitByRow=1)
     table.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (0, -1), 0),
-        ("RIGHTPADDING", (0, 0), (0, -1), 2.5 * mm),
+        ("RIGHTPADDING", (0, 0), (0, -1), 0.8 * mm),
         ("LEFTPADDING", (1, 0), (1, -1), 0),
         ("RIGHTPADDING", (1, 0), (1, -1), 0),
         ("TOPPADDING", (0, 0), (-1, -1), 0.6 * mm),
@@ -377,25 +593,51 @@ def list_table(items: list[str], ordered: bool, styles: dict[str, ParagraphStyle
     return table
 
 
-def markdown_story(source: Path, styles: dict[str, ParagraphStyle]) -> list[object]:
-    lines = source.read_text(encoding="utf-8").splitlines()
-    story: list[object] = []
-    story.extend([
-        NextPageTemplate("body"), PageBreak(),
-        Paragraph("目录", styles["h2"]),
-    ])
-    toc = TableOfContents()
-    toc.levelStyles = [styles["toc"]]
-    toc.dotsMinLevel = 0
-    toc.tableStyle = TableStyle([
+def quote_block(text: str, styles: dict[str, ParagraphStyle]) -> Table:
+    """Render a restrained Chinese-document pull quote with a vertical rule."""
+    table = Table(
+        [["", Paragraph(clean_text(text), styles["quote"])]],
+        colWidths=[2.2 * mm, CONTENT_W - 2.2 * mm],
+        hAlign="LEFT",
+    )
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), MINT),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-        ("TOPPADDING", (0, 0), (-1, -1), 1.4 * mm),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.4 * mm),
-    ])
-    story.append(toc)
-    story.append(PageBreak())
+        ("LEFTPADDING", (0, 0), (0, 0), 0),
+        ("RIGHTPADDING", (0, 0), (0, 0), 0),
+        ("TOPPADDING", (0, 0), (0, 0), 0),
+        ("BOTTOMPADDING", (0, 0), (0, 0), 0),
+        ("LEFTPADDING", (1, 0), (1, 0), 5 * mm),
+        ("RIGHTPADDING", (1, 0), (1, 0), 4 * mm),
+        ("TOPPADDING", (1, 0), (1, 0), 3 * mm),
+        ("BOTTOMPADDING", (1, 0), (1, 0), 3 * mm),
+        ("LINEABOVE", (1, 0), (1, 0), 0.35, RULE),
+        ("LINEBELOW", (1, 0), (1, 0), 0.35, RULE),
+    ]))
+    return table
+
+
+def markdown_story(
+    source: Path,
+    styles: dict[str, ParagraphStyle],
+    *,
+    include_toc: bool = False,
+) -> list[object]:
+    lines = source.read_text(encoding="utf-8").splitlines()
+    story: list[object] = [NextPageTemplate("body"), PageBreak()]
+    if include_toc:
+        story.append(Paragraph("目录", styles["h2"]))
+        toc = TableOfContents()
+        toc.levelStyles = [styles["toc"]]
+        toc.dotsMinLevel = 0
+        toc.tableStyle = TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 1.4 * mm),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.4 * mm),
+        ])
+        story.extend([toc, PageBreak()])
 
     i = 0
     paragraph_buffer: list[str] = []
@@ -408,7 +650,7 @@ def markdown_story(source: Path, styles: dict[str, ParagraphStyle]) -> list[obje
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
-        if line.startswith("## 附录 A"):
+        if line.startswith("## 附"):
             flush_paragraph()
             break
         if line.startswith("# ") or (line.startswith("> ") and i < 5) or stripped == "---":
@@ -435,6 +677,29 @@ def markdown_story(source: Path, styles: dict[str, ParagraphStyle]) -> list[obje
             story.append(Paragraph(clean_text("<br/>".join(code)), styles["table"]))
             i += 1
             continue
+        image_match = re.fullmatch(r"!\[([^]]*)]\(([^)]+)\)", stripped)
+        if image_match:
+            flush_paragraph()
+            entries = [(image_match.group(1), image_match.group(2))]
+            caption = ""
+            cursor = i + 1
+            while cursor < len(lines):
+                candidate = lines[cursor].strip()
+                if not candidate:
+                    cursor += 1
+                    continue
+                next_image = re.fullmatch(r"!\[([^]]*)]\(([^)]+)\)", candidate)
+                if next_image:
+                    entries.append((next_image.group(1), next_image.group(2)))
+                    cursor += 1
+                    continue
+                if candidate.startswith("*图") and candidate.endswith("*"):
+                    caption = candidate[1:-1].strip()
+                    cursor += 1
+                break
+            story.extend(figure_group(entries, caption, source.parent, styles))
+            i = cursor
+            continue
         if stripped.startswith("|") and stripped.endswith("|"):
             flush_paragraph()
             table_lines = []
@@ -449,13 +714,25 @@ def markdown_story(source: Path, styles: dict[str, ParagraphStyle]) -> list[obje
             story.append(Paragraph(clean_text(heading), styles["h2"]))
         elif line.startswith("### "):
             flush_paragraph()
-            story.append(Paragraph(clean_text(line[4:].strip()), styles["h3"]))
+            heading = line[4:].strip()
+            if heading.startswith("8.3"):
+                story.append(CondPageBreak(72 * mm))
+            story.append(Paragraph(clean_text(heading), styles["h3"]))
+            if heading.startswith("8.3"):
+                story.extend([
+                    experience_qr_table(),
+                    Spacer(1, 3 * mm),
+                ])
         elif line.startswith("#### "):
             flush_paragraph()
             story.append(Paragraph(clean_text(line[5:].strip()), styles["h4"]))
         elif line.startswith("> "):
             flush_paragraph()
-            story.append(Paragraph(clean_text(line[2:].strip()), styles["quote"]))
+            story.extend([
+                Spacer(1, 2 * mm),
+                quote_block(line[2:].strip(), styles),
+                Spacer(1, 4 * mm),
+            ])
         elif re.match(r"^[-*] ", stripped):
             flush_paragraph()
             items: list[str] = []
@@ -537,8 +814,8 @@ def draw_cover(canvas, doc) -> None:
     canvas.setFillColor(INK)
     canvas.drawString(left, PAGE_H - 119 * mm, "完成一次真实的自然调查")
 
-    # Narrative question and waveform: the visual explains the product instead
-    # of functioning as an unrelated corner ornament.
+    # Narrative question and acoustic bars: the cover borrows the product's
+    # recording language instead of using a generic decorative sine curve.
     canvas.setFont("Alibaba-Medium", 12)
     canvas.setFillColor(MUTED)
     canvas.drawString(left, PAGE_H - 145 * mm, "一个看不见的声音，能带孩子走多远？")
@@ -547,28 +824,24 @@ def draw_cover(canvas, doc) -> None:
     wave_right = right
     wave_mid = PAGE_H - 166 * mm
     wave_width = wave_right - wave_left
-    canvas.setStrokeColor(MINT)
-    canvas.setLineWidth(1.05)
-    path = canvas.beginPath()
-    samples = 180
-    for index in range(samples + 1):
-        progress = index / samples
-        x = wave_left + progress * wave_width
-        envelope = math.sin(math.pi * progress) ** 0.7
-        signal = (
-            math.sin(progress * math.pi * 16)
-            + 0.52 * math.sin(progress * math.pi * 37 + 0.7)
-            + 0.24 * math.sin(progress * math.pi * 71 + 1.4)
-        )
-        y = wave_mid + envelope * signal * 3.2 * mm
-        if index == 0:
-            path.moveTo(x, y)
-        else:
-            path.lineTo(x, y)
-    canvas.drawPath(path, fill=0, stroke=1)
-    canvas.setStrokeColor(colors.HexColor("#BFDCD1"))
+    canvas.setStrokeColor(colors.HexColor("#C9DDD5"))
     canvas.setLineWidth(0.45)
     canvas.line(wave_left, wave_mid, wave_right, wave_mid)
+    canvas.setLineCap(1)
+    bars = 72
+    for index in range(bars):
+        progress = index / (bars - 1)
+        x = wave_left + progress * wave_width
+        envelope = 0.26 + 0.74 * math.sin(math.pi * progress) ** 0.62
+        texture = abs(
+            math.sin(index * 0.47)
+            + 0.55 * math.sin(index * 0.19 + 1.2)
+            + 0.25 * math.sin(index * 0.83 + 0.4)
+        )
+        half_height = envelope * (1.8 + 4.6 * texture) * mm
+        canvas.setStrokeColor(GOLD if 0.43 <= progress <= 0.57 else MINT)
+        canvas.setLineWidth(1.35 if 0.43 <= progress <= 0.57 else 1.05)
+        canvas.line(x, wave_mid - half_height, x, wave_mid + half_height)
 
     steps = ["听见", "记录", "AI 提供线索", "现场求证", "城市共听"]
     step_y = PAGE_H - 187 * mm
@@ -591,11 +864,11 @@ def draw_cover(canvas, doc) -> None:
     canvas.line(left, 47 * mm, right, 47 * mm)
     canvas.setFont("Alibaba-Medium", 10.5)
     canvas.setFillColor(INK_SOFT)
-    canvas.drawString(left, 36 * mm, "中国科学院西双版纳热带植物园")
-    canvas.setFont("Alibaba-Regular", 9.5)
+    canvas.drawString(left, 36 * mm, "参赛团队｜雨林声纹队")
+    canvas.setFont("Alibaba-Regular", 9.2)
     canvas.setFillColor(MUTED)
-    canvas.drawString(left, 28 * mm, "葛庆宇 · 梁皓宇")
-    canvas.drawRightString(right, 28 * mm, "2026 年 8 月")
+    canvas.drawString(left, 28 * mm, "所属单位｜中国科学院西双版纳热带植物园")
+    canvas.drawRightString(right, 28 * mm, "葛庆宇 · 梁皓宇 · 2026 年 9 月")
     canvas.restoreState()
 
 
@@ -611,7 +884,8 @@ def draw_body(canvas, doc) -> None:
     canvas.restoreState()
 
 
-def export(source: Path, output: Path) -> None:
+def export(source: Path, output: Path, *, include_toc: bool = False) -> None:
+    configure_chinese_line_breaks()
     register_fonts()
     styles = build_styles()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -625,13 +899,14 @@ def export(source: Path, output: Path) -> None:
         title="自然声探员 - 参赛项目说明书",
         author="葛庆宇、梁皓宇",
         subject="小有可为绿色发展赛道参赛项目",
+        pageCompression=1,
     )
     doc.addPageTemplates([
         PageTemplate(id="cover", frames=[cover_frame], onPage=draw_cover),
         PageTemplate(id="body", frames=[body_frame], onPage=draw_body),
     ])
     # TOC page numbers require at least two layout passes.
-    doc.multiBuild(markdown_story(source, styles))
+    doc.multiBuild(markdown_story(source, styles, include_toc=include_toc))
 
 
 def find_poppler_binary(name: str) -> Path:
@@ -679,14 +954,17 @@ def verify_and_render(pdf_path: Path, render_dir: Path, dpi: int) -> None:
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--toc", action="store_true", help="Include a dedicated contents page")
     parser.add_argument("--render", action="store_true", help="Render every page to PNG and run structural checks")
     parser.add_argument("--render-dir", type=Path, default=ROOT / "tmp/pdfs/competition-pages")
-    parser.add_argument("--dpi", type=int, default=110)
+    parser.add_argument("--dpi", type=int, default=150)
     args = parser.parse_args()
-    export(args.source.resolve(), args.output.resolve())
+    export(args.source.resolve(), args.output.resolve(), include_toc=args.toc)
     if args.render:
         verify_and_render(args.output.resolve(), args.render_dir.resolve(), args.dpi)
     print(args.output.resolve())

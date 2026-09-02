@@ -6,6 +6,27 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-09-02
+
+### 新增
+
+- 声音候选页新增关键声段、线索显影和候选来源说明，并可继续进入相关生境声景完成现场求证。
+- 家长陪伴补充共同任务、探索时间线和更贴近儿童当前调查进度的回应建议。
+- 共听杭州新增声音记录与公园路线联动，让家庭可以从区域声景继续寻找下一处倾听点。
+- 自然调查完成后可生成并保存故事、音乐和视频作品，生成失败时提供可恢复的安全回退。
+
+### 改进
+
+- 亲子游园指南在真实记录不足或接口异常时仍保留稳定、可理解的公园选择与路线入口。
+- 优化录音状态反馈、波形呈现、候选卡和物种详情页，使“证据—候选—观察”关系更清楚。
+- 强化家庭会话状态保存、任务同步和移动端窄屏体验。
+- 完善通义万相视频提示词、生成能力检测与凭据保护，避免无权限能力阻塞主要调查流程。
+
+### 修复
+
+- 修复 Release APK 中高德地图类被错误裁剪的问题，并在 Android 发布构建中保留所需原生能力。
+- 修复社区声音播放、路线跳转、家庭连接和游园推荐在异常网络状态下不可恢复的问题。
+
 ## [0.4.1] - 2026-08-29
 
 ### 新增
@@ -83,7 +104,8 @@
 - 提供自然声音录制、基础声音识别、结果展示和本地探索记录能力。
 - 建立 Flutter Android 客户端、Python 服务端与基础模型资源结构。
 
-[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.4.1...HEAD
+[Unreleased]: https://github.com/gqy20/nature-sound-detective/compare/0.4.2...HEAD
+[0.4.2]: https://github.com/gqy20/nature-sound-detective/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/gqy20/nature-sound-detective/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/gqy20/nature-sound-detective/compare/0.1.0...0.4.0
 [0.1.0]: https://github.com/gqy20/nature-sound-detective/releases/tag/0.1.0

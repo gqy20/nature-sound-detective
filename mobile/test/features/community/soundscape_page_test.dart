@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nature_sound_detective/core/community/community_activity_guide.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
@@ -140,6 +141,49 @@ void main() {
     },
   );
 
+  testWidgets('shows a multi-species soundscape within the suggested habitat', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 950);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final focus = ValueNotifier<CommunitySoundscapeFocus?>(
+      const CommunitySoundscapeFocus(
+        sourceSpeciesName: '乌鸫',
+        parkId: 'botanical',
+        areaId: 'xihu',
+        habitatTags: ['林地', '林缘'],
+      ),
+    );
+    addTearDown(focus.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoundscapePage(
+          service: _HabitatCommunityService(),
+          recordsLoader: () async => const [],
+          soundscapeFocus: focus,
+          onClearSoundscapeFocus: () => focus.value = null,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('从“乌鸫”继续探索'), findsOneWidget);
+    expect(find.byKey(const Key('soundscape-habitat-focus')), findsOneWidget);
+    expect(find.textContaining('2 条公开记录 · 不限物种'), findsOneWidget);
+    expect(find.byKey(const Key('community-post-forest-bird')), findsOneWidget);
+    expect(
+      find.byKey(const Key('community-post-forest-insect')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('community-post-wetland-frog')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('clear-soundscape-habitat-focus')));
+    await tester.pumpAndSettle();
+    expect(focus.value, isNull);
+  });
+
   testWidgets('returns to the city map when the primary page is re-entered', (
     tester,
   ) async {
@@ -186,6 +230,13 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/maps/hangzhou_osm.png'),
+        tester.element(find.byType(SoundscapePage)),
+      );
+    });
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -581,3 +632,57 @@ class _AudioCommunityService extends _FakeCommunityService {
     ),
   ];
 }
+
+class _HabitatCommunityService extends _FakeCommunityService {
+  @override
+  Future<List<CommunityPost>> listPosts({String? areaId}) async => [
+    _habitatPost(
+      id: 'forest-bird',
+      subject: '乌鸫',
+      soundType: '鸟鸣',
+      parkId: 'botanical',
+      areaId: 'xihu',
+    ),
+    _habitatPost(
+      id: 'forest-insect',
+      subject: '林间虫鸣',
+      soundType: '虫鸣',
+      parkId: 'botanical',
+      areaId: 'xihu',
+    ),
+    _habitatPost(
+      id: 'wetland-frog',
+      subject: '蛙鸣',
+      soundType: '蛙鸣',
+      parkId: 'wetland',
+      areaId: 'yuhang',
+    ),
+  ];
+}
+
+CommunityPost _habitatPost({
+  required String id,
+  required String subject,
+  required String soundType,
+  required String parkId,
+  required String areaId,
+}) => CommunityPost(
+  id: id,
+  alias: '社区探员',
+  areaId: areaId,
+  areaName: areaId == 'xihu' ? '西湖区' : '余杭区',
+  subject: subject,
+  soundType: soundType,
+  observedAt: DateTime.utc(2026, 8, 29, 6),
+  createdAt: DateTime.utc(2026, 8, 29, 6),
+  audioUrl: 'https://example.test/$id.wav',
+  duration: const Duration(seconds: 12),
+  candidateNames: const [],
+  fieldObservations: const [],
+  status: 'published_unverified',
+  reviewStatus: 'not_requested',
+  responseCount: 0,
+  responseSummary: const {},
+  ownedByRequester: false,
+  parkId: parkId,
+);

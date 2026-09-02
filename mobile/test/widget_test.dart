@@ -118,7 +118,7 @@ void main() {
     tester,
   ) async {
     String? suggestedParkId;
-    String? suggestedSpecies;
+    CommunitySoundscapeFocus? suggestedFocus;
     await tester.pumpWidget(
       MaterialApp(
         home: CapturePage(
@@ -128,7 +128,7 @@ void main() {
           analyzer: const _ImmediateAnalyzer(),
           mode: ExplorationMode.parent,
           onGenerateRouteForPark: (value) => suggestedParkId = value,
-          onViewCommunitySpecies: (value) => suggestedSpecies = value,
+          onViewCommunityFocus: (value) => suggestedFocus = value,
           communityActivityGuide: _matchingCommunityGuide(),
         ),
       ),
@@ -139,11 +139,11 @@ void main() {
     await tester.tap(find.byKey(const Key('record-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('附近可能还有白头鹎活动点'), findsOneWidget);
+    expect(find.text('从这次发现，继续认识相关生境'), findsOneWidget);
+    expect(find.textContaining('不同环境里的其他线索'), findsNothing);
     expect(find.textContaining('杭州植物园 · 林下步道'), findsWidgets);
     expect(find.byKey(const Key('generate-community-route')), findsOneWidget);
     expect(find.byKey(const Key('view-community-points')), findsOneWidget);
-
     await tester.ensureVisible(
       find.byKey(const Key('generate-community-route')),
     );
@@ -153,7 +153,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('view-community-points')));
     expect(suggestedParkId, 'botanical');
-    expect(suggestedSpecies, '白头鹎');
+    expect(suggestedFocus?.sourceSpeciesName, '白头鹎');
+    expect(suggestedFocus?.parkId, 'botanical');
   });
 
   testWidgets('swipes between primary features and shows its destination', (

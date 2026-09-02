@@ -79,4 +79,14 @@
 - The implementation preserves the current product logo and existing Gradio audio/player behavior rather than copying decorative controls from the visual reference.
 - Location and environment remain explanatory metadata rather than new editable product fields, keeping this refactor within the existing feature scope.
 
-final result: passed
+ModelScope final result: passed
+
+## Mobile recognition motion follow-up (2026-09-02)
+
+- Scope: recording acoustic-field animation, recognition reveal, and the habitat soundscape handoff.
+- Reference and implementation captures: `mobile/design/references/recognition-motion/`.
+- Automated checks: `make analyze`, 180-test full suite, targeted habitat/navigation tests, and `make build` passed.
+- Android visual approval remains blocked because `adb devices -l` returned no connected device. The widget renderer cannot validate Chinese system-font rendering, species-photo decoding, or final motion timing.
+- Detailed report: `mobile/design/references/recognition-motion/design-qa.md`.
+
+final result: blocked

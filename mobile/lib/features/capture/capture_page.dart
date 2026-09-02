@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 import 'package:nature_sound_detective/core/mode/exploration_mode.dart';
 import 'package:nature_sound_detective/core/models/audio_quality.dart';
 import 'package:nature_sound_detective/core/models/detection.dart';
+import 'package:nature_sound_detective/core/models/species_media.dart';
 import 'package:nature_sound_detective/core/storage/exploration_store.dart';
 import 'package:nature_sound_detective/features/creation/creation_page.dart';
 import 'package:nature_sound_detective/features/capture/sound_waveform.dart';
@@ -56,7 +58,7 @@ class CapturePage extends StatefulWidget {
     this.onPrimarySwipeLockChanged,
     this.primaryPagePosition,
     this.onGenerateRouteForPark,
-    this.onViewCommunitySpecies,
+    this.onViewCommunityFocus,
   });
 
   final AudioRecorder? recorder;
@@ -74,7 +76,7 @@ class CapturePage extends StatefulWidget {
   final ValueChanged<bool>? onPrimarySwipeLockChanged;
   final ValueListenable<double>? primaryPagePosition;
   final ValueChanged<String?>? onGenerateRouteForPark;
-  final ValueChanged<String>? onViewCommunitySpecies;
+  final ValueChanged<CommunitySoundscapeFocus>? onViewCommunityFocus;
 
   @override
   State<CapturePage> createState() => _CapturePageState();
@@ -737,6 +739,8 @@ class _CapturePageState extends State<CapturePage> {
         fields: {
           'species': speciesName,
           'matching_record_count': hint?.matchingRecordCount ?? 0,
+          'related_record_count': hint?.relatedRecordCount ?? 0,
+          'sound_type_count': hint?.soundTypes.length ?? 0,
           'point_count': hint?.points.length ?? 0,
         },
       );
@@ -904,11 +908,15 @@ class _CapturePageState extends State<CapturePage> {
   void _openScienceCard() {
     final detection = _detections.firstOrNull;
     if (detection == null) return;
+    _openDetectionDetails(detection, 1);
+  }
+
+  void _openDetectionDetails(SoundDetection detection, int? rank) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SpeciesDetailPage(
           detection: detection,
-          rank: 1,
+          rank: rank,
           audioPath: _recording?.path,
           playback: _playback,
           initialChecks: _fieldChecks[_speciesKey(detection)] ?? const [],
@@ -1049,11 +1057,11 @@ class _CapturePageState extends State<CapturePage> {
     _openParkGuide();
   }
 
-  void _openSuggestedSpeciesPoints() {
-    final species = _communityActivitySpecies;
-    final callback = widget.onViewCommunitySpecies;
-    if (species != null && callback != null) {
-      callback(species);
+  void _openSuggestedSoundscape() {
+    final focus = _communityActivityHint?.focus;
+    final callback = widget.onViewCommunityFocus;
+    if (focus != null && callback != null) {
+      callback(focus);
       return;
     }
     _openSoundscape();
@@ -1296,7 +1304,7 @@ class _CapturePageState extends State<CapturePage> {
                           ],
                           Text(
                             _isRecording
-                                ? '正在倾听'
+                                ? (_signalHeard ? '已捕捉声音' : '倾听中')
                                 : widget.mode == ExplorationMode.parent
                                 ? '和孩子一起听听'
                                 : '听听，谁在附近？',
@@ -1308,7 +1316,7 @@ class _CapturePageState extends State<CapturePage> {
                           SizedBox(height: compact ? 12 : 16),
                           Text(
                             _isRecording
-                                ? (_signalHeard ? '已经听到声音，继续保持' : '保持安静，手机不要晃动')
+                                ? (_signalHeard ? '稳住手机' : '等待声音…')
                                 : widget.mode == ExplorationMode.parent
                                 ? '先让孩子指出方向，再把手机靠近想听的位置'
                                 : '把手机靠近想听的方向',
@@ -1713,7 +1721,7 @@ class _CapturePageState extends State<CapturePage> {
           ),
           Semantics(
             button: true,
-            label: _isRecording ? '结束录音' : '开始聆听',
+            label: _isRecording ? '结束录音' : '开始',
             value: _isRecording ? '已录制 ${_elapsed.inSeconds} 秒' : '最长 20 秒',
             child: Material(
               key: const Key('record-button'),
@@ -1748,7 +1756,7 @@ class _CapturePageState extends State<CapturePage> {
                   border: Border.all(color: const Color(0xFFD9D7CC)),
                 ),
                 child: const Text(
-                  '最长 20 秒',
+                  '≤ 20s',
                   key: Key('record-limit-label'),
                   style: TextStyle(
                     color: Color(0xFF52615A),
@@ -1775,7 +1783,7 @@ class _CapturePageState extends State<CapturePage> {
                     border: Border.all(color: const Color(0xFFBFCFC5)),
                   ),
                   child: Text(
-                    _signalHeard ? '听到了，声纹在跳动' : '轻轻等一等，听听周围',
+                    _signalHeard ? '声音正在唤醒这片风景' : '等待声音…',
                     key: const Key('live-wave-hint'),
                     style: const TextStyle(
                       color: forest,
@@ -1845,7 +1853,7 @@ class _CapturePageState extends State<CapturePage> {
         ] else
           const SizedBox(height: 8),
         Text(
-          _isRecording ? '结束' : '开始聆听',
+          _isRecording ? '结束' : '开始',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 17,
@@ -1857,6 +1865,12 @@ class _CapturePageState extends State<CapturePage> {
   }
 
   Widget _buildResultOverlay(BuildContext context) {
+    final hasSpecificResult = _detections.any(
+      (detection) => detection.specificSpecies != null,
+    );
+    if (hasSpecificResult && !_analyzing) {
+      return _buildRecognitionReveal(context);
+    }
     final expanded = _detections.isNotEmpty;
     final usable = _quality?.usable == true;
     final heightFactor = expanded ? 0.78 : (usable ? 0.68 : 0.64);
@@ -1881,6 +1895,394 @@ class _CapturePageState extends State<CapturePage> {
         ),
       ],
     );
+  }
+
+  Widget _buildRecognitionReveal(BuildContext context) {
+    final ranked =
+        _detections
+            .where((detection) => detection.specificSpecies != null)
+            .toList()
+          ..sort((left, right) => right.confidence.compareTo(left.confidence));
+    final primary = ranked.first;
+    final species = primary.specificSpecies!;
+    final media = SpeciesMediaCatalog.lookup(species.scientificName);
+    final otherCandidates = ranked.skip(1).take(2).toList(growable: false);
+    final ambientClues = _detections
+        .where((detection) => detection.specificSpecies == null)
+        .map((detection) => detection.nameZh)
+        .toSet()
+        .toList(growable: false);
+    final recording = _recording;
+    final interval = primary.intervals.firstOrNull;
+    final theme = Theme.of(context);
+    const forest = Color(0xFF174936);
+
+    return Material(
+      key: const ValueKey('recognition-reveal'),
+      color: const Color(0xFFFFFDF7),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/hangzhou_mist_home_v2.webp',
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            filterQuality: FilterQuality.medium,
+          ),
+          const ColoredBox(color: Color(0xB8FFFDF7)),
+          SafeArea(
+            bottom: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                key: const Key('result-sheet-scroll'),
+                padding: const EdgeInsets.fromLTRB(22, 12, 22, 126),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_mark.png',
+                          width: 34,
+                          height: 34,
+                          cacheWidth: 96,
+                          cacheHeight: 96,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: '收起结果',
+                          onPressed: _dismissResult,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '线索显影',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: forest,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '杭州 · 自然声探索',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: const Color(0xFF62736B),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Center(
+                      child: SizedBox.square(
+                        dimension: (constraints.maxWidth - 52)
+                            .clamp(250, 340)
+                            .toDouble(),
+                        child: _EcologyRevealAperture(
+                          assetPath: primary.tentative
+                              ? null
+                              : media?.assetPath,
+                          label: species.nameZh,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      '${species.nameZh} · 候选',
+                      key: const Key('primary-candidate-title'),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: forest,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (species.scientificName case final scientificName?) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        scientificName,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF6A786F),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _RevealStatusChip(
+                          label: _clueStrengthLabel(primary),
+                          emphasized: !primary.tentative,
+                        ),
+                        const _RevealStatusChip(label: '需现场确认'),
+                      ],
+                    ),
+                    if (_quality?.weakSignal == true) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        key: const Key('weak-evidence-notice'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF0D2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.graphic_eq_rounded, size: 18),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('录音证据较弱 · 需现场观察')),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (recording != null) ...[
+                      const SizedBox(height: 16),
+                      Material(
+                        color: const Color(0xEFFFFDF7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          side: const BorderSide(color: Color(0xFFD8E2DB)),
+                        ),
+                        child: InkWell(
+                          key: const Key('playback-button'),
+                          borderRadius: BorderRadius.circular(22),
+                          onTap: _togglePlayback,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: const Color(0xFFE3EEE7),
+                                  foregroundColor: forest,
+                                  child: Icon(
+                                    _isPlaying
+                                        ? Icons.pause_rounded
+                                        : Icons.play_arrow_rounded,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '原声',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: forest,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${_formatClock(_playbackProgress * recording.duration.inMilliseconds)} / ${_formatClock(recording.duration.inMilliseconds.toDouble())}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: LinearProgressIndicator(
+                                    minHeight: 4,
+                                    value: _playbackProgress
+                                        .clamp(0, 1)
+                                        .toDouble(),
+                                    borderRadius: BorderRadius.circular(99),
+                                    color: forest,
+                                    backgroundColor: const Color(0xFFDCE7E0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            key: const Key('verify-primary-candidate'),
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(54),
+                            ),
+                            onPressed: () => _openDetectionDetails(primary, 1),
+                            icon: const Icon(Icons.travel_explore_rounded),
+                            label: const Text('核对'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            key: const Key('save-exploration-button'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(54),
+                            ),
+                            onPressed: _saved || _saving
+                                ? null
+                                : _saveExploration,
+                            icon: _saving
+                                ? const _SmallButtonProgress()
+                                : Icon(
+                                    _saved
+                                        ? Icons.check_rounded
+                                        : Icons.bookmark_add_rounded,
+                                  ),
+                            label: Text(_saved ? '已保存' : '保存'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Material(
+                      color: const Color(0xEFFFFDF7),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: const BorderSide(color: Color(0xFFD8E2DB)),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: ExpansionTile(
+                        key: const Key('recognition-evidence'),
+                        leading: const Icon(Icons.manage_search_rounded),
+                        title: const Text('判断依据'),
+                        childrenPadding: const EdgeInsets.fromLTRB(
+                          16,
+                          0,
+                          16,
+                          16,
+                        ),
+                        children: [
+                          if (recording != null)
+                            AudioWaveformView(
+                              samples: _waveformSamples,
+                              active: _isPlaying,
+                              progress: _isPlaying ? _playbackProgress : 1,
+                              label: '录音声纹',
+                            ),
+                          _EvidenceRow(label: '声音大类', value: primary.nameZh),
+                          _EvidenceRow(
+                            label: '模型线索',
+                            value: _clueStrengthLabel(primary),
+                          ),
+                          if (interval != null)
+                            _EvidenceRow(
+                              label: '声纹片段',
+                              value:
+                                  '${interval.startSeconds.toStringAsFixed(1)}–${interval.endSeconds.toStringAsFixed(1)}s',
+                            ),
+                          if (ambientClues.isNotEmpty)
+                            _EvidenceRow(
+                              label: '同时听到',
+                              value: ambientClues.join(' · '),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (otherCandidates.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Text(
+                            '其他可能',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: forest,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text('${otherCandidates.length}'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      for (
+                        var index = 0;
+                        index < otherCandidates.length;
+                        index++
+                      )
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _CandidateSeed(
+                            detection: otherCandidates[index],
+                            onTap: () => _openDetectionDetails(
+                              otherCandidates[index],
+                              index + 2,
+                            ),
+                          ),
+                        ),
+                    ],
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          key: const Key('science-card-button'),
+                          onPressed: _openScienceCard,
+                          icon: const Icon(Icons.auto_stories_rounded),
+                          label: const Text('了解'),
+                        ),
+                        const SizedBox(width: 12),
+                        TextButton.icon(
+                          key: const Key('open-creation-button'),
+                          onPressed: _openCreation,
+                          icon: const Icon(Icons.auto_awesome_rounded),
+                          label: const Text('创作'),
+                        ),
+                      ],
+                    ),
+                    if (widget.mode == ExplorationMode.parent) ...[
+                      const SizedBox(height: 8),
+                      FilledButton.tonalIcon(
+                        key: const Key('parent-companion-button'),
+                        onPressed: _openParentCompanion,
+                        icon: const Icon(Icons.family_restroom_rounded),
+                        label: const Text('家长建议'),
+                      ),
+                    ],
+                    if (_communityActivitySpecies case final speciesName?) ...[
+                      const SizedBox(height: 16),
+                      _CommunityExplorationSuggestion(
+                        speciesName: speciesName,
+                        hint: _communityActivityHint,
+                        loading: _communityActivityLoading,
+                        error: _communityActivityError,
+                        onRetry: () => _loadCommunityActivity(primary),
+                        onGenerateRoute: _openSuggestedParkGuide,
+                        onViewPoints: _openSuggestedSoundscape,
+                        showRouteAction: widget.mode == ExplorationMode.parent,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _clueStrengthLabel(SoundDetection detection) {
+    if (detection.tentative) return '较弱猜想';
+    return switch (detection.confidence) {
+      >= 0.65 => '线索较强',
+      >= 0.35 => '线索中等',
+      _ => '线索较弱',
+    };
+  }
+
+  String _formatClock(double milliseconds) {
+    final duration = Duration(
+      milliseconds: milliseconds.round().clamp(0, 3599000).toInt(),
+    );
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   Widget _buildResultPanel(BuildContext context) {
@@ -2095,30 +2497,7 @@ class _CapturePageState extends State<CapturePage> {
                     ],
                     DetectionResults(
                       detections: _detections,
-                      onDetectionTap: (detection, rank) =>
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => SpeciesDetailPage(
-                                detection: detection,
-                                rank: rank,
-                                audioPath: _recording?.path,
-                                playback: _playback,
-                                initialChecks:
-                                    _fieldChecks[_speciesKey(detection)] ??
-                                    const [],
-                                initialObservations:
-                                    _fieldObservations[_speciesKey(
-                                      detection,
-                                    )] ??
-                                    const {},
-                                onChecksChanged: (checks) =>
-                                    _updateFieldChecks(detection, checks),
-                                onObservationsChanged: (values) =>
-                                    _updateFieldObservations(detection, values),
-                                mode: widget.mode,
-                              ),
-                            ),
-                          ),
+                      onDetectionTap: _openDetectionDetails,
                     ),
                     if (_communityActivitySpecies case final species?) ...[
                       const SizedBox(height: 14),
@@ -2133,7 +2512,8 @@ class _CapturePageState extends State<CapturePage> {
                               .first,
                         ),
                         onGenerateRoute: _openSuggestedParkGuide,
-                        onViewPoints: _openSuggestedSpeciesPoints,
+                        onViewPoints: _openSuggestedSoundscape,
+                        showRouteAction: widget.mode == ExplorationMode.parent,
                       ),
                     ],
                   ] else if (_hasAnalyzed && !_analyzing) ...[
@@ -2275,6 +2655,333 @@ class _CapturePageState extends State<CapturePage> {
     if (_detections.isNotEmpty) return '找到一些声音线索';
     if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
     return '录音完成';
+  }
+}
+
+class _EcologyRevealAperture extends StatefulWidget {
+  const _EcologyRevealAperture({required this.assetPath, required this.label});
+
+  final String? assetPath;
+  final String label;
+
+  @override
+  State<_EcologyRevealAperture> createState() => _EcologyRevealApertureState();
+}
+
+class _EcologyRevealApertureState extends State<_EcologyRevealAperture>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion) {
+      _controller.stop();
+      _controller.value = 0.35;
+    } else if (!_controller.isAnimating && !_controller.isCompleted) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    image: true,
+    label: widget.assetPath == null
+        ? '${widget.label}候选，等待现场确认'
+        : '${widget.label}候选参考照片，等待现场确认',
+    child: RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) => CustomPaint(
+          painter: _EcologyAperturePainter(progress: _controller.value),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: ClipOval(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (widget.assetPath case final assetPath?)
+                    Image.asset(
+                      assetPath,
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
+                    )
+                  else
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [Color(0xFF557E6D), Color(0xFF153F31)],
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.waves_rounded,
+                          size: 74,
+                          color: Color(0xFFE8F1EB),
+                        ),
+                      ),
+                    ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Color(0x4410281E)],
+                      ),
+                    ),
+                  ),
+                  CustomPaint(
+                    painter: _ApertureSoundLinesPainter(
+                      progress: _controller.value,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _EcologyAperturePainter extends CustomPainter {
+  const _EcologyAperturePainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final extent = math.min(size.width, size.height);
+    final radius = extent * 0.44;
+    const jade = Color(0xFFA9C9BB);
+    const gold = Color(0xFFD8B968);
+    const forest = Color(0xFF174936);
+
+    canvas.drawCircle(
+      center,
+      radius + 17,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            jade.withValues(alpha: 0.02),
+            jade.withValues(alpha: 0.22),
+            Colors.transparent,
+          ],
+          stops: const [0.68, 0.86, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: radius + 28)),
+    );
+
+    for (var index = 0; index < 4; index++) {
+      final phase = (progress + index * 0.22) % 1;
+      final ringRadius = radius + 4 + phase * 20;
+      canvas.drawCircle(
+        center,
+        ringRadius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = index == 0 ? 2.2 : 1
+          ..color = jade.withValues(alpha: (1 - phase) * 0.32),
+      );
+    }
+
+    final arcRect = Rect.fromCircle(center: center, radius: radius + 12);
+    canvas.drawArc(
+      arcRect,
+      progress * math.pi * 2,
+      math.pi * 0.72,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8
+        ..strokeCap = StrokeCap.round
+        ..color = gold.withValues(alpha: 0.72),
+    );
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius - 4),
+      -progress * math.pi * 2,
+      math.pi * 0.46,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..strokeCap = StrokeCap.round
+        ..color = forest.withValues(alpha: 0.3),
+    );
+
+    for (var index = 0; index < 22; index++) {
+      final angle = index / 22 * math.pi * 2 + progress * math.pi * 0.3;
+      final offsetRadius = radius + 8 + math.sin(index * 2.1) * 7;
+      final point =
+          center + Offset(math.cos(angle), math.sin(angle)) * offsetRadius;
+      canvas.drawCircle(
+        point,
+        index.isEven ? 1.4 : 0.8,
+        Paint()..color = gold.withValues(alpha: index.isEven ? 0.5 : 0.28),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _EcologyAperturePainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+class _ApertureSoundLinesPainter extends CustomPainter {
+  const _ApertureSoundLinesPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final maxRadius = math.min(size.width, size.height) * 0.32;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = const Color(0xFFD8B968).withValues(alpha: 0.44);
+    for (var index = 0; index < 5; index++) {
+      final radius = maxRadius * (0.25 + index * 0.17);
+      canvas.drawCircle(center, radius, paint);
+    }
+    final y = size.height * 0.7;
+    final path = Path()..moveTo(size.width * 0.14, y);
+    for (var index = 0; index <= 56; index++) {
+      final x = size.width * (0.14 + index / 56 * 0.72);
+      final envelope = math.sin(index * 0.83 + progress * math.pi * 2);
+      final secondary = math.sin(index * 0.21) * 0.45;
+      path.lineTo(x, y + (envelope + secondary) * (5 + index % 7));
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFFE8CE83).withValues(alpha: 0.7),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ApertureSoundLinesPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+class _RevealStatusChip extends StatelessWidget {
+  const _RevealStatusChip({required this.label, this.emphasized = false});
+
+  final String label;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+    decoration: BoxDecoration(
+      color: emphasized ? const Color(0xFF315F4D) : const Color(0xEFFFFDF7),
+      borderRadius: BorderRadius.circular(99),
+      border: emphasized ? null : Border.all(color: const Color(0xFFD7DFD9)),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(
+        color: emphasized ? Colors.white : const Color(0xFF40554B),
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
+class _EvidenceRow extends StatelessWidget {
+  const _EvidenceRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 74,
+          child: Text(label, style: const TextStyle(color: Color(0xFF718078))),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _CandidateSeed extends StatelessWidget {
+  const _CandidateSeed({required this.detection, required this.onTap});
+
+  final SoundDetection detection;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final species = detection.specificSpecies!;
+    final media = SpeciesMediaCatalog.lookup(species.scientificName);
+    return Material(
+      color: const Color(0xEFFFFDF7),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFFD8E2DB)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: const Color(0xFFE3EEE7),
+                backgroundImage: media == null
+                    ? null
+                    : AssetImage(media.assetPath),
+                child: media == null
+                    ? const Icon(Icons.waves_rounded, size: 20)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  species.nameZh,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -2452,6 +3159,7 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
     required this.onRetry,
     required this.onGenerateRoute,
     required this.onViewPoints,
+    required this.showRouteAction,
   });
 
   final String speciesName;
@@ -2461,6 +3169,7 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback onGenerateRoute;
   final VoidCallback onViewPoints;
+  final bool showRouteAction;
 
   @override
   Widget build(BuildContext context) {
@@ -2505,20 +3214,23 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
     }
 
     final points = hint?.points ?? const <CommunityActivityPoint>[];
-    final pointNames = points.map((point) => point.label).take(2).join('、');
     final hasEvidence = hint != null && points.isNotEmpty;
+    final soundTypes = hint?.soundTypes.take(3).join('·') ?? '';
+    final habitats = hint?.habitatTags.take(2).join('·') ?? '';
+    final canGenerateRoute =
+        showRouteAction && points.any((point) => point.parkId != null);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final routeButton = FilledButton.icon(
       key: const Key('generate-community-route'),
       onPressed: onGenerateRoute,
       icon: const Icon(Icons.route_rounded),
-      label: const Text('生成游玩路线'),
+      label: const Text('生成亲子探索路线'),
     );
     final pointsButton = OutlinedButton.icon(
       key: const Key('view-community-points'),
       onPressed: onViewPoints,
-      icon: const Icon(Icons.map_outlined),
-      label: const Text('查看更多位点'),
+      icon: const Icon(Icons.graphic_eq_rounded),
+      label: const Text('查看综合声景'),
     );
     return Container(
       key: const Key('community-activity-suggestion'),
@@ -2547,7 +3259,11 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           Text(
-            hasEvidence ? '附近可能还有$speciesName活动点' : '暂时没有找到$speciesName的同类记录',
+            hasEvidence
+                ? (hint!.nearCurrentLocation
+                      ? '从这次发现，继续听听附近'
+                      : '从这次发现，继续认识相关生境')
+                : '从这次发现，继续认识自然',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: const Color(0xFF183C2E),
               fontWeight: FontWeight.w700,
@@ -2556,8 +3272,8 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             hasEvidence
-                ? '杭州社区已有 ${hint!.matchingRecordCount} 条相关声音记录，曾在$pointNames出现。可以带孩子换一个安静位置继续找找。'
-                : '社区数据里暂时没有足够的同类线索，也可以查看其他声音位点或规划一次新的探索。',
+                ? '${hint!.relatedRecordCount} 条真实记录 · ${soundTypes.isEmpty ? '多种自然声' : soundTypes}${habitats.isEmpty ? '' : ' · $habitats'}。以$speciesName为起点，再留意同一环境里的其他线索。'
+                : '当前还没有足够的社区线索，可以先查看杭州的其他公开声景。',
             style: const TextStyle(color: Color(0xFF486158), height: 1.45),
           ),
           if (hasEvidence) ...[
@@ -2577,7 +3293,7 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${point.label} · ${point.recordCount}条',
+                      '${point.label} · ${point.habitatTags.firstOrNull ?? point.soundTypes.firstOrNull ?? '自然声景'}',
                       style: const TextStyle(
                         color: Color(0xFF38564A),
                         fontSize: 12,
@@ -2594,7 +3310,9 @@ class _CommunityExplorationSuggestion extends StatelessWidget {
             style: TextStyle(color: Color(0xFF6A7B74), fontSize: 11.5),
           ),
           const SizedBox(height: 13),
-          if (textScale > 1.25) ...[
+          if (!canGenerateRoute)
+            SizedBox(width: double.infinity, child: pointsButton)
+          else if (textScale > 1.15) ...[
             SizedBox(width: double.infinity, child: routeButton),
             const SizedBox(height: 8),
             SizedBox(width: double.infinity, child: pointsButton),

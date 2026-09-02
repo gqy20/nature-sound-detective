@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-class ListeningWaveRing extends StatelessWidget {
+class ListeningWaveRing extends StatefulWidget {
   const ListeningWaveRing({
     super.key,
     required this.levels,
@@ -17,23 +17,72 @@ class ListeningWaveRing extends StatelessWidget {
   final bool active;
 
   @override
+  State<ListeningWaveRing> createState() => _ListeningWaveRingState();
+}
+
+class _ListeningWaveRingState extends State<ListeningWaveRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ListeningWaveRing oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.active != widget.active) _syncAnimation();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncAnimation();
+  }
+
+  void _syncAnimation() {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (widget.active && !reduceMotion) {
+      if (!_controller.isAnimating) _controller.repeat();
+    } else {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return RepaintBoundary(
       child: TweenAnimationBuilder<double>(
-        tween: Tween(end: rms),
+        tween: Tween(end: widget.rms),
         duration: reduceMotion
             ? Duration.zero
             : const Duration(milliseconds: 120),
         curve: Curves.easeOutCubic,
-        builder: (context, animatedRms, _) => CustomPaint(
-          key: const Key('live-audio-wave-ring'),
-          painter: _ListeningRingPainter(
-            levels: levels,
-            rms: animatedRms,
-            peak: peak,
-            active: active,
+        builder: (context, animatedRms, _) => AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) => CustomPaint(
+            key: const Key('live-audio-wave-ring'),
+            painter: _ListeningRingPainter(
+              levels: widget.levels,
+              rms: animatedRms,
+              peak: widget.peak,
+              active: widget.active,
+              pulse: reduceMotion ? 0.35 : _controller.value,
+            ),
           ),
         ),
       ),
@@ -138,20 +187,57 @@ class _ListeningRingPainter extends CustomPainter {
     required this.rms,
     required this.peak,
     required this.active,
+    required this.pulse,
   });
 
   final List<double> levels;
   final double rms;
   final double peak;
   final bool active;
+  final double pulse;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final baseRadius = math.min(size.width, size.height) * 0.43;
+    final extent = math.min(size.width, size.height);
+    final baseRadius = extent * 0.39;
     final strength = math.sqrt((rms / 0.045).clamp(0.0, 1.0));
     final peakStrength = math.sqrt((peak / 0.16).clamp(0.0, 1.0));
     final values = levels.isEmpty ? const [0.0] : levels;
+    const forest = Color(0xFF174936);
+    const jade = Color(0xFF8FB9A7);
+    const gold = Color(0xFFD6B567);
+
+    canvas.drawCircle(
+      center,
+      baseRadius + 26 + strength * 10,
+      Paint()
+        ..shader =
+            RadialGradient(
+              colors: [
+                jade.withValues(alpha: active ? 0.13 : 0.035),
+                forest.withValues(alpha: active ? 0.055 : 0.012),
+                Colors.transparent,
+              ],
+              stops: const [0.25, 0.7, 1],
+            ).createShader(
+              Rect.fromCircle(center: center, radius: baseRadius + 46),
+            ),
+    );
+
+    for (var ring = 0; ring < 2; ring++) {
+      final phase = (pulse + ring * 0.5) % 1;
+      final radius = baseRadius + 12 + phase * extent * 0.105;
+      final alpha = active ? (1 - phase) * (0.12 + strength * 0.14) : 0.025;
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = ring == 0 ? 2.2 : 1.2
+          ..color = jade.withValues(alpha: alpha),
+      );
+    }
     const points = 72;
     final path = Path();
     for (var index = 0; index <= points; index++) {
@@ -164,7 +250,7 @@ class _ListeningRingPainter extends CustomPainter {
           (values[upper] - values[lower]) * (historyPosition - lower);
       final history = math.sqrt((historyValue / 0.045).clamp(0.0, 1.0));
       final texture = 0.55 * history + 0.3 * strength + 0.15 * peakStrength;
-      final radius = baseRadius + (active ? 3 + texture * 14 : 0);
+      final radius = baseRadius + (active ? 5 + texture * 18 : 1.5);
       final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;
       if (index == 0) {
         path.moveTo(point.dx, point.dy);
@@ -173,14 +259,13 @@ class _ListeningRingPainter extends CustomPainter {
       }
     }
     path.close();
-    final forest = const Color(0xFF2F7557);
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = active ? 3 : 1.5
+        ..strokeWidth = active ? 3.4 : 1.5
         ..strokeJoin = StrokeJoin.round
-        ..color = forest.withValues(alpha: active ? 0.46 : 0.12),
+        ..color = jade.withValues(alpha: active ? 0.7 : 0.16),
     );
     if (active && peakStrength > 0.12) {
       canvas.drawPath(
@@ -189,8 +274,25 @@ class _ListeningRingPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 8
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7)
-          ..color = forest.withValues(alpha: 0.08 + peakStrength * 0.08),
+          ..color = jade.withValues(alpha: 0.1 + peakStrength * 0.1),
       );
+    }
+
+    if (active) {
+      final particleCount = math.min(18, math.max(8, values.length));
+      for (var index = 0; index < particleCount; index++) {
+        final value = values[index * values.length ~/ particleCount];
+        if (value < 0.008 && strength < 0.16) continue;
+        final angle = index / particleCount * math.pi * 2 + pulse * 0.45;
+        final radius = baseRadius + 18 + value.clamp(0.0, 0.08) * 180;
+        final point =
+            center + Offset(math.cos(angle), math.sin(angle)) * radius;
+        canvas.drawCircle(
+          point,
+          1.2 + peakStrength * 1.8,
+          Paint()..color = gold.withValues(alpha: 0.25 + strength * 0.5),
+        );
+      }
     }
   }
 
@@ -199,7 +301,8 @@ class _ListeningRingPainter extends CustomPainter {
       oldDelegate.active != active ||
       oldDelegate.rms != rms ||
       oldDelegate.peak != peak ||
-      oldDelegate.levels != levels;
+      oldDelegate.levels != levels ||
+      oldDelegate.pulse != pulse;
 }
 
 class _WaveformPainter extends CustomPainter {

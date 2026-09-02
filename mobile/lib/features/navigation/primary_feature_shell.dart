@@ -44,6 +44,8 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
   final PageController _controller = PageController();
   final ValueNotifier<double> _pagePositionNotifier = ValueNotifier(0);
   final ValueNotifier<String?> _soundscapeSpeciesFilter = ValueNotifier(null);
+  final ValueNotifier<CommunitySoundscapeFocus?> _soundscapeFocus =
+      ValueNotifier(null);
   final ExplorationStore _store = FileExplorationStore();
   late final AnimationController _directTransitionController;
   late final PrimaryFeatureStore _featureStore;
@@ -162,6 +164,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
       ..dispose();
     _pagePositionNotifier.dispose();
     _soundscapeSpeciesFilter.dispose();
+    _soundscapeFocus.dispose();
     _directTransitionController.dispose();
     _navigationSettleTimer?.cancel();
     _soundscapePreloader?.close();
@@ -447,10 +450,11 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
     );
   }
 
-  void _openSpeciesPoints(String speciesName) {
-    _soundscapeSpeciesFilter.value = speciesName;
+  void _openSoundscapeFocus(CommunitySoundscapeFocus focus) {
+    _soundscapeSpeciesFilter.value = null;
+    _soundscapeFocus.value = focus;
     unawaited(
-      _selectFeature(PrimaryFeature.soundscape, trigger: 'species_points'),
+      _selectFeature(PrimaryFeature.soundscape, trigger: 'habitat_soundscape'),
     );
   }
 
@@ -470,7 +474,7 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           familySessionCoordinator: widget.familySessionCoordinator,
           primaryPagePosition: _pagePositionNotifier,
           onGenerateRouteForPark: _openSuggestedPark,
-          onViewCommunitySpecies: _openSpeciesPoints,
+          onViewCommunityFocus: _openSoundscapeFocus,
           onPrimaryFeatureSelected: (feature) =>
               _selectFeature(feature, trigger: 'button'),
           onPrimarySwipeLockChanged: _setSwipeLocked,
@@ -485,6 +489,8 @@ class _PrimaryFeatureShellState extends State<PrimaryFeatureShell>
           primaryPagePosition: _pagePositionNotifier,
           speciesFilter: _soundscapeSpeciesFilter,
           onClearSpeciesFilter: () => _soundscapeSpeciesFilter.value = null,
+          soundscapeFocus: _soundscapeFocus,
+          onClearSoundscapeFocus: () => _soundscapeFocus.value = null,
           onOpenParkGuide: widget.mode == ExplorationMode.parent
               ? () =>
                     _selectFeature(PrimaryFeature.parkGuide, trigger: 'button')

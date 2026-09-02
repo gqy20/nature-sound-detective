@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nature_sound_detective/core/community/community_activity_guide.dart';
 import 'package:nature_sound_detective/core/community/community_models.dart';
 import 'package:nature_sound_detective/core/community/community_service.dart';
 import 'package:nature_sound_detective/core/community/soundscape_preloader.dart';
@@ -51,6 +52,8 @@ class SoundscapePage extends StatefulWidget {
     this.audioStarter,
     this.speciesFilter,
     this.onClearSpeciesFilter,
+    this.soundscapeFocus,
+    this.onClearSoundscapeFocus,
   });
 
   final CommunityService? service;
@@ -62,6 +65,8 @@ class SoundscapePage extends StatefulWidget {
   final Future<void> Function(String audioUrl)? audioStarter;
   final ValueListenable<String?>? speciesFilter;
   final VoidCallback? onClearSpeciesFilter;
+  final ValueListenable<CommunitySoundscapeFocus?>? soundscapeFocus;
+  final VoidCallback? onClearSoundscapeFocus;
 
   @override
   State<SoundscapePage> createState() => _SoundscapePageState();
@@ -93,6 +98,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
   Timer? _highlightTimer;
   bool _wasPrimaryVisible = false;
   String? _speciesFilter;
+  CommunitySoundscapeFocus? _soundscapeFocus;
 
   @override
   void initState() {
@@ -102,8 +108,10 @@ class _SoundscapePageState extends State<SoundscapePage> {
     final store = widget.explorationStore ?? FileExplorationStore();
     _recordsLoader = widget.recordsLoader ?? store.list;
     _speciesFilter = widget.speciesFilter?.value;
+    _soundscapeFocus = widget.soundscapeFocus?.value;
     widget.primaryPagePosition?.addListener(_handlePrimaryPagePosition);
     widget.speciesFilter?.addListener(_handleSpeciesFilter);
+    widget.soundscapeFocus?.addListener(_handleSoundscapeFocus);
     _load();
   }
 
@@ -112,6 +120,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
     _highlightTimer?.cancel();
     widget.primaryPagePosition?.removeListener(_handlePrimaryPagePosition);
     widget.speciesFilter?.removeListener(_handleSpeciesFilter);
+    widget.soundscapeFocus?.removeListener(_handleSoundscapeFocus);
     _scrollController.dispose();
     unawaited(_playerSubscription?.cancel());
     unawaited(_positionSubscription?.cancel());
@@ -140,6 +149,26 @@ class _SoundscapePageState extends State<SoundscapePage> {
       _view = _SoundscapeView.recent;
       _demoFilter = _DemoFilter.real;
     });
+  }
+
+  void _handleSoundscapeFocus() {
+    final value = widget.soundscapeFocus?.value;
+    if (!mounted || identical(value, _soundscapeFocus)) return;
+    setState(() {
+      _soundscapeFocus = value;
+      _speciesFilter = null;
+      _selectedAreaId = value?.areaId;
+      _view = _SoundscapeView.recent;
+      _demoFilter = _DemoFilter.real;
+    });
+  }
+
+  void _clearSoundscapeFocus() {
+    setState(() {
+      _soundscapeFocus = null;
+      _selectedAreaId = null;
+    });
+    widget.onClearSoundscapeFocus?.call();
   }
 
   void _clearSpeciesFilter() {
@@ -233,6 +262,17 @@ class _SoundscapePageState extends State<SoundscapePage> {
     };
     if (_selectedAreaId != null) {
       values = values.where((post) => post.areaId == _selectedAreaId).toList();
+    }
+    if (_soundscapeFocus case final focus?) {
+      values = values.where((post) {
+        if (focus.parkId case final parkId?) {
+          return post.parkId == parkId ||
+              (focus.siteId != null && post.siteId == focus.siteId);
+        }
+        if (focus.siteId case final siteId?) return post.siteId == siteId;
+        if (focus.areaId case final areaId?) return post.areaId == areaId;
+        return true;
+      }).toList();
     }
     if (_speciesFilter case final species?) {
       final normalized = _normalizeSpeciesName(species);
@@ -613,6 +653,7 @@ class _SoundscapePageState extends State<SoundscapePage> {
   Widget build(BuildContext context) {
     final visible = _visiblePosts;
     final speciesFilter = _speciesFilter;
+    final soundscapeFocus = _soundscapeFocus;
     final realCount = _posts.where((post) => !post.isDemo).length;
     final demoCount = _posts.where((post) => post.isDemo).length;
     final total = realCount + demoCount;
@@ -650,7 +691,9 @@ class _SoundscapePageState extends State<SoundscapePage> {
           padding: const EdgeInsets.fromLTRB(18, 4, 18, 110),
           children: [
             Text(
-              speciesFilter != null
+              soundscapeFocus != null
+                  ? '从“${soundscapeFocus.sourceSpeciesName}”继续探索'
+                  : speciesFilter != null
                   ? '寻找“$speciesFilter”的社区线索'
                   : (total == 0 ? '等待杭州的第一声发现' : '选择城区，听听公开声音'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -690,6 +733,14 @@ class _SoundscapePageState extends State<SoundscapePage> {
                 onClear: _clearSpeciesFilter,
               ),
             ],
+            if (soundscapeFocus != null) ...[
+              const SizedBox(height: 10),
+              _SoundscapeFocusBanner(
+                focus: soundscapeFocus,
+                matchCount: visible.length,
+                onClear: _clearSoundscapeFocus,
+              ),
+            ],
             const SizedBox(height: 14),
             SegmentedButton<_SoundscapeView>(
               segments: const [
@@ -711,7 +762,12 @@ class _SoundscapePageState extends State<SoundscapePage> {
             if (_error != null && !_loading)
               _ErrorCard(message: _error!, onRetry: () => _load(force: true)),
             if (!_loading && _error == null && visible.isEmpty)
-              speciesFilter != null
+              soundscapeFocus != null
+                  ? _SoundscapeFocusEmpty(
+                      sourceSpeciesName: soundscapeFocus.sourceSpeciesName,
+                      onClear: _clearSoundscapeFocus,
+                    )
+                  : speciesFilter != null
                   ? _SpeciesFilterEmpty(
                       speciesName: speciesFilter,
                       onClear: _clearSpeciesFilter,
@@ -2419,6 +2475,91 @@ String _formatAudioDuration(Duration duration) {
   final minutes = totalSeconds ~/ 60;
   final seconds = totalSeconds.remainder(60).toString().padLeft(2, '0');
   return '$minutes:$seconds';
+}
+
+class _SoundscapeFocusBanner extends StatelessWidget {
+  const _SoundscapeFocusBanner({
+    required this.focus,
+    required this.matchCount,
+    required this.onClear,
+  });
+
+  final CommunitySoundscapeFocus focus;
+  final int matchCount;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final habitats = focus.habitatTags.take(3).join(' · ');
+    return Container(
+      key: const Key('soundscape-habitat-focus'),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE2EEE5),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.eco_outlined, size: 20, color: Color(0xFF1C644B)),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  habitats.isEmpty ? '相关生境声景' : '$habitats 声景',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$matchCount 条公开记录 · 不限物种',
+                  style: const TextStyle(
+                    color: Color(0xFF52675E),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            key: const Key('clear-soundscape-habitat-focus'),
+            tooltip: '查看全部声景',
+            onPressed: onClear,
+            icon: const Icon(Icons.close_rounded, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SoundscapeFocusEmpty extends StatelessWidget {
+  const _SoundscapeFocusEmpty({
+    required this.sourceSpeciesName,
+    required this.onClear,
+  });
+
+  final String sourceSpeciesName;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+    decoration: BoxDecoration(
+      color: const Color(0xFFEAEFE9),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('相关生境还没有公开声音', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 5),
+        Text('“$sourceSpeciesName”仍是这次探索的起点，不代表附近只有这一种声音。'),
+        const SizedBox(height: 10),
+        TextButton(onPressed: onClear, child: const Text('查看全部声景')),
+      ],
+    ),
+  );
 }
 
 class _SpeciesFilterBanner extends StatelessWidget {

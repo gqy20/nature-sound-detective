@@ -42,6 +42,18 @@ class FamilySessionCoordinator extends ChangeNotifier {
   String? get error => _error;
   bool get busy => _busy;
   bool get hasUnseenCue => _latestCue != null;
+  int get unseenCueCount => _events.where((event) {
+    if (_seenCueEventIds.contains(event.eventId)) return false;
+    return const CompanionCueEngine().build([event]) != null;
+  }).length;
+  FamilyCommand? get activeMission {
+    for (final command in _commands.reversed) {
+      if (!missionCompleted(command.commandId)) return command;
+    }
+    return null;
+  }
+
+  bool get hasPendingMission => activeMission != null;
   bool get syncing => _syncing || _refreshing;
   DateTime? get lastSyncedAt => _lastSyncedAt;
 
@@ -221,6 +233,17 @@ class FamilySessionCoordinator extends ChangeNotifier {
         !value.active) {
       return;
     }
+    if (activeMission != null) {
+      AppLog.warning(
+        'family',
+        'family_operation_blocked',
+        fields: {
+          'operation': 'send_mission',
+          'reason': 'active_mission_exists',
+        },
+      );
+      return;
+    }
     await _run('send_mission', () async {
       final command = await _service.sendCommand(value.sessionId, templateId);
       _commands.add(command);
@@ -249,6 +272,32 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _notify();
   }
 
+  Future<void> requestMissionHelp() =>
+      _respondToLatestMission('mission_help_requested');
+
+  Future<void> deferLatestMission() =>
+      _respondToLatestMission('mission_deferred');
+
+  Future<void> _respondToLatestMission(String type) async {
+    final value = _connection;
+    final command = activeMission;
+    if (value == null ||
+        command == null ||
+        value.role != FamilyDeviceRole.child ||
+        !value.active ||
+        _missionEventExists(command.commandId, type)) {
+      return;
+    }
+    final event = await _eventQueue.append(type, {
+      'command_id': command.commandId,
+      'template_id': command.templateId,
+    });
+    _events.add(event);
+    await _saveTimeline();
+    await _syncPendingEvents();
+    _notify();
+  }
+
   bool missionReceived(String commandId) => _events.any(
     (event) =>
         event.type == 'mission_received' &&
@@ -261,10 +310,20 @@ class FamilySessionCoordinator extends ChangeNotifier {
         event.payload['command_id'] == commandId,
   );
 
+  bool missionHelpRequested(String commandId) =>
+      _missionEventExists(commandId, 'mission_help_requested');
+
+  bool missionDeferred(String commandId) =>
+      _missionEventExists(commandId, 'mission_deferred');
+
+  bool _missionEventExists(String commandId, String type) => _events.any(
+    (event) => event.type == type && event.payload['command_id'] == commandId,
+  );
+
   Future<void> markCueSeen() async {
     if (_latestCue == null) return;
     _seenCueEventIds.add(_latestCue!.eventId);
-    _latestCue = null;
+    _restoreLatestCue();
     await _saveTimeline();
     _notify();
   }
@@ -348,11 +407,7 @@ class FamilySessionCoordinator extends ChangeNotifier {
     _events.addAll(fresh);
     final lastSequence = fresh.last.sequence;
     _connection = value.copyWith(lastEventSequence: lastSequence);
-    _latestCue = const CompanionCueEngine().build(
-      fresh
-          .where((event) => !_seenCueEventIds.contains(event.eventId))
-          .toList(growable: false),
-    );
+    _restoreLatestCue();
     _lastSyncedAt = DateTime.now();
     await _store.save(_connection!);
     await _saveTimeline();

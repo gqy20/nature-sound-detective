@@ -35,6 +35,27 @@ void main() {
     expect(events.map((event) => event.eventId).toSet(), hasLength(3));
   });
 
+  test('mission responses use the backward compatible event protocol', () {
+    final help = FamilyExplorationEvent(
+      eventId: 'evt-help-response',
+      sequence: 2,
+      type: 'mission_help_requested',
+      occurredAt: DateTime.utc(2026, 9, 2),
+      payload: const {'command_id': 'cmd-1'},
+    );
+    final transported = help.toTransportJson();
+
+    expect(transported['event_type'], 'accepted_uncertainty');
+    expect(
+      (transported['payload'] as Map<String, Object?>)['mission_response'],
+      'help',
+    );
+    expect(
+      FamilyExplorationEvent.fromJson(transported).type,
+      'mission_help_requested',
+    );
+  });
+
   test('service creates parent session with shared anonymous token', () async {
     final directory = await Directory.systemTemp.createTemp('family-service-');
     addTearDown(() => directory.delete(recursive: true));
@@ -135,6 +156,22 @@ void main() {
       service.uploaded.any((event) => event.type == 'mission_received'),
       isTrue,
     );
+    expect(coordinator.activeMission?.commandId, 'cmd-1');
+    expect(coordinator.hasPendingMission, isTrue);
+
+    await coordinator.requestMissionHelp();
+    await coordinator.deferLatestMission();
+    expect(
+      service.uploaded.any((event) => event.type == 'mission_help_requested'),
+      isTrue,
+    );
+    expect(
+      service.uploaded.any((event) => event.type == 'mission_deferred'),
+      isTrue,
+    );
+    expect(coordinator.missionHelpRequested('cmd-1'), isTrue);
+    expect(coordinator.missionDeferred('cmd-1'), isTrue);
+    expect(coordinator.activeMission?.commandId, 'cmd-1');
 
     await coordinator.completeLatestMission();
     expect(
@@ -142,6 +179,8 @@ void main() {
       isTrue,
     );
     expect(coordinator.missionCompleted('cmd-1'), isTrue);
+    expect(coordinator.activeMission, isNull);
+    expect(coordinator.hasPendingMission, isFalse);
     coordinator.dispose();
   });
 
@@ -162,8 +201,10 @@ void main() {
 
     await coordinator.initialize();
     await coordinator.sendMission('compare_high_low_sound');
+    await coordinator.sendMission('listen_again_before_guessing');
 
     expect(coordinator.commands.single.templateId, 'compare_high_low_sound');
+    expect(service.sentTemplates, ['compare_high_low_sound']);
     coordinator.dispose();
   });
 
@@ -212,6 +253,56 @@ void main() {
     expect(restored.latestCue, isNull);
     restored.dispose();
   });
+
+  test('marking a cue seen reveals the next unread family event', () async {
+    final directory = await Directory.systemTemp.createTemp('family-cues-');
+    addTearDown(() => directory.delete(recursive: true));
+    final connection = _connection(
+      FamilyDeviceRole.parent,
+    ).copyWith(lastEventSequence: 2);
+    final store = _MemoryFamilySessionStore()..value = connection;
+    final timelineStore = FamilyTimelineStore(
+      directoryProvider: () async => directory,
+    );
+    await timelineStore.save(
+      FamilyTimelineSnapshot(
+        sessionId: connection.sessionId,
+        events: [
+          FamilyExplorationEvent(
+            eventId: 'evt-recorded',
+            sequence: 1,
+            type: 'captured_sound',
+            occurredAt: DateTime.utc(2026, 9, 1, 8),
+          ),
+          FamilyExplorationEvent(
+            eventId: 'evt-uncertain',
+            sequence: 2,
+            type: 'accepted_uncertainty',
+            occurredAt: DateTime.utc(2026, 9, 1, 8, 1),
+          ),
+        ],
+      ),
+    );
+    final coordinator = FamilySessionCoordinator(
+      service: _FakeFamilyService(connection: connection),
+      store: store,
+      eventQueue: FamilyEventQueue(directoryProvider: () async => directory),
+      timelineStore: timelineStore,
+    );
+
+    await coordinator.initialize();
+    expect(coordinator.latestCue?.eventId, 'evt-uncertain');
+    expect(coordinator.unseenCueCount, 2);
+
+    await coordinator.markCueSeen();
+    expect(coordinator.latestCue?.eventId, 'evt-recorded');
+    expect(coordinator.unseenCueCount, 1);
+
+    await coordinator.markCueSeen();
+    expect(coordinator.latestCue, isNull);
+    expect(coordinator.unseenCueCount, 0);
+    coordinator.dispose();
+  });
 }
 
 FamilySessionConnection _connection(FamilyDeviceRole role) =>
@@ -229,6 +320,7 @@ class _FakeFamilyService extends FamilySessionService {
   final FamilySessionConnection connection;
   final List<FamilyCommand> commands;
   final List<FamilyExplorationEvent> uploaded = [];
+  final List<String> sentTemplates = [];
   bool _commandsReturned = false;
 
   @override
@@ -252,15 +344,15 @@ class _FakeFamilyService extends FamilySessionService {
   ) async => const [];
 
   @override
-  Future<FamilyCommand> sendCommand(
-    String sessionId,
-    String templateId,
-  ) async => FamilyCommand(
-    commandId: 'cmd-sent',
-    templateId: templateId,
-    sequence: 1,
-    createdAt: DateTime.utc(2026, 8, 27, 9),
-  );
+  Future<FamilyCommand> sendCommand(String sessionId, String templateId) async {
+    sentTemplates.add(templateId);
+    return FamilyCommand(
+      commandId: 'cmd-sent',
+      templateId: templateId,
+      sequence: 1,
+      createdAt: DateTime.utc(2026, 8, 27, 9),
+    );
+  }
 
   @override
   Future<List<FamilyCommand>> loadCommands(

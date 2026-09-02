@@ -1237,6 +1237,35 @@ class _CapturePageState extends State<CapturePage> {
                       )
                     : Column(
                         children: [
+                          if (!_isRecording &&
+                              widget.mode == ExplorationMode.child &&
+                              familyCoordinator != null)
+                            ListenableBuilder(
+                              listenable: familyCoordinator,
+                              builder: (context, _) {
+                                final connection = familyCoordinator.connection;
+                                final mission = familyCoordinator.activeMission;
+                                if (connection?.active != true ||
+                                    connection?.role !=
+                                        FamilyDeviceRole.child ||
+                                    mission == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    top: compact ? 8 : 14,
+                                    bottom: compact ? 2 : 6,
+                                  ),
+                                  child: _ChildMissionHomeCard(
+                                    label:
+                                        familyMissionLabels[mission
+                                            .templateId] ??
+                                        mission.templateId,
+                                    onOpen: _openFamilyLink,
+                                  ),
+                                );
+                              },
+                            ),
                           Spacer(flex: compact ? 2 : 3),
                           if (!_isRecording &&
                               widget.mode == ExplorationMode.child &&
@@ -1332,6 +1361,7 @@ class _CapturePageState extends State<CapturePage> {
         connection?.active == true &&
         connection?.role == FamilyDeviceRole.parent;
     final cue = coordinator.latestCue;
+    final activeMission = coordinator.activeMission;
     return ListView(
       key: const Key('parent-role-home'),
       padding: EdgeInsets.fromLTRB(0, compact ? 22 : 42, 0, 22),
@@ -1385,7 +1415,33 @@ class _CapturePageState extends State<CapturePage> {
                 ),
                 if (cue != null) ...[
                   const SizedBox(height: 6),
-                  Text('现在可以说：“${cue.say}”'),
+                  const Text('新的回应建议已准备好，打开后可以查看完整内容和原因。'),
+                ],
+                if (activeMission case final mission?) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xB3FFFDF7),
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.route_outlined, size: 18),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            '当前任务：${familyMissionLabels[mission.templateId] ?? mission.templateId}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 FilledButton.icon(
@@ -1503,8 +1559,10 @@ class _CapturePageState extends State<CapturePage> {
                         Image.asset(
                           'assets/images/logo_mark.png',
                           key: const Key('app-brand-mark'),
-                          width: 28,
-                          height: 28,
+                          width: 32,
+                          height: 32,
+                          cacheWidth: 96,
+                          cacheHeight: 96,
                           filterQuality: FilterQuality.medium,
                           excludeFromSemantics: true,
                         ),
@@ -1554,7 +1612,11 @@ class _CapturePageState extends State<CapturePage> {
                   ListenableBuilder(
                     listenable: coordinator,
                     builder: (context, _) => Badge(
-                      isLabelVisible: coordinator.hasUnseenCue,
+                      isLabelVisible:
+                          coordinator.hasUnseenCue ||
+                          (coordinator.connection?.role ==
+                                  FamilyDeviceRole.child &&
+                              coordinator.hasPendingMission),
                       smallSize: 8,
                       child: IconButton(
                         key: const Key('family-link-button'),
@@ -2214,6 +2276,62 @@ class _CapturePageState extends State<CapturePage> {
     if (_hasAnalyzed) return '已经听到，暂时没有可靠候选';
     return '录音完成';
   }
+}
+
+class _ChildMissionHomeCard extends StatelessWidget {
+  const _ChildMissionHomeCard({required this.label, required this.onOpen});
+
+  final String label;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    container: true,
+    label: '家长发来共同任务：$label',
+    child: Container(
+      key: const Key('child-home-mission-card'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xEFFFF2CE),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE4CF96)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.mark_unread_chat_alt_outlined, size: 24),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '家长发来共同任务',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF183C2E),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            key: const Key('open-child-mission'),
+            onPressed: onOpen,
+            child: const Text('查看'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _CaptureLocationLabel extends StatelessWidget {

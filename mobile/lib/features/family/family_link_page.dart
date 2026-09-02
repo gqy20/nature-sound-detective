@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nature_sound_detective/core/family/family_session_coordinator.dart';
 import 'package:nature_sound_detective/core/family/family_session_models.dart';
 import 'package:nature_sound_detective/core/guidance/guidance_bundle.dart';
 import 'package:nature_sound_detective/core/network/parent_guidance_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FamilyLinkPage extends StatefulWidget {
   const FamilyLinkPage({
@@ -27,11 +30,20 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
   GuidanceBundle? _aiBundle;
   bool _generatingAi = false;
   int _selectedAiSuggestionIndex = 0;
+  Timer? _pairCountdownTimer;
 
   @override
   void initState() {
     super.initState();
     _guidanceService = widget.guidanceService ?? ParentGuidanceNetworkService();
+    _pairCountdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final connection = widget.coordinator.connection;
+      if (mounted &&
+          connection?.active != true &&
+          connection?.pairExpiresAt != null) {
+        setState(() {});
+      }
+    });
   }
 
   Future<void> _generateAiCompanion() async {
@@ -104,8 +116,57 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
 
   @override
   void dispose() {
+    _pairCountdownTimer?.cancel();
     _pairCodeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _copyPairCode(String code) async {
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('连接码已复制')));
+  }
+
+  Future<void> _sharePairCode(String code) async {
+    await SharePlus.instance.share(
+      ShareParams(text: '自然声探员家庭连接码：$code\n请在儿童探索设备中输入。'),
+    );
+  }
+
+  Future<void> _copyAiResponse(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('回应已复制，可以照着说')));
+  }
+
+  Future<void> _confirmEndSession({required bool parent}) async {
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(parent ? '结束这次家庭探索？' : '离开这次家庭探索？'),
+        content: const Text('两台设备将停止同步；已经保存的录音、观察和自然册内容不会删除。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('继续探索'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(parent ? '确认结束' : '确认离开'),
+          ),
+        ],
+      ),
+    );
+    if (agreed != true) return;
+    if (parent) {
+      await widget.coordinator.endSession();
+    } else {
+      await widget.coordinator.leaveLocalSession();
+    }
   }
 
   @override
@@ -128,20 +189,37 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
         final coordinator = widget.coordinator;
         final connection = coordinator.connection;
         final role = connection?.role ?? widget.preferredRole;
+        final active = connection?.active == true;
+        final title = role == FamilyDeviceRole.child
+            ? (active ? '家长陪伴端' : '连接家长陪伴端')
+            : role == FamilyDeviceRole.parent
+            ? (active ? '儿童探索端' : '连接儿童探索端')
+            : '孩子探索，家长陪伴';
         return ListView(
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 40),
           children: [
-            Text(
-              role == FamilyDeviceRole.child
-                  ? '连接家长陪伴端'
-                  : role == FamilyDeviceRole.parent
-                  ? '连接儿童探索端'
-                  : '孩子探索，家长陪伴',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ),
+                if (active) ...[
+                  const SizedBox(width: 12),
+                  _ConnectedStatusChip(coordinator: coordinator),
+                ],
+              ],
             ),
             const SizedBox(height: 6),
             Text(
-              role == FamilyDeviceRole.child
+              active
+                  ? role == FamilyDeviceRole.child
+                        ? '录音仍留在本机，家长只看到步骤摘要 · ${_syncRecencyLabel(coordinator)}'
+                        : '查看孩子的探索步骤和陪伴建议 · ${_syncRecencyLabel(coordinator)}'
+                  : role == FamilyDeviceRole.child
                   ? '输入家长设备显示的连接码。你的录音和观察仍保存在这台设备。'
                   : role == FamilyDeviceRole.parent
                   ? '创建临时连接，查看孩子的探索步骤和陪伴建议。'
@@ -168,6 +246,9 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
                 onApprove: coordinator.approveChild,
                 onRefresh: coordinator.refresh,
                 onLeave: coordinator.leaveLocalSession,
+                onCopyCode: _copyPairCode,
+                onShareCode: _sharePairCode,
+                showManualRefresh: coordinator.error != null,
               )
             else if (connection.role == FamilyDeviceRole.parent)
               _ParentLiveCompanion(
@@ -178,9 +259,14 @@ class _FamilyLinkPageState extends State<FamilyLinkPage> {
                 selectedAiSuggestionIndex: _selectedAiSuggestionIndex,
                 onSelectAiSuggestion: (index) =>
                     setState(() => _selectedAiSuggestionIndex = index),
+                onUseAiSuggestion: _copyAiResponse,
+                onEndSession: () => _confirmEndSession(parent: true),
               )
             else
-              _ChildConnected(coordinator: coordinator),
+              _ChildConnected(
+                coordinator: coordinator,
+                onLeave: () => _confirmEndSession(parent: false),
+              ),
           ],
         );
       },
@@ -331,6 +417,9 @@ class _PairingStatus extends StatelessWidget {
     required this.onApprove,
     required this.onRefresh,
     required this.onLeave,
+    required this.onCopyCode,
+    required this.onShareCode,
+    required this.showManualRefresh,
   });
 
   final FamilySessionConnection connection;
@@ -338,6 +427,9 @@ class _PairingStatus extends StatelessWidget {
   final VoidCallback onApprove;
   final VoidCallback onRefresh;
   final VoidCallback onLeave;
+  final ValueChanged<String> onCopyCode;
+  final ValueChanged<String> onShareCode;
+  final bool showManualRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -349,25 +441,67 @@ class _PairingStatus extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              pending ? Icons.devices_rounded : Icons.qr_code_2_rounded,
-              size: 52,
-              color: const Color(0xFF174936),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              pending
-                  ? parent
-                        ? '儿童设备等待确认'
-                        : '等待家长设备确认'
-                  : '等待儿童设备连接',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pending
+                            ? parent
+                                  ? '儿童设备等待确认'
+                                  : '等待家长设备确认'
+                            : '等待儿童设备连接',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        pending
+                            ? parent
+                                  ? '核对无误后确认本次临时连接'
+                                  : '家长确认后即可开始共同探索'
+                            : '在儿童设备输入下方连接码',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  key: const Key('family-pairing-phase-icon'),
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE4F0E7),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(
+                    pending ? Icons.devices_rounded : Icons.pin_outlined,
+                    color: const Color(0xFF174936),
+                  ),
+                ),
+              ],
             ),
             if (parent)
               if (connection.pairCode case final code?) ...[
                 const SizedBox(height: 18),
-                const Text('在儿童设备输入连接码', textAlign: TextAlign.center),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('连接码'),
+                    if (_pairExpiryLabel(connection) case final expiry?) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        expiry,
+                        key: const Key('family-pair-expiry'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF856018),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 7),
                 SelectableText(
                   code,
@@ -379,6 +513,34 @@ class _PairingStatus extends StatelessWidget {
                     color: Color(0xFF174936),
                   ),
                 ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const Key('copy-family-pair-code'),
+                        onPressed: busy ? null : () => onCopyCode(code),
+                        icon: const Icon(Icons.copy_rounded),
+                        label: const Text('复制'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        key: const Key('share-family-pair-code'),
+                        onPressed: busy ? null : () => onShareCode(code),
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('分享'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '儿童设备 · 临时连接尾号 ${_sessionSuffix(connection)}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             const SizedBox(height: 18),
             if (parent && pending)
@@ -388,11 +550,23 @@ class _PairingStatus extends StatelessWidget {
                 icon: const Icon(Icons.verified_user_outlined),
                 label: const Text('确认这台儿童设备'),
               )
-            else
+            else if (showManualRefresh)
               OutlinedButton.icon(
                 onPressed: busy ? null : onRefresh,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('刷新连接状态'),
+                label: const Text('重新连接'),
+              )
+            else
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox.square(
+                    dimension: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 9),
+                  Text('正在自动等待连接'),
+                ],
               ),
             TextButton(
               onPressed: busy ? null : onLeave,
@@ -413,6 +587,8 @@ class _ParentLiveCompanion extends StatelessWidget {
     required this.onGenerateAi,
     required this.selectedAiSuggestionIndex,
     required this.onSelectAiSuggestion,
+    required this.onUseAiSuggestion,
+    required this.onEndSession,
   });
   final FamilySessionCoordinator coordinator;
   final GuidanceBundle? aiBundle;
@@ -420,18 +596,19 @@ class _ParentLiveCompanion extends StatelessWidget {
   final VoidCallback onGenerateAi;
   final int selectedAiSuggestionIndex;
   final ValueChanged<int> onSelectAiSuggestion;
+  final ValueChanged<String> onUseAiSuggestion;
+  final VoidCallback onEndSession;
 
   @override
   Widget build(BuildContext context) {
     final cue = coordinator.latestCue;
     final latestCommand = coordinator.commands.lastOrNull;
+    final activeMission = coordinator.activeMission;
     final aiSuggestions =
         aiBundle?.praiseSuggestions.take(5).toList() ?? const [];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _FamilyNotice(message: _syncStatusLabel(coordinator, parent: true)),
-        const SizedBox(height: 14),
         Card(
           color: const Color(0xFFFFF2CE),
           child: Padding(
@@ -465,7 +642,7 @@ class _ParentLiveCompanion extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '刚刚',
+                            _cueTimeLabel(coordinator, cue),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -493,7 +670,11 @@ class _ParentLiveCompanion extends StatelessWidget {
                           ),
                           FilledButton.tonal(
                             onPressed: coordinator.markCueSeen,
-                            child: const Text('标为已读'),
+                            child: Text(
+                              coordinator.unseenCueCount > 1
+                                  ? '下一条 · ${coordinator.unseenCueCount - 1}'
+                                  : '标为已读',
+                            ),
                           ),
                         ],
                       ),
@@ -502,96 +683,127 @@ class _ParentLiveCompanion extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        Card(
-          color: const Color(0xFFE9F0E9),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        if (coordinator.events.isEmpty)
+          Container(
+            key: const Key('family-ai-waiting-strip'),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE9F0E9),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
               children: [
-                const Text(
-                  'AI个性化回应',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 5),
-                if (aiBundle == null)
-                  const Text('本地陪伴提示始终可用。需要时可由家长明确使用1次AI生成3至5条可选回应。')
-                else ...[
-                  Row(
-                    children: [
-                      Icon(
-                        aiBundle!.aiGenerated
-                            ? Icons.auto_awesome_rounded
-                            : Icons.shield_outlined,
-                        size: 17,
-                        color: const Color(0xFF315D4A),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
+                Icon(Icons.auto_awesome_outlined, size: 20),
+                SizedBox(width: 10),
+                Expanded(child: Text('收到探索记录后，可以按需生成个性化回应。')),
+              ],
+            ),
+          )
+        else
+          Card(
+            color: const Color(0xFFE9F0E9),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'AI个性化回应',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 5),
+                  if (aiBundle == null)
+                    const Text('本地陪伴提示始终可用。需要时可由家长明确使用1次AI生成3至5条可选回应。')
+                  else ...[
+                    Row(
+                      children: [
+                        Icon(
                           aiBundle!.aiGenerated
-                              ? 'AI根据本次探索生成 · 请选择一句'
-                              : '当前为本地审核模板 · 请选择一句',
-                          style: Theme.of(context).textTheme.bodySmall,
+                              ? Icons.auto_awesome_rounded
+                              : Icons.shield_outlined,
+                          size: 17,
+                          color: const Color(0xFF315D4A),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            aiBundle!.aiGenerated
+                                ? 'AI根据本次探索生成 · 请选择一句'
+                                : '当前为本地审核模板 · 请选择一句',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (aiBundle!.warning.isNotEmpty) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        aiBundle!.warning,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF8A5A22),
                         ),
                       ),
                     ],
-                  ),
-                  if (aiBundle!.warning.isNotEmpty) ...[
-                    const SizedBox(height: 5),
-                    Text(
-                      aiBundle!.warning,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF8A5A22),
+                    const SizedBox(height: 10),
+                    for (final (index, suggestion) in aiSuggestions.indexed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _AiPraiseOption(
+                          index: index,
+                          suggestion: suggestion,
+                          selected: index == selectedAiSuggestionIndex,
+                          onSelected: () => onSelectAiSuggestion(index),
+                        ),
                       ),
+                    if (aiSuggestions.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      FilledButton.tonalIcon(
+                        key: const Key('copy-family-ai-response'),
+                        onPressed: () => onUseAiSuggestion(
+                          aiSuggestions[selectedAiSuggestionIndex].text,
+                        ),
+                        icon: const Icon(Icons.copy_rounded),
+                        label: const Text('复制这句回应'),
+                      ),
+                    ],
+                  ],
+                  if (aiBundle == null) ...[
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      key: const Key('generate-family-session-ai-guidance'),
+                      onPressed: generatingAi ? null : onGenerateAi,
+                      icon: generatingAi
+                          ? const SizedBox.square(
+                              dimension: 17,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.auto_awesome_rounded),
+                      label: Text(generatingAi ? '正在生成' : '使用1次AI生成更多回应'),
                     ),
                   ],
-                  const SizedBox(height: 10),
-                  for (final (index, suggestion) in aiSuggestions.indexed)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _AiPraiseOption(
-                        index: index,
-                        suggestion: suggestion,
-                        selected: index == selectedAiSuggestionIndex,
-                        onSelected: () => onSelectAiSuggestion(index),
-                      ),
-                    ),
                 ],
-                if (aiBundle == null) ...[
-                  const SizedBox(height: 12),
-                  FilledButton.icon(
-                    key: const Key('generate-family-session-ai-guidance'),
-                    onPressed: generatingAi || coordinator.events.isEmpty
-                        ? null
-                        : onGenerateAi,
-                    icon: generatingAi
-                        ? const SizedBox.square(
-                            dimension: 17,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.auto_awesome_rounded),
-                    label: Text(generatingAi ? '正在生成' : '使用1次AI生成更多回应'),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ),
         const SizedBox(height: 18),
-        Text('发送共同任务', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          activeMission == null ? '发送共同任务' : '当前共同任务',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 10),
-        for (final template in familyMissionLabels.entries.take(3))
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: OutlinedButton.icon(
-              onPressed: coordinator.busy
-                  ? null
-                  : () => coordinator.sendMission(template.key),
-              icon: const Icon(Icons.send_outlined),
-              label: Text(template.value),
+        if (activeMission == null)
+          for (final template in familyMissionLabels.entries.take(3))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: OutlinedButton.icon(
+                key: Key('family-mission-${template.key}'),
+                onPressed: coordinator.busy
+                    ? null
+                    : () => coordinator.sendMission(template.key),
+                icon: const Icon(Icons.send_outlined),
+                label: Text(template.value),
+              ),
             ),
-          ),
         if (latestCommand != null) ...[
           const SizedBox(height: 4),
           _MissionDeliveryCard(
@@ -600,6 +812,10 @@ class _ParentLiveCompanion extends StatelessWidget {
                 latestCommand.templateId,
             received: coordinator.missionReceived(latestCommand.commandId),
             completed: coordinator.missionCompleted(latestCommand.commandId),
+            helpRequested: coordinator.missionHelpRequested(
+              latestCommand.commandId,
+            ),
+            deferred: coordinator.missionDeferred(latestCommand.commandId),
           ),
         ],
         const SizedBox(height: 18),
@@ -611,7 +827,10 @@ class _ParentLiveCompanion extends StatelessWidget {
           for (final event in coordinator.events.reversed.take(8))
             ListTile(
               dense: true,
-              leading: const Icon(Icons.eco_outlined),
+              leading: Icon(
+                _eventIcon(event.type),
+                color: _eventColor(event.type),
+              ),
               title: Text(_eventLabel(event.type)),
               subtitle: Text(
                 '${event.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:'
@@ -620,7 +839,7 @@ class _ParentLiveCompanion extends StatelessWidget {
             ),
         const SizedBox(height: 18),
         OutlinedButton(
-          onPressed: coordinator.busy ? null : coordinator.endSession,
+          onPressed: coordinator.busy ? null : onEndSession,
           child: const Text('结束本次家庭探索'),
         ),
       ],
@@ -720,15 +939,14 @@ class _AiPraiseOption extends StatelessWidget {
 }
 
 class _ChildConnected extends StatelessWidget {
-  const _ChildConnected({required this.coordinator});
+  const _ChildConnected({required this.coordinator, required this.onLeave});
   final FamilySessionCoordinator coordinator;
+  final VoidCallback onLeave;
 
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _FamilyNotice(message: _syncStatusLabel(coordinator, parent: false)),
-      const SizedBox(height: 14),
       Card(
         child: Padding(
           padding: const EdgeInsets.all(18),
@@ -761,13 +979,62 @@ class _ChildConnected extends StatelessWidget {
                     label: Text('已经告诉家长：任务完成'),
                   )
                 else
-                  FilledButton.icon(
-                    key: const Key('complete-family-mission'),
-                    onPressed: coordinator.busy
-                        ? null
-                        : coordinator.completeLatestMission,
-                    icon: const Icon(Icons.task_alt_rounded),
-                    label: const Text('我完成了这个任务'),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (coordinator.missionHelpRequested(command.commandId))
+                        const Chip(
+                          avatar: Icon(Icons.volunteer_activism_outlined),
+                          label: Text('已经告诉家长：我需要帮助'),
+                        )
+                      else if (coordinator.missionDeferred(command.commandId))
+                        const Chip(
+                          avatar: Icon(Icons.schedule_rounded),
+                          label: Text('已经告诉家长：我想稍后再做'),
+                        ),
+                      FilledButton.icon(
+                        key: const Key('complete-family-mission'),
+                        onPressed: coordinator.busy
+                            ? null
+                            : coordinator.completeLatestMission,
+                        icon: const Icon(Icons.task_alt_rounded),
+                        label: const Text('我完成了'),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              key: const Key('request-family-mission-help'),
+                              onPressed:
+                                  coordinator.busy ||
+                                      coordinator.missionHelpRequested(
+                                        command.commandId,
+                                      )
+                                  ? null
+                                  : coordinator.requestMissionHelp,
+                              icon: const Icon(Icons.handshake_outlined),
+                              label: const Text('需要帮助'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextButton.icon(
+                              key: const Key('defer-family-mission'),
+                              onPressed:
+                                  coordinator.busy ||
+                                      coordinator.missionDeferred(
+                                        command.commandId,
+                                      )
+                                  ? null
+                                  : coordinator.deferLatestMission,
+                              icon: const Icon(Icons.schedule_rounded),
+                              label: const Text('稍后再做'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
               ],
             ],
@@ -775,7 +1042,7 @@ class _ChildConnected extends StatelessWidget {
         ),
       ),
       TextButton(
-        onPressed: coordinator.busy ? null : coordinator.leaveLocalSession,
+        onPressed: coordinator.busy ? null : onLeave,
         child: const Text('离开本次连接'),
       ),
     ],
@@ -807,21 +1074,78 @@ class _FamilyNotice extends StatelessWidget {
   );
 }
 
+class _ConnectedStatusChip extends StatelessWidget {
+  const _ConnectedStatusChip({required this.coordinator});
+
+  final FamilySessionCoordinator coordinator;
+
+  @override
+  Widget build(BuildContext context) {
+    final warning = coordinator.error != null;
+    final syncing = coordinator.syncing;
+    final label = warning ? '需留意' : (syncing ? '同步中' : '已连接');
+    final foreground = warning
+        ? const Color(0xFF856018)
+        : const Color(0xFF174936);
+    final background = warning
+        ? const Color(0xFFFFF0D2)
+        : const Color(0xFFE4F0E7);
+    return Semantics(
+      label: warning ? '设备已连接，同步需要留意' : '设备$label',
+      child: Container(
+        key: const Key('family-connected-status'),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              warning ? Icons.sync_problem_rounded : Icons.devices_rounded,
+              size: 17,
+              color: foreground,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MissionDeliveryCard extends StatelessWidget {
   const _MissionDeliveryCard({
     required this.label,
     required this.received,
     required this.completed,
+    required this.helpRequested,
+    required this.deferred,
   });
 
   final String label;
   final bool received;
   final bool completed;
+  final bool helpRequested;
+  final bool deferred;
 
   @override
   Widget build(BuildContext context) {
     final (status, icon, color) = completed
         ? ('儿童已完成', Icons.task_alt_rounded, const Color(0xFF1F6B4F))
+        : helpRequested
+        ? ('儿童需要帮助', Icons.handshake_outlined, const Color(0xFF9A4F32))
+        : deferred
+        ? ('儿童想稍后再做', Icons.schedule_rounded, const Color(0xFF856018))
         : received
         ? ('儿童已收到', Icons.mark_email_read_outlined, const Color(0xFF315D4A))
         : ('等待儿童端接收', Icons.schedule_send_outlined, const Color(0xFF856018));
@@ -855,19 +1179,52 @@ class _MissionDeliveryCard extends StatelessWidget {
   }
 }
 
-String _syncStatusLabel(
-  FamilySessionCoordinator coordinator, {
-  required bool parent,
-}) {
-  final side = parent ? '儿童探索端' : '家长陪伴端';
-  if (coordinator.error != null) return '$side已连接 · 同步暂时中断';
-  if (coordinator.syncing) return '$side已连接 · 正在同步';
+String _syncRecencyLabel(FamilySessionCoordinator coordinator) {
+  if (coordinator.error != null) return '同步需留意';
+  if (coordinator.syncing) return '正在同步';
   final last = coordinator.lastSyncedAt;
-  if (last == null) return '$side已连接 · 等待首次同步';
+  if (last == null) return '等待首次同步';
   final seconds = DateTime.now().difference(last).inSeconds;
-  if (seconds < 15) return '$side已连接 · 刚刚同步';
-  if (seconds < 60) return '$side已连接 · $seconds秒前同步';
-  return '$side已连接 · 请检查网络';
+  if (seconds < 15) return '刚刚同步';
+  if (seconds < 60) return '$seconds秒前同步';
+  final minutes = seconds ~/ 60;
+  if (minutes < 60) return '$minutes分钟前同步';
+  return '较久未同步';
+}
+
+String? _pairExpiryLabel(FamilySessionConnection connection) {
+  final expiresAt = connection.pairExpiresAt;
+  if (expiresAt == null) return null;
+  final remaining = expiresAt.difference(DateTime.now());
+  if (remaining <= Duration.zero) return '已过期';
+  final minutes = remaining.inMinutes;
+  final seconds = remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '$minutes:$seconds 后失效';
+}
+
+String _sessionSuffix(FamilySessionConnection connection) {
+  final value = connection.sessionId.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+  if (value.length <= 4) return value.toUpperCase();
+  return value.substring(value.length - 4).toUpperCase();
+}
+
+String _cueTimeLabel(FamilySessionCoordinator coordinator, CompanionCue cue) {
+  final event = coordinator.events
+      .where((item) => item.eventId == cue.eventId)
+      .firstOrNull;
+  if (event == null) return '时间未知';
+  final local = event.occurredAt.toLocal();
+  final now = DateTime.now();
+  final difference = now.difference(local);
+  if (difference.isNegative || difference.inMinutes < 1) return '刚刚';
+  if (difference.inMinutes < 60) return '${difference.inMinutes}分钟前';
+  if (difference.inHours < 24 && local.day == now.day) {
+    return '${difference.inHours}小时前';
+  }
+  if (difference.inHours < 48) {
+    return '昨天 ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
+  return '${local.month}月${local.day}日';
 }
 
 String _eventLabel(String type) => switch (type) {
@@ -881,5 +1238,29 @@ String _eventLabel(String type) => switch (type) {
   'completed_safe_route_stop' => '完成安全路线任务',
   'mission_received' => '收到家长共同任务',
   'mission_completed' => '完成家长共同任务',
+  'mission_help_requested' => '向家长请求任务帮助',
+  'mission_deferred' => '告诉家长稍后再做',
   _ => '完成探索步骤',
+};
+
+IconData _eventIcon(String type) => switch (type) {
+  'captured_sound' || 'imported_sound' => Icons.mic_none_rounded,
+  'replayed_audio' => Icons.replay_rounded,
+  'completed_observation' || 'compared_evidence' => Icons.search_rounded,
+  'accepted_uncertainty' => Icons.help_outline_rounded,
+  'retried_recording' => Icons.refresh_rounded,
+  'completed_safe_route_stop' => Icons.route_outlined,
+  'mission_received' => Icons.mark_email_read_outlined,
+  'mission_completed' => Icons.task_alt_rounded,
+  'mission_help_requested' => Icons.handshake_outlined,
+  'mission_deferred' => Icons.schedule_rounded,
+  _ => Icons.eco_outlined,
+};
+
+Color _eventColor(String type) => switch (type) {
+  'mission_completed' => const Color(0xFF1F6B4F),
+  'mission_help_requested' => const Color(0xFF9A4F32),
+  'mission_deferred' => const Color(0xFF856018),
+  'mission_received' => const Color(0xFF315D4A),
+  _ => const Color(0xFF52615A),
 };

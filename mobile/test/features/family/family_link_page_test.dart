@@ -17,8 +17,12 @@ void main() {
     );
     await tester.pump();
 
+    expect(find.text('儿童探索端'), findsOneWidget);
+    expect(find.byKey(const Key('family-connected-status')), findsOneWidget);
+    expect(find.textContaining('儿童探索端已连接'), findsNothing);
     expect(find.text('孩子主动回听了声音'), findsOneWidget);
     expect(find.textContaining('又认真听了一遍'), findsOneWidget);
+    expect(find.text('8月26日'), findsOneWidget);
     expect(find.text('现在可以说'), findsNothing);
     expect(find.text('肯定主动求证的行为。'), findsNothing);
     await tester.tap(find.byKey(const Key('open-companion-cue-reason')));
@@ -27,7 +31,11 @@ void main() {
     expect(find.text('肯定主动求证的行为。'), findsOneWidget);
     await tester.tap(find.byType(ModalBarrier).last);
     await tester.pumpAndSettle();
-    expect(find.text('发送共同任务'), findsOneWidget);
+    expect(find.text('当前共同任务'), findsOneWidget);
+    expect(
+      find.byKey(const Key('family-mission-compare_high_low_sound')),
+      findsNothing,
+    );
     await tester.scrollUntilVisible(
       find.byKey(const Key('family-mission-delivery-status')),
       180,
@@ -85,6 +93,30 @@ void main() {
     expect(find.text('这是儿童探索设备'), findsNothing);
     expect(find.byKey(const Key('family-pair-code-field')), findsNothing);
     expect(find.byKey(const Key('family-companion-settings')), findsOneWidget);
+  });
+
+  testWidgets('pending confirmation keeps its icon beside the phase title', (
+    tester,
+  ) async {
+    final coordinator = _PendingParentCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FamilyLinkPage(
+          coordinator: coordinator,
+          preferredRole: FamilyDeviceRole.parent,
+        ),
+      ),
+    );
+
+    expect(find.text('儿童设备等待确认'), findsOneWidget);
+    expect(find.text('核对无误后确认本次临时连接'), findsOneWidget);
+    expect(find.byKey(const Key('family-pairing-phase-icon')), findsOneWidget);
+    expect(find.text('连接码'), findsOneWidget);
+    expect(find.byKey(const Key('family-pair-expiry')), findsOneWidget);
+    expect(find.byKey(const Key('copy-family-pair-code')), findsOneWidget);
+    expect(find.byKey(const Key('share-family-pair-code')), findsOneWidget);
+    expect(find.textContaining('临时连接尾号'), findsOneWidget);
   });
 
   testWidgets('companion settings keeps AI usage away from praise', (
@@ -155,8 +187,75 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.byKey(const Key('copy-family-ai-response')), findsOneWidget);
     },
   );
+
+  testWidgets('AI guidance stays compact before the first exploration event', (
+    tester,
+  ) async {
+    final coordinator = _EmptyParentCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(home: FamilyLinkPage(coordinator: coordinator)),
+    );
+
+    expect(find.byKey(const Key('family-ai-waiting-strip')), findsOneWidget);
+    expect(
+      find.byKey(const Key('generate-family-session-ai-guidance')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('ending a family exploration requires confirmation', (
+    tester,
+  ) async {
+    final coordinator = _FakeCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(home: FamilyLinkPage(coordinator: coordinator)),
+    );
+    await tester.scrollUntilVisible(
+      find.text('结束本次家庭探索'),
+      260,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('结束本次家庭探索'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('结束本次家庭探索'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('结束这次家庭探索？'), findsOneWidget);
+    expect(find.textContaining('已经保存的录音'), findsOneWidget);
+    await tester.tap(find.text('继续探索'));
+    await tester.pumpAndSettle();
+    expect(find.text('结束这次家庭探索？'), findsNothing);
+  });
+
+  testWidgets('child can ask for help with the active family mission', (
+    tester,
+  ) async {
+    final coordinator = _ChildTaskCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: FamilyLinkPage(
+          coordinator: coordinator,
+          preferredRole: FamilyDeviceRole.child,
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('complete-family-mission')), findsOneWidget);
+    expect(
+      find.byKey(const Key('request-family-mission-help')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('defer-family-mission')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('request-family-mission-help')));
+    await tester.pump();
+    expect(find.textContaining('我需要帮助'), findsOneWidget);
+  });
 }
 
 class _FakeGuidanceService extends ParentGuidanceNetworkService {
@@ -225,6 +324,9 @@ class _FakeCoordinator extends FamilySessionCoordinator {
   List<FamilyCommand> get commands => [_command];
 
   @override
+  FamilyCommand get activeMission => _command;
+
+  @override
   bool missionReceived(String commandId) => commandId == _command.commandId;
 
   @override
@@ -244,5 +346,65 @@ class _UnlinkedCoordinator extends FamilySessionCoordinator {
   @override
   Future<void> joinAsChild(String pairCode) async {
     joinedCode = pairCode;
+  }
+}
+
+class _PendingParentCoordinator extends FamilySessionCoordinator {
+  final _connection = FamilySessionConnection(
+    sessionId: 'family-pending',
+    role: FamilyDeviceRole.parent,
+    status: FamilySessionStatus.pendingApproval,
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+    pairCode: '461837',
+    pairExpiresAt: DateTime.now().add(const Duration(minutes: 4)),
+  );
+
+  @override
+  FamilySessionConnection get connection => _connection;
+}
+
+class _EmptyParentCoordinator extends FamilySessionCoordinator {
+  final _connection = FamilySessionConnection(
+    sessionId: 'family-empty-parent',
+    role: FamilyDeviceRole.parent,
+    status: FamilySessionStatus.active,
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+  );
+
+  @override
+  FamilySessionConnection get connection => _connection;
+}
+
+class _ChildTaskCoordinator extends FamilySessionCoordinator {
+  final _connection = FamilySessionConnection(
+    sessionId: 'family-child-task',
+    role: FamilyDeviceRole.child,
+    status: FamilySessionStatus.active,
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+  );
+  final _command = FamilyCommand(
+    commandId: 'child-command-1',
+    templateId: 'compare_high_low_sound',
+    sequence: 1,
+    createdAt: DateTime.now(),
+  );
+  bool helpRequested = false;
+
+  @override
+  FamilySessionConnection get connection => _connection;
+
+  @override
+  List<FamilyCommand> get commands => [_command];
+
+  @override
+  FamilyCommand get activeMission => _command;
+
+  @override
+  bool missionHelpRequested(String commandId) => helpRequested;
+
+  @override
+  Future<void> requestMissionHelp() async {
+    helpRequested = true;
+    notifyListeners();
   }
 }

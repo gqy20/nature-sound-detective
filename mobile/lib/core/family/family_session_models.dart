@@ -112,19 +112,27 @@ class FamilyExplorationEvent {
   final DateTime occurredAt;
   final Map<String, Object?> payload;
 
-  factory FamilyExplorationEvent.fromJson(Map<String, Object?> json) =>
-      FamilyExplorationEvent(
-        eventId: json['event_id'] as String? ?? '',
-        sequence: (json['sequence'] as num?)?.toInt() ?? 0,
-        type: json['event_type'] as String? ?? '',
-        occurredAt:
-            DateTime.tryParse(json['occurred_at'] as String? ?? '') ??
-            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-        payload: switch (json['payload']) {
-          Map<Object?, Object?> value => value.cast<String, Object?>(),
-          _ => const {},
-        },
-      );
+  factory FamilyExplorationEvent.fromJson(Map<String, Object?> json) {
+    final payload = switch (json['payload']) {
+      Map<Object?, Object?> value => value.cast<String, Object?>(),
+      _ => const <String, Object?>{},
+    };
+    final wireType = json['event_type'] as String? ?? '';
+    final type = switch (payload['mission_response']) {
+      'help' => 'mission_help_requested',
+      'deferred' => 'mission_deferred',
+      _ => wireType,
+    };
+    return FamilyExplorationEvent(
+      eventId: json['event_id'] as String? ?? '',
+      sequence: (json['sequence'] as num?)?.toInt() ?? 0,
+      type: type,
+      occurredAt:
+          DateTime.tryParse(json['occurred_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      payload: payload,
+    );
+  }
 
   Map<String, Object?> toJson() => {
     'event_id': eventId,
@@ -133,6 +141,21 @@ class FamilyExplorationEvent {
     'occurred_at': occurredAt.toUtc().toIso8601String(),
     'payload': payload,
   };
+
+  Map<String, Object?> toTransportJson() {
+    final (wireType, response) = switch (type) {
+      'mission_help_requested' => ('accepted_uncertainty', 'help'),
+      'mission_deferred' => ('completed_observation', 'deferred'),
+      _ => (type, null),
+    };
+    return {
+      'event_id': eventId,
+      'sequence': sequence,
+      'event_type': wireType,
+      'occurred_at': occurredAt.toUtc().toIso8601String(),
+      'payload': {...payload, 'mission_response': ?response},
+    };
+  }
 }
 
 extension FamilyExplorationEventBehavior on FamilyExplorationEvent {
@@ -145,6 +168,8 @@ extension FamilyExplorationEventBehavior on FamilyExplorationEvent {
     'accepted_uncertainty' => ExplorationBehavior.acceptedUncertainty,
     'retried_recording' => ExplorationBehavior.retriedRecording,
     'completed_safe_route_stop' => ExplorationBehavior.observedSafely,
+    'mission_help_requested' => ExplorationBehavior.acceptedUncertainty,
+    'mission_deferred' => ExplorationBehavior.completedObservation,
     _ => null,
   };
 }
@@ -222,6 +247,14 @@ class CompanionCueEngine {
 
   CompanionCue? _fromEvent(FamilyExplorationEvent event) =>
       switch (event.type) {
+        'mission_help_requested' => CompanionCue(
+          eventId: event.eventId,
+          behavior: ExplorationBehavior.acceptedUncertainty,
+          title: '孩子希望一起完成任务',
+          say: '这个任务有点难，我们可以一起找第一条线索。',
+          explanation: '回应求助并提供支架，而不是直接替孩子完成。',
+          priority: 105,
+        ),
         'accepted_uncertainty' => CompanionCue(
           eventId: event.eventId,
           behavior: ExplorationBehavior.acceptedUncertainty,
@@ -285,6 +318,14 @@ class CompanionCueEngine {
           say: '你把刚才听见的声音保存下来，让发现有了可以回听的证据。',
           explanation: '把录音理解成留下证据，而不是完成任务打卡。',
           priority: 30,
+        ),
+        'mission_deferred' => CompanionCue(
+          eventId: event.eventId,
+          behavior: ExplorationBehavior.completedObservation,
+          title: '孩子想稍后再做共同任务',
+          say: '没关系，先按你的节奏探索，准备好以后我们再一起做。',
+          explanation: '尊重孩子当下的注意力，不把共同任务变成催促。',
+          priority: 45,
         ),
         'mission_received' => CompanionCue(
           eventId: event.eventId,

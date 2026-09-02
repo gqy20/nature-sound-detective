@@ -136,7 +136,7 @@ class FamilySessionService {
           _uri('/api/family-sessions/$sessionId/events/batch'),
           headers: await _headers(json: true),
           body: jsonEncode({
-            'events': events.map((event) => event.toJson()).toList(),
+            'events': events.map((event) => event.toTransportJson()).toList(),
           }),
         )
         .timeout(const Duration(seconds: 12));

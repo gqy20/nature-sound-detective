@@ -196,6 +196,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('connected child sees the active family mission on home', (
+    tester,
+  ) async {
+    final coordinator = _ConnectedChildMissionCoordinator();
+    addTearDown(coordinator.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CapturePage(
+          mode: ExplorationMode.child,
+          familySessionCoordinator: coordinator,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('child-home-mission-card')), findsOneWidget);
+    expect(find.text('比较高处和低处的声音'), findsOneWidget);
+    expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isTrue);
+
+    coordinator.completeMission();
+    await tester.pump();
+    expect(find.byKey(const Key('child-home-mission-card')), findsNothing);
+    expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isFalse);
+  });
+
   testWidgets('small screen with 200 percent text keeps capture usable', (
     tester,
   ) async {
@@ -291,4 +316,40 @@ class _ConnectedParentCoordinator extends FamilySessionCoordinator {
     explanation: '肯定主动求证。',
     priority: 55,
   );
+}
+
+class _ConnectedChildMissionCoordinator extends FamilySessionCoordinator {
+  final _connection = FamilySessionConnection(
+    sessionId: 'family-session-child',
+    role: FamilyDeviceRole.child,
+    status: FamilySessionStatus.active,
+    expiresAt: DateTime.now().add(const Duration(hours: 1)),
+  );
+  final _command = FamilyCommand(
+    commandId: 'mission-child-1',
+    templateId: 'compare_high_low_sound',
+    sequence: 1,
+    createdAt: DateTime.now(),
+  );
+  bool _completed = false;
+
+  @override
+  FamilySessionConnection get connection => _connection;
+
+  @override
+  List<FamilyCommand> get commands => [_command];
+
+  @override
+  FamilyCommand? get activeMission => _completed ? null : _command;
+
+  @override
+  bool get hasPendingMission => !_completed;
+
+  @override
+  bool missionCompleted(String commandId) => _completed;
+
+  void completeMission() {
+    _completed = true;
+    notifyListeners();
+  }
 }
